@@ -24,10 +24,12 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly TooltipHelper _tooltipHelper;
     private ShowContext? _context;
 
-    public GameSessionViewModel()
+    public GameSessionViewModel(string? cheminDb = null)
     {
-        var cheminDb = Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db");
-        var factory = new SqliteConnectionFactory($"Data Source={cheminDb}");
+        var cheminFinal = string.IsNullOrWhiteSpace(cheminDb)
+            ? Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db")
+            : cheminDb;
+        var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
         _repository = new GameRepository(factory);
         _repository.Initialiser();
         _segmentLabels = ChargerSegmentTypes();
