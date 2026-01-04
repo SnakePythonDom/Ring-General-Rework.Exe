@@ -1,0 +1,31 @@
+{
+  "meta": {"langue": "fr", "pageId": "editeur-db", "titre": "Éditeur DB"},
+  "onglets": [
+    {"id": "tables", "libelle": "Tables"},
+    {"id": "enregistrements", "libelle": "Enregistrements"}
+  ],
+  "tables": [
+    {
+      "id": "liste_tables",
+      "libelle": "Tables",
+      "colonnes": ["Nom", "Description", "Enregistrements", "Statut"]
+    }
+  ],
+  "filtres": ["Nom", "Statut"],
+  "panneauDetail": {
+    "sections": ["Schéma", "Prévisualisation", "Contraintes"]
+  },
+  "actions": [
+    {"id": "creer_enregistrement", "libelle": "Créer un enregistrement"},
+    {"id": "exporter_table", "libelle": "Exporter la table"}
+  ],
+  "validations": [
+    {"id": "db.table", "message": "Sélectionnez une table."}
+  ],
+  "warnings": ["Modification directe : risque de corruption de données."],
+  "etatVide": "Aucune table disponible.",
+  "tooltips": [
+    {"id": "schema", "libelle": "Schéma", "texte": "Définitions des champs et types."}
+  ],
+  "messagesErreur": ["Impossible de charger l'éditeur DB."]
+}

@@ -1,0 +1,31 @@
+{
+  "meta": {"langue": "fr", "pageId": "finances", "titre": "Finances"},
+  "onglets": [
+    {"id": "resume", "libelle": "Résumé"},
+    {"id": "revenus", "libelle": "Revenus"},
+    {"id": "depenses", "libelle": "Dépenses"}
+  ],
+  "tables": [
+    {
+      "id": "flux_financiers",
+      "libelle": "Flux financiers",
+      "colonnes": ["Semaine", "Revenus", "Dépenses", "Résultat", "Trésorerie"]
+    }
+  ],
+  "filtres": ["Période", "Catégorie"],
+  "panneauDetail": {
+    "sections": ["Détails", "Prévisions", "Alertes"]
+  },
+  "actions": [
+    {"id": "exporter", "libelle": "Exporter"}
+  ],
+  "validations": [
+    {"id": "finances.periode", "message": "La période est requise."}
+  ],
+  "warnings": ["Trésorerie en baisse continue."],
+  "etatVide": "Aucun flux financier à afficher.",
+  "tooltips": [
+    {"id": "tresorerie", "libelle": "Trésorerie", "texte": "Solde disponible après opérations."}
+  ],
+  "messagesErreur": ["Impossible de charger les finances."]
+}

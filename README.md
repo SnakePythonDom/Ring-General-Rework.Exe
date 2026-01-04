@@ -1,5 +1,9 @@
 # Ring General Rework — Vision Produit (FR)
 
+## Source de vérité
+Toutes les spécifications officielles (UI, modèles, boucle hebdo, booking, impacts, services) sont désormais la source de vérité dans le dossier `/specs`.
+Merci de vous référer aux fichiers JSON en français de ce dossier pour toute mise à jour.
+
 ## 1) Vision produit (TEW/PWS + FM26)
 
 > Les spécifications détaillées (navigation, onglets par page, attributs, Youth, boucle hebdo)

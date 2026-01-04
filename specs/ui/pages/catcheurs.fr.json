@@ -1,0 +1,32 @@
+{
+  "meta": {"langue": "fr", "pageId": "catcheurs", "titre": "Catcheurs"},
+  "onglets": [
+    {"id": "tous", "libelle": "Tous"},
+    {"id": "actifs", "libelle": "Actifs"},
+    {"id": "blesses", "libelle": "Blessés"}
+  ],
+  "tables": [
+    {
+      "id": "liste_catcheurs",
+      "libelle": "Roster catcheurs",
+      "colonnes": ["Nom", "Rôle", "Popularité", "Momentum", "Contrat", "Statut médical"]
+    }
+  ],
+  "filtres": ["Rôle", "Division", "Popularité", "Statut contrat"],
+  "panneauDetail": {
+    "sections": ["Profil", "Attributs", "Historique", "Notes récentes"]
+  },
+  "actions": [
+    {"id": "proposer_contrat", "libelle": "Proposer un contrat"},
+    {"id": "ajouter_storyline", "libelle": "Ajouter à une storyline"}
+  ],
+  "validations": [
+    {"id": "catcheur.selection", "message": "Sélectionnez un catcheur."}
+  ],
+  "warnings": ["Certains catcheurs sont surchargés cette semaine."],
+  "etatVide": "Aucun catcheur dans le roster.",
+  "tooltips": [
+    {"id": "momentum", "libelle": "Momentum", "texte": "Tendance de performance récente du catcheur."}
+  ],
+  "messagesErreur": ["Impossible de charger les catcheurs."]
+}

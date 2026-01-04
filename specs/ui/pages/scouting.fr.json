@@ -1,0 +1,32 @@
+{
+  "meta": {"langue": "fr", "pageId": "scouting", "titre": "Scouting"},
+  "onglets": [
+    {"id": "prospects", "libelle": "Prospects"},
+    {"id": "shortlist", "libelle": "Shortlist"},
+    {"id": "generateur", "libelle": "Générateur"}
+  ],
+  "tables": [
+    {
+      "id": "liste_prospects",
+      "libelle": "Prospects",
+      "colonnes": ["Nom", "Potentiel", "Spécialité", "Région", "Statut"]
+    }
+  ],
+  "filtres": ["Région", "Potentiel", "Spécialité"],
+  "panneauDetail": {
+    "sections": ["Profil", "Rapport", "Recommandation"]
+  },
+  "actions": [
+    {"id": "demander_rapport", "libelle": "Demander un rapport"},
+    {"id": "ajouter_shortlist", "libelle": "Ajouter à la shortlist"}
+  ],
+  "validations": [
+    {"id": "scouting.selection", "message": "Sélectionnez un prospect."}
+  ],
+  "warnings": ["Rapports de scouting en retard."],
+  "etatVide": "Aucun prospect disponible.",
+  "tooltips": [
+    {"id": "potentiel", "libelle": "Potentiel", "texte": "Estimation du plafond de performance."}
+  ],
+  "messagesErreur": ["Impossible de charger le scouting."]
+}

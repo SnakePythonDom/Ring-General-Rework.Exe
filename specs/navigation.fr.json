@@ -1,80 +1,157 @@
 {
-  "version": "1.0",
-  "lang": "fr",
+  "meta": {
+    "langue": "fr",
+    "sourceDeVerite": "specs",
+    "styleUI": "FM26"
+  },
+  "topbar": {
+    "actionsGlobales": [
+      {"id": "topbar.recherche", "libelle": "Recherche", "tooltip": "Rechercher n'importe quel élément (catcheur, show, contrat, segment, histoire)."},
+      {"id": "topbar.notifications", "libelle": "Notifications", "tooltip": "Voir les alertes critiques et messages système."},
+      {"id": "topbar.raccourcis", "libelle": "Raccourcis", "tooltip": "Accès rapide aux dernières pages consultées."},
+      {"id": "topbar.parametres", "libelle": "Paramètres", "tooltip": "Configurer l'interface et les options de jeu."}
+    ],
+    "indicateurs": [
+      {"id": "topbar.calendrier", "libelle": "Semaine", "format": "YYYY-SW"},
+      {"id": "topbar.finances", "libelle": "Trésorerie", "format": "monetaire"},
+      {"id": "topbar.audience", "libelle": "Audience", "format": "pourcentage"}
+    ]
+  },
+  "sidebar": {
+    "sections": [
+      {
+        "id": "nav.dashboard",
+        "libelle": "Tableau de bord",
+        "icone": "dashboard",
+        "route": "/dashboard"
+      },
+      {
+        "id": "nav.inbox",
+        "libelle": "Boîte de réception",
+        "icone": "inbox",
+        "route": "/inbox"
+      },
+      {
+        "id": "nav.actualites",
+        "libelle": "Actualités",
+        "icone": "news",
+        "route": "/actualites"
+      },
+      {
+        "id": "nav.compagnie",
+        "libelle": "Ma compagnie",
+        "icone": "company",
+        "sousSections": [
+          {"id": "nav.compagnie.profil", "libelle": "Profil", "route": "/compagnie"},
+          {"id": "nav.compagnie.finances", "libelle": "Finances", "route": "/finances"},
+          {"id": "nav.compagnie.diffusion", "libelle": "Diffusion", "route": "/diffusion"},
+          {"id": "nav.compagnie.sponsors", "libelle": "Sponsors", "route": "/sponsors"},
+          {"id": "nav.compagnie.billetterie", "libelle": "Billetterie", "route": "/billetterie"}
+        ]
+      },
+      {
+        "id": "nav.roster",
+        "libelle": "Roster",
+        "icone": "roster",
+        "sousSections": [
+          {"id": "nav.roster.catcheurs", "libelle": "Catcheurs", "route": "/catcheurs"},
+          {"id": "nav.roster.staff", "libelle": "Staff", "route": "/staff"},
+          {"id": "nav.roster.contrats", "libelle": "Contrats", "route": "/contrats"},
+          {"id": "nav.roster.medical", "libelle": "Médical", "route": "/medical"}
+        ]
+      },
+      {
+        "id": "nav.booking",
+        "libelle": "Booking",
+        "icone": "booking",
+        "sousSections": [
+          {"id": "nav.booking.booking", "libelle": "Booking", "route": "/booking"},
+          {"id": "nav.booking.storylines", "libelle": "Storylines", "route": "/storylines"},
+          {"id": "nav.booking.titres", "libelle": "Titres", "route": "/titres"},
+          {"id": "nav.booking.segments", "libelle": "Segments (bibliothèque)", "route": "/segments"},
+          {"id": "nav.booking.matchtypes", "libelle": "Types de match", "route": "/types-de-match"},
+          {"id": "nav.booking.shows", "libelle": "Shows", "route": "/shows"},
+          {"id": "nav.booking.calendrier", "libelle": "Calendrier", "route": "/calendrier"}
+        ]
+      },
+      {
+        "id": "nav.scouting",
+        "libelle": "Scouting",
+        "icone": "scouting",
+        "sousSections": [
+          {"id": "nav.scouting.scouting", "libelle": "Scouting", "route": "/scouting"},
+          {"id": "nav.scouting.youth", "libelle": "Youth", "route": "/youth"},
+          {"id": "nav.scouting.tryouts", "libelle": "Tryouts", "route": "/tryouts"},
+          {"id": "nav.scouting.prets", "libelle": "Prêts/Excursions", "route": "/prets"}
+        ]
+      },
+      {
+        "id": "nav.reseau",
+        "libelle": "Réseau",
+        "icone": "network",
+        "route": "/reseau",
+        "navigationDynamique": {
+          "source": "network.fr.json",
+          "groupes": [
+            {
+              "id": "nav.reseau.filiales",
+              "libelle": "Filiales",
+              "filtreRelation": "FILIALE"
+            },
+            {
+              "id": "nav.reseau.partenaires",
+              "libelle": "Partenaires",
+              "filtreRelation": "PARTENAIRE"
+            },
+            {
+              "id": "nav.reseau.territoires",
+              "libelle": "Territoires de développement",
+              "filtreRelation": "TERRITOIRE_DEV"
+            }
+          ],
+          "sousSectionModele": {
+            "id": "nav.reseau.entreprise.{companyId}",
+            "libelle": "{companyName}",
+            "route": "/reseau/{companyId}"
+          }
+        }
+      },
+      {
+        "id": "nav.relations",
+        "libelle": "Relations/Partenariats",
+        "icone": "relations",
+        "route": "/relations"
+      },
+      {
+        "id": "nav.db",
+        "libelle": "Éditeur DB",
+        "icone": "database",
+        "route": "/editeur-db"
+      },
+      {
+        "id": "nav.importexport",
+        "libelle": "Import/Export",
+        "icone": "importexport",
+        "route": "/import-export"
+      },
+      {
+        "id": "nav.parametres",
+        "libelle": "Paramètres",
+        "icone": "settings",
+        "route": "/parametres"
+      },
+      {
+        "id": "nav.aide",
+        "libelle": "Aide/Codex",
+        "icone": "help",
+        "route": "/aide"
+      }
+    ]
+  },
   "sections": [
-    {
-      "label": "Accueil",
-      "items": [
-        "Tableau de bord",
-        "Boîte de réception",
-        "Actualités"
-      ]
-    },
-    {
-      "label": "Compagnie",
-      "items": [
-        "Ma Compagnie",
-        "Règlement & Discipline",
-        "Marketing & Merch",
-        "Relations & Partenariats"
-      ]
-    },
-    {
-      "label": "Effectif",
-      "items": [
-        "Catcheurs",
-        "Staff",
-        "Équipes & Stables",
-        "Médical",
-        "Contrats"
-      ]
-    },
-    {
-      "label": "Créatif",
-      "items": [
-        "Booking",
-        "Storylines",
-        "Titres",
-        "Gimmicks & Personnages",
-        "Segments / Bibliothèque",
-        "Match Types",
-        "Plans créatifs"
-      ]
-    },
-    {
-      "label": "Événements",
-      "items": [
-        "Calendrier",
-        "Shows",
-        "Tournées & Lieux"
-      ]
-    },
-    {
-      "label": "Scout & Développement",
-      "items": [
-        "Scouting",
-        "Youth",
-        "Tryouts / Sélections",
-        "Prêts / Excursions"
-      ]
-    },
-    {
-      "label": "Business",
-      "items": [
-        "Finances",
-        "Diffusion",
-        "Sponsors",
-        "Billetterie"
-      ]
-    },
-    {
-      "label": "Base de données & Options",
-      "items": [
-        "Éditeur Base de données",
-        "Import / Export",
-        "Paramètres",
-        "Aide / Encyclopédie"
-      ]
-    }
+    {"id": "section.roster", "libelle": "Gestion du roster"},
+    {"id": "section.booking", "libelle": "Création de shows"},
+    {"id": "section.scouting", "libelle": "Développement des talents"},
+    {"id": "section.business", "libelle": "Business & diffusion"}
   ]
 }

@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "youth"
+  },
+  "typesStructure": [
+    "WRESTLING_SCHOOL",
+    "DOJO",
+    "PERFORMANCE_CENTER",
+    "ACADEMY",
+    "TERRITOIRE_DEVELOPPEMENT"
+  ],
+  "structure": {
+    "champs": [
+      {"id": "youthId", "libelle": "Identifiant Youth"},
+      {"id": "nom", "libelle": "Nom"},
+      {"id": "type", "libelle": "Type", "enum": ["WRESTLING_SCHOOL", "DOJO", "PERFORMANCE_CENTER", "ACADEMY", "TERRITOIRE_DEVELOPPEMENT"]},
+      {"id": "region", "libelle": "Région"},
+      {"id": "budgetAnnuel", "libelle": "Budget Youth", "format": "monetaire"},
+      {"id": "capaciteMax", "libelle": "Capacité maximale"},
+      {"id": "niveauEquipements", "libelle": "Niveau des équipements", "echelle": "1-5"}
+    ]
+  },
+  "staffAffecte": {
+    "roles": [
+      {"id": "entraineurPrincipal", "libelle": "Entraîneur principal"},
+      {"id": "coachTechnique", "libelle": "Coach technique"},
+      {"id": "coachPerformance", "libelle": "Coach performance"},
+      {"id": "agentLiaison", "libelle": "Agent de liaison"}
+    ],
+    "regles": [
+      "Un rôle doit être pourvu avant d'ouvrir une cohorte.",
+      "Un coach ne peut pas dépasser 2 structures simultanées."
+    ]
+  },
+  "programmes": {
+    "types": [
+      {"id": "fundamentaux", "libelle": "Fondamentaux"},
+      {"id": "specialisation", "libelle": "Spécialisation"},
+      {"id": "media", "libelle": "Média & promo"},
+      {"id": "conditionnement", "libelle": "Conditionnement"}
+    ],
+    "champs": [
+      {"id": "programmeId", "libelle": "ID programme"},
+      {"id": "nom", "libelle": "Nom"},
+      {"id": "dureeSemaines", "libelle": "Durée (semaines)"},
+      {"id": "focusAttributs", "libelle": "Focus attributs", "reference": "specs/models/attributes.fr.json"}
+    ]
+  },
+  "cohortes": {
+    "champs": [
+      {"id": "cohorteId", "libelle": "ID cohorte"},
+      {"id": "nom", "libelle": "Nom"},
+      {"id": "dateDebut", "libelle": "Date de début"},
+      {"id": "dateFin", "libelle": "Date de fin"},
+      {"id": "taille", "libelle": "Taille"},
+      {"id": "statut", "libelle": "Statut", "enum": ["EN_COURS", "TERMINEE", "SUSPENDUE"]}
+    ],
+    "regles": [
+      "Une cohorte ne peut pas dépasser la capacité maximale.",
+      "Un trainee ne peut pas appartenir à deux cohortes simultanément."
+    ]
+  },
+  "graduations": {
+    "criteres": [
+      {"id": "evaluationGlobal", "libelle": "Évaluation globale minimale", "seuil": 12},
+      {"id": "discipline", "libelle": "Discipline minimale", "seuil": 10},
+      {"id": "sante", "libelle": "État de santé", "seuil": "apte"}
+    ],
+    "actions": [
+      {"id": "promotionRoster", "libelle": "Promotion au roster principal"},
+      {"id": "pretExcursion", "libelle": "Prêt/Excursion"},
+      {"id": "prolongation", "libelle": "Prolongation de formation"}
+    ]
+  },
+  "pretsExcursions": {
+    "champs": [
+      {"id": "destination", "libelle": "Destination"},
+      {"id": "dureeSemaines", "libelle": "Durée (semaines)"},
+      {"id": "objectif", "libelle": "Objectif"},
+      {"id": "clauseRappel", "libelle": "Clause de rappel", "enum": ["AUCUNE", "7J", "30J"]}
+    ]
+  },
+  "budget": {
+    "lignes": [
+      {"id": "salaires", "libelle": "Salaires"},
+      {"id": "logistique", "libelle": "Logistique"},
+      {"id": "equipements", "libelle": "Équipements"},
+      {"id": "medical", "libelle": "Médical"}
+    ]
+  },
+  "evaluation": {
+    "regles": [
+      "Évaluation trimestrielle obligatoire.",
+      "Les rapports doivent inclure forces, faiblesses, et recommandation."
+    ],
+    "criteres": [
+      {"id": "progressionAttributs", "libelle": "Progression des attributs"},
+      {"id": "assiduite", "libelle": "Assiduité"},
+      {"id": "attitude", "libelle": "Attitude"}
+    ]
+  },
+  "etatsVides": {
+    "cohortes": "Aucune cohorte active.",
+    "staff": "Aucun staff affecté.",
+    "programmes": "Aucun programme défini."
+  },
+  "messagesErreur": {
+    "capacite": "Capacité maximale atteinte.",
+    "staffManquant": "Impossible d'ouvrir une cohorte sans staff affecté.",
+    "budgetInsuffisant": "Budget Youth insuffisant pour cette action."
+  }
+}
