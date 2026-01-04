@@ -33,6 +33,7 @@ public sealed class GameRepository
                 worker_id TEXT PRIMARY KEY,
                 nom TEXT NOT NULL,
                 prenom TEXT NOT NULL,
+                company_id TEXT,
                 in_ring INTEGER NOT NULL,
                 entertainment INTEGER NOT NULL,
                 story INTEGER NOT NULL,
@@ -46,7 +47,8 @@ public sealed class GameRepository
                 title_id TEXT PRIMARY KEY,
                 nom TEXT NOT NULL,
                 prestige INTEGER NOT NULL,
-                detenteur_id TEXT
+                detenteur_id TEXT,
+                company_id TEXT
             );
             CREATE TABLE IF NOT EXISTS storylines (
                 storyline_id TEXT PRIMARY KEY,
@@ -127,8 +129,15 @@ public sealed class GameRepository
                 valeur INTEGER NOT NULL,
                 UNIQUE(entity_type, entity_id, region)
             );
+            CREATE INDEX IF NOT EXISTS idx_workers_company ON workers(company_id);
+            CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
+            CREATE INDEX IF NOT EXISTS idx_contracts_enddate ON contracts(fin_semaine);
+            CREATE INDEX IF NOT EXISTS idx_contracts_company ON contracts(company_id);
+            CREATE INDEX IF NOT EXISTS idx_titles_company ON titles(company_id);
             """;
         commande.ExecuteNonQuery();
+
+        AssurerColonnesSupplementaires(connexion);
 
         using var countCommand = connexion.CreateCommand();
         countCommand.CommandText = "SELECT COUNT(1) FROM companies";
@@ -137,6 +146,30 @@ public sealed class GameRepository
         {
             SeedDatabase(connexion);
         }
+    }
+
+    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
+    {
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+    }
+
+    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        using var alterCommand = connexion.CreateCommand();
+        alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
+        alterCommand.ExecuteNonQuery();
     }
 
     public ShowContext ChargerShowContext(string showId)
@@ -369,6 +402,56 @@ public sealed class GameRepository
         }
 
         return items;
+    }
+
+    public string ChargerCompagnieIdPourShow(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT compagnie_id FROM shows WHERE show_id = $showId;";
+        command.Parameters.AddWithValue("$showId", showId);
+        return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
+    }
+
+    public IReadOnlyList<CompanyState> ChargerCompagnies()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT company_id, nom, region, prestige, tresorerie, audience_moyenne, reach
+            FROM companies;
+            """;
+        using var reader = command.ExecuteReader();
+        var compagnies = new List<CompanyState>();
+        while (reader.Read())
+        {
+            compagnies.Add(new CompanyState(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.GetDouble(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6)));
+        }
+
+        return compagnies;
+    }
+
+    public void AppliquerImpactCompagnie(string compagnieId, int deltaPrestige, double deltaTresorerie)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE companies
+            SET prestige = MAX(0, MIN(100, prestige + $deltaPrestige)),
+                tresorerie = tresorerie + $deltaTresorerie
+            WHERE company_id = $companyId;
+            """;
+        command.Parameters.AddWithValue("$deltaPrestige", deltaPrestige);
+        command.Parameters.AddWithValue("$deltaTresorerie", deltaTresorerie);
+        command.Parameters.AddWithValue("$companyId", compagnieId);
+        command.ExecuteNonQuery();
     }
 
     public void AjouterInboxItem(InboxItem item)
@@ -636,20 +719,20 @@ public sealed class GameRepository
         using var workersCommand = connexion.CreateCommand();
         workersCommand.Transaction = transaction;
         workersCommand.CommandText = """
-            INSERT INTO workers (worker_id, nom, prenom, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv)
+            INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv)
             VALUES
-            ('W-001', 'Dubois', 'Alex', 70, 62, 58, 55, 12, 'AUCUNE', 4, 'MAIN_EVENT'),
-            ('W-002', 'Martin', 'Leo', 64, 70, 65, 52, 18, 'AUCUNE', 2, 'UPPER_MID'),
-            ('W-003', 'Petit', 'Sarah', 68, 60, 72, 49, 20, 'AUCUNE', 1, 'MID'),
-            ('W-004', 'Roche', 'Maya', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID');
+            ('W-001', 'Dubois', 'Alex', 'COMP-001', 70, 62, 58, 55, 12, 'AUCUNE', 4, 'MAIN_EVENT'),
+            ('W-002', 'Martin', 'Leo', 'COMP-001', 64, 70, 65, 52, 18, 'AUCUNE', 2, 'UPPER_MID'),
+            ('W-003', 'Petit', 'Sarah', 'COMP-001', 68, 60, 72, 49, 20, 'AUCUNE', 1, 'MID'),
+            ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID');
             """;
         workersCommand.ExecuteNonQuery();
 
         using var titleCommand = connexion.CreateCommand();
         titleCommand.Transaction = transaction;
         titleCommand.CommandText = """
-            INSERT INTO titles (title_id, nom, prestige, detenteur_id)
-            VALUES ('T-001', 'Championnat Principal', 60, 'W-001');
+            INSERT INTO titles (title_id, nom, prestige, detenteur_id, company_id)
+            VALUES ('T-001', 'Championnat Principal', 60, 'W-001', 'COMP-001');
             """;
         titleCommand.ExecuteNonQuery();
 

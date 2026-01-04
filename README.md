@@ -171,6 +171,34 @@ Merci de vous référer aux fichiers JSON en français de ce dossier pour toute 
 - Repos / médical
 - Notes internes (privées)
 
+---
+
+## 4) Monde vivant (LOD) & performances (Phase 7)
+
+### Activer / régler le LOD mondial
+Le niveau de détail mondial est configurable via `specs/models/world-sim.fr.json` :
+- `nbCompagniesLod0` : nombre de compagnies simulées en **détaillé** (hors joueur).
+- `budgetMsParTick` : budget de temps par tick hebdomadaire.
+- `frequenceLod1Semaines` : fréquence des simulations **résumées**.
+- `frequenceLod2Semaines` : fréquence des simulations **statistiques**.
+- `seed` : graine pour le déterminisme (mêmes réglages = mêmes résultats).
+
+### Générer un monde de test (seed)
+Pour un monde reproductible :
+1. Choisir un `seed` dans `specs/models/world-sim.fr.json`.
+2. Lancer une nouvelle partie et avancer plusieurs semaines : les résultats mondiaux doivent rester cohérents.
+
+### Conseils perfs (200k workers)
+- Éviter tout chargement global de workers (requêtes ciblées uniquement).
+- Utiliser les index SQL sur `workers`, `contracts` et `titles`.
+- Surveiller les logs `[WorldSim]` pour le temps de simulation hebdo.
+
+### Publication .exe
+Commande recommandée :
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true
+```
+
 ### 3.6 Booking (cœur de jeu)
 **Onglets**
 - Carte du show
