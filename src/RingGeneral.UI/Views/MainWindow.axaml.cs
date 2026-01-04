@@ -69,6 +69,14 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnEnregistrerGeneration(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.EnregistrerParametresGeneration();
+        }
+    }
+
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);

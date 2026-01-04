@@ -46,10 +46,22 @@ public sealed class GameSessionViewModel : ViewModelBase
         ImpactPages = new ObservableCollection<ImpactPageViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
+        YouthGenerationModes = new[]
+        {
+            new YouthGenerationOptionViewModel("Désactivée", YouthGenerationMode.Desactivee),
+            new YouthGenerationOptionViewModel("Réaliste", YouthGenerationMode.Realiste),
+            new YouthGenerationOptionViewModel("Abondante", YouthGenerationMode.Abondante)
+        };
+        WorldGenerationModes = new[]
+        {
+            new WorldGenerationOptionViewModel("Désactivée", WorldGenerationMode.Desactivee),
+            new WorldGenerationOptionViewModel("Faible", WorldGenerationMode.Faible)
+        };
 
         ChargerShow();
         ChargerInbox();
         ChargerImpactsInitial();
+        ChargerParametresGeneration();
     }
 
     public ObservableCollection<SegmentViewModel> Segments { get; }
@@ -61,6 +73,37 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<ImpactPageViewModel> ImpactPages { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
+
+    public IReadOnlyList<YouthGenerationOptionViewModel> YouthGenerationModes { get; }
+    public IReadOnlyList<WorldGenerationOptionViewModel> WorldGenerationModes { get; }
+
+    public YouthGenerationOptionViewModel? YouthGenerationSelection
+    {
+        get => _youthGenerationSelection;
+        set => this.RaiseAndSetIfChanged(ref _youthGenerationSelection, value);
+    }
+    private YouthGenerationOptionViewModel? _youthGenerationSelection;
+
+    public WorldGenerationOptionViewModel? WorldGenerationSelection
+    {
+        get => _worldGenerationSelection;
+        set => this.RaiseAndSetIfChanged(ref _worldGenerationSelection, value);
+    }
+    private WorldGenerationOptionViewModel? _worldGenerationSelection;
+
+    public int SemainePivotAnnuelle
+    {
+        get => _semainePivotAnnuelle;
+        set => this.RaiseAndSetIfChanged(ref _semainePivotAnnuelle, value);
+    }
+    private int _semainePivotAnnuelle = 1;
+
+    public string? ParametresGenerationMessage
+    {
+        get => _parametresGenerationMessage;
+        private set => this.RaiseAndSetIfChanged(ref _parametresGenerationMessage, value);
+    }
+    private string? _parametresGenerationMessage;
 
     public IReadOnlyDictionary<string, string> Tooltips => _tooltipHelper.Tooltips;
 
@@ -167,6 +210,15 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerShow();
     }
 
+    public void EnregistrerParametresGeneration()
+    {
+        var youthMode = YouthGenerationSelection?.Mode ?? YouthGenerationMode.Realiste;
+        var worldMode = WorldGenerationSelection?.Mode ?? WorldGenerationMode.Desactivee;
+        var pivot = SemainePivotAnnuelle > 0 ? SemainePivotAnnuelle : null;
+        _repository.SauvegarderParametresGeneration(new WorkerGenerationOptions(youthMode, worldMode, pivot));
+        ParametresGenerationMessage = "Paramètres de génération enregistrés.";
+    }
+
     public void OuvrirAide(string pageId)
     {
         if (_helpPages.TryGetValue(pageId, out var page))
@@ -230,6 +282,14 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             Inbox.Add(new InboxItemViewModel(item));
         }
+    }
+
+    private void ChargerParametresGeneration()
+    {
+        var options = _repository.ChargerParametresGeneration();
+        YouthGenerationSelection = YouthGenerationModes.FirstOrDefault(mode => mode.Mode == options.YouthMode);
+        WorldGenerationSelection = WorldGenerationModes.FirstOrDefault(mode => mode.Mode == options.WorldMode);
+        SemainePivotAnnuelle = options.SemainePivotAnnuelle ?? 1;
     }
 
     private void MettreAJourAttributs()
@@ -423,3 +483,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         return spec.Types.ToDictionary(type => type.Id, type => type.Libelle);
     }
 }
+
+public sealed record YouthGenerationOptionViewModel(string Libelle, YouthGenerationMode Mode);
+
+public sealed record WorldGenerationOptionViewModel(string Libelle, WorldGenerationMode Mode);

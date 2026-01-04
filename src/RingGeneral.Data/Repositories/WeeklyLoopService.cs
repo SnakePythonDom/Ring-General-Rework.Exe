@@ -22,6 +22,14 @@ public sealed class WeeklyLoopService
         _repository.RecupererFatigueHebdo();
 
         var inboxItems = new List<InboxItem>();
+        var generation = GenererWorkers(semaine, showId);
+        if (generation is not null)
+        {
+            foreach (var notice in generation.Notices)
+            {
+                inboxItems.Add(new InboxItem(notice.Type, notice.Titre, notice.Contenu, semaine));
+            }
+        }
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
@@ -202,5 +210,50 @@ public sealed class WeeklyLoopService
         var json = File.ReadAllText(chemin);
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         return JsonSerializer.Deserialize<WorldSimSettings>(json, options) ?? WorldSimSettings.ParDefaut;
+    }
+
+    private WorkerGenerationReport? GenererWorkers(int semaine, string showId)
+    {
+        var spec = ChargerWorkerGenerationSpec();
+        var options = _repository.ChargerParametresGeneration();
+        if (options.YouthMode == YouthGenerationMode.Desactivee && options.WorldMode == WorldGenerationMode.Desactivee)
+        {
+            return null;
+        }
+
+        var show = _repository.ChargerShowDefinition(showId);
+        var structures = _repository.ChargerYouthStructuresPourGeneration();
+        var annee = ((semaine - 1) / 52) + 1;
+        var counters = _repository.ChargerGenerationCounters(annee);
+        var state = new GameState(semaine, show.CompagnieId, show.Region, options, structures, counters);
+        var seed = HashCode.Combine(showId, semaine, options.YouthMode, options.WorldMode, options.SemainePivotAnnuelle ?? 0);
+        var service = new WorkerGenerationService(new SeededRandomProvider(seed), spec);
+        var report = service.GenerateWeekly(state, seed);
+        if (report.Workers.Count > 0)
+        {
+            _repository.EnregistrerGeneration(report);
+        }
+
+        return report;
+    }
+
+    private static WorkerGenerationSpec ChargerWorkerGenerationSpec()
+    {
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "simulation", "worker-generation.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "simulation", "worker-generation.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            throw new FileNotFoundException("Impossible de trouver la spec de génération de workers.");
+        }
+
+        var json = File.ReadAllText(chemin);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<WorkerGenerationSpec>(json, options)
+               ?? throw new InvalidOperationException("Spec de génération de workers invalide.");
     }
 }
