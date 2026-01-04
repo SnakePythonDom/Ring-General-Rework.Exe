@@ -1,0 +1,32 @@
+{
+  "concept": [
+    "École de catch",
+    "Dojo",
+    "Performance Center",
+    "Academy",
+    "Territoire de développement"
+  ],
+  "structure": {
+    "fields": [
+      "type",
+      "philosophie",
+      "niveau_infrastructure",
+      "coachs",
+      "programmes",
+      "cohorte_eleves",
+      "shows_internes",
+      "pipeline_roster"
+    ],
+    "philosophies": [
+      "lucha",
+      "puro",
+      "entertainment",
+      "hybride"
+    ]
+  },
+  "logique": [
+    "Progression (potentiel + courbe)",
+    "Coachs influencent vitesse et type de progression",
+    "Seuil d’aptitude pour roster principal"
+  ]
+}

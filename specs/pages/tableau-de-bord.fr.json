@@ -1,0 +1,22 @@
+{
+  "page": "Tableau de bord",
+  "tabs": [
+    "Aperçu",
+    "Prochain show",
+    "Alertes",
+    "Objectifs",
+    "Performances"
+  ],
+  "widgets": [
+    "Résumé semaine (news + blessures + contrats + finances)",
+    "Storylines chaudes (Heat) / Momentum top & bottom",
+    "Prochain show (statut booking : % complet)",
+    "Alertes (fatigue, moral bas, contrat expire, injure)"
+  ],
+  "actions": [
+    "Passer à la semaine suivante",
+    "Aller au booking",
+    "Lire inbox",
+    "Action rapide (signer / tryout / créer storyline / book main event)"
+  ]
+}

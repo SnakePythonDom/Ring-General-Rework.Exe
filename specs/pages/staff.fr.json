@@ -1,0 +1,17 @@
+{
+  "page": "Staff",
+  "tabs": [
+    "Liste",
+    "Rôles",
+    "Compétences",
+    "Paie",
+    "Affectations",
+    "Shortlist"
+  ],
+  "actions": [
+    "Recruter staff",
+    "Assigner à Youth",
+    "Changer rôle",
+    "Renouveler"
+  ]
+}

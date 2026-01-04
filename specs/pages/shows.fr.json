@@ -1,0 +1,18 @@
+{
+  "page": "Shows",
+  "tabs": [
+    "Calendrier",
+    "À venir",
+    "Passés",
+    "Modèles",
+    "Lieux",
+    "Production"
+  ],
+  "actions": [
+    "Créer show",
+    "Dupliquer",
+    "Assigner diffusion",
+    "Fixer lieu",
+    "Aller au booking"
+  ]
+}
