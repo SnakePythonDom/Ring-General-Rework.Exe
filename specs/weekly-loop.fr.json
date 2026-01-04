@@ -1,13 +1,111 @@
 {
-  "title": "Boucle de jeu hebdomadaire",
-  "steps": [
-    "Boîte de réception",
-    "Scouting / Observations",
-    "Négociations",
-    "Préparation show",
-    "Show",
-    "Résultats",
-    "Gestion",
-    "Répétition"
-  ]
+  "meta": {
+    "langue": "fr",
+    "sourceDeVerite": "specs",
+    "cycle": "hebdomadaire"
+  },
+  "etapes": [
+    {
+      "id": "loop.inbox",
+      "libelle": "Boîte de réception",
+      "resume": "Traitement des messages entrants.",
+      "sorties": ["dossiers", "actionsRapides"],
+      "triggers": ["news", "blessures", "finsDeContrat", "rapportsScouting", "offresTV"]
+    },
+    {
+      "id": "loop.scouting",
+      "libelle": "Scouting",
+      "resume": "Recherche et évaluation de talents.",
+      "sorties": ["shortlists", "rapports"],
+      "triggers": ["rapportsScouting", "tryouts", "liveGeneration"]
+    },
+    {
+      "id": "loop.negos",
+      "libelle": "Négociations",
+      "resume": "Gestion des offres et contre-offres.",
+      "sorties": ["contrats", "refus"],
+      "triggers": ["offresContrat", "contreOffres", "expirations"]
+    },
+    {
+      "id": "loop.booking",
+      "libelle": "Booking",
+      "resume": "Construction de la carte du show.",
+      "sorties": ["carteShow", "segments"],
+      "triggers": ["changementDisponibilite", "demandeTV"]
+    },
+    {
+      "id": "loop.show",
+      "libelle": "Show",
+      "resume": "Exécution du show segment par segment.",
+      "sorties": ["resultatsShow", "incidents"],
+      "triggers": ["executionShow"]
+    },
+    {
+      "id": "loop.resultats",
+      "libelle": "Résultats",
+      "resume": "Compilation des notes et audiences.",
+      "sorties": ["notesSegments", "audience", "financesShow"],
+      "triggers": ["resultatsShow"]
+    },
+    {
+      "id": "loop.impacts",
+      "libelle": "Impacts",
+      "resume": "Application des changements sur l'écosystème.",
+      "sorties": ["popularite", "momentum", "fatigue", "morale"],
+      "triggers": ["impactsPostShow", "blessures"]
+    },
+    {
+      "id": "loop.gestion",
+      "libelle": "Gestion",
+      "resume": "Ajustements internes et planification.",
+      "sorties": ["ajustementsBudget", "restructurations"],
+      "triggers": ["alertesFinancieres", "departStaff"]
+    },
+    {
+      "id": "loop.nextweek",
+      "libelle": "Semaine suivante",
+      "resume": "Passage de semaine et génération des événements.",
+      "sorties": ["nouvelleSemaine"],
+      "triggers": ["generationHebdo"]
+    }
+  ],
+  "triggersEvenements": [
+    {
+      "id": "news",
+      "libelle": "Actualités",
+      "description": "Annonces publiques, rumeurs et communiqués officiels."
+    },
+    {
+      "id": "blessures",
+      "libelle": "Blessures",
+      "description": "Accidents en match ou à l'entraînement."
+    },
+    {
+      "id": "finsDeContrat",
+      "libelle": "Fins de contrat",
+      "description": "Contrats arrivant à échéance ou expirés."
+    },
+    {
+      "id": "rapportsScouting",
+      "libelle": "Rapports de scouting",
+      "description": "Évaluations périodiques des talents et prospects."
+    },
+    {
+      "id": "offresTV",
+      "libelle": "Offres TV",
+      "description": "Propositions de diffusion, renouvellement ou annulation."
+    }
+  ],
+  "reglesTransition": [
+    {
+      "id": "transition.standard",
+      "libelle": "Transition standard",
+      "condition": "Toutes les actions critiques validées.",
+      "messageErreur": "Impossible d'avancer : des actions critiques sont en attente."
+    }
+  ],
+  "etatVide": {
+    "libelle": "Aucune action requise cette semaine.",
+    "action": "Passer à la semaine suivante"
+  }
 }

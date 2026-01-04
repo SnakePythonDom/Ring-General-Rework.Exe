@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "contrats"
+  },
+  "typesContrat": ["CATCHEUR", "STAFF"],
+  "champsContrat": [
+    {"id": "contratId", "libelle": "ID contrat"},
+    {"id": "personneId", "libelle": "ID personne"},
+    {"id": "typeContrat", "libelle": "Type", "enum": ["CATCHEUR", "STAFF"]},
+    {"id": "dateDebut", "libelle": "Date de début"},
+    {"id": "dateFin", "libelle": "Date de fin"},
+    {"id": "salaireHebdo", "libelle": "Salaire hebdomadaire", "format": "monetaire"},
+    {"id": "exclusivite", "libelle": "Exclusivité", "enum": ["EXCLUSIF", "NON_EXCLUSIF"]},
+    {"id": "statut", "libelle": "Statut", "enum": ["ACTIF", "EXPIRE", "RESILIE"]},
+    {"id": "morale", "libelle": "Morale", "echelle": "0-100"}
+  ],
+  "clauses": [
+    {"id": "optionClub", "libelle": "Option du club"},
+    {"id": "optionTalent", "libelle": "Option du talent"},
+    {"id": "buyout", "libelle": "Clause de rachat"},
+    {"id": "noCut", "libelle": "Clause anti-licenciement"},
+    {"id": "bonusTitre", "libelle": "Bonus titre"}
+  ],
+  "negociation": {
+    "etapes": [
+      {"id": "offre", "libelle": "Offre initiale"},
+      {"id": "contreOffre", "libelle": "Contre-offre"},
+      {"id": "accord", "libelle": "Accord"},
+      {"id": "signature", "libelle": "Signature"}
+    ],
+    "champsOffre": [
+      {"id": "dureeMois", "libelle": "Durée (mois)"},
+      {"id": "salaireHebdo", "libelle": "Salaire hebdomadaire"},
+      {"id": "bonus", "libelle": "Bonus"},
+      {"id": "exclusivite", "libelle": "Exclusivité"},
+      {"id": "clauses", "libelle": "Clauses"}
+    ],
+    "regles": [
+      "Une contre-offre doit être traitée sous 2 semaines.",
+      "Une offre expirée ne peut pas être acceptée."
+    ]
+  },
+  "expirations": {
+    "alertes": [
+      {"id": "90j", "libelle": "Alerte 90 jours"},
+      {"id": "30j", "libelle": "Alerte 30 jours"},
+      {"id": "7j", "libelle": "Alerte 7 jours"}
+    ],
+    "actions": [
+      {"id": "renouveler", "libelle": "Proposer un renouvellement"},
+      {"id": "laisserPartir", "libelle": "Laisser partir"}
+    ]
+  },
+  "penalites": {
+    "types": [
+      {"id": "ruptureAnticipee", "libelle": "Rupture anticipée"},
+      {"id": "nonRespectExclusivite", "libelle": "Non-respect de l'exclusivité"}
+    ],
+    "regles": [
+      "Le buyout réduit la pénalité de rupture.",
+      "La morale baisse en cas de rupture unilatérale."
+    ]
+  },
+  "etatVide": {
+    "libelle": "Aucun contrat disponible.",
+    "messageErreur": "Impossible de charger les contrats."
+  }
+}

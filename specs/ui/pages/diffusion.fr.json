@@ -1,0 +1,30 @@
+{
+  "meta": {"langue": "fr", "pageId": "diffusion", "titre": "Diffusion"},
+  "onglets": [
+    {"id": "contrats", "libelle": "Contrats TV"},
+    {"id": "plateformes", "libelle": "Plateformes"}
+  ],
+  "tables": [
+    {
+      "id": "liste_diffusion",
+      "libelle": "Contrats de diffusion",
+      "colonnes": ["Diffuseur", "Type", "Début", "Fin", "Revenus", "Statut"]
+    }
+  ],
+  "filtres": ["Type", "Statut"],
+  "panneauDetail": {
+    "sections": ["Conditions", "Pénalités", "Audiences"]
+  },
+  "actions": [
+    {"id": "negocier", "libelle": "Négocier"}
+  ],
+  "validations": [
+    {"id": "diffusion.diffuseur", "message": "Le diffuseur est requis."}
+  ],
+  "warnings": ["Contrat TV expirant bientôt."],
+  "etatVide": "Aucun contrat de diffusion.",
+  "tooltips": [
+    {"id": "revenus", "libelle": "Revenus", "texte": "Revenus hebdomadaires estimés."}
+  ],
+  "messagesErreur": ["Impossible de charger la diffusion."]
+}

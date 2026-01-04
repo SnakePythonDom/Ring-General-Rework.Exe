@@ -1,0 +1,32 @@
+{
+  "meta": {"langue": "fr", "pageId": "youth", "titre": "Youth"},
+  "onglets": [
+    {"id": "structures", "libelle": "Structures"},
+    {"id": "cohortes", "libelle": "Cohortes"},
+    {"id": "programmes", "libelle": "Programmes"}
+  ],
+  "tables": [
+    {
+      "id": "liste_structures",
+      "libelle": "Structures Youth",
+      "colonnes": ["Nom", "Type", "Région", "Capacité", "Budget"]
+    }
+  ],
+  "filtres": ["Type", "Région"],
+  "panneauDetail": {
+    "sections": ["Staff affecté", "Cohortes", "Budget"]
+  },
+  "actions": [
+    {"id": "creer_structure", "libelle": "Créer une structure"},
+    {"id": "ouvrir_cohorte", "libelle": "Ouvrir une cohorte"}
+  ],
+  "validations": [
+    {"id": "structure.nom", "message": "Le nom de la structure est requis."}
+  ],
+  "warnings": ["Capacité atteinte dans une structure Youth."],
+  "etatVide": "Aucune structure Youth.",
+  "tooltips": [
+    {"id": "capacite", "libelle": "Capacité", "texte": "Nombre maximum de trainees."}
+  ],
+  "messagesErreur": ["Impossible de charger le Youth."]
+}

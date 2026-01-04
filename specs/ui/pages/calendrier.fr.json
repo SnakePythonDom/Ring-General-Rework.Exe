@@ -1,0 +1,31 @@
+{
+  "meta": {"langue": "fr", "pageId": "calendrier", "titre": "Calendrier"},
+  "onglets": [
+    {"id": "mensuel", "libelle": "Mensuel"},
+    {"id": "hebdo", "libelle": "Hebdomadaire"},
+    {"id": "vue_liste", "libelle": "Vue liste"}
+  ],
+  "tables": [
+    {
+      "id": "evenements",
+      "libelle": "Événements",
+      "colonnes": ["Date", "Type", "Nom", "Lieu", "Statut"]
+    }
+  ],
+  "filtres": ["Type", "Statut", "Région"],
+  "panneauDetail": {
+    "sections": ["Détails", "Conflits", "Ressources"]
+  },
+  "actions": [
+    {"id": "ajouter_evenement", "libelle": "Ajouter un événement"}
+  ],
+  "validations": [
+    {"id": "evenement.date", "message": "La date est obligatoire."}
+  ],
+  "warnings": ["Conflit de date avec un autre show."],
+  "etatVide": "Aucun événement planifié.",
+  "tooltips": [
+    {"id": "conflits", "libelle": "Conflits", "texte": "Indique les ressources indisponibles."}
+  ],
+  "messagesErreur": ["Impossible de charger le calendrier."]
+}

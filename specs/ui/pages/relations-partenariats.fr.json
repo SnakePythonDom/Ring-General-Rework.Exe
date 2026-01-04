@@ -1,0 +1,30 @@
+{
+  "meta": {"langue": "fr", "pageId": "relations-partenariats", "titre": "Relations/Partenariats"},
+  "onglets": [
+    {"id": "relations", "libelle": "Relations"},
+    {"id": "accords", "libelle": "Accords"}
+  ],
+  "tables": [
+    {
+      "id": "liste_relations",
+      "libelle": "Relations",
+      "colonnes": ["Entreprise", "Type", "Niveau", "Statut", "Confiance"]
+    }
+  ],
+  "filtres": ["Type", "Statut", "Région"],
+  "panneauDetail": {
+    "sections": ["Historique", "Clauses", "Opportunités"]
+  },
+  "actions": [
+    {"id": "proposer_partenaire", "libelle": "Proposer un partenariat"}
+  ],
+  "validations": [
+    {"id": "relation.type", "message": "Le type de relation est requis."}
+  ],
+  "warnings": ["Relation dégradée avec un partenaire clé."],
+  "etatVide": "Aucune relation enregistrée.",
+  "tooltips": [
+    {"id": "confiance", "libelle": "Confiance", "texte": "Mesure la solidité de la relation."}
+  ],
+  "messagesErreur": ["Impossible de charger les relations."]
+}
