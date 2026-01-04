@@ -64,7 +64,9 @@ public sealed class GameRepository
                 region TEXT NOT NULL,
                 duree INTEGER NOT NULL,
                 compagnie_id TEXT NOT NULL,
-                tv_deal_id TEXT
+                tv_deal_id TEXT,
+                lieu TEXT NOT NULL DEFAULT '',
+                diffusion TEXT NOT NULL DEFAULT ''
             );
             CREATE TABLE IF NOT EXISTS segments (
                 segment_id TEXT PRIMARY KEY,
@@ -206,6 +208,8 @@ public sealed class GameRepository
         AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
         AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
         AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
     }
 
     private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
@@ -255,6 +259,145 @@ public sealed class GameRepository
             worker => new WorkerHealth(worker.Fatigue, worker.Blessure));
 
         return new BookingPlan(context.Show.ShowId, segments, context.Show.DureeMinutes, etat);
+    }
+
+    public IReadOnlyList<ShowDefinition> ChargerShowsAVenir(string compagnieId, int semaineActuelle)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id, lieu, diffusion
+            FROM shows
+            WHERE compagnie_id = $compagnieId
+              AND semaine >= $semaine
+            ORDER BY semaine ASC;
+            """;
+        command.Parameters.AddWithValue("$compagnieId", compagnieId);
+        command.Parameters.AddWithValue("$semaine", semaineActuelle);
+        using var reader = command.ExecuteReader();
+        var shows = new List<ShowDefinition>();
+        while (reader.Read())
+        {
+            var lieu = reader.IsDBNull(7) ? reader.GetString(3) : reader.GetString(7);
+            if (string.IsNullOrWhiteSpace(lieu))
+            {
+                lieu = reader.GetString(3);
+            }
+
+            var diffusion = reader.IsDBNull(8) ? "Non défini" : reader.GetString(8);
+            if (string.IsNullOrWhiteSpace(diffusion))
+            {
+                diffusion = "Non défini";
+            }
+
+            shows.Add(new ShowDefinition(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetInt32(2),
+                reader.GetString(3),
+                reader.GetInt32(4),
+                reader.GetString(5),
+                reader.IsDBNull(6) ? null : reader.GetString(6),
+                lieu,
+                diffusion));
+        }
+
+        return shows;
+    }
+
+    public void CreerShow(ShowDefinition show)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO shows (show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id, lieu, diffusion)
+            VALUES ($showId, $nom, $semaine, $region, $duree, $compagnieId, $tvDealId, $lieu, $diffusion);
+            """;
+        command.Parameters.AddWithValue("$showId", show.ShowId);
+        command.Parameters.AddWithValue("$nom", show.Nom);
+        command.Parameters.AddWithValue("$semaine", show.Semaine);
+        command.Parameters.AddWithValue("$region", show.Region);
+        command.Parameters.AddWithValue("$duree", show.DureeMinutes);
+        command.Parameters.AddWithValue("$compagnieId", show.CompagnieId);
+        command.Parameters.AddWithValue("$tvDealId", (object?)show.DealTvId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$lieu", show.Lieu);
+        command.Parameters.AddWithValue("$diffusion", show.Diffusion);
+        command.ExecuteNonQuery();
+    }
+
+    public void AjouterSegment(string showId, SegmentDefinition segment, int ordre)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO segments (segment_id, show_id, ordre, type, duree, participants_json, storyline_id, title_id, main_event, intensite, vainqueur_id, perdant_id)
+            VALUES ($segmentId, $showId, $ordre, $type, $duree, $participants, $storylineId, $titleId, $mainEvent, $intensite, $vainqueurId, $perdantId);
+            """;
+        command.Parameters.AddWithValue("$segmentId", segment.SegmentId);
+        command.Parameters.AddWithValue("$showId", showId);
+        command.Parameters.AddWithValue("$ordre", ordre);
+        command.Parameters.AddWithValue("$type", segment.TypeSegment);
+        command.Parameters.AddWithValue("$duree", segment.DureeMinutes);
+        command.Parameters.AddWithValue("$participants", JsonSerializer.Serialize(segment.Participants, _jsonOptions));
+        command.Parameters.AddWithValue("$storylineId", (object?)segment.StorylineId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$titleId", (object?)segment.TitreId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$mainEvent", segment.EstMainEvent ? 1 : 0);
+        command.Parameters.AddWithValue("$intensite", segment.Intensite);
+        command.Parameters.AddWithValue("$vainqueurId", (object?)segment.VainqueurId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$perdantId", (object?)segment.PerdantId ?? DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public void MettreAJourSegment(SegmentDefinition segment)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE segments
+            SET type = $type,
+                duree = $duree,
+                participants_json = $participants,
+                storyline_id = $storylineId,
+                title_id = $titleId,
+                main_event = $mainEvent,
+                intensite = $intensite,
+                vainqueur_id = $vainqueurId,
+                perdant_id = $perdantId
+            WHERE segment_id = $segmentId;
+            """;
+        command.Parameters.AddWithValue("$segmentId", segment.SegmentId);
+        command.Parameters.AddWithValue("$type", segment.TypeSegment);
+        command.Parameters.AddWithValue("$duree", segment.DureeMinutes);
+        command.Parameters.AddWithValue("$participants", JsonSerializer.Serialize(segment.Participants, _jsonOptions));
+        command.Parameters.AddWithValue("$storylineId", (object?)segment.StorylineId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$titleId", (object?)segment.TitreId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$mainEvent", segment.EstMainEvent ? 1 : 0);
+        command.Parameters.AddWithValue("$intensite", segment.Intensite);
+        command.Parameters.AddWithValue("$vainqueurId", (object?)segment.VainqueurId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$perdantId", (object?)segment.PerdantId ?? DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public void MettreAJourOrdreSegments(string showId, IReadOnlyList<string> segmentIds)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        for (var i = 0; i < segmentIds.Count; i++)
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                UPDATE segments
+                SET ordre = $ordre
+                WHERE segment_id = $segmentId AND show_id = $showId;
+                """;
+            command.Parameters.AddWithValue("$ordre", i + 1);
+            command.Parameters.AddWithValue("$segmentId", segmentIds[i]);
+            command.Parameters.AddWithValue("$showId", showId);
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
     }
 
     public void EnregistrerRapport(ShowReport rapport)
@@ -873,15 +1016,27 @@ public sealed class GameRepository
     {
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT ShowId, Name, Week, RegionId, DurationMinutes, CompanyId, TvDealId
-            FROM Shows
-            WHERE ShowId = $showId;
+            SELECT show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id, lieu, diffusion
+            FROM shows
+            WHERE show_id = $showId;
             """;
         command.Parameters.AddWithValue("$showId", showId);
         using var reader = command.ExecuteReader();
         if (!reader.Read())
         {
             return null;
+        }
+
+        var lieu = reader.IsDBNull(7) ? reader.GetString(3) : reader.GetString(7);
+        if (string.IsNullOrWhiteSpace(lieu))
+        {
+            lieu = reader.GetString(3);
+        }
+
+        var diffusion = reader.IsDBNull(8) ? "Non défini" : reader.GetString(8);
+        if (string.IsNullOrWhiteSpace(diffusion))
+        {
+            diffusion = "Non défini";
         }
 
         return new ShowDefinition(
@@ -891,7 +1046,9 @@ public sealed class GameRepository
             reader.GetString(3),
             reader.GetInt32(4),
             reader.GetString(5),
-            reader.IsDBNull(6) ? null : reader.GetString(6));
+            reader.IsDBNull(6) ? null : reader.GetString(6),
+            lieu,
+            diffusion);
     }
 
     private static CompanyState? ChargerCompagnie(SqliteConnection connexion, string companyId)
@@ -1146,8 +1303,8 @@ public sealed class GameRepository
         using var showCommand = connexion.CreateCommand();
         showCommand.Transaction = transaction;
         showCommand.CommandText = """
-            INSERT INTO shows (show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id)
-            VALUES ('SHOW-001', 'Weekly Clash', 1, 'FR', 120, 'COMP-001', 'TV-001');
+            INSERT INTO shows (show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id, lieu, diffusion)
+            VALUES ('SHOW-001', 'Weekly Clash', 1, 'FR', 120, 'COMP-001', 'TV-001', 'Paris', 'Ring General TV');
             """;
         showCommand.ExecuteNonQuery();
 

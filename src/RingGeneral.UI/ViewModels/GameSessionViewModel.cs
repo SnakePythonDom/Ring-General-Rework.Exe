@@ -43,6 +43,12 @@ public sealed class GameSessionViewModel : ViewModelBase
         PourquoiNote = new ObservableCollection<string>();
         Conseils = new ObservableCollection<string>();
         ImpactPages = new ObservableCollection<ImpactPageViewModel>();
+        ShowsAVenir = new ObservableCollection<ShowCalendarItemViewModel>();
+        SegmentTypes = new ObservableCollection<SegmentTypeOptionViewModel>();
+        WorkersDisponibles = new ObservableCollection<ParticipantViewModel>();
+        ConsignesBooking = new ObservableCollection<string>();
+        RecapFm = new ObservableCollection<string>();
+        NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
         YouthGenerationModes = new[]
@@ -57,8 +63,12 @@ public sealed class GameSessionViewModel : ViewModelBase
             new WorldGenerationOptionViewModel("Faible", WorldGenerationMode.Faible)
         };
 
+        InitialiserSegmentTypes();
+        InitialiserConsignesBooking();
+        ChargerShow();
+        ChargerInbox();
         ChargerImpactsInitial();
-        ChargerParametresGeneration();
+        InitialiserNouveauShow();
     }
 
     public ObservableCollection<SegmentViewModel> Segments { get; }
@@ -68,6 +78,12 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<string> PourquoiNote { get; }
     public ObservableCollection<string> Conseils { get; }
     public ObservableCollection<ImpactPageViewModel> ImpactPages { get; }
+    public ObservableCollection<ShowCalendarItemViewModel> ShowsAVenir { get; }
+    public ObservableCollection<SegmentTypeOptionViewModel> SegmentTypes { get; }
+    public ObservableCollection<ParticipantViewModel> WorkersDisponibles { get; }
+    public ObservableCollection<string> ConsignesBooking { get; }
+    public ObservableCollection<string> RecapFm { get; }
+    public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
@@ -126,6 +142,69 @@ public sealed class GameSessionViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _validationAvertissements, value);
     }
     private string? _validationAvertissements;
+
+    public string? NouveauShowNom
+    {
+        get => _nouveauShowNom;
+        set => this.RaiseAndSetIfChanged(ref _nouveauShowNom, value);
+    }
+    private string? _nouveauShowNom;
+
+    public int NouveauShowSemaine
+    {
+        get => _nouveauShowSemaine;
+        set => this.RaiseAndSetIfChanged(ref _nouveauShowSemaine, value);
+    }
+    private int _nouveauShowSemaine;
+
+    public int NouveauShowDuree
+    {
+        get => _nouveauShowDuree;
+        set => this.RaiseAndSetIfChanged(ref _nouveauShowDuree, value);
+    }
+    private int _nouveauShowDuree;
+
+    public string? NouveauShowLieu
+    {
+        get => _nouveauShowLieu;
+        set => this.RaiseAndSetIfChanged(ref _nouveauShowLieu, value);
+    }
+    private string? _nouveauShowLieu;
+
+    public string? NouveauShowDiffusion
+    {
+        get => _nouveauShowDiffusion;
+        set => this.RaiseAndSetIfChanged(ref _nouveauShowDiffusion, value);
+    }
+    private string? _nouveauShowDiffusion;
+
+    public string? NouveauSegmentTypeId
+    {
+        get => _nouveauSegmentTypeId;
+        set => this.RaiseAndSetIfChanged(ref _nouveauSegmentTypeId, value);
+    }
+    private string? _nouveauSegmentTypeId;
+
+    public int NouveauSegmentDuree
+    {
+        get => _nouveauSegmentDuree;
+        set => this.RaiseAndSetIfChanged(ref _nouveauSegmentDuree, value);
+    }
+    private int _nouveauSegmentDuree = 8;
+
+    public bool NouveauSegmentMainEvent
+    {
+        get => _nouveauSegmentMainEvent;
+        set => this.RaiseAndSetIfChanged(ref _nouveauSegmentMainEvent, value);
+    }
+    private bool _nouveauSegmentMainEvent;
+
+    public string? NouveauSegmentParticipantId
+    {
+        get => _nouveauSegmentParticipantId;
+        set => this.RaiseAndSetIfChanged(ref _nouveauSegmentParticipantId, value);
+    }
+    private string? _nouveauSegmentParticipantId;
 
     public string? ResumeShow
     {
@@ -276,6 +355,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         ResumeShow = $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} • Billetterie {resultat.RapportShow.Billetterie:C}";
         MettreAJourAnalyseShow(resultat);
         MettreAJourImpacts(resultat);
+        MettreAJourRecapFm(resultat);
 
         var impactApplier = new ImpactApplier(_repository);
         var segmentResults = resultat.RapportShow.Segments
@@ -290,6 +370,187 @@ public sealed class GameSessionViewModel : ViewModelBase
         impactApplier.AppliquerImpacts(impactContext);
 
         ChargerShow();
+    }
+
+    public void CreerShow()
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var nom = string.IsNullOrWhiteSpace(NouveauShowNom) ? "Nouveau show" : NouveauShowNom.Trim();
+        var lieu = string.IsNullOrWhiteSpace(NouveauShowLieu) ? _context.Show.Region : NouveauShowLieu.Trim();
+        var diffusion = string.IsNullOrWhiteSpace(NouveauShowDiffusion) ? "À définir" : NouveauShowDiffusion.Trim();
+        var show = new ShowDefinition(
+            $"SHOW-{Guid.NewGuid():N}".ToUpperInvariant(),
+            nom,
+            NouveauShowSemaine,
+            _context.Show.Region,
+            NouveauShowDuree,
+            _context.Show.CompagnieId,
+            _context.Show.DealTvId,
+            lieu,
+            diffusion);
+
+        _repository.CreerShow(show);
+        ChargerCalendrier();
+        NouveauShowNom = null;
+        NouveauShowLieu = null;
+        NouveauShowDiffusion = null;
+    }
+
+    public void AjouterSegment()
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var type = string.IsNullOrWhiteSpace(NouveauSegmentTypeId)
+            ? SegmentTypes.FirstOrDefault()?.Id ?? "match"
+            : NouveauSegmentTypeId;
+        var participants = NouveauSegmentParticipants.Select(p => p.WorkerId).ToList();
+        var newSegment = new SegmentDefinition(
+            $"SEG-{Guid.NewGuid():N}".ToUpperInvariant(),
+            type,
+            participants,
+            Math.Max(1, NouveauSegmentDuree),
+            NouveauSegmentMainEvent,
+            null,
+            null,
+            60,
+            null,
+            null);
+
+        _repository.AjouterSegment(_context.Show.ShowId, newSegment, Segments.Count + 1);
+        NouveauSegmentParticipants.Clear();
+        NouveauSegmentTypeId = type;
+        NouveauSegmentDuree = 8;
+        NouveauSegmentMainEvent = false;
+        NouveauSegmentParticipantId = null;
+        ChargerShow();
+    }
+
+    public void EnregistrerSegment(SegmentViewModel segment)
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var updated = new SegmentDefinition(
+            segment.SegmentId,
+            segment.TypeSegment,
+            segment.Participants.Select(p => p.WorkerId).ToList(),
+            Math.Max(1, segment.DureeMinutes),
+            segment.EstMainEvent,
+            segment.StorylineId,
+            segment.TitreId,
+            segment.Intensite,
+            segment.VainqueurId,
+            segment.PerdantId);
+
+        _repository.MettreAJourSegment(updated);
+        ChargerShow();
+    }
+
+    public void CopierSegment(SegmentViewModel segment)
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var copie = new SegmentDefinition(
+            $"SEG-{Guid.NewGuid():N}".ToUpperInvariant(),
+            segment.TypeSegment,
+            segment.Participants.Select(p => p.WorkerId).ToList(),
+            segment.DureeMinutes,
+            segment.EstMainEvent,
+            segment.StorylineId,
+            segment.TitreId,
+            segment.Intensite,
+            segment.VainqueurId,
+            segment.PerdantId);
+
+        _repository.AjouterSegment(_context.Show.ShowId, copie, Segments.Count + 1);
+        ChargerShow();
+    }
+
+    public void DeplacerSegment(SegmentViewModel segment, int delta)
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var index = Segments.IndexOf(segment);
+        var target = index + delta;
+        if (index < 0 || target < 0 || target >= Segments.Count)
+        {
+            return;
+        }
+
+        Segments.Move(index, target);
+        _repository.MettreAJourOrdreSegments(_context.Show.ShowId, Segments.Select(s => s.SegmentId).ToList());
+        MettreAJourAvertissements();
+    }
+
+    public void AjouterParticipant(SegmentViewModel segment)
+    {
+        if (segment.ParticipantSelectionneeId is null)
+        {
+            return;
+        }
+
+        if (segment.Participants.Any(p => p.WorkerId == segment.ParticipantSelectionneeId))
+        {
+            return;
+        }
+
+        var worker = WorkersDisponibles.FirstOrDefault(p => p.WorkerId == segment.ParticipantSelectionneeId);
+        if (worker is null)
+        {
+            return;
+        }
+
+        segment.Participants.Add(new ParticipantViewModel(worker.WorkerId, worker.Nom));
+        segment.ParticipantSelectionneeId = null;
+        MettreAJourAvertissements();
+    }
+
+    public void RetirerParticipant(SegmentViewModel segment, ParticipantViewModel participant)
+    {
+        segment.Participants.Remove(participant);
+        MettreAJourAvertissements();
+    }
+
+    public void AjouterParticipantNouveauSegment()
+    {
+        if (NouveauSegmentParticipantId is null)
+        {
+            return;
+        }
+
+        if (NouveauSegmentParticipants.Any(p => p.WorkerId == NouveauSegmentParticipantId))
+        {
+            return;
+        }
+
+        var worker = WorkersDisponibles.FirstOrDefault(p => p.WorkerId == NouveauSegmentParticipantId);
+        if (worker is null)
+        {
+            return;
+        }
+
+        NouveauSegmentParticipants.Add(new ParticipantViewModel(worker.WorkerId, worker.Nom));
+        NouveauSegmentParticipantId = null;
+    }
+
+    public void RetirerParticipantNouveauSegment(ParticipantViewModel participant)
+    {
+        NouveauSegmentParticipants.Remove(participant);
     }
 
     public void PasserSemaineSuivante()
@@ -350,126 +611,36 @@ public sealed class GameSessionViewModel : ViewModelBase
     private void ChargerShow()
     {
         Segments.Clear();
-        if (_repository is null)
-        {
-            _context = null;
-            ResumeShow = "Aucune base chargée.";
-            MettreAJourAttributs();
-            return;
-        }
+        WorkersDisponibles.Clear();
 
-        _context = _repository.ChargerShowContext(ShowId);
-        if (_context is null)
+        foreach (var worker in _context.Workers)
         {
-            ResumeShow = "Aucun show disponible dans cette base.";
-            MettreAJourAttributs();
-            return;
+            WorkersDisponibles.Add(new ParticipantViewModel(worker.WorkerId, worker.NomComplet));
         }
 
         foreach (var segment in _context.Segments)
         {
             var participants = _context.Workers.Where(worker => segment.Participants.Contains(worker.WorkerId))
-                .Select(worker => worker.NomComplet)
+                .Select(worker => new ParticipantViewModel(worker.WorkerId, worker.NomComplet))
                 .ToList();
-            var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
             Segments.Add(new SegmentViewModel(
                 segment.SegmentId,
                 segment.TypeSegment,
-                libelle,
                 segment.DureeMinutes,
-                string.Join(", ", participants),
-                segment.EstMainEvent));
+                segment.EstMainEvent,
+                _segmentLabels,
+                participants,
+                segment.StorylineId,
+                segment.TitreId,
+                segment.Intensite,
+                segment.VainqueurId,
+                segment.PerdantId));
         }
 
         MettreAJourAttributs();
-        ChargerTableItems();
-        MettreAJourIndexRechercheGlobale();
-        MettreAJourRechercheGlobale();
-        MettreAJourResumeTable();
-    }
-
-    private void ChargerTableItems()
-    {
-        TableItems.Clear();
-
-        if (_context is null)
-        {
-            return;
-        }
-
-        foreach (var worker in _context.Workers)
-        {
-            var statut = string.IsNullOrWhiteSpace(worker.Blessure) ? "Actif" : "Blessé";
-            var resume = $"In-ring {worker.InRing} • Entertainment {worker.Entertainment} • Story {worker.Story}";
-            TableItems.Add(new TableViewItemViewModel(
-                worker.WorkerId,
-                worker.NomComplet,
-                "Worker",
-                _context.Compagnie.Nom,
-                worker.RoleTv,
-                statut,
-                worker.Popularite,
-                worker.Momentum,
-                (worker.InRing + worker.Entertainment + worker.Story) / 3,
-                resume,
-                new[] { $"Fatigue {worker.Fatigue}", $"Blessure {worker.Blessure}" }));
-        }
-
-        TableItems.Add(new TableViewItemViewModel(
-            _context.Compagnie.CompagnieId,
-            _context.Compagnie.Nom,
-            "Compagnie",
-            _context.Compagnie.Nom,
-            "Promotion",
-            "Actif",
-            _context.Compagnie.Prestige,
-            _context.Compagnie.Reach,
-            _context.Compagnie.AudienceMoyenne,
-            $"Prestige {_context.Compagnie.Prestige} • Audience {_context.Compagnie.AudienceMoyenne}",
-            new[] { $"Région {_context.Compagnie.Region}", $"Trésorerie {_context.Compagnie.Tresorerie:C}" }));
-
-        foreach (var titre in _context.Titres)
-        {
-            var statut = string.IsNullOrWhiteSpace(titre.DetenteurId) ? "Vacant" : "Défendu";
-            var detenteur = _context.Workers.FirstOrDefault(worker => worker.WorkerId == titre.DetenteurId)?.NomComplet ?? "Vacant";
-            TableItems.Add(new TableViewItemViewModel(
-                titre.TitreId,
-                titre.Nom,
-                "Titre",
-                _context.Compagnie.Nom,
-                detenteur,
-                statut,
-                titre.Prestige,
-                0,
-                titre.Prestige,
-                $"Prestige {titre.Prestige} • Détenteur {detenteur}",
-                new[] { "Ceinture principale", "À défendre" }));
-        }
-
-        foreach (var storyline in _context.Storylines)
-        {
-            var statut = storyline.Heat > 55 ? "En cours" : "En repos";
-            var participants = _context.Workers
-                .Where(worker => storyline.Participants.Contains(worker.WorkerId))
-                .Select(worker => worker.NomComplet)
-                .Take(3)
-                .ToList();
-            TableItems.Add(new TableViewItemViewModel(
-                storyline.StorylineId,
-                storyline.Nom,
-                "Storyline",
-                _context.Compagnie.Nom,
-                string.Join(", ", participants),
-                statut,
-                storyline.Heat,
-                0,
-                storyline.Heat,
-                $"Heat {storyline.Heat} • Participants {string.Join(", ", participants)}",
-                new[] { "Narratif", "Priorité moyenne" }));
-        }
-
-        TableItemsView.Refresh();
-        TableSelection ??= TableItems.FirstOrDefault();
+        ChargerCalendrier();
+        MettreAJourAvertissements();
+        InitialiserNouveauShow();
     }
 
     private void ChargerInbox()
@@ -801,6 +972,117 @@ public sealed class GameSessionViewModel : ViewModelBase
         return spec.Pages.ToDictionary(page => page.Id, page => page, StringComparer.OrdinalIgnoreCase);
     }
 
+    private void InitialiserSegmentTypes()
+    {
+        SegmentTypes.Clear();
+        foreach (var type in _segmentLabels)
+        {
+            SegmentTypes.Add(new SegmentTypeOptionViewModel(type.Key, type.Value));
+        }
+    }
+
+    private void InitialiserConsignesBooking()
+    {
+        ConsignesBooking.Clear();
+        ConsignesBooking.Add("Durée totale des segments ≤ durée du show.");
+        ConsignesBooking.Add("Un main event est requis.");
+        ConsignesBooking.Add("Maximum 2 promos par show.");
+        ConsignesBooking.Add("Évitez d'utiliser un même participant sur trop de segments.");
+    }
+
+    private void InitialiserNouveauShow()
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        NouveauShowNom = $"{_context.Show.Nom} spécial";
+        NouveauShowSemaine = _context.Show.Semaine + 1;
+        NouveauShowDuree = _context.Show.DureeMinutes;
+        NouveauShowLieu = _context.Show.Lieu;
+        NouveauShowDiffusion = _context.Show.Diffusion;
+        NouveauSegmentTypeId = SegmentTypes.FirstOrDefault()?.Id;
+    }
+
+    private void ChargerCalendrier()
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        ShowsAVenir.Clear();
+        foreach (var show in _repository.ChargerShowsAVenir(_context.Show.CompagnieId, _context.Show.Semaine))
+        {
+            ShowsAVenir.Add(new ShowCalendarItemViewModel(
+                show.ShowId,
+                show.Nom,
+                show.Semaine,
+                show.DureeMinutes,
+                show.Lieu,
+                show.Diffusion));
+        }
+    }
+
+    private void MettreAJourAvertissements()
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var segments = Segments.Select(segment => new SegmentSimulationContext(
+            segment.SegmentId,
+            segment.TypeSegment,
+            segment.Participants.Select(p => p.WorkerId).ToList(),
+            segment.DureeMinutes,
+            segment.EstMainEvent,
+            segment.StorylineId,
+            segment.TitreId,
+            segment.Intensite,
+            segment.VainqueurId,
+            segment.PerdantId,
+            _context.Workers.Where(worker => segment.Participants.Any(p => p.WorkerId == worker.WorkerId)).ToList()))
+            .ToList();
+
+        var etat = _context.Workers.ToDictionary(
+            worker => worker.WorkerId,
+            worker => new WorkerHealth(worker.Fatigue, worker.Blessure));
+
+        var plan = new BookingPlan(_context.Show.ShowId, segments, _context.Show.DureeMinutes, etat);
+        var validation = _validator.ValiderBooking(plan);
+        ValidationErreurs = validation.EstValide ? null : string.Join("\n", validation.Erreurs);
+        ValidationAvertissements = validation.Avertissements.Count == 0 ? null : string.Join("\n", validation.Avertissements);
+
+        foreach (var segment in Segments)
+        {
+            var messages = new List<string>();
+            if (segment.Participants.Count == 0)
+            {
+                messages.Add("Ajoutez des participants.");
+            }
+
+            if (segment.DureeMinutes <= 0)
+            {
+                messages.Add("Durée invalide.");
+            }
+
+            segment.Avertissements = messages.Count == 0 ? null : string.Join(" ", messages);
+        }
+    }
+
+    private void MettreAJourRecapFm(ShowSimulationResult resultat)
+    {
+        RecapFm.Clear();
+        foreach (var segment in resultat.RapportShow.Segments)
+        {
+            var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
+            var breakdown = string.Join(" | ", segment.Facteurs.Select(facteur => $"{facteur.Libelle} {facteur.Impact:+#;-#;0}"));
+            var impacts = new SegmentResultViewModel(segment, libelle).Impacts;
+            RecapFm.Add($"{libelle} • Note {segment.Note} • {breakdown} • {impacts}");
+        }
+    }
 
     private static IReadOnlyDictionary<string, string> ChargerSegmentTypes()
     {

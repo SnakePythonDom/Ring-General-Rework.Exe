@@ -7,7 +7,9 @@ public sealed record ShowDefinition(
     string Region,
     int DureeMinutes,
     string CompagnieId,
-    string? DealTvId);
+    string? DealTvId,
+    string Lieu,
+    string Diffusion);
 
 public sealed record CompanyState(
     string CompagnieId,

@@ -96,34 +96,46 @@
 
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Sauvegardes" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="Rafraîchir" Click="OnRafraichirSaves" />
+              <TextBlock Text="Calendrier" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="page.calendrier" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
             </Grid>
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBox Width="240" Text="{Binding Sauvegardes.NomNouvellePartie}" Watermark="Nom de la sauvegarde" />
-              <Button Content="Créer une base vierge" Click="OnCreerBaseVierge" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBox Width="360" Text="{Binding Sauvegardes.CheminImport}" Watermark="Chemin d'une base .db" />
-              <Button Content="Importer une base" Click="OnImporterBase" />
-            </StackPanel>
-            <ListBox ItemsSource="{Binding Sauvegardes.Sauvegardes}" SelectedItem="{Binding Sauvegardes.SauvegardeSelectionnee}" Height="160">
-              <ListBox.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel>
-                    <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding DerniereModification}" Foreground="#9CA3AF" FontSize="12" />
-                  </StackPanel>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Content="Charger" Click="OnChargerSauvegarde" />
-              <Button Content="Dupliquer" Click="OnDupliquerSauvegarde" />
-              <Button Content="Supprimer" Click="OnSupprimerSauvegarde" />
-            </StackPanel>
-            <TextBlock Text="{Binding Sauvegardes.MessageStatut}" Foreground="#FBBF24" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding Session.EtatSession}" Foreground="#60A5FA" TextWrapping="Wrap" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="6">
+                <Grid ColumnDefinitions="200,80,80,*,*">
+                  <TextBlock Text="Show" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="1" Text="Semaine" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="2" Text="Durée" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="3" Text="Lieu" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="4" Text="Diffusion" Foreground="#9CA3AF" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding Session.ShowsAVenir}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="200,80,80,*,*">
+                        <TextBlock Text="{Binding Nom}" Foreground="White" />
+                        <TextBlock Grid.Column="1" Text="{Binding Semaine}" Foreground="#E5E7EB" />
+                        <TextBlock Grid.Column="2" Text="{Binding DureeMinutes}" Foreground="#E5E7EB" />
+                        <TextBlock Grid.Column="3" Text="{Binding Lieu}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="4" Text="{Binding Diffusion}" Foreground="#CBD5F5" TextWrapping="Wrap" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Créer un show" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                <Grid ColumnDefinitions="200,80,80,*,*">
+                  <TextBox Watermark="Nom" Text="{Binding Session.NouveauShowNom, Mode=TwoWay}" />
+                  <TextBox Grid.Column="1" Watermark="Semaine" Text="{Binding Session.NouveauShowSemaine, Mode=TwoWay}" />
+                  <TextBox Grid.Column="2" Watermark="Durée" Text="{Binding Session.NouveauShowDuree, Mode=TwoWay}" />
+                  <TextBox Grid.Column="3" Watermark="Lieu" Text="{Binding Session.NouveauShowLieu, Mode=TwoWay}" />
+                  <TextBox Grid.Column="4" Watermark="Diffusion" Text="{Binding Session.NouveauShowDiffusion, Mode=TwoWay}" />
+                </Grid>
+                <Button Content="Créer le show" Click="OnCreerShow" />
+              </StackPanel>
+            </Border>
           </StackPanel>
 
           <StackPanel Spacing="8">
@@ -133,24 +145,102 @@
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="6">
-                <Grid ColumnDefinitions="120,100,*,120">
+                <TextBlock Text="Consignes" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{Binding Session.ConsignesBooking}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding .}" Foreground="#CBD5F5" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid ColumnDefinitions="160,80,*,90,240">
                   <TextBlock Text="Type" Foreground="#9CA3AF" />
                   <TextBlock Grid.Column="1" Text="Durée" Foreground="#9CA3AF" />
                   <TextBlock Grid.Column="2" Text="Participants" Foreground="#9CA3AF" />
                   <TextBlock Grid.Column="3" Text="Main event" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="4" Text="Actions" Foreground="#9CA3AF" />
                 </Grid>
                 <ItemsControl ItemsSource="{Binding Session.Segments}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <Grid ColumnDefinitions="120,100,*,120">
-                        <TextBlock Text="{Binding TypeSegmentLibelle}" Foreground="White" />
-                        <TextBlock Grid.Column="1" Text="{Binding DureeMinutes}" Foreground="White" />
-                        <TextBlock Grid.Column="2" Text="{Binding Participants}" Foreground="#E5E7EB" />
-                        <TextBlock Grid.Column="3" Text="{Binding EstMainEvent}" Foreground="#FCD34D" />
-                      </Grid>
+                      <Border Background="#0F172A" Padding="8" CornerRadius="6" Margin="0,4,0,4">
+                        <StackPanel Spacing="6">
+                          <Grid ColumnDefinitions="160,80,*,90,240">
+                            <ComboBox ItemsSource="{Binding DataContext.Session.SegmentTypes, RelativeSource={RelativeSource AncestorType=Window}}"
+                                      SelectedValuePath="Id"
+                                      DisplayMemberPath="Label"
+                                      SelectedValue="{Binding TypeSegment, Mode=TwoWay}" />
+                            <TextBox Grid.Column="1" Text="{Binding DureeMinutes, Mode=TwoWay}" />
+                            <StackPanel Grid.Column="2" Spacing="4">
+                              <ItemsControl ItemsSource="{Binding Participants}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                      <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                                      <Button Content="Retirer"
+                                              Click="OnRetirerParticipant"
+                                              Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                    </StackPanel>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                              <StackPanel Orientation="Horizontal" Spacing="6">
+                                <ComboBox Width="180"
+                                          ItemsSource="{Binding DataContext.Session.WorkersDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
+                                          SelectedValuePath="WorkerId"
+                                          DisplayMemberPath="Nom"
+                                          SelectedValue="{Binding ParticipantSelectionneeId, Mode=TwoWay}" />
+                                <Button Content="Ajouter" Click="OnAjouterParticipant" />
+                              </StackPanel>
+                            </StackPanel>
+                            <CheckBox Grid.Column="3" IsChecked="{Binding EstMainEvent, Mode=TwoWay}" />
+                            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
+                              <Button Content="↑" Click="OnDeplacerSegmentHaut" />
+                              <Button Content="↓" Click="OnDeplacerSegmentBas" />
+                              <Button Content="Copier" Click="OnCopierSegment" />
+                              <Button Content="Enregistrer" Click="OnEnregistrerSegment" />
+                            </StackPanel>
+                          </Grid>
+                          <TextBlock Text="{Binding Avertissements}" Foreground="#FBBF24" TextWrapping="Wrap" />
+                        </StackPanel>
+                      </Border>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                <Border Background="#1F2937" Padding="8" CornerRadius="6">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Ajouter un segment" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                    <Grid ColumnDefinitions="160,80,*,90,120">
+                      <ComboBox ItemsSource="{Binding Session.SegmentTypes}"
+                                SelectedValuePath="Id"
+                                DisplayMemberPath="Label"
+                                SelectedValue="{Binding Session.NouveauSegmentTypeId, Mode=TwoWay}" />
+                      <TextBox Grid.Column="1" Text="{Binding Session.NouveauSegmentDuree, Mode=TwoWay}" />
+                      <StackPanel Grid.Column="2" Spacing="4">
+                        <ItemsControl ItemsSource="{Binding Session.NouveauSegmentParticipants}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                                <Button Content="Retirer" Click="OnRetirerParticipantNouveauSegment" />
+                              </StackPanel>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <ComboBox Width="180"
+                                    ItemsSource="{Binding Session.WorkersDisponibles}"
+                                    SelectedValuePath="WorkerId"
+                                    DisplayMemberPath="Nom"
+                                    SelectedValue="{Binding Session.NouveauSegmentParticipantId, Mode=TwoWay}" />
+                          <Button Content="Ajouter" Click="OnAjouterParticipantNouveauSegment" />
+                        </StackPanel>
+                      </StackPanel>
+                      <CheckBox Grid.Column="3" IsChecked="{Binding Session.NouveauSegmentMainEvent, Mode=TwoWay}" />
+                      <Button Grid.Column="4" Content="Ajouter" Click="OnAjouterSegment" />
+                    </Grid>
+                  </StackPanel>
+                </Border>
               </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="12">
@@ -197,6 +287,16 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <TextBlock Text="{Binding .}" Foreground="#E5E7EB" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Text="Récap FM" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <ItemsControl ItemsSource="{Binding Session.RecapFm}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding .}" Foreground="#E5E7EB" TextWrapping="Wrap" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
