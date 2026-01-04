@@ -1,0 +1,17 @@
+{
+  "page": "Diffusion",
+  "tabs": [
+    "Partenaires",
+    "Contrats actuels",
+    "Négociations",
+    "Audience",
+    "Production & contraintes"
+  ],
+  "actions": [
+    "Négocier un deal",
+    "Renouveler",
+    "Résilier",
+    "Assigner un show",
+    "Paramétrer runtime"
+  ]
+}

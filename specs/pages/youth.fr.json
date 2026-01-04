@@ -1,0 +1,23 @@
+{
+  "page": "Youth",
+  "tabs": [
+    "Structures",
+    "Élèves",
+    "Programmes",
+    "Staff",
+    "Évaluations",
+    "Graduations",
+    "Excursions / Prêts",
+    "Budget"
+  ],
+  "actions": [
+    "Créer une structure Youth",
+    "Recruter un élève",
+    "Organiser tryout",
+    "Assigner coach",
+    "Changer programme",
+    "Promouvoir (graduation)",
+    "Envoyer en excursion",
+    "Libérer"
+  ]
+}

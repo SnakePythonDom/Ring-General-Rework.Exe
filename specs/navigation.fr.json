@@ -1,0 +1,80 @@
+{
+  "version": "1.0",
+  "lang": "fr",
+  "sections": [
+    {
+      "label": "Accueil",
+      "items": [
+        "Tableau de bord",
+        "Boîte de réception",
+        "Actualités"
+      ]
+    },
+    {
+      "label": "Compagnie",
+      "items": [
+        "Ma Compagnie",
+        "Règlement & Discipline",
+        "Marketing & Merch",
+        "Relations & Partenariats"
+      ]
+    },
+    {
+      "label": "Effectif",
+      "items": [
+        "Catcheurs",
+        "Staff",
+        "Équipes & Stables",
+        "Médical",
+        "Contrats"
+      ]
+    },
+    {
+      "label": "Créatif",
+      "items": [
+        "Booking",
+        "Storylines",
+        "Titres",
+        "Gimmicks & Personnages",
+        "Segments / Bibliothèque",
+        "Match Types",
+        "Plans créatifs"
+      ]
+    },
+    {
+      "label": "Événements",
+      "items": [
+        "Calendrier",
+        "Shows",
+        "Tournées & Lieux"
+      ]
+    },
+    {
+      "label": "Scout & Développement",
+      "items": [
+        "Scouting",
+        "Youth",
+        "Tryouts / Sélections",
+        "Prêts / Excursions"
+      ]
+    },
+    {
+      "label": "Business",
+      "items": [
+        "Finances",
+        "Diffusion",
+        "Sponsors",
+        "Billetterie"
+      ]
+    },
+    {
+      "label": "Base de données & Options",
+      "items": [
+        "Éditeur Base de données",
+        "Import / Export",
+        "Paramètres",
+        "Aide / Encyclopédie"
+      ]
+    }
+  ]
+}

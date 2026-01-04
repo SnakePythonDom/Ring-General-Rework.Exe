@@ -1,0 +1,17 @@
+{
+  "page": "Boîte de réception",
+  "tabs": [
+    "Messages",
+    "Contrats",
+    "Médical",
+    "Scouting",
+    "Diffusion",
+    "Incidents"
+  ],
+  "actions": [
+    "Répondre (accepter / refuser / négocier)",
+    "Marquer comme lu",
+    "Filtrer",
+    "Ouvrir la fiche liée (worker/show/deal)"
+  ]
+}

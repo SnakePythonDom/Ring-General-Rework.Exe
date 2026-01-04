@@ -1,0 +1,18 @@
+{
+  "page": "Storylines",
+  "tabs": [
+    "Toutes",
+    "Actives",
+    "En montée",
+    "En baisse",
+    "Archivées",
+    "Plans"
+  ],
+  "actions": [
+    "Créer storyline",
+    "Ajouter participants",
+    "Lier segment",
+    "Définir objectif",
+    "Clôturer"
+  ]
+}
