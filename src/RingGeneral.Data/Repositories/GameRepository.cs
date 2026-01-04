@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
@@ -8,7 +7,6 @@ namespace RingGeneral.Data.Repositories;
 public sealed class GameRepository
 {
     private readonly SqliteConnectionFactory _factory;
-    private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
     public GameRepository(SqliteConnectionFactory factory)
     {
@@ -124,6 +122,56 @@ public sealed class GameRepository
                 company_id TEXT NOT NULL,
                 fin_semaine INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS youth_structures (
+                youth_id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                type TEXT NOT NULL,
+                region TEXT NOT NULL,
+                budget_annuel INTEGER NOT NULL,
+                capacite_max INTEGER NOT NULL,
+                niveau_equipements INTEGER NOT NULL,
+                qualite_coaching INTEGER NOT NULL,
+                philosophie TEXT NOT NULL,
+                actif INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS youth_trainees (
+                worker_id TEXT NOT NULL,
+                youth_id TEXT NOT NULL,
+                statut TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS youth_generation_state (
+                youth_id TEXT PRIMARY KEY,
+                derniere_generation_semaine INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS worker_attributes (
+                worker_id TEXT NOT NULL,
+                attribut_id TEXT NOT NULL,
+                valeur INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS worker_generation_counters (
+                annee INTEGER NOT NULL,
+                scope_type TEXT NOT NULL,
+                scope_id TEXT NOT NULL,
+                worker_type TEXT NOT NULL,
+                count INTEGER NOT NULL,
+                PRIMARY KEY (annee, scope_type, scope_id, worker_type)
+            );
+            CREATE TABLE IF NOT EXISTS worker_generation_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                worker_id TEXT NOT NULL,
+                worker_type TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                youth_id TEXT,
+                region TEXT NOT NULL,
+                company_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS game_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                youth_generation_mode TEXT NOT NULL,
+                world_generation_mode TEXT NOT NULL,
+                semaine_pivot_annuelle INTEGER
+            );
             CREATE TABLE IF NOT EXISTS popularity_regionale (
                 entity_type TEXT NOT NULL,
                 entity_id TEXT NOT NULL,
@@ -136,6 +184,11 @@ public sealed class GameRepository
             CREATE INDEX IF NOT EXISTS idx_contracts_enddate ON contracts(fin_semaine);
             CREATE INDEX IF NOT EXISTS idx_contracts_company ON contracts(company_id);
             CREATE INDEX IF NOT EXISTS idx_titles_company ON titles(company_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_company ON youth_structures(company_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_region ON youth_structures(region);
+            CREATE INDEX IF NOT EXISTS idx_youth_trainees_youth ON youth_trainees(youth_id);
+            CREATE INDEX IF NOT EXISTS idx_worker_attributes_worker ON worker_attributes(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
             """;
         commande.ExecuteNonQuery();
 
@@ -150,9 +203,10 @@ public sealed class GameRepository
         }
     }
 
-    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
+    public ShowContext? ChargerShowContext(string showId)
     {
         AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
         AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
         AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
         AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
@@ -165,22 +219,15 @@ public sealed class GameRepository
         using var reader = command.ExecuteReader();
         while (reader.Read())
         {
-            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
+            return null;
         }
 
-        using var alterCommand = connexion.CreateCommand();
-        alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
-        alterCommand.ExecuteNonQuery();
-    }
-
-    public ShowContext ChargerShowContext(string showId)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        var show = ChargerShow(connexion, showId);
         var compagnie = ChargerCompagnie(connexion, show.CompagnieId);
+        if (compagnie is null)
+        {
+            return null;
+        }
+
         var segments = ChargerSegments(connexion, showId);
         var participantsIds = segments.SelectMany(segment => segment.Participants).Distinct().ToList();
         var workers = ChargerWorkers(connexion, participantsIds);
@@ -361,8 +408,8 @@ public sealed class GameRepository
         using var showCommand = connexion.CreateCommand();
         showCommand.Transaction = transaction;
         showCommand.CommandText = """
-            INSERT INTO show_history (show_id, semaine, note, audience, resume)
-            VALUES ($showId, (SELECT semaine FROM shows WHERE show_id = $showId), $note, $audience, $resume);
+            INSERT INTO ShowHistory (ShowId, Week, Note, Audience, Summary)
+            VALUES ($showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $note, $audience, $resume);
             """;
         showCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
         showCommand.Parameters.AddWithValue("$note", rapport.NoteGlobale);
@@ -372,17 +419,20 @@ public sealed class GameRepository
 
         foreach (var segment in rapport.Segments)
         {
+            var details = string.Join(", ",
+                segment.Facteurs.Select(facteur => $"{facteur.Libelle} {facteur.Impact:+#;-#;0}"));
+
             using var segmentCommand = connexion.CreateCommand();
             segmentCommand.Transaction = transaction;
             segmentCommand.CommandText = """
-                INSERT INTO segment_history (segment_id, show_id, semaine, note, resume, details_json)
-                VALUES ($segmentId, $showId, (SELECT semaine FROM shows WHERE show_id = $showId), $note, $resume, $details);
+                INSERT INTO SegmentResults (ShowSegmentId, ShowId, Week, Note, Summary, Details)
+                VALUES ($segmentId, $showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $note, $resume, $details);
                 """;
             segmentCommand.Parameters.AddWithValue("$segmentId", segment.SegmentId);
             segmentCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
             segmentCommand.Parameters.AddWithValue("$note", segment.Note);
             segmentCommand.Parameters.AddWithValue("$resume", $"Segment {segment.TypeSegment} - Note {segment.Note}");
-            segmentCommand.Parameters.AddWithValue("$details", JsonSerializer.Serialize(segment, _jsonOptions));
+            segmentCommand.Parameters.AddWithValue("$details", details);
             segmentCommand.ExecuteNonQuery();
         }
 
@@ -393,16 +443,16 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var transaction = connexion.BeginTransaction();
-        var region = ChargerRegionShow(connexion, showId);
+        var regionId = ChargerRegionShow(connexion, showId);
 
         foreach (var (workerId, fatigueDelta) in delta.FatigueDelta)
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
             command.CommandText = """
-                UPDATE workers
-                SET fatigue = MAX(0, MIN(100, fatigue + $delta))
-                WHERE worker_id = $workerId;
+                UPDATE Workers
+                SET Fatigue = MAX(0, MIN(100, Fatigue + $delta))
+                WHERE WorkerId = $workerId;
                 """;
             command.Parameters.AddWithValue("$delta", fatigueDelta);
             command.Parameters.AddWithValue("$workerId", workerId);
@@ -413,7 +463,7 @@ public sealed class GameRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE workers SET blessure = $blessure WHERE worker_id = $workerId;";
+            command.CommandText = "UPDATE Workers SET InjuryStatus = $blessure WHERE WorkerId = $workerId;";
             command.Parameters.AddWithValue("$blessure", blessure);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -423,7 +473,7 @@ public sealed class GameRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE workers SET momentum = momentum + $delta WHERE worker_id = $workerId;";
+            command.CommandText = "UPDATE Workers SET Momentum = Momentum + $delta WHERE WorkerId = $workerId;";
             command.Parameters.AddWithValue("$delta", momentum);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -433,7 +483,7 @@ public sealed class GameRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE workers SET popularite = MAX(0, MIN(100, popularite + $delta)) WHERE worker_id = $workerId;";
+            command.CommandText = "UPDATE Workers SET Popularity = MAX(0, MIN(100, Popularity + $delta)) WHERE WorkerId = $workerId;";
             command.Parameters.AddWithValue("$delta", popularite);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -441,13 +491,13 @@ public sealed class GameRepository
             using var popCommand = connexion.CreateCommand();
             popCommand.Transaction = transaction;
             popCommand.CommandText = """
-                INSERT INTO popularity_regionale (entity_type, entity_id, region, valeur)
-                VALUES ('worker', $workerId, $region, 50)
-                ON CONFLICT(entity_type, entity_id, region)
-                DO UPDATE SET valeur = MAX(0, MIN(100, valeur + $delta));
+                INSERT INTO WorkerPopularityByRegion (WorkerId, RegionId, Popularity)
+                VALUES ($workerId, $region, 50)
+                ON CONFLICT(WorkerId, RegionId)
+                DO UPDATE SET Popularity = MAX(0, MIN(100, Popularity + $delta));
                 """;
             popCommand.Parameters.AddWithValue("$workerId", workerId);
-            popCommand.Parameters.AddWithValue("$region", region);
+            popCommand.Parameters.AddWithValue("$region", regionId);
             popCommand.Parameters.AddWithValue("$delta", popularite);
             popCommand.ExecuteNonQuery();
         }
@@ -456,30 +506,17 @@ public sealed class GameRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE companies SET prestige = MAX(0, MIN(100, prestige + $delta)) WHERE company_id = $companyId;";
+            command.CommandText = "UPDATE Companies SET Prestige = MAX(0, MIN(100, Prestige + $delta)) WHERE CompanyId = $companyId;";
             command.Parameters.AddWithValue("$delta", deltaPop);
             command.Parameters.AddWithValue("$companyId", companyId);
             command.ExecuteNonQuery();
-
-            using var popCommand = connexion.CreateCommand();
-            popCommand.Transaction = transaction;
-            popCommand.CommandText = """
-                INSERT INTO popularity_regionale (entity_type, entity_id, region, valeur)
-                VALUES ('company', $companyId, $region, 50)
-                ON CONFLICT(entity_type, entity_id, region)
-                DO UPDATE SET valeur = MAX(0, MIN(100, valeur + $delta));
-                """;
-            popCommand.Parameters.AddWithValue("$companyId", companyId);
-            popCommand.Parameters.AddWithValue("$region", region);
-            popCommand.Parameters.AddWithValue("$delta", deltaPop);
-            popCommand.ExecuteNonQuery();
         }
 
         foreach (var (storylineId, deltaHeat) in delta.StorylineHeatDelta)
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE storylines SET heat = MAX(0, MIN(100, heat + $delta)) WHERE storyline_id = $storylineId;";
+            command.CommandText = "UPDATE Storylines SET Heat = MAX(0, MIN(100, Heat + $delta)) WHERE StorylineId = $storylineId;";
             command.Parameters.AddWithValue("$delta", deltaHeat);
             command.Parameters.AddWithValue("$storylineId", storylineId);
             command.ExecuteNonQuery();
@@ -489,7 +526,7 @@ public sealed class GameRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE titles SET prestige = MAX(0, MIN(100, prestige + $delta)) WHERE title_id = $titleId;";
+            command.CommandText = "UPDATE Titles SET Prestige = MAX(0, MIN(100, Prestige + $delta)) WHERE TitleId = $titleId;";
             command.Parameters.AddWithValue("$delta", deltaPrestige);
             command.Parameters.AddWithValue("$titleId", titreId);
             command.ExecuteNonQuery();
@@ -500,8 +537,8 @@ public sealed class GameRepository
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
             command.CommandText = """
-                INSERT INTO finances (show_id, type, montant, libelle, semaine)
-                VALUES ($showId, $type, $montant, $libelle, (SELECT semaine FROM shows WHERE show_id = $showId));
+                INSERT INTO FinanceTransactions (CompanyId, ShowId, Week, Category, Amount, Description)
+                VALUES ((SELECT CompanyId FROM Shows WHERE ShowId = $showId), $showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $type, $montant, $libelle);
                 """;
             command.Parameters.AddWithValue("$showId", showId);
             command.Parameters.AddWithValue("$type", transactionFin.Type);
@@ -511,7 +548,7 @@ public sealed class GameRepository
 
             using var treasuryCommand = connexion.CreateCommand();
             treasuryCommand.Transaction = transaction;
-            treasuryCommand.CommandText = "UPDATE companies SET tresorerie = tresorerie + $montant WHERE company_id = (SELECT compagnie_id FROM shows WHERE show_id = $showId);";
+            treasuryCommand.CommandText = "UPDATE Companies SET Treasury = Treasury + $montant WHERE CompanyId = (SELECT CompanyId FROM Shows WHERE ShowId = $showId);";
             treasuryCommand.Parameters.AddWithValue("$montant", transactionFin.Montant);
             treasuryCommand.Parameters.AddWithValue("$showId", showId);
             treasuryCommand.ExecuteNonQuery();
@@ -523,16 +560,16 @@ public sealed class GameRepository
     private static string ChargerRegionShow(SqliteConnection connexion, string showId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT region FROM shows WHERE show_id = $showId;";
+        command.CommandText = "SELECT RegionId FROM Shows WHERE ShowId = $showId;";
         command.Parameters.AddWithValue("$showId", showId);
-        return Convert.ToString(command.ExecuteScalar()) ?? "FR";
+        return Convert.ToString(command.ExecuteScalar()) ?? "";
     }
 
     public IReadOnlyList<InboxItem> ChargerInbox()
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT type, titre, contenu, semaine FROM inbox_items ORDER BY semaine DESC, id DESC;";
+        command.CommandText = "SELECT Type, Title, Content, Week FROM InboxItems ORDER BY Week DESC, InboxItemId DESC;";
         using var reader = command.ExecuteReader();
         var items = new List<InboxItem>();
         while (reader.Read())
@@ -551,7 +588,7 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT compagnie_id FROM shows WHERE show_id = $showId;";
+        command.CommandText = "SELECT CompanyId FROM Shows WHERE ShowId = $showId;";
         command.Parameters.AddWithValue("$showId", showId);
         return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
     }
@@ -561,8 +598,8 @@ public sealed class GameRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT company_id, nom, region, prestige, tresorerie, audience_moyenne, reach
-            FROM companies;
+            SELECT CompanyId, Name, RegionId, Prestige, Treasury, AverageAudience, Reach
+            FROM Companies;
             """;
         using var reader = command.ExecuteReader();
         var compagnies = new List<CompanyState>();
@@ -586,10 +623,10 @@ public sealed class GameRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            UPDATE companies
-            SET prestige = MAX(0, MIN(100, prestige + $deltaPrestige)),
-                tresorerie = tresorerie + $deltaTresorerie
-            WHERE company_id = $companyId;
+            UPDATE Companies
+            SET Prestige = MAX(0, MIN(100, Prestige + $deltaPrestige)),
+                Treasury = Treasury + $deltaTresorerie
+            WHERE CompanyId = $companyId;
             """;
         command.Parameters.AddWithValue("$deltaPrestige", deltaPrestige);
         command.Parameters.AddWithValue("$deltaTresorerie", deltaTresorerie);
@@ -601,7 +638,7 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "INSERT INTO inbox_items (type, titre, contenu, semaine) VALUES ($type, $titre, $contenu, $semaine);";
+        command.CommandText = "INSERT INTO InboxItems (Type, Title, Content, Week) VALUES ($type, $titre, $contenu, $semaine);";
         command.Parameters.AddWithValue("$type", item.Type);
         command.Parameters.AddWithValue("$titre", item.Titre);
         command.Parameters.AddWithValue("$contenu", item.Contenu);
@@ -613,12 +650,12 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "UPDATE shows SET semaine = semaine + 1 WHERE show_id = $showId;";
+        command.CommandText = "UPDATE Shows SET Week = Week + 1 WHERE ShowId = $showId;";
         command.Parameters.AddWithValue("$showId", showId);
         command.ExecuteNonQuery();
 
         using var weekCommand = connexion.CreateCommand();
-        weekCommand.CommandText = "SELECT semaine FROM shows WHERE show_id = $showId;";
+        weekCommand.CommandText = "SELECT Week FROM Shows WHERE ShowId = $showId;";
         weekCommand.Parameters.AddWithValue("$showId", showId);
         return Convert.ToInt32(weekCommand.ExecuteScalar());
     }
@@ -627,7 +664,7 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT worker_id, fin_semaine FROM contracts;";
+        command.CommandText = "SELECT WorkerId, EndDate FROM Contracts;";
         using var reader = command.ExecuteReader();
         var contracts = new List<(string, int)>();
         while (reader.Read())
@@ -642,7 +679,7 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT worker_id, prenom || ' ' || nom FROM workers;";
+        command.CommandText = "SELECT WorkerId, Name FROM Workers;";
         using var reader = command.ExecuteReader();
         var noms = new Dictionary<string, string>();
         while (reader.Read())
@@ -657,7 +694,321 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "UPDATE workers SET fatigue = MAX(0, fatigue - 12);";
+        command.CommandText = "UPDATE Workers SET Fatigue = MAX(0, Fatigue - 12);";
+        command.ExecuteNonQuery();
+    }
+
+    public ShowDefinition ChargerShowDefinition(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        return ChargerShow(connexion, showId);
+    }
+
+    public WorkerGenerationOptions ChargerParametresGeneration()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT youth_generation_mode, world_generation_mode, semaine_pivot_annuelle FROM game_settings WHERE id = 1;";
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
+        {
+            var youthMode = Enum.TryParse<YouthGenerationMode>(reader.GetString(0), out var ym)
+                ? ym
+                : YouthGenerationMode.Realiste;
+            var worldMode = Enum.TryParse<WorldGenerationMode>(reader.GetString(1), out var wm)
+                ? wm
+                : WorldGenerationMode.Desactivee;
+            var pivot = reader.IsDBNull(2) ? null : reader.GetInt32(2);
+            return new WorkerGenerationOptions(youthMode, worldMode, pivot);
+        }
+
+        return new WorkerGenerationOptions(YouthGenerationMode.Realiste, WorldGenerationMode.Desactivee, null);
+    }
+
+    public void SauvegarderParametresGeneration(WorkerGenerationOptions options)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO game_settings (id, youth_generation_mode, world_generation_mode, semaine_pivot_annuelle)
+            VALUES (1, $youthMode, $worldMode, $pivot)
+            ON CONFLICT(id) DO UPDATE SET
+                youth_generation_mode = excluded.youth_generation_mode,
+                world_generation_mode = excluded.world_generation_mode,
+                semaine_pivot_annuelle = excluded.semaine_pivot_annuelle;
+            """;
+        command.Parameters.AddWithValue("$youthMode", options.YouthMode.ToString());
+        command.Parameters.AddWithValue("$worldMode", options.WorldMode.ToString());
+        command.Parameters.AddWithValue("$pivot", options.SemainePivotAnnuelle.HasValue ? options.SemainePivotAnnuelle.Value : DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public IReadOnlyList<YouthStructureState> ChargerYouthStructuresPourGeneration()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ys.youth_id,
+                   ys.nom,
+                   ys.company_id,
+                   ys.region,
+                   ys.type,
+                   ys.budget_annuel,
+                   ys.capacite_max,
+                   ys.niveau_equipements,
+                   ys.qualite_coaching,
+                   ys.philosophie,
+                   ys.actif,
+                   COALESCE(state.derniere_generation_semaine, NULL),
+                   COALESCE(counts.nb_trainees, 0)
+            FROM youth_structures ys
+            LEFT JOIN youth_generation_state state ON state.youth_id = ys.youth_id
+            LEFT JOIN (
+                SELECT youth_id, COUNT(1) AS nb_trainees
+                FROM youth_trainees
+                GROUP BY youth_id
+            ) counts ON counts.youth_id = ys.youth_id
+            WHERE ys.actif = 1;
+            """;
+        using var reader = command.ExecuteReader();
+        var structures = new List<YouthStructureState>();
+        while (reader.Read())
+        {
+            structures.Add(new YouthStructureState(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                reader.GetInt32(7),
+                reader.GetInt32(8),
+                reader.GetString(9),
+                reader.GetInt32(10) == 1,
+                reader.IsDBNull(11) ? null : reader.GetInt32(11),
+                reader.GetInt32(12)));
+        }
+
+        return structures;
+    }
+
+    public GenerationCounters ChargerGenerationCounters(int annee)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT scope_type, scope_id, worker_type, count
+            FROM worker_generation_counters
+            WHERE annee = $annee;
+            """;
+        command.Parameters.AddWithValue("$annee", annee);
+        using var reader = command.ExecuteReader();
+        var traineesParPays = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var traineesParCompagnie = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var freeAgentsParPays = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var globalTrainees = 0;
+        var globalFreeAgents = 0;
+
+        while (reader.Read())
+        {
+            var scopeType = reader.GetString(0);
+            var scopeId = reader.GetString(1);
+            var workerType = reader.GetString(2);
+            var count = reader.GetInt32(3);
+
+            if (scopeType == "GLOBAL" && workerType == "TRAINEE")
+            {
+                globalTrainees = count;
+            }
+            else if (scopeType == "GLOBAL" && workerType == "FREE_AGENT")
+            {
+                globalFreeAgents = count;
+            }
+            else if (scopeType == "COUNTRY" && workerType == "TRAINEE")
+            {
+                traineesParPays[scopeId] = count;
+            }
+            else if (scopeType == "COMPANY" && workerType == "TRAINEE")
+            {
+                traineesParCompagnie[scopeId] = count;
+            }
+            else if (scopeType == "COUNTRY" && workerType == "FREE_AGENT")
+            {
+                freeAgentsParPays[scopeId] = count;
+            }
+        }
+
+        return new GenerationCounters(annee, globalTrainees, traineesParPays, traineesParCompagnie, globalFreeAgents, freeAgentsParPays);
+    }
+
+    public void EnregistrerGeneration(WorkerGenerationReport report)
+    {
+        if (report.Workers.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        foreach (var worker in report.Workers)
+        {
+            using var workerCommand = connexion.CreateCommand();
+            workerCommand.Transaction = transaction;
+            workerCommand.CommandText = """
+                INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, type_worker)
+                VALUES ($workerId, $nom, $prenom, $companyId, $inRing, $entertainment, $story, $popularite, $fatigue, $blessure, $momentum, $roleTv, $typeWorker);
+                """;
+            workerCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+            workerCommand.Parameters.AddWithValue("$nom", worker.Nom);
+            workerCommand.Parameters.AddWithValue("$prenom", worker.Prenom);
+            workerCommand.Parameters.AddWithValue("$companyId", worker.CompagnieId ?? (object)DBNull.Value);
+            workerCommand.Parameters.AddWithValue("$inRing", worker.InRing);
+            workerCommand.Parameters.AddWithValue("$entertainment", worker.Entertainment);
+            workerCommand.Parameters.AddWithValue("$story", worker.Story);
+            workerCommand.Parameters.AddWithValue("$popularite", worker.Popularite);
+            workerCommand.Parameters.AddWithValue("$fatigue", worker.Fatigue);
+            workerCommand.Parameters.AddWithValue("$blessure", worker.Blessure);
+            workerCommand.Parameters.AddWithValue("$momentum", worker.Momentum);
+            workerCommand.Parameters.AddWithValue("$roleTv", worker.RoleTv);
+            workerCommand.Parameters.AddWithValue("$typeWorker", worker.TypeWorker);
+            workerCommand.ExecuteNonQuery();
+
+            foreach (var (attr, value) in worker.Attributes)
+            {
+                using var attrCommand = connexion.CreateCommand();
+                attrCommand.Transaction = transaction;
+                attrCommand.CommandText = """
+                    INSERT INTO worker_attributes (worker_id, attribut_id, valeur)
+                    VALUES ($workerId, $attrId, $valeur);
+                    """;
+                attrCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+                attrCommand.Parameters.AddWithValue("$attrId", attr);
+                attrCommand.Parameters.AddWithValue("$valeur", value);
+                attrCommand.ExecuteNonQuery();
+            }
+
+            using var popCommand = connexion.CreateCommand();
+            popCommand.Transaction = transaction;
+            popCommand.CommandText = """
+                INSERT INTO popularity_regionale (entity_type, entity_id, region, valeur)
+                VALUES ('worker', $workerId, $region, $valeur)
+                ON CONFLICT(entity_type, entity_id, region) DO NOTHING;
+                """;
+            popCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+            popCommand.Parameters.AddWithValue("$region", worker.Region);
+            popCommand.Parameters.AddWithValue("$valeur", worker.Popularite);
+            popCommand.ExecuteNonQuery();
+
+            if (!string.IsNullOrWhiteSpace(worker.YouthId))
+            {
+                using var youthCommand = connexion.CreateCommand();
+                youthCommand.Transaction = transaction;
+                youthCommand.CommandText = """
+                    INSERT INTO youth_trainees (worker_id, youth_id, statut)
+                    VALUES ($workerId, $youthId, 'EN_FORMATION');
+                    """;
+                youthCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+                youthCommand.Parameters.AddWithValue("$youthId", worker.YouthId);
+                youthCommand.ExecuteNonQuery();
+            }
+
+            using var eventCommand = connexion.CreateCommand();
+            eventCommand.Transaction = transaction;
+            eventCommand.CommandText = """
+                INSERT INTO worker_generation_events (worker_id, worker_type, semaine, youth_id, region, company_id)
+                VALUES ($workerId, $workerType, $semaine, $youthId, $region, $companyId);
+                """;
+            eventCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+            eventCommand.Parameters.AddWithValue("$workerType", worker.TypeWorker == "TRAINEE" ? "TRAINEE" : "FREE_AGENT");
+            eventCommand.Parameters.AddWithValue("$semaine", report.Semaine);
+            eventCommand.Parameters.AddWithValue("$youthId", worker.YouthId ?? (object)DBNull.Value);
+            eventCommand.Parameters.AddWithValue("$region", worker.Region);
+            eventCommand.Parameters.AddWithValue("$companyId", worker.CompagnieId ?? (object)DBNull.Value);
+            eventCommand.ExecuteNonQuery();
+        }
+
+        MettreAJourCounters(transaction, report);
+        MettreAJourGenerationState(transaction, report);
+
+        transaction.Commit();
+    }
+
+    private void MettreAJourCounters(SqliteTransaction transaction, WorkerGenerationReport report)
+    {
+        var annee = ((report.Semaine - 1) / 52) + 1;
+        var traineesParPays = report.Workers.Where(w => w.TypeWorker == "TRAINEE").GroupBy(w => w.Region);
+        var traineesParCompagnie = report.Workers.Where(w => w.TypeWorker == "TRAINEE").GroupBy(w => w.CompagnieId ?? string.Empty);
+        var freeAgentsParPays = report.Workers.Where(w => w.TypeWorker != "TRAINEE").GroupBy(w => w.Region);
+
+        InsererOuMajCounter(transaction, annee, "GLOBAL", "GLOBAL", "TRAINEE", report.Workers.Count(w => w.TypeWorker == "TRAINEE"));
+        InsererOuMajCounter(transaction, annee, "GLOBAL", "GLOBAL", "FREE_AGENT", report.Workers.Count(w => w.TypeWorker != "TRAINEE"));
+
+        foreach (var group in traineesParPays)
+        {
+            InsererOuMajCounter(transaction, annee, "COUNTRY", group.Key, "TRAINEE", group.Count());
+        }
+
+        foreach (var group in traineesParCompagnie)
+        {
+            if (string.IsNullOrWhiteSpace(group.Key))
+            {
+                continue;
+            }
+
+            InsererOuMajCounter(transaction, annee, "COMPANY", group.Key, "TRAINEE", group.Count());
+        }
+
+        foreach (var group in freeAgentsParPays)
+        {
+            InsererOuMajCounter(transaction, annee, "COUNTRY", group.Key, "FREE_AGENT", group.Count());
+        }
+    }
+
+    private void MettreAJourGenerationState(SqliteTransaction transaction, WorkerGenerationReport report)
+    {
+        var structures = report.Workers.Where(w => w.TypeWorker == "TRAINEE").Select(w => w.YouthId).Distinct();
+        foreach (var youthId in structures)
+        {
+            if (string.IsNullOrWhiteSpace(youthId))
+            {
+                continue;
+            }
+
+            using var command = transaction.Connection!.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO youth_generation_state (youth_id, derniere_generation_semaine)
+                VALUES ($youthId, $semaine)
+                ON CONFLICT(youth_id) DO UPDATE SET derniere_generation_semaine = excluded.derniere_generation_semaine;
+                """;
+            command.Parameters.AddWithValue("$youthId", youthId);
+            command.Parameters.AddWithValue("$semaine", report.Semaine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void InsererOuMajCounter(SqliteTransaction transaction, int annee, string scopeType, string scopeId, string workerType, int delta)
+    {
+        if (delta <= 0)
+        {
+            return;
+        }
+
+        using var command = transaction.Connection!.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO worker_generation_counters (annee, scope_type, scope_id, worker_type, count)
+            VALUES ($annee, $scopeType, $scopeId, $workerType, $delta)
+            ON CONFLICT(annee, scope_type, scope_id, worker_type)
+            DO UPDATE SET count = worker_generation_counters.count + $delta;
+            """;
+        command.Parameters.AddWithValue("$annee", annee);
+        command.Parameters.AddWithValue("$scopeType", scopeType);
+        command.Parameters.AddWithValue("$scopeId", scopeId);
+        command.Parameters.AddWithValue("$workerType", workerType);
+        command.Parameters.AddWithValue("$delta", delta);
         command.ExecuteNonQuery();
     }
 
@@ -673,7 +1024,7 @@ public sealed class GameRepository
         using var reader = command.ExecuteReader();
         if (!reader.Read())
         {
-            throw new InvalidOperationException($"Show introuvable ({showId}).");
+            return null;
         }
 
         var lieu = reader.IsDBNull(7) ? reader.GetString(3) : reader.GetString(7);
@@ -700,19 +1051,19 @@ public sealed class GameRepository
             diffusion);
     }
 
-    private static CompanyState ChargerCompagnie(SqliteConnection connexion, string companyId)
+    private static CompanyState? ChargerCompagnie(SqliteConnection connexion, string companyId)
     {
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT company_id, nom, region, prestige, tresorerie, audience_moyenne, reach
-            FROM companies
-            WHERE company_id = $companyId;
+            SELECT CompanyId, Name, RegionId, Prestige, Treasury, AverageAudience, Reach
+            FROM Companies
+            WHERE CompanyId = $companyId;
             """;
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
         if (!reader.Read())
         {
-            throw new InvalidOperationException($"Compagnie introuvable ({companyId}).");
+            return null;
         }
 
         return new CompanyState(
@@ -729,31 +1080,63 @@ public sealed class GameRepository
     {
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT segment_id, type, duree, participants_json, storyline_id, title_id, main_event, intensite, vainqueur_id, perdant_id
-            FROM segments
-            WHERE show_id = $showId
-            ORDER BY ordre ASC;
+            SELECT ShowSegmentId, SegmentType, DurationMinutes, StorylineId, TitleId, IsMainEvent, Intensity, WinnerWorkerId, LoserWorkerId
+            FROM ShowSegments
+            WHERE ShowId = $showId
+            ORDER BY OrderIndex ASC;
             """;
         command.Parameters.AddWithValue("$showId", showId);
         using var reader = command.ExecuteReader();
         var segments = new List<SegmentDefinition>();
         while (reader.Read())
         {
-            var participants = JsonSerializer.Deserialize<List<string>>(reader.GetString(3), _jsonOptions) ?? new List<string>();
             segments.Add(new SegmentDefinition(
                 reader.GetString(0),
                 reader.GetString(1),
-                participants,
+                Array.Empty<string>(),
                 reader.GetInt32(2),
-                reader.GetInt32(6) == 1,
+                reader.GetInt32(5) == 1,
+                reader.IsDBNull(3) ? null : reader.GetString(3),
                 reader.IsDBNull(4) ? null : reader.GetString(4),
-                reader.IsDBNull(5) ? null : reader.GetString(5),
-                reader.GetInt32(7),
-                reader.IsDBNull(8) ? null : reader.GetString(8),
-                reader.IsDBNull(9) ? null : reader.GetString(9)));
+                reader.GetInt32(6),
+                reader.IsDBNull(7) ? null : reader.GetString(7),
+                reader.IsDBNull(8) ? null : reader.GetString(8)));
         }
 
-        return segments;
+        var participantsMap = ChargerParticipants(connexion, segments.Select(segment => segment.SegmentId).ToList());
+        return segments
+            .Select(segment => segment with { Participants = participantsMap.GetValueOrDefault(segment.SegmentId, new List<string>()) })
+            .ToList();
+    }
+
+    private static Dictionary<string, List<string>> ChargerParticipants(SqliteConnection connexion, IReadOnlyList<string> segmentIds)
+    {
+        var participants = segmentIds.ToDictionary(id => id, _ => new List<string>());
+        if (segmentIds.Count == 0)
+        {
+            return participants;
+        }
+
+        using var command = connexion.CreateCommand();
+        var placeholders = segmentIds.Select((id, index) => $"$id{index}").ToList();
+        command.CommandText = $"SELECT ShowSegmentId, WorkerId FROM SegmentParticipants WHERE ShowSegmentId IN ({string.Join(", ", placeholders)});";
+        for (var i = 0; i < segmentIds.Count; i++)
+        {
+            command.Parameters.AddWithValue(placeholders[i], segmentIds[i]);
+        }
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var segmentId = reader.GetString(0);
+            var workerId = reader.GetString(1);
+            if (participants.TryGetValue(segmentId, out var list))
+            {
+                list.Add(workerId);
+            }
+        }
+
+        return participants;
     }
 
     private static List<WorkerSnapshot> ChargerWorkers(SqliteConnection connexion, IReadOnlyList<string> workerIds)
@@ -766,9 +1149,9 @@ public sealed class GameRepository
         using var command = connexion.CreateCommand();
         var placeholders = workerIds.Select((id, index) => $"$id{index}").ToList();
         command.CommandText = $"""
-            SELECT worker_id, prenom || ' ' || nom, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv
-            FROM workers
-            WHERE worker_id IN ({string.Join(", ", placeholders)});
+            SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv
+            FROM Workers
+            WHERE WorkerId IN ({string.Join(", ", placeholders)});
             """;
         for (var i = 0; i < workerIds.Count; i++)
         {
@@ -798,7 +1181,7 @@ public sealed class GameRepository
     private static List<TitleInfo> ChargerTitres(SqliteConnection connexion)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT title_id, nom, prestige, detenteur_id FROM titles;";
+        command.CommandText = "SELECT TitleId, Name, Prestige, HolderWorkerId FROM Titles;";
         using var reader = command.ExecuteReader();
         var titres = new List<TitleInfo>();
         while (reader.Read())
@@ -816,7 +1199,7 @@ public sealed class GameRepository
     private static List<StorylineInfo> ChargerStorylines(SqliteConnection connexion)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT storyline_id, nom, heat FROM storylines;";
+        command.CommandText = "SELECT StorylineId, Name, Heat FROM Storylines;";
         using var reader = command.ExecuteReader();
         var storylines = new List<StorylineInfo>();
         while (reader.Read())
@@ -835,7 +1218,7 @@ public sealed class GameRepository
     private static List<string> ChargerStorylineParticipants(SqliteConnection connexion, string storylineId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT worker_id FROM storyline_participants WHERE storyline_id = $storylineId;";
+        command.CommandText = "SELECT WorkerId FROM StorylineParticipants WHERE StorylineId = $storylineId;";
         command.Parameters.AddWithValue("$storylineId", storylineId);
         using var reader = command.ExecuteReader();
         var participants = new List<string>();
@@ -850,7 +1233,7 @@ public sealed class GameRepository
     private static Dictionary<string, int> ChargerChimies(SqliteConnection connexion)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT worker_a, worker_b, valeur FROM chimies;";
+        command.CommandText = "SELECT WorkerA, WorkerB, Value FROM Chimies;";
         using var reader = command.ExecuteReader();
         var chimies = new Dictionary<string, int>();
         while (reader.Read())
@@ -873,15 +1256,23 @@ public sealed class GameRepository
             """;
         companyCommand.ExecuteNonQuery();
 
+        using var youthCommand = connexion.CreateCommand();
+        youthCommand.Transaction = transaction;
+        youthCommand.CommandText = """
+            INSERT INTO youth_structures (youth_id, company_id, nom, type, region, budget_annuel, capacite_max, niveau_equipements, qualite_coaching, philosophie, actif)
+            VALUES ('YOUTH-001', 'COMP-001', 'Ring General Academy', 'ACADEMY', 'FR', 85000, 24, 3, 12, 'HYBRIDE', 1);
+            """;
+        youthCommand.ExecuteNonQuery();
+
         using var workersCommand = connexion.CreateCommand();
         workersCommand.Transaction = transaction;
         workersCommand.CommandText = """
-            INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv)
+            INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, type_worker)
             VALUES
-            ('W-001', 'Dubois', 'Alex', 'COMP-001', 70, 62, 58, 55, 12, 'AUCUNE', 4, 'MAIN_EVENT'),
-            ('W-002', 'Martin', 'Leo', 'COMP-001', 64, 70, 65, 52, 18, 'AUCUNE', 2, 'UPPER_MID'),
-            ('W-003', 'Petit', 'Sarah', 'COMP-001', 68, 60, 72, 49, 20, 'AUCUNE', 1, 'MID'),
-            ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID');
+            ('W-001', 'Dubois', 'Alex', 'COMP-001', 70, 62, 58, 55, 12, 'AUCUNE', 4, 'MAIN_EVENT', 'CATCHEUR'),
+            ('W-002', 'Martin', 'Leo', 'COMP-001', 64, 70, 65, 52, 18, 'AUCUNE', 2, 'UPPER_MID', 'CATCHEUR'),
+            ('W-003', 'Petit', 'Sarah', 'COMP-001', 68, 60, 72, 49, 20, 'AUCUNE', 1, 'MID', 'CATCHEUR'),
+            ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID', 'CATCHEUR');
             """;
         workersCommand.ExecuteNonQuery();
 
@@ -960,6 +1351,14 @@ public sealed class GameRepository
             ('worker', 'W-004', 'FR', 46);
             """;
         popularityCommand.ExecuteNonQuery();
+
+        using var settingsCommand = connexion.CreateCommand();
+        settingsCommand.Transaction = transaction;
+        settingsCommand.CommandText = """
+            INSERT INTO game_settings (id, youth_generation_mode, world_generation_mode, semaine_pivot_annuelle)
+            VALUES (1, 'Realiste', 'Desactivee', 1);
+            """;
+        settingsCommand.ExecuteNonQuery();
 
         transaction.Commit();
     }
