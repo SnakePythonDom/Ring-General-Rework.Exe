@@ -8,6 +8,14 @@ Merci de vous référer aux fichiers JSON en français de ce dossier pour toute 
 - [Guide du jeu (FR)](docs/JEU_GUIDE_FR.md)
 - [Guide du modding (FR)](docs/MODDING_GUIDE_FR.md)
 - [Guide de développement (FR)](docs/DEV_GUIDE_FR.md)
+- [Guide base SQLite (FR)](docs/DATABASE_GUIDE_FR.md)
+- [Guide import SQLite (FR)](docs/IMPORT_GUIDE_FR.md)
+
+## Sauvegardes & base SQLite
+- **Emplacement des saves (Windows)** : `%APPDATA%/RingGeneral/Saves/`
+- **Créer une base vierge** : via l'écran \"Nouvelle partie\" (bouton *Créer une base vierge*).
+- **Importer une base existante** : via l'écran \"Importer\" (bouton *Importer une base*).
+- **Guides** : [DATABASE_GUIDE_FR.md](docs/DATABASE_GUIDE_FR.md) pour le remplissage, [IMPORT_GUIDE_FR.md](docs/IMPORT_GUIDE_FR.md) pour l'import.
 
 ## 1) Vision produit (TEW/PWS + FM26)
 

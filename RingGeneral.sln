@@ -8,6 +8,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RingGeneral.Core", "src/Rin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RingGeneral.Data", "src/RingGeneral.Data/RingGeneral.Data.csproj", "{63812DB2-8C46-42FC-B6BC-50805B19EE2A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RingGeneral.Tools.DbManager", "src/RingGeneral.Tools.DbManager/RingGeneral.Tools.DbManager.csproj", "{C26F55E8-6BCC-47E9-8007-76040C019B60}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RingGeneral.Specs", "src/RingGeneral.Specs/RingGeneral.Specs.csproj", "{CEF0AA25-798E-4A60-99D8-9BB3E590C204}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RingGeneral.Tests", "tests/RingGeneral.Tests/RingGeneral.Tests.csproj", "{03D1CBB0-F96B-484E-97B5-515705341E66}"
@@ -30,6 +32,10 @@ Global
 		{63812DB2-8C46-42FC-B6BC-50805B19EE2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63812DB2-8C46-42FC-B6BC-50805B19EE2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63812DB2-8C46-42FC-B6BC-50805B19EE2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C26F55E8-6BCC-47E9-8007-76040C019B60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C26F55E8-6BCC-47E9-8007-76040C019B60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C26F55E8-6BCC-47E9-8007-76040C019B60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C26F55E8-6BCC-47E9-8007-76040C019B60}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CEF0AA25-798E-4A60-99D8-9BB3E590C204}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CEF0AA25-798E-4A60-99D8-9BB3E590C204}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEF0AA25-798E-4A60-99D8-9BB3E590C204}.Release|Any CPU.ActiveCfg = Release|Any CPU
