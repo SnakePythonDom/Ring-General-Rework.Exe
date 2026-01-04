@@ -27,8 +27,14 @@ public sealed class GameSessionViewModel : ViewModelBase
     private ShowContext? _context;
     private readonly List<GlobalSearchResultViewModel> _rechercheGlobaleIndex = new();
 
-    public GameSessionViewModel()
+    public GameSessionViewModel(string? cheminDb = null)
     {
+        var cheminFinal = string.IsNullOrWhiteSpace(cheminDb)
+            ? Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db")
+            : cheminDb;
+        var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
+        _repository = new GameRepository(factory);
+        _repository.Initialiser();
         _segmentLabels = ChargerSegmentTypes();
         _tooltipHelper = new TooltipHelper(_helpProvider);
         _helpPages = ChargerPages();

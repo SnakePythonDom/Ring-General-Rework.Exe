@@ -1,157 +1,210 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media;
 using ReactiveUI;
-using RingGeneral.Data.Database;
+using RingGeneral.UI.Services;
 
 namespace RingGeneral.UI.ViewModels;
 
 public sealed class SaveManagerViewModel : ViewModelBase
 {
-    private readonly SaveGameManager _manager;
+    private readonly SaveStorageService _storage;
 
-    public SaveManagerViewModel()
+    public SaveManagerViewModel(SaveStorageService storage)
     {
-        _manager = new SaveGameManager(new DbInitializer(), new DbValidator());
-        Sauvegardes = new ObservableCollection<SaveGameEntryViewModel>();
-        CheminImport = string.Empty;
-        NomNouvellePartie = string.Empty;
-        Rafraichir();
+        _storage = storage;
+        Sauvegardes = new ObservableCollection<SaveSlotViewModel>();
+        StatutCouleur = Brushes.Transparent;
     }
 
-    public ObservableCollection<SaveGameEntryViewModel> Sauvegardes { get; }
+    public ObservableCollection<SaveSlotViewModel> Sauvegardes { get; }
 
-    public SaveGameEntryViewModel? SauvegardeSelectionnee
+    public SaveSlotViewModel? SauvegardeSelectionnee
     {
         get => _sauvegardeSelectionnee;
         set => this.RaiseAndSetIfChanged(ref _sauvegardeSelectionnee, value);
     }
-    private SaveGameEntryViewModel? _sauvegardeSelectionnee;
+    private SaveSlotViewModel? _sauvegardeSelectionnee;
 
-    public string CheminImport
+    public SaveSlotViewModel? SauvegardeCourante
     {
-        get => _cheminImport;
-        set => this.RaiseAndSetIfChanged(ref _cheminImport, value);
+        get => _sauvegardeCourante;
+        private set => this.RaiseAndSetIfChanged(ref _sauvegardeCourante, value);
     }
-    private string _cheminImport;
+    private SaveSlotViewModel? _sauvegardeCourante;
 
-    public string NomNouvellePartie
+    public string? NouveauNom
     {
-        get => _nomNouvellePartie;
-        set => this.RaiseAndSetIfChanged(ref _nomNouvellePartie, value);
+        get => _nouveauNom;
+        set => this.RaiseAndSetIfChanged(ref _nouveauNom, value);
     }
-    private string _nomNouvellePartie;
+    private string? _nouveauNom;
 
-    public string? MessageStatut
+    public string? StatutMessage
     {
-        get => _messageStatut;
-        private set => this.RaiseAndSetIfChanged(ref _messageStatut, value);
+        get => _statutMessage;
+        private set => this.RaiseAndSetIfChanged(ref _statutMessage, value);
     }
-    private string? _messageStatut;
+    private string? _statutMessage;
 
-    public string? SauvegardeActive
+    public IBrush StatutCouleur
     {
-        get => _sauvegardeActive;
-        private set => this.RaiseAndSetIfChanged(ref _sauvegardeActive, value);
+        get => _statutCouleur;
+        private set => this.RaiseAndSetIfChanged(ref _statutCouleur, value);
     }
-    private string? _sauvegardeActive;
+    private IBrush _statutCouleur;
 
-    public void Rafraichir()
+    public void Initialiser()
+    {
+        ActualiserSauvegardes();
+        if (Sauvegardes.Count == 0)
+        {
+            var info = _storage.CreerSauvegarde("Sauvegarde 1");
+            ActualiserSauvegardes();
+            var slot = Sauvegardes.FirstOrDefault(s => s.Chemin == info.Chemin);
+            if (slot is not null)
+            {
+                DefinirSauvegardeCourante(slot);
+            }
+        }
+        else
+        {
+            DefinirSauvegardeCourante(Sauvegardes[0]);
+        }
+    }
+
+    public SaveSlotViewModel? CreerNouvelleSauvegarde()
+    {
+        try
+        {
+            var info = _storage.CreerSauvegarde(NouveauNom);
+            NouveauNom = string.Empty;
+            var slot = ActualiserEtTrouver(info.Chemin);
+            if (slot is not null)
+            {
+                DefinirSauvegardeCourante(slot);
+                StatutOk($"Nouvelle sauvegarde créée : {slot.Nom}.");
+            }
+
+            return slot;
+        }
+        catch (Exception ex)
+        {
+            StatutErreur($"Impossible de créer la sauvegarde : {ex.Message}");
+            return null;
+        }
+    }
+
+    public SaveSlotViewModel? ImporterBase(string cheminSource)
+    {
+        try
+        {
+            var info = _storage.ImporterBase(cheminSource);
+            var slot = ActualiserEtTrouver(info.Chemin);
+            if (slot is not null)
+            {
+                DefinirSauvegardeCourante(slot);
+                StatutOk($"Base importée : {slot.Nom}.");
+            }
+
+            return slot;
+        }
+        catch (Exception ex)
+        {
+            StatutErreur(ex.Message);
+            return null;
+        }
+    }
+
+    public SaveSlotViewModel? ImporterPack(string cheminSource)
+    {
+        try
+        {
+            var info = _storage.ImporterPack(cheminSource);
+            var slot = ActualiserEtTrouver(info.Chemin);
+            if (slot is not null)
+            {
+                DefinirSauvegardeCourante(slot);
+                StatutOk($"Pack importé : {slot.Nom}.");
+            }
+
+            return slot;
+        }
+        catch (Exception ex)
+        {
+            StatutErreur(ex.Message);
+            return null;
+        }
+    }
+
+    public void ExporterPack(string cheminDestination, SaveSlotViewModel? slot)
+    {
+        if (slot is null)
+        {
+            StatutErreur("Sélectionnez une sauvegarde à exporter.");
+            return;
+        }
+
+        try
+        {
+            _storage.ExporterPack(new SaveInfo(slot.Nom, slot.Chemin, slot.DerniereModification), cheminDestination);
+            StatutOk($"Pack exporté vers {cheminDestination}.");
+        }
+        catch (Exception ex)
+        {
+            StatutErreur($"Impossible d'exporter le pack : {ex.Message}");
+        }
+    }
+
+    public bool DefinirSauvegardeCourante(SaveSlotViewModel slot)
+    {
+        var validation = _storage.ValiderBase(slot.Chemin);
+        if (!validation.EstValide)
+        {
+            StatutErreur(validation.Message);
+            return false;
+        }
+
+        foreach (var save in Sauvegardes)
+        {
+            save.EstCourante = false;
+        }
+
+        slot.EstCourante = true;
+        SauvegardeCourante = slot;
+        SauvegardeSelectionnee = slot;
+        StatutOk($"Sauvegarde chargée : {slot.Nom}.");
+        return true;
+    }
+
+    private void ActualiserSauvegardes()
     {
         Sauvegardes.Clear();
-        foreach (var save in _manager.ListerSaves())
+        foreach (var info in _storage.ListerSauvegardes())
         {
-            Sauvegardes.Add(new SaveGameEntryViewModel(save.Nom, save.Chemin, save.DerniereModification));
-        }
-
-        MessageStatut = $"{Sauvegardes.Count} sauvegarde(s) trouvée(s) dans {_manager.SavesDirectory}.";
-    }
-
-    public string? CreerNouvellePartie()
-    {
-        try
-        {
-            var info = _manager.CreerNouvellePartie(NomNouvellePartie);
-            Rafraichir();
-            SauvegardeSelectionnee = Sauvegardes.FirstOrDefault(item => item.Chemin == info.Chemin);
-            SauvegardeActive = info.Chemin;
-            MessageStatut = $"Nouvelle base créée : {info.Nom}.";
-            return info.Chemin;
-        }
-        catch (Exception ex)
-        {
-            MessageStatut = ex.Message;
-            return null;
+            Sauvegardes.Add(new SaveSlotViewModel(info.Nom, info.Chemin, info.DerniereModification));
         }
     }
 
-    public string? ImporterBase()
+    private SaveSlotViewModel? ActualiserEtTrouver(string chemin)
     {
-        try
-        {
-            var info = _manager.ImporterBase(CheminImport);
-            Rafraichir();
-            SauvegardeSelectionnee = Sauvegardes.FirstOrDefault(item => item.Chemin == info.Chemin);
-            SauvegardeActive = info.Chemin;
-            MessageStatut = $"Base importée : {info.Nom}.";
-            return info.Chemin;
-        }
-        catch (Exception ex)
-        {
-            MessageStatut = ex.Message;
-            return null;
-        }
+        ActualiserSauvegardes();
+        return Sauvegardes.FirstOrDefault(s => s.Chemin == chemin);
     }
 
-    public string? ChargerSelectionnee()
+    public void SignalerErreur(string message)
     {
-        if (SauvegardeSelectionnee is null)
-        {
-            MessageStatut = "Sélectionnez une sauvegarde pour la charger.";
-            return null;
-        }
-
-        SauvegardeActive = SauvegardeSelectionnee.Chemin;
-        MessageStatut = $"Sauvegarde active : {SauvegardeSelectionnee.Nom}.";
-        return SauvegardeSelectionnee.Chemin;
+        StatutErreur(message);
     }
 
-    public void DupliquerSelectionnee()
+    private void StatutOk(string message)
     {
-        if (SauvegardeSelectionnee is null)
-        {
-            MessageStatut = "Sélectionnez une sauvegarde à dupliquer.";
-            return;
-        }
-
-        try
-        {
-            _manager.DupliquerSauvegarde(SauvegardeSelectionnee.Chemin);
-            Rafraichir();
-            MessageStatut = "Sauvegarde dupliquée.";
-        }
-        catch (Exception ex)
-        {
-            MessageStatut = ex.Message;
-        }
+        StatutMessage = message;
+        StatutCouleur = Brushes.LightGreen;
     }
 
-    public void SupprimerSelectionnee()
+    private void StatutErreur(string message)
     {
-        if (SauvegardeSelectionnee is null)
-        {
-            MessageStatut = "Sélectionnez une sauvegarde à supprimer.";
-            return;
-        }
-
-        try
-        {
-            _manager.SupprimerSauvegarde(SauvegardeSelectionnee.Chemin);
-            SauvegardeSelectionnee = null;
-            Rafraichir();
-            MessageStatut = "Sauvegarde supprimée.";
-        }
-        catch (Exception ex)
-        {
-            MessageStatut = ex.Message;
-        }
+        StatutMessage = message;
+        StatutCouleur = Brushes.IndianRed;
     }
 }

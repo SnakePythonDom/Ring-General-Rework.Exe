@@ -96,44 +96,34 @@
 
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Calendrier" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.calendrier" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <TextBlock Text="Sauvegardes" FontSize="20" FontWeight="Bold" Foreground="White" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
-              <StackPanel Spacing="6">
-                <Grid ColumnDefinitions="200,80,80,*,*">
-                  <TextBlock Text="Show" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="1" Text="Semaine" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="2" Text="Durée" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="3" Text="Lieu" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="4" Text="Diffusion" Foreground="#9CA3AF" />
-                </Grid>
-                <ItemsControl ItemsSource="{Binding Session.ShowsAVenir}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Grid ColumnDefinitions="200,80,80,*,*">
-                        <TextBlock Text="{Binding Nom}" Foreground="White" />
-                        <TextBlock Grid.Column="1" Text="{Binding Semaine}" Foreground="#E5E7EB" />
-                        <TextBlock Grid.Column="2" Text="{Binding DureeMinutes}" Foreground="#E5E7EB" />
-                        <TextBlock Grid.Column="3" Text="{Binding Lieu}" Foreground="#E5E7EB" TextWrapping="Wrap" />
-                        <TextBlock Grid.Column="4" Text="{Binding Diffusion}" Foreground="#CBD5F5" TextWrapping="Wrap" />
-                      </Grid>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-            </Border>
-            <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="8">
-                <TextBlock Text="Créer un show" Foreground="#F9FAFB" FontWeight="SemiBold" />
-                <Grid ColumnDefinitions="200,80,80,*,*">
-                  <TextBox Watermark="Nom" Text="{Binding Session.NouveauShowNom, Mode=TwoWay}" />
-                  <TextBox Grid.Column="1" Watermark="Semaine" Text="{Binding Session.NouveauShowSemaine, Mode=TwoWay}" />
-                  <TextBox Grid.Column="2" Watermark="Durée" Text="{Binding Session.NouveauShowDuree, Mode=TwoWay}" />
-                  <TextBox Grid.Column="3" Watermark="Lieu" Text="{Binding Session.NouveauShowLieu, Mode=TwoWay}" />
-                  <TextBox Grid.Column="4" Watermark="Diffusion" Text="{Binding Session.NouveauShowDiffusion, Mode=TwoWay}" />
-                </Grid>
-                <Button Content="Créer le show" Click="OnCreerShow" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBox Width="220" Watermark="Nom de la sauvegarde" Text="{Binding Saves.NouveauNom, Mode=TwoWay}" />
+                  <Button Content="Nouveau" Click="OnNouvelleSauvegarde" />
+                  <Button Content="Charger" Click="OnChargerSauvegarde" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding Saves.Sauvegardes}" SelectedItem="{Binding Saves.SauvegardeSelectionnee, Mode=TwoWay}" MaxHeight="180">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="#1F2937" Padding="8,6" CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBlock Text="{Binding Nom}" Foreground="White" />
+                          <TextBlock Text="{Binding DerniereModificationLabel}" Foreground="#9CA3AF" />
+                          <TextBlock Text="Active" Foreground="#34D399" IsVisible="{Binding EstCourante}" />
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Importer DB" Click="OnImporterDb" />
+                  <Button Content="Exporter pack" Click="OnExporterPack" />
+                  <Button Content="Importer pack" Click="OnImporterPack" />
+                </StackPanel>
+                <TextBlock Text="{Binding Saves.StatutMessage}" Foreground="{Binding Saves.StatutCouleur}" TextWrapping="Wrap" />
               </StackPanel>
             </Border>
           </StackPanel>

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -69,86 +70,128 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnCreerShow(object? sender, RoutedEventArgs e)
+    private void OnNouvelleSauvegarde(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)
         {
-            shell.Session.CreerShow();
+            var slot = shell.Saves.CreerNouvelleSauvegarde();
+            if (slot is not null)
+            {
+                shell.ChargerSauvegarde(slot);
+            }
         }
     }
 
-    private void OnAjouterSegment(object? sender, RoutedEventArgs e)
+    private void OnChargerSauvegarde(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)
         {
-            shell.Session.AjouterSegment();
+            var slot = shell.Saves.SauvegardeSelectionnee ?? shell.Saves.SauvegardeCourante;
+            if (slot is not null)
+            {
+                shell.ChargerSauvegarde(slot);
+            }
+            else
+            {
+                shell.Saves.SignalerErreur("Sélectionnez une sauvegarde à charger.");
+            }
         }
     }
 
-    private void OnEnregistrerSegment(object? sender, RoutedEventArgs e)
+    private async void OnImporterDb(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        if (DataContext is not ShellViewModel shell)
         {
-            shell.Session.EnregistrerSegment(segment);
+            return;
+        }
+
+        var dialog = new OpenFileDialog
+        {
+            Title = "Importer une base de données",
+            AllowMultiple = false,
+            Filters = new List<FileDialogFilter>
+            {
+                new() { Name = "Base SQLite", Extensions = { "db", "sqlite" } },
+                new() { Name = "Tous les fichiers", Extensions = { "*" } }
+            }
+        };
+
+        var result = await dialog.ShowAsync(this);
+        var chemin = result?.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(chemin))
+        {
+            return;
+        }
+
+        var slot = shell.Saves.ImporterBase(chemin);
+        if (slot is not null)
+        {
+            shell.ChargerSauvegarde(slot);
         }
     }
 
-    private void OnCopierSegment(object? sender, RoutedEventArgs e)
+    private async void OnExporterPack(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        if (DataContext is not ShellViewModel shell)
         {
-            shell.Session.CopierSegment(segment);
+            return;
         }
+
+        var slot = shell.Saves.SauvegardeSelectionnee ?? shell.Saves.SauvegardeCourante;
+        if (slot is null)
+        {
+            shell.Saves.SignalerErreur("Sélectionnez une sauvegarde à exporter.");
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Exporter un pack de sauvegarde",
+            InitialFileName = $"{slot.Nom}.zip",
+            Filters = new List<FileDialogFilter>
+            {
+                new() { Name = "Pack Ring General", Extensions = { "zip" } }
+            }
+        };
+
+        var chemin = await dialog.ShowAsync(this);
+        if (string.IsNullOrWhiteSpace(chemin))
+        {
+            return;
+        }
+
+        shell.Saves.ExporterPack(chemin, slot);
     }
 
-    private void OnDeplacerSegmentHaut(object? sender, RoutedEventArgs e)
+    private async void OnImporterPack(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        if (DataContext is not ShellViewModel shell)
         {
-            shell.Session.DeplacerSegment(segment, -1);
+            return;
         }
-    }
 
-    private void OnDeplacerSegmentBas(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        var dialog = new OpenFileDialog
         {
-            shell.Session.DeplacerSegment(segment, 1);
+            Title = "Importer un pack de sauvegarde",
+            AllowMultiple = false,
+            Filters = new List<FileDialogFilter>
+            {
+                new() { Name = "Pack Ring General", Extensions = { "zip" } },
+                new() { Name = "Tous les fichiers", Extensions = { "*" } }
+            }
+        };
+
+        var result = await dialog.ShowAsync(this);
+        var chemin = result?.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(chemin))
+        {
+            return;
         }
-    }
 
-    private void OnAjouterParticipant(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        var slot = shell.Saves.ImporterPack(chemin);
+        if (slot is not null)
         {
-            shell.Session.AjouterParticipant(segment);
-        }
-    }
-
-    private void OnRetirerParticipant(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell &&
-            sender is Control control &&
-            control.DataContext is ParticipantViewModel participant &&
-            control.Tag is SegmentViewModel segment)
-        {
-            shell.Session.RetirerParticipant(segment, participant);
-        }
-    }
-
-    private void OnAjouterParticipantNouveauSegment(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.AjouterParticipantNouveauSegment();
-        }
-    }
-
-    private void OnRetirerParticipantNouveauSegment(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant)
-        {
-            shell.Session.RetirerParticipantNouveauSegment(participant);
+            shell.ChargerSauvegarde(slot);
         }
     }
 
