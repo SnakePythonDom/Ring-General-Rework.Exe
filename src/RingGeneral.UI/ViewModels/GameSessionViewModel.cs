@@ -17,7 +17,7 @@ namespace RingGeneral.UI.ViewModels;
 public sealed class GameSessionViewModel : ViewModelBase
 {
     private const string ShowId = "SHOW-001";
-    private readonly GameRepository _repository;
+    private GameRepository? _repository;
     private readonly BookingValidator _validator = new();
     private readonly IReadOnlyDictionary<string, string> _segmentLabels;
     private readonly HelpContentProvider _helpProvider = new();
@@ -29,10 +29,6 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public GameSessionViewModel()
     {
-        var cheminDb = Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db");
-        var factory = new SqliteConnectionFactory($"Data Source={cheminDb}");
-        _repository = new GameRepository(factory);
-        _repository.Initialiser();
         _segmentLabels = ChargerSegmentTypes();
         _tooltipHelper = new TooltipHelper(_helpProvider);
         _helpPages = ChargerPages();
@@ -76,8 +72,6 @@ public sealed class GameSessionViewModel : ViewModelBase
         OuvrirRechercheGlobaleCommand = ReactiveCommand.Create(OuvrirRechercheGlobale);
         FermerRechercheGlobaleCommand = ReactiveCommand.Create(FermerRechercheGlobale);
 
-        ChargerShow();
-        ChargerInbox();
         ChargerImpactsInitial();
         ChargerTableItems();
         MettreAJourIndexRechercheGlobale();
@@ -241,7 +235,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void SimulerShow()
     {
-        if (_context is null)
+        if (_context is null || _repository is null)
         {
             return;
         }
@@ -287,6 +281,11 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void PasserSemaineSuivante()
     {
+        if (_repository is null)
+        {
+            return;
+        }
+
         var weekly = new WeeklyLoopService(_repository);
         weekly.PasserSemaineSuivante(ShowId);
         ChargerInbox();
@@ -328,8 +327,22 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerShow()
     {
-        _context = _repository.ChargerShowContext(ShowId);
         Segments.Clear();
+        if (_repository is null)
+        {
+            _context = null;
+            ResumeShow = "Aucune base chargée.";
+            MettreAJourAttributs();
+            return;
+        }
+
+        _context = _repository.ChargerShowContext(ShowId);
+        if (_context is null)
+        {
+            ResumeShow = "Aucun show disponible dans cette base.";
+            MettreAJourAttributs();
+            return;
+        }
 
         foreach (var segment in _context.Segments)
         {
@@ -440,6 +453,11 @@ public sealed class GameSessionViewModel : ViewModelBase
     private void ChargerInbox()
     {
         Inbox.Clear();
+        if (_repository is null)
+        {
+            return;
+        }
+
         foreach (var item in _repository.ChargerInbox())
         {
             Inbox.Add(new InboxItemViewModel(item));
