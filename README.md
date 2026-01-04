@@ -199,6 +199,38 @@ Merci de vous référer aux fichiers JSON en français de ce dossier pour toute 
 - Archivées
 - Plans (feuds à préparer)
 
+---
+
+## Lancer le projet en local
+
+### Prérequis
+- .NET SDK 8.0
+
+### Démarrage (UI Avalonia)
+```bash
+dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
+```
+
+Une base SQLite `ringgeneral.db` est créée dans le dossier courant lors du premier lancement.
+
+### Publier un exécutable .exe
+```bash
+dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+```
+
+L'exécutable se trouve ensuite dans :
+`src/RingGeneral.UI/bin/Release/net8.0/win-x64/publish/`
+
+## Scénario de test manuel (boucle jouable)
+1. Lancer l'application.
+2. Vérifier que la section **Booking** affiche une carte de show avec segments.
+3. Cliquer sur **Simuler le show**.
+4. Vérifier que la section **Résultats** affiche une note globale, des notes de segments et des impacts (fatigue/momentum/popularité).
+5. Vérifier que des entrées sont enregistrées dans l'historique (table `show_history` et `segment_history` dans `ringgeneral.db`).
+6. Cliquer sur **Semaine suivante**.
+7. Vérifier que l'**Inbox** se remplit avec 1–3 news, éventuellement un rapport scouting, et des alertes de contrats.
+8. Relancer une simulation pour vérifier que la fatigue est réduite et que les impacts continuent de s'appliquer.
+
 **Boutons**
 - Créer storyline
 - Ajouter participants

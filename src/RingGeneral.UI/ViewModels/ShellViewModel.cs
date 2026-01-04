@@ -16,11 +16,13 @@ public sealed class ShellViewModel : ViewModelBase
         Sidebar = new ObservableCollection<NavigationItemViewModel>(_mapper.ConstruireSidebar(spec));
         TopbarActions = new ObservableCollection<TopbarActionViewModel>(_mapper.ConstruireActions(spec));
         TopbarIndicators = new ObservableCollection<TopbarIndicatorViewModel>(_mapper.ConstruireIndicateurs(spec));
+        Session = new GameSessionViewModel();
     }
 
     public ObservableCollection<NavigationItemViewModel> Sidebar { get; }
     public ObservableCollection<TopbarActionViewModel> TopbarActions { get; }
     public ObservableCollection<TopbarIndicatorViewModel> TopbarIndicators { get; }
+    public GameSessionViewModel Session { get; }
 
     private NavigationSpec ChargerSpecNavigation()
     {

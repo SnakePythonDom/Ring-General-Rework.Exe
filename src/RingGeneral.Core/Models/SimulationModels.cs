@@ -20,7 +20,14 @@ public sealed record SegmentSimulationContext(
     string SegmentId,
     string TypeSegment,
     IReadOnlyList<string> Participants,
-    int DureeMinutes);
+    int DureeMinutes,
+    bool EstMainEvent = false,
+    string? StorylineId = null,
+    string? TitreId = null,
+    int Intensite = 50,
+    string? VainqueurId = null,
+    string? PerdantId = null,
+    IReadOnlyList<WorkerSnapshot>? ParticipantsDetails = null);
 
 public sealed record SegmentRating(
     int Note,
@@ -29,11 +36,14 @@ public sealed record SegmentRating(
 public sealed record SegmentResult(
     string SegmentId,
     int Note,
-    string Resume);
+    string Resume,
+    SegmentReport? Rapport = null);
 
 public sealed record BookingPlan(
     string ShowId,
-    IReadOnlyList<SegmentSimulationContext> Segments);
+    IReadOnlyList<SegmentSimulationContext> Segments,
+    int? DureeShowMinutes = null,
+    IReadOnlyDictionary<string, WorkerHealth>? EtatWorkers = null);
 
 public sealed record ValidationResult(
     bool EstValide,
@@ -43,7 +53,9 @@ public sealed record ValidationResult(
 public sealed record ImpactContext(
     string ShowId,
     IReadOnlyList<SegmentResult> Segments,
-    IReadOnlyList<string> Storylines);
+    IReadOnlyList<string> Storylines,
+    ShowReport? RapportShow = null,
+    GameStateDelta? Delta = null);
 
 public sealed record ImpactReport(
     IReadOnlyList<string> Changements,

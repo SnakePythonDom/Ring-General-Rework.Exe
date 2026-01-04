@@ -57,10 +57,87 @@
     </Border>
 
     <Border Grid.Row="1" Grid.Column="1" Background="#0B1220" Padding="24">
-      <StackPanel Spacing="12">
-        <TextBlock Text="Tableau de bord" FontSize="22" FontWeight="Bold" Foreground="White" />
-        <TextBlock Text="Sélectionnez une page dans la navigation pour charger le contenu dynamique." Foreground="#CBD5F5" />
-      </StackPanel>
+      <ScrollViewer>
+        <StackPanel Spacing="20">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Booking" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="6">
+                <Grid ColumnDefinitions="120,100,*,120">
+                  <TextBlock Text="Type" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="1" Text="Durée" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="2" Text="Participants" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="3" Text="Main event" Foreground="#9CA3AF" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding Session.Segments}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="120,100,*,120">
+                        <TextBlock Text="{Binding TypeSegmentLibelle}" Foreground="White" />
+                        <TextBlock Grid.Column="1" Text="{Binding DureeMinutes}" Foreground="White" />
+                        <TextBlock Grid.Column="2" Text="{Binding Participants}" Foreground="#E5E7EB" />
+                        <TextBlock Grid.Column="3" Text="{Binding EstMainEvent}" Foreground="#FCD34D" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Button Content="Simuler le show" Click="OnSimulerShow" />
+              <Button Content="Semaine suivante" Click="OnSemaineSuivante" />
+            </StackPanel>
+            <TextBlock Text="{Binding Session.ValidationErreurs}" Foreground="#F87171" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Résultats" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <TextBlock Text="{Binding Session.ResumeShow}" Foreground="#CBD5F5" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="6">
+                <Grid ColumnDefinitions="120,80,80,*,*">
+                  <TextBlock Text="Segment" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="1" Text="Note" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="2" Text="Icônes" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="3" Text="Breakdown" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="4" Text="Impacts" Foreground="#9CA3AF" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding Session.Resultats}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="120,80,80,*,*">
+                        <TextBlock Text="{Binding TypeSegment}" Foreground="White" />
+                        <TextBlock Grid.Column="1" Text="{Binding Note}" Foreground="#FCD34D" />
+                        <TextBlock Grid.Column="2" Text="{Binding Icons}" Foreground="#FBBF24" />
+                        <TextBlock Grid.Column="3" Text="{Binding Breakdown}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="4" Text="{Binding Impacts}" Foreground="#D1D5DB" TextWrapping="Wrap" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Inbox" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <ItemsControl ItemsSource="{Binding Session.Inbox}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Spacing="4" Margin="0,0,0,8">
+                      <TextBlock Text="{Binding Titre}" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Contenu}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Semaine, StringFormat='Semaine {0}'}" Foreground="#9CA3AF" FontSize="11" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
     </Border>
   </Grid>
 </Window>

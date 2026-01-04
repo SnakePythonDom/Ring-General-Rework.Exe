@@ -8,4 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RingGeneral.Core\RingGeneral.Core.csproj" />
+  </ItemGroup>
 </Project>
