@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "langue": "fr",
+    "sourceDeVerite": "specs",
+    "modele": "worker-generation"
+  },
+  "frequences": {
+    "annuel": {
+      "semainePivot": 1,
+      "cooldownSemaines": 48
+    },
+    "mensuel": {
+      "actif": false,
+      "cooldownSemaines": 4,
+      "intervalleSemaines": 4
+    }
+  },
+  "caps": {
+    "trainees": {
+      "globalAnnuel": 120,
+      "parPaysAnnuel": 30,
+      "parCompagnieAnnuel": 24,
+      "parStructure": {
+        "maxParPeriode": 4,
+        "maxActifs": 24
+      }
+    },
+    "freeAgents": {
+      "globalAnnuel": 12,
+      "parPaysAnnuel": 4
+    }
+  },
+  "facteurs": {
+    "typeYouth": {
+      "WRESTLING_SCHOOL": { "base": 2, "max": 4 },
+      "DOJO": { "base": 2, "max": 4 },
+      "ACADEMY": { "base": 3, "max": 5 },
+      "PERFORMANCE_CENTER": { "base": 4, "max": 6 },
+      "TERRITOIRE_DEVELOPPEMENT": { "base": 3, "max": 5 }
+    },
+    "infrastructure": {
+      "bonusParNiveau": 0.4
+    },
+    "budget": {
+      "paliers": [
+        { "min": 0, "max": 25000, "bonus": 0 },
+        { "min": 25001, "max": 75000, "bonus": 0.5 },
+        { "min": 75001, "max": 150000, "bonus": 1.0 },
+        { "min": 150001, "max": 300000, "bonus": 1.5 }
+      ]
+    },
+    "coaching": {
+      "bonusParPoint": 0.05
+    },
+    "philosophie": {
+      "LUCHA": { "bonusAerial": 2 },
+      "PURO": { "bonusTechnique": 2 },
+      "ENTERTAINMENT": { "bonusPromo": 2 },
+      "HYBRIDE": { "bonusGeneral": 1 }
+    },
+    "regions": {
+      "FR": { "bonusTechnique": 1 },
+      "US": { "bonusPromo": 1 },
+      "JP": { "bonusTechnique": 1 },
+      "MX": { "bonusAerial": 1 }
+    }
+  },
+  "profils": {
+    "trainee": {
+      "ageMin": 16,
+      "ageMax": 23,
+      "potentiel": { "min": 6, "max": 18, "courbe": "gauss" },
+      "specialites": {
+        "inring": 0.3,
+        "divertissement": 0.25,
+        "histoire": 0.2,
+        "polyvalent": 0.25
+      }
+    },
+    "freeAgent": {
+      "ageMin": 20,
+      "ageMax": 34,
+      "potentiel": { "min": 8, "max": 19, "courbe": "gauss" },
+      "specialites": {
+        "inring": 0.28,
+        "divertissement": 0.3,
+        "histoire": 0.22,
+        "polyvalent": 0.2
+      }
+    }
+  },
+  "valeursInitiales": {
+    "popularite": 5,
+    "momentum": 0,
+    "fatigue": 0,
+    "blessure": "AUCUNE",
+    "roleTrainee": "LOW",
+    "roleFreeAgent": "OPENER"
+  },
+  "noms": {
+    "prenoms": [
+      "Alex",
+      "Camille",
+      "Leo",
+      "Maya",
+      "Noah",
+      "Sarah",
+      "Jules",
+      "Ines",
+      "Ethan",
+      "Lina",
+      "Hugo",
+      "Nora"
+    ],
+    "noms": [
+      "Dubois",
+      "Martin",
+      "Petit",
+      "Roche",
+      "Bernard",
+      "Morel",
+      "Leroy",
+      "Fontaine",
+      "Roussel",
+      "Perrin",
+      "Lambert",
+      "Chevalier"
+    ]
+  },
+  "modes": {
+    "desactive": { "multiplicateurQuantite": 0.0 },
+    "realiste": { "multiplicateurQuantite": 1.0 },
+    "abondant": { "multiplicateurQuantite": 1.4, "mensuel": true }
+  },
+  "monde": {
+    "faible": {
+      "chanceHebdo": 0.04,
+      "maxParPeriode": 1
+    }
+  }
+}

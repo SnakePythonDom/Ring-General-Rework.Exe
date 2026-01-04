@@ -11,4 +11,9 @@
   <ItemGroup>
     <ProjectReference Include="..\RingGeneral.Core\RingGeneral.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\data\migrations\**\*.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
