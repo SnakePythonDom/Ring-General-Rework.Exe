@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "companies"
+  },
+  "champsIdentite": [
+    {"id": "companyId", "libelle": "ID compagnie"},
+    {"id": "nom", "libelle": "Nom"},
+    {"id": "pays", "libelle": "Pays"},
+    {"id": "region", "libelle": "Région"},
+    {"id": "fondation", "libelle": "Année de fondation"},
+    {"id": "devise", "libelle": "Devise", "format": "monetaire"}
+  ],
+  "champsBusiness": [
+    {"id": "taille", "libelle": "Taille", "enum": ["INDIE", "REGIONALE", "NATIONALE", "MAJEURE", "GLOBALE"]},
+    {"id": "prestige", "libelle": "Prestige", "echelle": "0-100"},
+    {"id": "tresorerie", "libelle": "Trésorerie", "format": "monetaire"},
+    {"id": "budgetRoster", "libelle": "Budget roster", "format": "monetaire"},
+    {"id": "audienceMoyenne", "libelle": "Audience moyenne", "format": "pourcentage"}
+  ],
+  "champsSportifs": [
+    {"id": "styleBooking", "libelle": "Style de booking", "enum": ["SPORTIF", "DIVERTISSEMENT", "HYBRIDE"]},
+    {"id": "discipline", "libelle": "Discipline interne", "echelle": "0-100"},
+    {"id": "moralBackstage", "libelle": "Moral backstage", "echelle": "0-100"},
+    {"id": "strategieTalent", "libelle": "Stratégie talents", "enum": ["DEVELOPPEMENT", "STAR_POWER", "EQUILIBREE"]}
+  ],
+  "relations": {
+    "source": "network.fr.json",
+    "regles": [
+      "companyId doit correspondre aux références du réseau.",
+      "Une compagnie ne peut pas être son propre parent.",
+      "Les relations doivent être symétriques si définies comme partenaires."
+    ]
+  },
+  "validations": [
+    "companyId est obligatoire et unique.",
+    "nom est obligatoire.",
+    "pays et region sont requis pour la popularité régionale.",
+    "prestige doit rester entre 0 et 100."
+  ],
+  "etatVide": {
+    "libelle": "Aucune compagnie disponible.",
+    "messageErreur": "Impossible de charger les compagnies."
+  }
+}

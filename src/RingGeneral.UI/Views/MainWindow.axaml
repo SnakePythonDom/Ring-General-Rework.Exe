@@ -1,0 +1,66 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="RingGeneral.UI.Views.MainWindow"
+        Width="1280"
+        Height="720"
+        Title="Ring General">
+  <Grid RowDefinitions="Auto,*" ColumnDefinitions="280,*">
+    <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#1F2937" Padding="16,12">
+      <DockPanel>
+        <TextBlock Text="Ring General" Foreground="White" FontWeight="Bold" DockPanel.Dock="Left" />
+        <ItemsControl ItemsSource="{Binding TopbarIndicators}" DockPanel.Dock="Right">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Background="#111827" Padding="8,4" Margin="4,0">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="{Binding Libelle}" Foreground="#9CA3AF" Margin="0,0,6,0" />
+                  <TextBlock Text="{Binding Valeur}" Foreground="White" FontWeight="Bold" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </DockPanel>
+    </Border>
+
+    <Border Grid.Row="1" Grid.Column="0" Background="#111827" Padding="12">
+      <ScrollViewer>
+        <StackPanel Spacing="8">
+          <ItemsControl ItemsSource="{Binding Sidebar}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding Libelle}" Foreground="White" FontWeight="SemiBold" />
+                  <ItemsControl ItemsSource="{Binding SousSections}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#1F2937" Padding="8,6" CornerRadius="6">
+                          <TextBlock Text="{Binding Libelle}" Foreground="#E5E7EB" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <Border Grid.Row="1" Grid.Column="1" Background="#0B1220" Padding="24">
+      <StackPanel Spacing="12">
+        <TextBlock Text="Tableau de bord" FontSize="22" FontWeight="Bold" Foreground="White" />
+        <TextBlock Text="Sélectionnez une page dans la navigation pour charger le contenu dynamique." Foreground="#CBD5F5" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>
