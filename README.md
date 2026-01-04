@@ -4,6 +4,11 @@
 Toutes les spécifications officielles (UI, modèles, boucle hebdo, booking, impacts, services) sont désormais la source de vérité dans le dossier `/specs`.
 Merci de vous référer aux fichiers JSON en français de ce dossier pour toute mise à jour.
 
+## Documentation
+- [Guide du jeu (FR)](docs/JEU_GUIDE_FR.md)
+- [Guide du modding (FR)](docs/MODDING_GUIDE_FR.md)
+- [Guide de développement (FR)](docs/DEV_GUIDE_FR.md)
+
 ## 1) Vision produit (TEW/PWS + FM26)
 
 > Les spécifications détaillées (navigation, onglets par page, attributs, Youth, boucle hebdo)
@@ -248,6 +253,11 @@ dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj -c Release -r win-x64 --
 
 L'exécutable se trouve ensuite dans :
 `src/RingGeneral.UI/bin/Release/net8.0/win-x64/publish/`
+
+## Ajouter du contenu via /specs
+- **Pages UI** : `specs/ui/pages/*.fr.json`
+- **Segments** : `specs/booking/segment-types.fr.json`
+- **Aide/Codex** : `specs/help/*.fr.json`
 
 ## Scénario de test manuel (boucle jouable)
 1. Lancer l'application.
