@@ -88,6 +88,38 @@
 
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Sauvegardes" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="Rafraîchir" Click="OnRafraichirSaves" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox Width="240" Text="{Binding Sauvegardes.NomNouvellePartie}" Watermark="Nom de la sauvegarde" />
+              <Button Content="Créer une base vierge" Click="OnCreerBaseVierge" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox Width="360" Text="{Binding Sauvegardes.CheminImport}" Watermark="Chemin d'une base .db" />
+              <Button Content="Importer une base" Click="OnImporterBase" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding Sauvegardes.Sauvegardes}" SelectedItem="{Binding Sauvegardes.SauvegardeSelectionnee}" Height="160">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel>
+                    <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding DerniereModification}" Foreground="#9CA3AF" FontSize="12" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Charger" Click="OnChargerSauvegarde" />
+              <Button Content="Dupliquer" Click="OnDupliquerSauvegarde" />
+              <Button Content="Supprimer" Click="OnSupprimerSauvegarde" />
+            </StackPanel>
+            <TextBlock Text="{Binding Sauvegardes.MessageStatut}" Foreground="#FBBF24" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Session.EtatSession}" Foreground="#60A5FA" TextWrapping="Wrap" />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Booking" FontSize="20" FontWeight="Bold" Foreground="White" />
               <Button Grid.Column="1" Content="?" Tag="page.booking" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
             </Grid>
