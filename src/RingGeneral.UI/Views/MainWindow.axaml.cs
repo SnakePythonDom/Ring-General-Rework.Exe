@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using RingGeneral.UI.ViewModels;
 
@@ -10,6 +11,22 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new ShellViewModel();
+    }
+
+    private void OnSimulerShow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.SimulerShow();
+        }
+    }
+
+    private void OnSemaineSuivante(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.PasserSemaineSuivante();
+        }
     }
 
     private void InitializeComponent()
