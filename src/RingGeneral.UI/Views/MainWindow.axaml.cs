@@ -69,63 +69,11 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnRafraichirSaves(object? sender, RoutedEventArgs e)
+    private void OnEnregistrerGeneration(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)
         {
-            shell.Sauvegardes.Rafraichir();
-        }
-    }
-
-    private void OnCreerBaseVierge(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            var chemin = shell.Sauvegardes.CreerNouvellePartie();
-            if (!string.IsNullOrWhiteSpace(chemin))
-            {
-                shell.Session.ChargerSauvegarde(chemin);
-            }
-        }
-    }
-
-    private void OnImporterBase(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            var chemin = shell.Sauvegardes.ImporterBase();
-            if (!string.IsNullOrWhiteSpace(chemin))
-            {
-                shell.Session.ChargerSauvegarde(chemin);
-            }
-        }
-    }
-
-    private void OnChargerSauvegarde(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            var chemin = shell.Sauvegardes.ChargerSelectionnee();
-            if (!string.IsNullOrWhiteSpace(chemin))
-            {
-                shell.Session.ChargerSauvegarde(chemin);
-            }
-        }
-    }
-
-    private void OnDupliquerSauvegarde(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Sauvegardes.DupliquerSelectionnee();
-        }
-    }
-
-    private void OnSupprimerSauvegarde(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Sauvegardes.SupprimerSelectionnee();
+            shell.Session.EnregistrerParametresGeneration();
         }
     }
 

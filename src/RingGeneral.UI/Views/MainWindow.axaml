@@ -346,6 +346,43 @@
           </StackPanel>
 
           <StackPanel Spacing="8">
+            <TextBlock Text="Génération automatique" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="8">
+                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                  <TextBlock Text="Youth" Foreground="#9CA3AF" />
+                  <ComboBox Grid.Column="1"
+                            ItemsSource="{Binding Session.YouthGenerationModes}"
+                            SelectedItem="{Binding Session.YouthGenerationSelection}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Libelle}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Grid.Row="1" Text="Monde" Foreground="#9CA3AF" />
+                  <ComboBox Grid.Row="1" Grid.Column="1"
+                            ItemsSource="{Binding Session.WorldGenerationModes}"
+                            SelectedItem="{Binding Session.WorldGenerationSelection}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Libelle}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Grid.Row="2" Text="Semaine pivot" Foreground="#9CA3AF" />
+                  <NumericUpDown Grid.Row="2" Grid.Column="1"
+                                 Minimum="1"
+                                 Maximum="52"
+                                 Value="{Binding Session.SemainePivotAnnuelle}" />
+                </Grid>
+                <Button Content="Enregistrer les paramètres" Click="OnEnregistrerGeneration" />
+                <TextBlock Text="{Binding Session.ParametresGenerationMessage}" Foreground="#34D399" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Impacts" FontSize="20" FontWeight="Bold" Foreground="White" />
               <Button Grid.Column="1" Content="?" Tag="impacts.popularite" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />

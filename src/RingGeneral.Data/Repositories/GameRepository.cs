@@ -15,15 +15,205 @@ public sealed class GameRepository
 
     public void Initialiser()
     {
-        var initializer = new DbInitializer();
-        initializer.CreateDatabaseIfMissing(_factory.DatabasePath);
+        using var connexion = _factory.OuvrirConnexion();
+        using var commande = connexion.CreateCommand();
+        commande.CommandText = """
+            CREATE TABLE IF NOT EXISTS companies (
+                company_id TEXT PRIMARY KEY,
+                nom TEXT NOT NULL,
+                region TEXT NOT NULL,
+                prestige INTEGER NOT NULL,
+                tresorerie REAL NOT NULL,
+                audience_moyenne INTEGER NOT NULL,
+                reach INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS workers (
+                worker_id TEXT PRIMARY KEY,
+                nom TEXT NOT NULL,
+                prenom TEXT NOT NULL,
+                company_id TEXT,
+                in_ring INTEGER NOT NULL,
+                entertainment INTEGER NOT NULL,
+                story INTEGER NOT NULL,
+                popularite INTEGER NOT NULL,
+                fatigue INTEGER NOT NULL,
+                blessure TEXT NOT NULL,
+                momentum INTEGER NOT NULL,
+                role_tv TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS titles (
+                title_id TEXT PRIMARY KEY,
+                nom TEXT NOT NULL,
+                prestige INTEGER NOT NULL,
+                detenteur_id TEXT,
+                company_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS storylines (
+                storyline_id TEXT PRIMARY KEY,
+                nom TEXT NOT NULL,
+                heat INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS storyline_participants (
+                storyline_id TEXT NOT NULL,
+                worker_id TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS shows (
+                show_id TEXT PRIMARY KEY,
+                nom TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                region TEXT NOT NULL,
+                duree INTEGER NOT NULL,
+                compagnie_id TEXT NOT NULL,
+                tv_deal_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS segments (
+                segment_id TEXT PRIMARY KEY,
+                show_id TEXT NOT NULL,
+                ordre INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                duree INTEGER NOT NULL,
+                participants_json TEXT NOT NULL,
+                storyline_id TEXT,
+                title_id TEXT,
+                main_event INTEGER NOT NULL,
+                intensite INTEGER NOT NULL,
+                vainqueur_id TEXT,
+                perdant_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS chimies (
+                worker_a TEXT NOT NULL,
+                worker_b TEXT NOT NULL,
+                valeur INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS finances (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                show_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                montant REAL NOT NULL,
+                libelle TEXT NOT NULL,
+                semaine INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS show_history (
+                show_id TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                note INTEGER NOT NULL,
+                audience INTEGER NOT NULL,
+                resume TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS segment_history (
+                segment_id TEXT NOT NULL,
+                show_id TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                note INTEGER NOT NULL,
+                resume TEXT NOT NULL,
+                details_json TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS inbox_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT NOT NULL,
+                titre TEXT NOT NULL,
+                contenu TEXT NOT NULL,
+                semaine INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS contracts (
+                worker_id TEXT NOT NULL,
+                company_id TEXT NOT NULL,
+                fin_semaine INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS youth_structures (
+                youth_id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                type TEXT NOT NULL,
+                region TEXT NOT NULL,
+                budget_annuel INTEGER NOT NULL,
+                capacite_max INTEGER NOT NULL,
+                niveau_equipements INTEGER NOT NULL,
+                qualite_coaching INTEGER NOT NULL,
+                philosophie TEXT NOT NULL,
+                actif INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS youth_trainees (
+                worker_id TEXT NOT NULL,
+                youth_id TEXT NOT NULL,
+                statut TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS youth_generation_state (
+                youth_id TEXT PRIMARY KEY,
+                derniere_generation_semaine INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS worker_attributes (
+                worker_id TEXT NOT NULL,
+                attribut_id TEXT NOT NULL,
+                valeur INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS worker_generation_counters (
+                annee INTEGER NOT NULL,
+                scope_type TEXT NOT NULL,
+                scope_id TEXT NOT NULL,
+                worker_type TEXT NOT NULL,
+                count INTEGER NOT NULL,
+                PRIMARY KEY (annee, scope_type, scope_id, worker_type)
+            );
+            CREATE TABLE IF NOT EXISTS worker_generation_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                worker_id TEXT NOT NULL,
+                worker_type TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                youth_id TEXT,
+                region TEXT NOT NULL,
+                company_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS game_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                youth_generation_mode TEXT NOT NULL,
+                world_generation_mode TEXT NOT NULL,
+                semaine_pivot_annuelle INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS popularity_regionale (
+                entity_type TEXT NOT NULL,
+                entity_id TEXT NOT NULL,
+                region TEXT NOT NULL,
+                valeur INTEGER NOT NULL,
+                UNIQUE(entity_type, entity_id, region)
+            );
+            CREATE INDEX IF NOT EXISTS idx_workers_company ON workers(company_id);
+            CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
+            CREATE INDEX IF NOT EXISTS idx_contracts_enddate ON contracts(fin_semaine);
+            CREATE INDEX IF NOT EXISTS idx_contracts_company ON contracts(company_id);
+            CREATE INDEX IF NOT EXISTS idx_titles_company ON titles(company_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_company ON youth_structures(company_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_region ON youth_structures(region);
+            CREATE INDEX IF NOT EXISTS idx_youth_trainees_youth ON youth_trainees(youth_id);
+            CREATE INDEX IF NOT EXISTS idx_worker_attributes_worker ON worker_attributes(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
+            """;
+        commande.ExecuteNonQuery();
+
+        AssurerColonnesSupplementaires(connexion);
+
+        using var countCommand = connexion.CreateCommand();
+        countCommand.CommandText = "SELECT COUNT(1) FROM companies";
+        var count = Convert.ToInt32(countCommand.ExecuteScalar());
+        if (count == 0)
+        {
+            SeedDatabase(connexion);
+        }
     }
 
     public ShowContext? ChargerShowContext(string showId)
     {
-        using var connexion = _factory.OuvrirConnexion();
-        var show = ChargerShow(connexion, showId);
-        if (show is null)
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+    }
+
+    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
         {
             return null;
         }
@@ -365,7 +555,321 @@ public sealed class GameRepository
         command.ExecuteNonQuery();
     }
 
-    private static ShowDefinition? ChargerShow(SqliteConnection connexion, string showId)
+    public ShowDefinition ChargerShowDefinition(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        return ChargerShow(connexion, showId);
+    }
+
+    public WorkerGenerationOptions ChargerParametresGeneration()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT youth_generation_mode, world_generation_mode, semaine_pivot_annuelle FROM game_settings WHERE id = 1;";
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
+        {
+            var youthMode = Enum.TryParse<YouthGenerationMode>(reader.GetString(0), out var ym)
+                ? ym
+                : YouthGenerationMode.Realiste;
+            var worldMode = Enum.TryParse<WorldGenerationMode>(reader.GetString(1), out var wm)
+                ? wm
+                : WorldGenerationMode.Desactivee;
+            var pivot = reader.IsDBNull(2) ? null : reader.GetInt32(2);
+            return new WorkerGenerationOptions(youthMode, worldMode, pivot);
+        }
+
+        return new WorkerGenerationOptions(YouthGenerationMode.Realiste, WorldGenerationMode.Desactivee, null);
+    }
+
+    public void SauvegarderParametresGeneration(WorkerGenerationOptions options)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO game_settings (id, youth_generation_mode, world_generation_mode, semaine_pivot_annuelle)
+            VALUES (1, $youthMode, $worldMode, $pivot)
+            ON CONFLICT(id) DO UPDATE SET
+                youth_generation_mode = excluded.youth_generation_mode,
+                world_generation_mode = excluded.world_generation_mode,
+                semaine_pivot_annuelle = excluded.semaine_pivot_annuelle;
+            """;
+        command.Parameters.AddWithValue("$youthMode", options.YouthMode.ToString());
+        command.Parameters.AddWithValue("$worldMode", options.WorldMode.ToString());
+        command.Parameters.AddWithValue("$pivot", options.SemainePivotAnnuelle.HasValue ? options.SemainePivotAnnuelle.Value : DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public IReadOnlyList<YouthStructureState> ChargerYouthStructuresPourGeneration()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ys.youth_id,
+                   ys.nom,
+                   ys.company_id,
+                   ys.region,
+                   ys.type,
+                   ys.budget_annuel,
+                   ys.capacite_max,
+                   ys.niveau_equipements,
+                   ys.qualite_coaching,
+                   ys.philosophie,
+                   ys.actif,
+                   COALESCE(state.derniere_generation_semaine, NULL),
+                   COALESCE(counts.nb_trainees, 0)
+            FROM youth_structures ys
+            LEFT JOIN youth_generation_state state ON state.youth_id = ys.youth_id
+            LEFT JOIN (
+                SELECT youth_id, COUNT(1) AS nb_trainees
+                FROM youth_trainees
+                GROUP BY youth_id
+            ) counts ON counts.youth_id = ys.youth_id
+            WHERE ys.actif = 1;
+            """;
+        using var reader = command.ExecuteReader();
+        var structures = new List<YouthStructureState>();
+        while (reader.Read())
+        {
+            structures.Add(new YouthStructureState(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                reader.GetInt32(7),
+                reader.GetInt32(8),
+                reader.GetString(9),
+                reader.GetInt32(10) == 1,
+                reader.IsDBNull(11) ? null : reader.GetInt32(11),
+                reader.GetInt32(12)));
+        }
+
+        return structures;
+    }
+
+    public GenerationCounters ChargerGenerationCounters(int annee)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT scope_type, scope_id, worker_type, count
+            FROM worker_generation_counters
+            WHERE annee = $annee;
+            """;
+        command.Parameters.AddWithValue("$annee", annee);
+        using var reader = command.ExecuteReader();
+        var traineesParPays = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var traineesParCompagnie = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var freeAgentsParPays = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var globalTrainees = 0;
+        var globalFreeAgents = 0;
+
+        while (reader.Read())
+        {
+            var scopeType = reader.GetString(0);
+            var scopeId = reader.GetString(1);
+            var workerType = reader.GetString(2);
+            var count = reader.GetInt32(3);
+
+            if (scopeType == "GLOBAL" && workerType == "TRAINEE")
+            {
+                globalTrainees = count;
+            }
+            else if (scopeType == "GLOBAL" && workerType == "FREE_AGENT")
+            {
+                globalFreeAgents = count;
+            }
+            else if (scopeType == "COUNTRY" && workerType == "TRAINEE")
+            {
+                traineesParPays[scopeId] = count;
+            }
+            else if (scopeType == "COMPANY" && workerType == "TRAINEE")
+            {
+                traineesParCompagnie[scopeId] = count;
+            }
+            else if (scopeType == "COUNTRY" && workerType == "FREE_AGENT")
+            {
+                freeAgentsParPays[scopeId] = count;
+            }
+        }
+
+        return new GenerationCounters(annee, globalTrainees, traineesParPays, traineesParCompagnie, globalFreeAgents, freeAgentsParPays);
+    }
+
+    public void EnregistrerGeneration(WorkerGenerationReport report)
+    {
+        if (report.Workers.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        foreach (var worker in report.Workers)
+        {
+            using var workerCommand = connexion.CreateCommand();
+            workerCommand.Transaction = transaction;
+            workerCommand.CommandText = """
+                INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, type_worker)
+                VALUES ($workerId, $nom, $prenom, $companyId, $inRing, $entertainment, $story, $popularite, $fatigue, $blessure, $momentum, $roleTv, $typeWorker);
+                """;
+            workerCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+            workerCommand.Parameters.AddWithValue("$nom", worker.Nom);
+            workerCommand.Parameters.AddWithValue("$prenom", worker.Prenom);
+            workerCommand.Parameters.AddWithValue("$companyId", worker.CompagnieId ?? (object)DBNull.Value);
+            workerCommand.Parameters.AddWithValue("$inRing", worker.InRing);
+            workerCommand.Parameters.AddWithValue("$entertainment", worker.Entertainment);
+            workerCommand.Parameters.AddWithValue("$story", worker.Story);
+            workerCommand.Parameters.AddWithValue("$popularite", worker.Popularite);
+            workerCommand.Parameters.AddWithValue("$fatigue", worker.Fatigue);
+            workerCommand.Parameters.AddWithValue("$blessure", worker.Blessure);
+            workerCommand.Parameters.AddWithValue("$momentum", worker.Momentum);
+            workerCommand.Parameters.AddWithValue("$roleTv", worker.RoleTv);
+            workerCommand.Parameters.AddWithValue("$typeWorker", worker.TypeWorker);
+            workerCommand.ExecuteNonQuery();
+
+            foreach (var (attr, value) in worker.Attributes)
+            {
+                using var attrCommand = connexion.CreateCommand();
+                attrCommand.Transaction = transaction;
+                attrCommand.CommandText = """
+                    INSERT INTO worker_attributes (worker_id, attribut_id, valeur)
+                    VALUES ($workerId, $attrId, $valeur);
+                    """;
+                attrCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+                attrCommand.Parameters.AddWithValue("$attrId", attr);
+                attrCommand.Parameters.AddWithValue("$valeur", value);
+                attrCommand.ExecuteNonQuery();
+            }
+
+            using var popCommand = connexion.CreateCommand();
+            popCommand.Transaction = transaction;
+            popCommand.CommandText = """
+                INSERT INTO popularity_regionale (entity_type, entity_id, region, valeur)
+                VALUES ('worker', $workerId, $region, $valeur)
+                ON CONFLICT(entity_type, entity_id, region) DO NOTHING;
+                """;
+            popCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+            popCommand.Parameters.AddWithValue("$region", worker.Region);
+            popCommand.Parameters.AddWithValue("$valeur", worker.Popularite);
+            popCommand.ExecuteNonQuery();
+
+            if (!string.IsNullOrWhiteSpace(worker.YouthId))
+            {
+                using var youthCommand = connexion.CreateCommand();
+                youthCommand.Transaction = transaction;
+                youthCommand.CommandText = """
+                    INSERT INTO youth_trainees (worker_id, youth_id, statut)
+                    VALUES ($workerId, $youthId, 'EN_FORMATION');
+                    """;
+                youthCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+                youthCommand.Parameters.AddWithValue("$youthId", worker.YouthId);
+                youthCommand.ExecuteNonQuery();
+            }
+
+            using var eventCommand = connexion.CreateCommand();
+            eventCommand.Transaction = transaction;
+            eventCommand.CommandText = """
+                INSERT INTO worker_generation_events (worker_id, worker_type, semaine, youth_id, region, company_id)
+                VALUES ($workerId, $workerType, $semaine, $youthId, $region, $companyId);
+                """;
+            eventCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
+            eventCommand.Parameters.AddWithValue("$workerType", worker.TypeWorker == "TRAINEE" ? "TRAINEE" : "FREE_AGENT");
+            eventCommand.Parameters.AddWithValue("$semaine", report.Semaine);
+            eventCommand.Parameters.AddWithValue("$youthId", worker.YouthId ?? (object)DBNull.Value);
+            eventCommand.Parameters.AddWithValue("$region", worker.Region);
+            eventCommand.Parameters.AddWithValue("$companyId", worker.CompagnieId ?? (object)DBNull.Value);
+            eventCommand.ExecuteNonQuery();
+        }
+
+        MettreAJourCounters(transaction, report);
+        MettreAJourGenerationState(transaction, report);
+
+        transaction.Commit();
+    }
+
+    private void MettreAJourCounters(SqliteTransaction transaction, WorkerGenerationReport report)
+    {
+        var annee = ((report.Semaine - 1) / 52) + 1;
+        var traineesParPays = report.Workers.Where(w => w.TypeWorker == "TRAINEE").GroupBy(w => w.Region);
+        var traineesParCompagnie = report.Workers.Where(w => w.TypeWorker == "TRAINEE").GroupBy(w => w.CompagnieId ?? string.Empty);
+        var freeAgentsParPays = report.Workers.Where(w => w.TypeWorker != "TRAINEE").GroupBy(w => w.Region);
+
+        InsererOuMajCounter(transaction, annee, "GLOBAL", "GLOBAL", "TRAINEE", report.Workers.Count(w => w.TypeWorker == "TRAINEE"));
+        InsererOuMajCounter(transaction, annee, "GLOBAL", "GLOBAL", "FREE_AGENT", report.Workers.Count(w => w.TypeWorker != "TRAINEE"));
+
+        foreach (var group in traineesParPays)
+        {
+            InsererOuMajCounter(transaction, annee, "COUNTRY", group.Key, "TRAINEE", group.Count());
+        }
+
+        foreach (var group in traineesParCompagnie)
+        {
+            if (string.IsNullOrWhiteSpace(group.Key))
+            {
+                continue;
+            }
+
+            InsererOuMajCounter(transaction, annee, "COMPANY", group.Key, "TRAINEE", group.Count());
+        }
+
+        foreach (var group in freeAgentsParPays)
+        {
+            InsererOuMajCounter(transaction, annee, "COUNTRY", group.Key, "FREE_AGENT", group.Count());
+        }
+    }
+
+    private void MettreAJourGenerationState(SqliteTransaction transaction, WorkerGenerationReport report)
+    {
+        var structures = report.Workers.Where(w => w.TypeWorker == "TRAINEE").Select(w => w.YouthId).Distinct();
+        foreach (var youthId in structures)
+        {
+            if (string.IsNullOrWhiteSpace(youthId))
+            {
+                continue;
+            }
+
+            using var command = transaction.Connection!.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO youth_generation_state (youth_id, derniere_generation_semaine)
+                VALUES ($youthId, $semaine)
+                ON CONFLICT(youth_id) DO UPDATE SET derniere_generation_semaine = excluded.derniere_generation_semaine;
+                """;
+            command.Parameters.AddWithValue("$youthId", youthId);
+            command.Parameters.AddWithValue("$semaine", report.Semaine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void InsererOuMajCounter(SqliteTransaction transaction, int annee, string scopeType, string scopeId, string workerType, int delta)
+    {
+        if (delta <= 0)
+        {
+            return;
+        }
+
+        using var command = transaction.Connection!.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO worker_generation_counters (annee, scope_type, scope_id, worker_type, count)
+            VALUES ($annee, $scopeType, $scopeId, $workerType, $delta)
+            ON CONFLICT(annee, scope_type, scope_id, worker_type)
+            DO UPDATE SET count = worker_generation_counters.count + $delta;
+            """;
+        command.Parameters.AddWithValue("$annee", annee);
+        command.Parameters.AddWithValue("$scopeType", scopeType);
+        command.Parameters.AddWithValue("$scopeId", scopeId);
+        command.Parameters.AddWithValue("$workerType", workerType);
+        command.Parameters.AddWithValue("$delta", delta);
+        command.ExecuteNonQuery();
+    }
+
+    private static ShowDefinition ChargerShow(SqliteConnection connexion, string showId)
     {
         using var command = connexion.CreateCommand();
         command.CommandText = """
@@ -581,5 +1085,124 @@ public sealed class GameRepository
         }
 
         return chimies;
+    }
+
+    private void SeedDatabase(SqliteConnection connexion)
+    {
+        using var transaction = connexion.BeginTransaction();
+
+        using var companyCommand = connexion.CreateCommand();
+        companyCommand.Transaction = transaction;
+        companyCommand.CommandText = """
+            INSERT INTO companies (company_id, nom, region, prestige, tresorerie, audience_moyenne, reach)
+            VALUES ('COMP-001', 'Ring General', 'FR', 55, 25000, 48, 5);
+            """;
+        companyCommand.ExecuteNonQuery();
+
+        using var youthCommand = connexion.CreateCommand();
+        youthCommand.Transaction = transaction;
+        youthCommand.CommandText = """
+            INSERT INTO youth_structures (youth_id, company_id, nom, type, region, budget_annuel, capacite_max, niveau_equipements, qualite_coaching, philosophie, actif)
+            VALUES ('YOUTH-001', 'COMP-001', 'Ring General Academy', 'ACADEMY', 'FR', 85000, 24, 3, 12, 'HYBRIDE', 1);
+            """;
+        youthCommand.ExecuteNonQuery();
+
+        using var workersCommand = connexion.CreateCommand();
+        workersCommand.Transaction = transaction;
+        workersCommand.CommandText = """
+            INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, type_worker)
+            VALUES
+            ('W-001', 'Dubois', 'Alex', 'COMP-001', 70, 62, 58, 55, 12, 'AUCUNE', 4, 'MAIN_EVENT', 'CATCHEUR'),
+            ('W-002', 'Martin', 'Leo', 'COMP-001', 64, 70, 65, 52, 18, 'AUCUNE', 2, 'UPPER_MID', 'CATCHEUR'),
+            ('W-003', 'Petit', 'Sarah', 'COMP-001', 68, 60, 72, 49, 20, 'AUCUNE', 1, 'MID', 'CATCHEUR'),
+            ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID', 'CATCHEUR');
+            """;
+        workersCommand.ExecuteNonQuery();
+
+        using var titleCommand = connexion.CreateCommand();
+        titleCommand.Transaction = transaction;
+        titleCommand.CommandText = """
+            INSERT INTO titles (title_id, nom, prestige, detenteur_id, company_id)
+            VALUES ('T-001', 'Championnat Principal', 60, 'W-001', 'COMP-001');
+            """;
+        titleCommand.ExecuteNonQuery();
+
+        using var storylineCommand = connexion.CreateCommand();
+        storylineCommand.Transaction = transaction;
+        storylineCommand.CommandText = """
+            INSERT INTO storylines (storyline_id, nom, heat)
+            VALUES ('S-001', 'La course au titre', 52);
+            """;
+        storylineCommand.ExecuteNonQuery();
+
+        using var storylineParticipants = connexion.CreateCommand();
+        storylineParticipants.Transaction = transaction;
+        storylineParticipants.CommandText = """
+            INSERT INTO storyline_participants (storyline_id, worker_id)
+            VALUES ('S-001', 'W-001'), ('S-001', 'W-002');
+            """;
+        storylineParticipants.ExecuteNonQuery();
+
+        using var showCommand = connexion.CreateCommand();
+        showCommand.Transaction = transaction;
+        showCommand.CommandText = """
+            INSERT INTO shows (show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id)
+            VALUES ('SHOW-001', 'Weekly Clash', 1, 'FR', 120, 'COMP-001', 'TV-001');
+            """;
+        showCommand.ExecuteNonQuery();
+
+        using var segmentCommand = connexion.CreateCommand();
+        segmentCommand.Transaction = transaction;
+        segmentCommand.CommandText = """
+            INSERT INTO segments (segment_id, show_id, ordre, type, duree, participants_json, storyline_id, title_id, main_event, intensite, vainqueur_id, perdant_id)
+            VALUES
+            ('SEG-001', 'SHOW-001', 1, 'promo', 8, '["W-001","W-002"]', 'S-001', NULL, 0, 40, NULL, NULL),
+            ('SEG-002', 'SHOW-001', 2, 'match', 12, '["W-003","W-004"]', NULL, NULL, 0, 60, 'W-003', 'W-004'),
+            ('SEG-003', 'SHOW-001', 3, 'match', 18, '["W-001","W-002"]', 'S-001', 'T-001', 1, 75, 'W-001', 'W-002');
+            """;
+        segmentCommand.ExecuteNonQuery();
+
+        using var chimieCommand = connexion.CreateCommand();
+        chimieCommand.Transaction = transaction;
+        chimieCommand.CommandText = """
+            INSERT INTO chimies (worker_a, worker_b, valeur)
+            VALUES ('W-001', 'W-002', 6);
+            """;
+        chimieCommand.ExecuteNonQuery();
+
+        using var contractCommand = connexion.CreateCommand();
+        contractCommand.Transaction = transaction;
+        contractCommand.CommandText = """
+            INSERT INTO contracts (worker_id, company_id, fin_semaine)
+            VALUES
+            ('W-001', 'COMP-001', 30),
+            ('W-002', 'COMP-001', 12),
+            ('W-003', 'COMP-001', 6),
+            ('W-004', 'COMP-001', 20);
+            """;
+        contractCommand.ExecuteNonQuery();
+
+        using var popularityCommand = connexion.CreateCommand();
+        popularityCommand.Transaction = transaction;
+        popularityCommand.CommandText = """
+            INSERT INTO popularity_regionale (entity_type, entity_id, region, valeur)
+            VALUES
+            ('company', 'COMP-001', 'FR', 50),
+            ('worker', 'W-001', 'FR', 55),
+            ('worker', 'W-002', 'FR', 52),
+            ('worker', 'W-003', 'FR', 49),
+            ('worker', 'W-004', 'FR', 46);
+            """;
+        popularityCommand.ExecuteNonQuery();
+
+        using var settingsCommand = connexion.CreateCommand();
+        settingsCommand.Transaction = transaction;
+        settingsCommand.CommandText = """
+            INSERT INTO game_settings (id, youth_generation_mode, world_generation_mode, semaine_pivot_annuelle)
+            VALUES (1, 'Realiste', 'Desactivee', 1);
+            """;
+        settingsCommand.ExecuteNonQuery();
+
+        transaction.Commit();
     }
 }

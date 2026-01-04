@@ -45,38 +45,20 @@ public sealed class GameSessionViewModel : ViewModelBase
         ImpactPages = new ObservableCollection<ImpactPageViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
-        TableItems = new ObservableCollection<TableViewItemViewModel>();
-        TableItemsView = new DataGridCollectionView(TableItems);
-        TableConfiguration = new TableViewConfigurationViewModel();
-        TableTypeFilters = new ObservableCollection<TableFilterOptionViewModel>
+        YouthGenerationModes = new[]
         {
-            new("tous", "Tous les types"),
-            new("worker", "Workers"),
-            new("company", "Compagnies"),
-            new("title", "Titres"),
-            new("storyline", "Storylines")
+            new YouthGenerationOptionViewModel("Désactivée", YouthGenerationMode.Desactivee),
+            new YouthGenerationOptionViewModel("Réaliste", YouthGenerationMode.Realiste),
+            new YouthGenerationOptionViewModel("Abondante", YouthGenerationMode.Abondante)
         };
-        TableStatusFilters = new ObservableCollection<TableFilterOptionViewModel>
+        WorldGenerationModes = new[]
         {
-            new("tous", "Tous les statuts"),
-            new("actif", "Actif"),
-            new("repos", "En repos"),
-            new("blesse", "Blessé"),
-            new("vacant", "Vacant"),
-            new("en-cours", "En cours")
+            new WorldGenerationOptionViewModel("Désactivée", WorldGenerationMode.Desactivee),
+            new WorldGenerationOptionViewModel("Faible", WorldGenerationMode.Faible)
         };
-        _tableSelectedTypeFilter = TableTypeFilters[0];
-        _tableSelectedStatusFilter = TableStatusFilters[0];
-        TableItemsView.Filter = FiltrerTableItems;
-        RechercheGlobaleResultats = new ObservableCollection<GlobalSearchResultViewModel>();
-        OuvrirRechercheGlobaleCommand = ReactiveCommand.Create(OuvrirRechercheGlobale);
-        FermerRechercheGlobaleCommand = ReactiveCommand.Create(FermerRechercheGlobale);
 
         ChargerImpactsInitial();
-        ChargerTableItems();
-        MettreAJourIndexRechercheGlobale();
-        MettreAJourRechercheGlobale();
-        MettreAJourResumeTable();
+        ChargerParametresGeneration();
     }
 
     public ObservableCollection<SegmentViewModel> Segments { get; }
@@ -97,6 +79,37 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> OuvrirRechercheGlobaleCommand { get; }
     public ReactiveCommand<Unit, Unit> FermerRechercheGlobaleCommand { get; }
+
+    public IReadOnlyList<YouthGenerationOptionViewModel> YouthGenerationModes { get; }
+    public IReadOnlyList<WorldGenerationOptionViewModel> WorldGenerationModes { get; }
+
+    public YouthGenerationOptionViewModel? YouthGenerationSelection
+    {
+        get => _youthGenerationSelection;
+        set => this.RaiseAndSetIfChanged(ref _youthGenerationSelection, value);
+    }
+    private YouthGenerationOptionViewModel? _youthGenerationSelection;
+
+    public WorldGenerationOptionViewModel? WorldGenerationSelection
+    {
+        get => _worldGenerationSelection;
+        set => this.RaiseAndSetIfChanged(ref _worldGenerationSelection, value);
+    }
+    private WorldGenerationOptionViewModel? _worldGenerationSelection;
+
+    public int SemainePivotAnnuelle
+    {
+        get => _semainePivotAnnuelle;
+        set => this.RaiseAndSetIfChanged(ref _semainePivotAnnuelle, value);
+    }
+    private int _semainePivotAnnuelle = 1;
+
+    public string? ParametresGenerationMessage
+    {
+        get => _parametresGenerationMessage;
+        private set => this.RaiseAndSetIfChanged(ref _parametresGenerationMessage, value);
+    }
+    private string? _parametresGenerationMessage;
 
     public IReadOnlyDictionary<string, string> Tooltips => _tooltipHelper.Tooltips;
 
@@ -292,6 +305,15 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerShow();
     }
 
+    public void EnregistrerParametresGeneration()
+    {
+        var youthMode = YouthGenerationSelection?.Mode ?? YouthGenerationMode.Realiste;
+        var worldMode = WorldGenerationSelection?.Mode ?? WorldGenerationMode.Desactivee;
+        var pivot = SemainePivotAnnuelle > 0 ? SemainePivotAnnuelle : null;
+        _repository.SauvegarderParametresGeneration(new WorkerGenerationOptions(youthMode, worldMode, pivot));
+        ParametresGenerationMessage = "Paramètres de génération enregistrés.";
+    }
+
     public void OuvrirAide(string pageId)
     {
         if (_helpPages.TryGetValue(pageId, out var page))
@@ -462,6 +484,14 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             Inbox.Add(new InboxItemViewModel(item));
         }
+    }
+
+    private void ChargerParametresGeneration()
+    {
+        var options = _repository.ChargerParametresGeneration();
+        YouthGenerationSelection = YouthGenerationModes.FirstOrDefault(mode => mode.Mode == options.YouthMode);
+        WorldGenerationSelection = WorldGenerationModes.FirstOrDefault(mode => mode.Mode == options.WorldMode);
+        SemainePivotAnnuelle = options.SemainePivotAnnuelle ?? 1;
     }
 
     private void MettreAJourAttributs()
@@ -791,3 +821,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         return spec.Types.ToDictionary(type => type.Id, type => type.Libelle);
     }
 }
+
+public sealed record YouthGenerationOptionViewModel(string Libelle, YouthGenerationMode Mode);
+
+public sealed record WorldGenerationOptionViewModel(string Libelle, WorldGenerationMode Mode);
