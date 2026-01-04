@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using Avalonia.Collections;
 using ReactiveUI;
+using System.Reactive;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
@@ -15,7 +17,7 @@ namespace RingGeneral.UI.ViewModels;
 public sealed class GameSessionViewModel : ViewModelBase
 {
     private const string ShowId = "SHOW-001";
-    private readonly GameRepository _repository;
+    private GameRepository? _repository;
     private readonly BookingValidator _validator = new();
     private readonly IReadOnlyDictionary<string, string> _segmentLabels;
     private readonly HelpContentProvider _helpProvider = new();
@@ -23,13 +25,10 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _impactPages;
     private readonly TooltipHelper _tooltipHelper;
     private ShowContext? _context;
+    private readonly List<GlobalSearchResultViewModel> _rechercheGlobaleIndex = new();
 
     public GameSessionViewModel()
     {
-        var cheminDb = Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db");
-        var factory = new SqliteConnectionFactory($"Data Source={cheminDb}");
-        _repository = new GameRepository(factory);
-        _repository.Initialiser();
         _segmentLabels = ChargerSegmentTypes();
         _tooltipHelper = new TooltipHelper(_helpProvider);
         _helpPages = ChargerPages();
@@ -58,8 +57,6 @@ public sealed class GameSessionViewModel : ViewModelBase
             new WorldGenerationOptionViewModel("Faible", WorldGenerationMode.Faible)
         };
 
-        ChargerShow();
-        ChargerInbox();
         ChargerImpactsInitial();
         ChargerParametresGeneration();
     }
@@ -73,6 +70,15 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<ImpactPageViewModel> ImpactPages { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
+    public ObservableCollection<TableViewItemViewModel> TableItems { get; }
+    public DataGridCollectionView TableItemsView { get; }
+    public TableViewConfigurationViewModel TableConfiguration { get; }
+    public ObservableCollection<TableFilterOptionViewModel> TableTypeFilters { get; }
+    public ObservableCollection<TableFilterOptionViewModel> TableStatusFilters { get; }
+    public ObservableCollection<GlobalSearchResultViewModel> RechercheGlobaleResultats { get; }
+
+    public ReactiveCommand<Unit, Unit> OuvrirRechercheGlobaleCommand { get; }
+    public ReactiveCommand<Unit, Unit> FermerRechercheGlobaleCommand { get; }
 
     public IReadOnlyList<YouthGenerationOptionViewModel> YouthGenerationModes { get; }
     public IReadOnlyList<WorldGenerationOptionViewModel> WorldGenerationModes { get; }
@@ -142,6 +148,78 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
     private bool _detailsSimulationVisible;
 
+    public string? TableRecherche
+    {
+        get => _tableRecherche;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _tableRecherche, value);
+            AppliquerFiltreTable();
+        }
+    }
+    private string? _tableRecherche;
+
+    public TableFilterOptionViewModel TableSelectedTypeFilter
+    {
+        get => _tableSelectedTypeFilter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _tableSelectedTypeFilter, value);
+            AppliquerFiltreTable();
+        }
+    }
+    private TableFilterOptionViewModel _tableSelectedTypeFilter;
+
+    public TableFilterOptionViewModel TableSelectedStatusFilter
+    {
+        get => _tableSelectedStatusFilter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _tableSelectedStatusFilter, value);
+            AppliquerFiltreTable();
+        }
+    }
+    private TableFilterOptionViewModel _tableSelectedStatusFilter;
+
+    public string? TableResultatsResume
+    {
+        get => _tableResultatsResume;
+        private set => this.RaiseAndSetIfChanged(ref _tableResultatsResume, value);
+    }
+    private string? _tableResultatsResume;
+
+    public TableViewItemViewModel? TableSelection
+    {
+        get => _tableSelection;
+        set => this.RaiseAndSetIfChanged(ref _tableSelection, value);
+    }
+    private TableViewItemViewModel? _tableSelection;
+
+    public bool RechercheGlobaleVisible
+    {
+        get => _rechercheGlobaleVisible;
+        private set => this.RaiseAndSetIfChanged(ref _rechercheGlobaleVisible, value);
+    }
+    private bool _rechercheGlobaleVisible;
+
+    public string? RechercheGlobaleQuery
+    {
+        get => _rechercheGlobaleQuery;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rechercheGlobaleQuery, value);
+            MettreAJourRechercheGlobale();
+        }
+    }
+    private string? _rechercheGlobaleQuery;
+
+    public bool RechercheGlobaleAucunResultat
+    {
+        get => _rechercheGlobaleAucunResultat;
+        private set => this.RaiseAndSetIfChanged(ref _rechercheGlobaleAucunResultat, value);
+    }
+    private bool _rechercheGlobaleAucunResultat;
+
     public bool AideOuverte
     {
         get => _aideOuverte;
@@ -156,9 +234,21 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
     private ImpactPageViewModel? _impactSelectionnee;
 
+    public void OuvrirRechercheGlobale()
+    {
+        RechercheGlobaleVisible = true;
+        RechercheGlobaleQuery ??= string.Empty;
+        MettreAJourRechercheGlobale();
+    }
+
+    public void FermerRechercheGlobale()
+    {
+        RechercheGlobaleVisible = false;
+    }
+
     public void SimulerShow()
     {
-        if (_context is null)
+        if (_context is null || _repository is null)
         {
             return;
         }
@@ -204,6 +294,11 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void PasserSemaineSuivante()
     {
+        if (_repository is null)
+        {
+            return;
+        }
+
         var weekly = new WeeklyLoopService(_repository);
         weekly.PasserSemaineSuivante(ShowId);
         ChargerInbox();
@@ -254,8 +349,22 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerShow()
     {
-        _context = _repository.ChargerShowContext(ShowId);
         Segments.Clear();
+        if (_repository is null)
+        {
+            _context = null;
+            ResumeShow = "Aucune base chargée.";
+            MettreAJourAttributs();
+            return;
+        }
+
+        _context = _repository.ChargerShowContext(ShowId);
+        if (_context is null)
+        {
+            ResumeShow = "Aucun show disponible dans cette base.";
+            MettreAJourAttributs();
+            return;
+        }
 
         foreach (var segment in _context.Segments)
         {
@@ -273,11 +382,104 @@ public sealed class GameSessionViewModel : ViewModelBase
         }
 
         MettreAJourAttributs();
+        ChargerTableItems();
+        MettreAJourIndexRechercheGlobale();
+        MettreAJourRechercheGlobale();
+        MettreAJourResumeTable();
+    }
+
+    private void ChargerTableItems()
+    {
+        TableItems.Clear();
+
+        if (_context is null)
+        {
+            return;
+        }
+
+        foreach (var worker in _context.Workers)
+        {
+            var statut = string.IsNullOrWhiteSpace(worker.Blessure) ? "Actif" : "Blessé";
+            var resume = $"In-ring {worker.InRing} • Entertainment {worker.Entertainment} • Story {worker.Story}";
+            TableItems.Add(new TableViewItemViewModel(
+                worker.WorkerId,
+                worker.NomComplet,
+                "Worker",
+                _context.Compagnie.Nom,
+                worker.RoleTv,
+                statut,
+                worker.Popularite,
+                worker.Momentum,
+                (worker.InRing + worker.Entertainment + worker.Story) / 3,
+                resume,
+                new[] { $"Fatigue {worker.Fatigue}", $"Blessure {worker.Blessure}" }));
+        }
+
+        TableItems.Add(new TableViewItemViewModel(
+            _context.Compagnie.CompagnieId,
+            _context.Compagnie.Nom,
+            "Compagnie",
+            _context.Compagnie.Nom,
+            "Promotion",
+            "Actif",
+            _context.Compagnie.Prestige,
+            _context.Compagnie.Reach,
+            _context.Compagnie.AudienceMoyenne,
+            $"Prestige {_context.Compagnie.Prestige} • Audience {_context.Compagnie.AudienceMoyenne}",
+            new[] { $"Région {_context.Compagnie.Region}", $"Trésorerie {_context.Compagnie.Tresorerie:C}" }));
+
+        foreach (var titre in _context.Titres)
+        {
+            var statut = string.IsNullOrWhiteSpace(titre.DetenteurId) ? "Vacant" : "Défendu";
+            var detenteur = _context.Workers.FirstOrDefault(worker => worker.WorkerId == titre.DetenteurId)?.NomComplet ?? "Vacant";
+            TableItems.Add(new TableViewItemViewModel(
+                titre.TitreId,
+                titre.Nom,
+                "Titre",
+                _context.Compagnie.Nom,
+                detenteur,
+                statut,
+                titre.Prestige,
+                0,
+                titre.Prestige,
+                $"Prestige {titre.Prestige} • Détenteur {detenteur}",
+                new[] { "Ceinture principale", "À défendre" }));
+        }
+
+        foreach (var storyline in _context.Storylines)
+        {
+            var statut = storyline.Heat > 55 ? "En cours" : "En repos";
+            var participants = _context.Workers
+                .Where(worker => storyline.Participants.Contains(worker.WorkerId))
+                .Select(worker => worker.NomComplet)
+                .Take(3)
+                .ToList();
+            TableItems.Add(new TableViewItemViewModel(
+                storyline.StorylineId,
+                storyline.Nom,
+                "Storyline",
+                _context.Compagnie.Nom,
+                string.Join(", ", participants),
+                statut,
+                storyline.Heat,
+                0,
+                storyline.Heat,
+                $"Heat {storyline.Heat} • Participants {string.Join(", ", participants)}",
+                new[] { "Narratif", "Priorité moyenne" }));
+        }
+
+        TableItemsView.Refresh();
+        TableSelection ??= TableItems.FirstOrDefault();
     }
 
     private void ChargerInbox()
     {
         Inbox.Clear();
+        if (_repository is null)
+        {
+            return;
+        }
+
         foreach (var item in _repository.ChargerInbox())
         {
             Inbox.Add(new InboxItemViewModel(item));
@@ -307,6 +509,142 @@ public sealed class GameSessionViewModel : ViewModelBase
         AttributsPrincipaux.Add(new AttributeViewModel("Popularité", worker.Popularite, _tooltipHelper.Obtenir("attr.popularite")));
         AttributsPrincipaux.Add(new AttributeViewModel("Fatigue", worker.Fatigue, _tooltipHelper.Obtenir("attr.fatigue")));
         AttributsPrincipaux.Add(new AttributeViewModel("Momentum", worker.Momentum, _tooltipHelper.Obtenir("attr.momentum")));
+    }
+
+    private bool FiltrerTableItems(object? item)
+    {
+        if (item is not TableViewItemViewModel tableItem)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(TableRecherche))
+        {
+            var recherche = TableRecherche.Trim();
+            if (!tableItem.Nom.Contains(recherche, StringComparison.OrdinalIgnoreCase) &&
+                !tableItem.Role.Contains(recherche, StringComparison.OrdinalIgnoreCase) &&
+                !tableItem.Statut.Contains(recherche, StringComparison.OrdinalIgnoreCase) &&
+                !tableItem.Type.Contains(recherche, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        if (TableSelectedTypeFilter.Id != "tous")
+        {
+            var itemTypeId = tableItem.Type.ToLowerInvariant() switch
+            {
+                "worker" => "worker",
+                "compagnie" => "company",
+                "titre" => "title",
+                "storyline" => "storyline",
+                _ => tableItem.Type.ToLowerInvariant()
+            };
+
+            if (!itemTypeId.Equals(TableSelectedTypeFilter.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        if (TableSelectedStatusFilter.Id != "tous")
+        {
+            var statutId = tableItem.Statut.ToLowerInvariant() switch
+            {
+                "actif" => "actif",
+                "en repos" => "repos",
+                "blessé" => "blesse",
+                "vacant" => "vacant",
+                "en cours" => "en-cours",
+                "défendu" => "en-cours",
+                _ => tableItem.Statut.ToLowerInvariant()
+            };
+
+            if (!statutId.Equals(TableSelectedStatusFilter.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void AppliquerFiltreTable()
+    {
+        TableItemsView.Refresh();
+        MettreAJourResumeTable();
+    }
+
+    private void MettreAJourResumeTable()
+    {
+        TableResultatsResume = $"Résultats : {TableItemsView.Count} / {TableItems.Count}";
+    }
+
+    private void MettreAJourIndexRechercheGlobale()
+    {
+        _rechercheGlobaleIndex.Clear();
+        if (_context is null)
+        {
+            return;
+        }
+
+        foreach (var worker in _context.Workers)
+        {
+            _rechercheGlobaleIndex.Add(new GlobalSearchResultViewModel(
+                "Worker",
+                worker.NomComplet,
+                $"{worker.RoleTv} • Popularité {worker.Popularite}",
+                string.IsNullOrWhiteSpace(worker.Blessure) ? "Actif" : "Blessé"));
+        }
+
+        _rechercheGlobaleIndex.Add(new GlobalSearchResultViewModel(
+            "Compagnie",
+            _context.Compagnie.Nom,
+            $"{_context.Compagnie.Region} • Prestige {_context.Compagnie.Prestige}",
+            "Promotion"));
+
+        foreach (var titre in _context.Titres)
+        {
+            var detenteur = _context.Workers.FirstOrDefault(worker => worker.WorkerId == titre.DetenteurId)?.NomComplet ?? "Vacant";
+            _rechercheGlobaleIndex.Add(new GlobalSearchResultViewModel(
+                "Titre",
+                titre.Nom,
+                $"Détenteur {detenteur}",
+                $"Prestige {titre.Prestige}"));
+        }
+
+        foreach (var storyline in _context.Storylines)
+        {
+            var participants = _context.Workers
+                .Where(worker => storyline.Participants.Contains(worker.WorkerId))
+                .Select(worker => worker.NomComplet)
+                .Take(3);
+            _rechercheGlobaleIndex.Add(new GlobalSearchResultViewModel(
+                "Storyline",
+                storyline.Nom,
+                $"Participants {string.Join(", ", participants)}",
+                $"Heat {storyline.Heat}"));
+        }
+    }
+
+    private void MettreAJourRechercheGlobale()
+    {
+        RechercheGlobaleResultats.Clear();
+        var recherche = RechercheGlobaleQuery?.Trim();
+
+        var resultats = string.IsNullOrWhiteSpace(recherche)
+            ? _rechercheGlobaleIndex
+            : _rechercheGlobaleIndex.Where(resultat =>
+                resultat.Titre.Contains(recherche, StringComparison.OrdinalIgnoreCase) ||
+                resultat.SousTitre.Contains(recherche, StringComparison.OrdinalIgnoreCase));
+
+        var liste = resultats.Take(12).ToList();
+        foreach (var resultat in liste)
+        {
+            RechercheGlobaleResultats.Add(resultat);
+        }
+
+        RechercheGlobaleAucunResultat = liste.Count == 0;
     }
 
     private void MettreAJourAnalyseShow(ShowSimulationResult resultat)

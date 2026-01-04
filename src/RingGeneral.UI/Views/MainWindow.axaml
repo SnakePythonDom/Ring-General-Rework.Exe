@@ -2,15 +2,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
         mc:Ignorable="d"
         x:Class="RingGeneral.UI.Views.MainWindow"
         Width="1280"
         Height="720"
         Title="Ring General">
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+K" Command="{Binding Session.OuvrirRechercheGlobaleCommand}" />
+    <KeyBinding Gesture="Escape" Command="{Binding Session.FermerRechercheGlobaleCommand}" />
+  </Window.KeyBindings>
   <Grid RowDefinitions="Auto,*" ColumnDefinitions="280,*">
     <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#1F2937" Padding="16,12">
       <DockPanel>
         <TextBlock Text="Ring General" Foreground="White" FontWeight="Bold" DockPanel.Dock="Left" />
+        <Button Content="Recherche (Ctrl+K)" DockPanel.Dock="Left" Margin="12,0,0,0"
+                Command="{Binding Session.OuvrirRechercheGlobaleCommand}"
+                ToolTip.Tip="Ouvrir la recherche globale (Ctrl+K)" />
         <ItemsControl ItemsSource="{Binding TopbarIndicators}" DockPanel.Dock="Right">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
@@ -58,7 +66,7 @@
 
     <Border Grid.Row="1" Grid.Column="1" Background="#0B1220" Padding="24">
       <ScrollViewer>
-        <StackPanel Spacing="20">
+          <StackPanel Spacing="20">
           <Border Background="#111827" Padding="12" CornerRadius="8" IsVisible="{Binding Session.AideOuverte}">
             <StackPanel Spacing="8">
               <DockPanel>
@@ -85,6 +93,38 @@
               </ItemsControl>
             </StackPanel>
           </Border>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Sauvegardes" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="Rafraîchir" Click="OnRafraichirSaves" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox Width="240" Text="{Binding Sauvegardes.NomNouvellePartie}" Watermark="Nom de la sauvegarde" />
+              <Button Content="Créer une base vierge" Click="OnCreerBaseVierge" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox Width="360" Text="{Binding Sauvegardes.CheminImport}" Watermark="Chemin d'une base .db" />
+              <Button Content="Importer une base" Click="OnImporterBase" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding Sauvegardes.Sauvegardes}" SelectedItem="{Binding Sauvegardes.SauvegardeSelectionnee}" Height="160">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel>
+                    <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding DerniereModification}" Foreground="#9CA3AF" FontSize="12" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Charger" Click="OnChargerSauvegarde" />
+              <Button Content="Dupliquer" Click="OnDupliquerSauvegarde" />
+              <Button Content="Supprimer" Click="OnSupprimerSauvegarde" />
+            </StackPanel>
+            <TextBlock Text="{Binding Sauvegardes.MessageStatut}" Foreground="#FBBF24" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Session.EtatSession}" Foreground="#60A5FA" TextWrapping="Wrap" />
+          </StackPanel>
 
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
@@ -185,6 +225,99 @@
                 <Button Content="Titres" Tag="impacts.titres" Click="OnOuvrirImpact" />
               </StackPanel>
             </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="FM UI Kit · TableView" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="ui.tableview" Click="OnOuvrirAide" ToolTip.Tip="Présentation de la table virtualisée, tri, filtres et colonnes personnalisables." />
+            </Grid>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <TextBox Width="240" Watermark="Rechercher dans la table" Text="{Binding Session.TableRecherche, Mode=TwoWay}"
+                           ToolTip.Tip="Recherche rapide par nom, rôle, statut ou type." />
+                  <ComboBox Width="180" ItemsSource="{Binding Session.TableTypeFilters}" SelectedItem="{Binding Session.TableSelectedTypeFilter, Mode=TwoWay}"
+                            DisplayMemberPath="Libelle" ToolTip.Tip="Filtrer par type de fiche." />
+                  <ComboBox Width="180" ItemsSource="{Binding Session.TableStatusFilters}" SelectedItem="{Binding Session.TableSelectedStatusFilter, Mode=TwoWay}"
+                            DisplayMemberPath="Libelle" ToolTip.Tip="Filtrer par statut opérationnel." />
+                  <TextBlock Text="{Binding Session.TableResultatsResume}" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <TextBlock Text="Colonnes" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                  <CheckBox Content="Type" IsChecked="{Binding Session.TableConfiguration.AfficherType}" ToolTip.Tip="Afficher la colonne Type." />
+                  <CheckBox Content="Compagnie" IsChecked="{Binding Session.TableConfiguration.AfficherCompagnie}" ToolTip.Tip="Afficher la colonne Compagnie." />
+                  <CheckBox Content="Rôle" IsChecked="{Binding Session.TableConfiguration.AfficherRole}" ToolTip.Tip="Afficher la colonne Rôle/Participants." />
+                  <CheckBox Content="Statut" IsChecked="{Binding Session.TableConfiguration.AfficherStatut}" ToolTip.Tip="Afficher la colonne Statut." />
+                  <CheckBox Content="Popularité" IsChecked="{Binding Session.TableConfiguration.AfficherPopularite}" ToolTip.Tip="Afficher la colonne Popularité." />
+                  <CheckBox Content="Momentum" IsChecked="{Binding Session.TableConfiguration.AfficherMomentum}" ToolTip.Tip="Afficher la colonne Momentum." />
+                  <CheckBox Content="Note" IsChecked="{Binding Session.TableConfiguration.AfficherNote}" ToolTip.Tip="Afficher la colonne Note synthétique." />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <TextBlock Text="Actions rapides" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                  <Button Content="Assigner" ToolTip.Tip="Assigner la fiche sélectionnée à un segment." />
+                  <Button Content="Mettre en avant" ToolTip.Tip="Mettre en avant la fiche dans le show." />
+                  <Button Content="Planifier" ToolTip.Tip="Planifier une action rapide." />
+                  <Button Content="Favori" ToolTip.Tip="Ajouter aux favoris." />
+                </StackPanel>
+
+                <Grid ColumnDefinitions="2*,*" RowDefinitions="Auto">
+                  <controls:DataGrid ItemsSource="{Binding Session.TableItemsView}" SelectedItem="{Binding Session.TableSelection, Mode=TwoWay}"
+                            Height="320"
+                            AutoGenerateColumns="False"
+                            CanUserSortColumns="True"
+                            GridLinesVisibility="All"
+                            HeadersVisibility="All"
+                            IsReadOnly="True"
+                            EnableRowVirtualization="True"
+                            ToolTip.Tip="Table virtualisée avec tri, filtres et recherche.">
+                    <controls:DataGrid.Columns>
+                      <controls:DataGridTextColumn Header="Nom" Binding="{Binding Nom}" Width="2*" SortMemberPath="Nom" />
+                      <controls:DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="*" SortMemberPath="Type"
+                                          IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherType, RelativeSource={RelativeSource AncestorType=Window}}" />
+                      <controls:DataGridTextColumn Header="Compagnie" Binding="{Binding Compagnie}" Width="*" SortMemberPath="Compagnie"
+                                          IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherCompagnie, RelativeSource={RelativeSource AncestorType=Window}}" />
+                      <controls:DataGridTextColumn Header="Rôle/Participants" Binding="{Binding Role}" Width="2*" SortMemberPath="Role"
+                                          IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherRole, RelativeSource={RelativeSource AncestorType=Window}}" />
+                      <controls:DataGridTextColumn Header="Statut" Binding="{Binding Statut}" Width="*" SortMemberPath="Statut"
+                                          IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherStatut, RelativeSource={RelativeSource AncestorType=Window}}" />
+                      <controls:DataGridTextColumn Header="Popularité" Binding="{Binding Popularite}" Width="*" SortMemberPath="Popularite"
+                                          IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherPopularite, RelativeSource={RelativeSource AncestorType=Window}}" />
+                      <controls:DataGridTextColumn Header="Momentum" Binding="{Binding Momentum}" Width="*" SortMemberPath="Momentum"
+                                          IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherMomentum, RelativeSource={RelativeSource AncestorType=Window}}" />
+                      <controls:DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="*" SortMemberPath="Note"
+                                          IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherNote, RelativeSource={RelativeSource AncestorType=Window}}" />
+                    </controls:DataGrid.Columns>
+                  </controls:DataGrid>
+
+                  <Border Grid.Column="1" Background="#0F172A" Padding="12" CornerRadius="8" Margin="12,0,0,0">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="Fiche courte" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Session.TableSelection.Nom}" Foreground="White" FontSize="16" FontWeight="Bold" />
+                      <TextBlock Text="{Binding Session.TableSelection.Type}" Foreground="#CBD5F5" />
+                      <TextBlock Text="{Binding Session.TableSelection.Statut}" Foreground="#FCD34D" />
+                      <TextBlock Text="{Binding Session.TableSelection.Resume}" Foreground="#D1D5DB" TextWrapping="Wrap" />
+                      <ItemsControl ItemsSource="{Binding Session.TableSelection.Etiquettes}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Border Background="#1F2937" Padding="6,2" Margin="2" CornerRadius="6">
+                              <TextBlock Text="{Binding .}" Foreground="#E5E7EB" />
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+              </StackPanel>
+            </Border>
           </StackPanel>
 
           <StackPanel Spacing="8">
@@ -324,6 +457,44 @@
           </StackPanel>
         </StackPanel>
       </ScrollViewer>
+    </Border>
+
+    <Border Grid.RowSpan="2" Grid.ColumnSpan="2" Background="#111827EE" IsVisible="{Binding Session.RechercheGlobaleVisible}" ZIndex="10">
+      <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="720">
+        <Border Background="#0B1220" Padding="16" CornerRadius="12" BorderBrush="#1F2937" BorderThickness="1">
+          <StackPanel Spacing="12">
+            <DockPanel>
+              <TextBlock Text="Recherche globale" Foreground="White" FontSize="18" FontWeight="Bold" DockPanel.Dock="Left" />
+              <Button Content="Fermer" DockPanel.Dock="Right" Command="{Binding Session.FermerRechercheGlobaleCommand}" ToolTip.Tip="Fermer la recherche globale (Échap)." />
+            </DockPanel>
+            <TextBox Watermark="Rechercher workers, compagnies, titres ou storylines"
+                     Text="{Binding Session.RechercheGlobaleQuery, Mode=TwoWay}"
+                     ToolTip.Tip="Tapez un nom, un titre ou un mot-clé." />
+            <Border Background="#111827" Padding="8" CornerRadius="8">
+              <StackPanel Spacing="6">
+                <ItemsControl ItemsSource="{Binding Session.RechercheGlobaleResultats}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="#0F172A" Padding="8" CornerRadius="6" Margin="0,0,0,6">
+                        <Grid ColumnDefinitions="120,*,Auto">
+                          <TextBlock Text="{Binding Type}" Foreground="#9CA3AF" />
+                          <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding Titre}" Foreground="White" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SousTitre}" Foreground="#CBD5F5" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="2" Text="{Binding Statut}" Foreground="#FCD34D" VerticalAlignment="Center" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="Aucun résultat." Foreground="#9CA3AF"
+                           IsVisible="{Binding Session.RechercheGlobaleAucunResultat}" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+      </Grid>
     </Border>
   </Grid>
 </Window>

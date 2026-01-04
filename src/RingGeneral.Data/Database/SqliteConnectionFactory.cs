@@ -9,7 +9,10 @@ public sealed class SqliteConnectionFactory
     public SqliteConnectionFactory(string connectionString)
     {
         _connectionString = connectionString;
+        DatabasePath = new SqliteConnectionStringBuilder(connectionString).DataSource;
     }
+
+    public string DatabasePath { get; }
 
     public SqliteConnection OuvrirConnexion()
     {
