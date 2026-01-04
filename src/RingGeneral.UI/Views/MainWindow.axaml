@@ -59,8 +59,38 @@
     <Border Grid.Row="1" Grid.Column="1" Background="#0B1220" Padding="24">
       <ScrollViewer>
         <StackPanel Spacing="20">
+          <Border Background="#111827" Padding="12" CornerRadius="8" IsVisible="{Binding Session.AideOuverte}">
+            <StackPanel Spacing="8">
+              <DockPanel>
+                <TextBlock Text="{Binding Session.AidePanel.Titre}" Foreground="White" FontWeight="Bold" DockPanel.Dock="Left" />
+                <Button Content="Fermer" DockPanel.Dock="Right" Click="OnFermerAide" />
+              </DockPanel>
+              <TextBlock Text="{Binding Session.AidePanel.Resume}" Foreground="#CBD5F5" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding Session.AidePanel.Sections}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Spacing="2" Margin="0,6,0,0">
+                      <TextBlock Text="{Binding Titre}" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Contenu}" Foreground="#D1D5DB" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding Session.AidePanel.ErreursFrequentes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding .}" Foreground="#FBBF24" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
           <StackPanel Spacing="8">
-            <TextBlock Text="Booking" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Booking" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="page.booking" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+            </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="6">
                 <Grid ColumnDefinitions="120,100,*,120">
@@ -84,31 +114,34 @@
               </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="12">
-              <Button Content="Simuler le show" Click="OnSimulerShow" />
-              <Button Content="Semaine suivante" Click="OnSemaineSuivante" />
+              <Button Content="Simuler le show" Click="OnSimulerShow" ToolTip.Tip="{Binding Session.Tooltips['booking.simuler']}" />
+              <Button Content="Semaine suivante" Click="OnSemaineSuivante" ToolTip.Tip="{Binding Session.Tooltips['booking.semaine']}" />
             </StackPanel>
             <TextBlock Text="{Binding Session.ValidationErreurs}" Foreground="#F87171" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" ToolTip.Tip="{Binding Session.Tooltips['booking.warning']}" />
           </StackPanel>
 
           <StackPanel Spacing="8">
-            <TextBlock Text="Résultats" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Résultats" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="page.resultats" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+            </Grid>
             <TextBlock Text="{Binding Session.ResumeShow}" Foreground="#CBD5F5" />
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="6">
                 <Grid ColumnDefinitions="120,80,80,*,*">
                   <TextBlock Text="Segment" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="1" Text="Note" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="1" Text="Note" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.note']}" />
                   <TextBlock Grid.Column="2" Text="Icônes" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="3" Text="Breakdown" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="4" Text="Impacts" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="3" Text="Breakdown" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.breakdown']}" />
+                  <TextBlock Grid.Column="4" Text="Impacts" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.impacts']}" />
                 </Grid>
                 <ItemsControl ItemsSource="{Binding Session.Resultats}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
                       <Grid ColumnDefinitions="120,80,80,*,*">
                         <TextBlock Text="{Binding TypeSegment}" Foreground="White" />
-                        <TextBlock Grid.Column="1" Text="{Binding Note}" Foreground="#FCD34D" />
+                        <TextBlock Grid.Column="1" Text="{Binding Note}" Foreground="#FCD34D" ToolTip.Tip="{Binding DataContext.Session.Tooltips['result.note'], RelativeSource={RelativeSource AncestorType=Window}}" />
                         <TextBlock Grid.Column="2" Text="{Binding Icons}" Foreground="#FBBF24" />
                         <TextBlock Grid.Column="3" Text="{Binding Breakdown}" Foreground="#E5E7EB" TextWrapping="Wrap" />
                         <TextBlock Grid.Column="4" Text="{Binding Impacts}" Foreground="#D1D5DB" TextWrapping="Wrap" />
@@ -118,6 +151,122 @@
                 </ItemsControl>
               </StackPanel>
             </Border>
+            <StackPanel Spacing="6">
+              <TextBlock Text="Pourquoi cette note ?" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <ItemsControl ItemsSource="{Binding Session.PourquoiNote}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding .}" Foreground="#E5E7EB" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Text="Conseils" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <ItemsControl ItemsSource="{Binding Session.Conseils}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding .}" Foreground="#CBD5F5" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <Button Content="Détails simulation" Click="OnToggleDetailsSimulation" />
+              <TextBlock Text="{Binding Session.DetailsSimulation}" IsVisible="{Binding Session.DetailsSimulationVisible}" Foreground="#9CA3AF" TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Text="Aller aux impacts" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Popularité" Tag="impacts.popularite" Click="OnOuvrirImpact" />
+                <Button Content="Finances" Tag="impacts.finances" Click="OnOuvrirImpact" />
+                <Button Content="Fatigue/Blessures" Tag="impacts.fatigue" Click="OnOuvrirImpact" />
+                <Button Content="Storylines" Tag="impacts.storylines" Click="OnOuvrirImpact" />
+                <Button Content="Titres" Tag="impacts.titres" Click="OnOuvrirImpact" />
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Profil (exemple)" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <ItemsControl ItemsSource="{Binding Session.AttributsPrincipaux}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="160,80">
+                      <TextBlock Text="{Binding Libelle}" Foreground="#E5E7EB" ToolTip.Tip="{Binding Tooltip}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Valeur}" Foreground="#FCD34D" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Actions sensibles" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Button Content="Buyout" ToolTip.Tip="{Binding Session.Tooltips['action.buyout']}" />
+              <Button Content="LOD" ToolTip.Tip="{Binding Session.Tooltips['action.lod']}" />
+              <Button Content="Diffusion" ToolTip.Tip="{Binding Session.Tooltips['action.diffusion']}" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Impacts" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="impacts.popularite" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+            </Grid>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="6">
+                <TextBlock Text="{Binding Session.ImpactSelectionnee.Titre}" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Session.ImpactSelectionnee.Pourquoi}" Foreground="#CBD5F5" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Session.ImpactSelectionnee.CommentAmeliorer}" Foreground="#9CA3AF" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding Session.ImpactSelectionnee.Deltas}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding .}" Foreground="#E5E7EB" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Aide / Codex" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="page.aide-codex" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+            </Grid>
+            <StackPanel Spacing="6">
+              <TextBox Watermark="Rechercher un terme" Text="{Binding Session.Codex.Recherche, Mode=TwoWay}" ToolTip.Tip="{Binding Session.Tooltips['ui.search']}" />
+              <Border Background="#111827" Padding="12" CornerRadius="8">
+                <ItemsControl ItemsSource="{Binding Session.Codex.Articles}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Titre}" Foreground="#E5E7EB" />
+                        <TextBlock Text="{Binding Categorie}" Foreground="#9CA3AF" />
+                        <Button Content="Ouvrir" Tag="{Binding Id}" Click="OnOuvrirArticle" ToolTip.Tip="{Binding DataContext.Session.Tooltips['ui.open-article'], RelativeSource={RelativeSource AncestorType=Window}}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Background="#111827" Padding="12" CornerRadius="8">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="{Binding Session.Codex.ArticleSelectionne.Titre}" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding Session.Codex.ArticleSelectionne.Contenu}" Foreground="#D1D5DB" TextWrapping="Wrap" />
+                  <ItemsControl ItemsSource="{Binding Session.Codex.ArticleSelectionne.Liens}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button Content="{Binding .}" Tag="{Binding .}" Click="OnOuvrirArticle" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </StackPanel>
           </StackPanel>
 
           <StackPanel Spacing="8">
