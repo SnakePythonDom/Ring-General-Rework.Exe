@@ -1,11 +1,15 @@
+using System.Diagnostics;
+using System.Text.Json;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Random;
+using RingGeneral.Core.Simulation;
 
 namespace RingGeneral.Data.Repositories;
 
 public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
-    private readonly Random _random = new(42);
+    private readonly SeededRandomProvider _random = new(42);
 
     public WeeklyLoopService(GameRepository repository)
     {
@@ -20,6 +24,7 @@ public sealed class WeeklyLoopService
         var inboxItems = new List<InboxItem>();
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
+        inboxItems.AddRange(SimulerMonde(semaine, showId));
         var scouting = GenererScouting(semaine);
         if (scouting is not null)
         {
@@ -84,5 +89,118 @@ public sealed class WeeklyLoopService
         };
 
         return new InboxItem("scouting", "Rapport de scouting", rapports[_random.Next(0, rapports.Length)], semaine);
+    }
+
+    private IEnumerable<InboxItem> SimulerMonde(int semaine, string showId)
+    {
+        var settings = ChargerWorldSimSettings();
+        _random.Reseed(settings.Seed + semaine);
+
+        var compagnies = _repository.ChargerCompagnies();
+        var compagnieJoueurId = _repository.ChargerCompagnieIdPourShow(showId);
+        var scheduler = new WorldSimScheduler(_random, settings);
+
+        var chrono = Stopwatch.StartNew();
+        var plan = scheduler.Planifier(semaine, compagnieJoueurId, compagnies);
+        var impacts = new List<WorldSimCompanyImpact>();
+
+        foreach (var companyPlan in plan.Compagnies)
+        {
+            if (companyPlan.CompanyId == compagnieJoueurId)
+            {
+                continue;
+            }
+
+            var compagnie = compagnies.FirstOrDefault(item => item.CompagnieId == companyPlan.CompanyId);
+            if (compagnie is null)
+            {
+                continue;
+            }
+
+            var (deltaPrestige, deltaTresorerie, resume) = GenererImpact(companyPlan, compagnie);
+            _repository.AppliquerImpactCompagnie(companyPlan.CompanyId, deltaPrestige, deltaTresorerie);
+            impacts.Add(new WorldSimCompanyImpact(companyPlan.CompanyId, deltaPrestige, deltaTresorerie, resume));
+        }
+
+        chrono.Stop();
+        var budgetDepasse = chrono.ElapsedMilliseconds > settings.BudgetMsParTick;
+        Debug.WriteLine($"[WorldSim] S{semaine} - {plan.Compagnies.Count} compagnies - {chrono.ElapsedMilliseconds}ms (budget {settings.BudgetMsParTick}ms)");
+
+        foreach (var item in GenererNewsMonde(semaine, impacts, compagnies))
+        {
+            yield return item;
+        }
+
+        if (budgetDepasse)
+        {
+            yield return new InboxItem("monde", "Performance monde vivant",
+                $"La simulation mondiale a dépassé le budget ({chrono.ElapsedMilliseconds}ms / {settings.BudgetMsParTick}ms).", semaine);
+        }
+    }
+
+    private (int DeltaPrestige, double DeltaTresorerie, string Resume) GenererImpact(WorldSimCompanyPlan plan, CompanyState compagnie)
+    {
+        var (prestigeAmplitude, tresorerieAmplitude) = plan.NiveauDetail switch
+        {
+            WorldSimLod.Detail => (4, 6500),
+            WorldSimLod.Resume => (3, 4200),
+            _ => (2, 1800)
+        };
+
+        var deltaPrestige = _random.Next(-prestigeAmplitude, prestigeAmplitude + 1);
+        var deltaTresorerie = (_random.NextDouble() * 2 - 1) * tresorerieAmplitude;
+        var type = deltaPrestige switch
+        {
+            > 1 => "progression",
+            < -1 => "recul",
+            _ => "stabilité"
+        };
+
+        var resume = $"{compagnie.Nom} affiche une {type} (LOD {plan.NiveauDetail}).";
+        return (deltaPrestige, Math.Round(deltaTresorerie, 2), resume);
+    }
+
+    private IEnumerable<InboxItem> GenererNewsMonde(
+        int semaine,
+        IReadOnlyList<WorldSimCompanyImpact> impacts,
+        IReadOnlyList<CompanyState> compagnies)
+    {
+        var top = impacts
+            .OrderByDescending(impact => Math.Abs(impact.DeltaPrestige))
+            .ThenByDescending(impact => Math.Abs(impact.DeltaTresorerie))
+            .Take(3)
+            .ToList();
+
+        foreach (var impact in top)
+        {
+            var compagnie = compagnies.FirstOrDefault(item => item.CompagnieId == impact.CompanyId);
+            if (compagnie is null)
+            {
+                continue;
+            }
+
+            var variation = impact.DeltaPrestige == 0 ? "reste stable" : impact.DeltaPrestige > 0 ? "progresse" : "recule";
+            var contenu = $"{compagnie.Nom} {variation} sur la scène mondiale. {impact.Resume}";
+            yield return new InboxItem("monde", "Monde vivant", contenu, semaine);
+        }
+    }
+
+    private static WorldSimSettings ChargerWorldSimSettings()
+    {
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "models", "world-sim.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "models", "world-sim.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            return WorldSimSettings.ParDefaut;
+        }
+
+        var json = File.ReadAllText(chemin);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<WorldSimSettings>(json, options) ?? WorldSimSettings.ParDefaut;
     }
 }
