@@ -69,6 +69,89 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnCreerShow(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.CreerShow();
+        }
+    }
+
+    private void OnAjouterSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterSegment();
+        }
+    }
+
+    private void OnEnregistrerSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.EnregistrerSegment(segment);
+        }
+    }
+
+    private void OnCopierSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.CopierSegment(segment);
+        }
+    }
+
+    private void OnDeplacerSegmentHaut(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, -1);
+        }
+    }
+
+    private void OnDeplacerSegmentBas(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, 1);
+        }
+    }
+
+    private void OnAjouterParticipant(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.AjouterParticipant(segment);
+        }
+    }
+
+    private void OnRetirerParticipant(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell &&
+            sender is Control control &&
+            control.DataContext is ParticipantViewModel participant &&
+            control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.RetirerParticipant(segment, participant);
+        }
+    }
+
+    private void OnAjouterParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterParticipantNouveauSegment();
+        }
+    }
+
+    private void OnRetirerParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant)
+        {
+            shell.Session.RetirerParticipantNouveauSegment(participant);
+        }
+    }
+
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
