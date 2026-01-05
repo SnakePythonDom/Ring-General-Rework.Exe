@@ -69,6 +69,12 @@ public sealed class GameSessionViewModel : ViewModelBase
         SegmentTemplates = new ObservableCollection<SegmentTemplateViewModel>();
         MatchTypes = new ObservableCollection<MatchTypeViewModel>();
         WorkersDisponibles = new ObservableCollection<ParticipantViewModel>();
+        StorylinesDisponibles = new ObservableCollection<StorylineOptionViewModel>();
+        TitresDisponibles = new ObservableCollection<TitleOptionViewModel>();
+        DealsTv = new ObservableCollection<TvDealViewModel>();
+        ReachMap = new ObservableCollection<ReachMapItemViewModel>();
+        ContraintesDiffusion = new ObservableCollection<string>();
+        AudienceHistorique = new ObservableCollection<AudienceHistoryItemViewModel>();
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
         HistoriqueShow = new ObservableCollection<ShowHistoryViewModel>();
@@ -172,6 +178,12 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<SegmentTemplateViewModel> SegmentTemplates { get; }
     public ObservableCollection<MatchTypeViewModel> MatchTypes { get; }
     public ObservableCollection<ParticipantViewModel> WorkersDisponibles { get; }
+    public ObservableCollection<StorylineOptionViewModel> StorylinesDisponibles { get; }
+    public ObservableCollection<TitleOptionViewModel> TitresDisponibles { get; }
+    public ObservableCollection<TvDealViewModel> DealsTv { get; }
+    public ObservableCollection<ReachMapItemViewModel> ReachMap { get; }
+    public ObservableCollection<string> ContraintesDiffusion { get; }
+    public ObservableCollection<AudienceHistoryItemViewModel> AudienceHistorique { get; }
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
     public ObservableCollection<ShowHistoryViewModel> HistoriqueShow { get; }
@@ -232,6 +244,13 @@ public sealed class GameSessionViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _parametresGenerationMessage, value);
     }
     private string? _parametresGenerationMessage;
+
+    public string? NouveauSegmentStorylineId
+    {
+        get => _nouveauSegmentStorylineId;
+        set => this.RaiseAndSetIfChanged(ref _nouveauSegmentStorylineId, value);
+    }
+    private string? _nouveauSegmentStorylineId;
 
     public YouthStructureViewModel? YouthStructureSelection
     {
@@ -2003,7 +2022,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauShowLieu = _context.Show.Lieu;
         NouveauShowDiffusion = _context.Show.Diffusion;
         NouveauSegmentTypeId = SegmentTypes.FirstOrDefault()?.Id;
-        NouveauSegmentStorylineId = StorylineOptions.FirstOrDefault()?.Id;
+        NouveauSegmentStorylineId = StorylinesDisponibles.FirstOrDefault()?.Id;
     }
 
     private IReadOnlyDictionary<string, string> ObtenirSettingsParDefaut(string typeSegment)
@@ -2248,6 +2267,56 @@ public sealed class GameSessionViewModel : ViewModelBase
                 segment.MainEvent,
                 segment.AutoParticipants,
                 segment.MatchTypeId)).ToList())).ToList();
+    }
+
+    private IReadOnlyDictionary<string, string> ConstruireNomsWorkers()
+    {
+        if (_context is null)
+        {
+            return new Dictionary<string, string>();
+        }
+
+        return _context.Workers.ToDictionary(worker => worker.WorkerId, worker => worker.NomComplet);
+    }
+
+    private string NommerWorker(string workerId)
+    {
+        if (_context is null)
+        {
+            return workerId;
+        }
+
+        return _context.Workers.FirstOrDefault(worker => worker.WorkerId == workerId)?.NomComplet ?? workerId;
+    }
+
+    private string NommerStoryline(string storylineId)
+    {
+        if (_context is null)
+        {
+            return storylineId;
+        }
+
+        return _context.Storylines.FirstOrDefault(storyline => storyline.StorylineId == storylineId)?.Nom ?? storylineId;
+    }
+
+    private string NommerTitre(string titreId)
+    {
+        if (_context is null)
+        {
+            return titreId;
+        }
+
+        return _context.Titres.FirstOrDefault(titre => titre.TitreId == titreId)?.Nom ?? titreId;
+    }
+
+    private static string FormatterDelta(IReadOnlyDictionary<string, int> deltas, Func<string, string> nommer)
+    {
+        if (deltas.Count == 0)
+        {
+            return "—";
+        }
+
+        return string.Join(", ", deltas.Select(kv => $"{nommer(kv.Key)} {kv.Value:+#;-#;0}"));
     }
 }
 
