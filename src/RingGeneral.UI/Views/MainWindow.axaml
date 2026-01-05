@@ -245,7 +245,7 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Booking" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.booking" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="page.booking" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="10">
@@ -413,8 +413,8 @@
               </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="12">
-              <Button Content="Simuler le show" Click="OnSimulerShow" ToolTip.Tip="{Binding Session.Tooltips['booking.simuler']}" />
-              <Button Content="Semaine suivante" Click="OnSemaineSuivante" ToolTip.Tip="{Binding Session.Tooltips['booking.semaine']}" />
+              <Button Content="Simuler le show" Click="OnSimulerShow" ToolTip.Tip="{Binding Session.Tooltips[booking.simuler]}" />
+              <Button Content="Semaine suivante" Click="OnSemaineSuivante" ToolTip.Tip="{Binding Session.Tooltips[booking.semaine]}" />
             </StackPanel>
             <Border Background="#111827" Padding="10" CornerRadius="8">
               <StackPanel Spacing="6">
@@ -435,7 +435,7 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <TextBlock Text="{Binding Session.ValidationErreurs}" Foreground="#F87171" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" ToolTip.Tip="{Binding Session.Tooltips['booking.warning']}" />
+                <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" ToolTip.Tip="{Binding Session.Tooltips[booking.warning]}" />
               </StackPanel>
             </Border>
           </StackPanel>
@@ -443,7 +443,7 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Storylines" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.storylines" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="page.storylines" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <Grid ColumnDefinitions="2*,*">
@@ -543,7 +543,7 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Bibliothèque" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.segments" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="page.segments" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <Grid ColumnDefinitions="2*,*" ColumnSpacing="12">
@@ -590,25 +590,25 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Résultats" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.resultats" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="page.resultats" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <TextBlock Text="{Binding Session.ResumeShow}" Foreground="#CBD5F5" />
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="6">
                 <Grid ColumnDefinitions="140,70,200,70,*,*">
                   <TextBlock Text="Segment" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="1" Text="Note" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.note']}" />
+                  <TextBlock Grid.Column="1" Text="Note" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips[result.note]}" />
                   <TextBlock Grid.Column="2" Text="Ratings" Foreground="#9CA3AF" />
                   <TextBlock Grid.Column="3" Text="Icônes" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="4" Text="Breakdown" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.breakdown']}" />
-                  <TextBlock Grid.Column="5" Text="Impacts" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.impacts']}" />
+                  <TextBlock Grid.Column="4" Text="Breakdown" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips[result.breakdown]}" />
+                  <TextBlock Grid.Column="5" Text="Impacts" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips[result.impacts]}" />
                 </Grid>
                 <ListBox ItemsSource="{Binding Session.Resultats}" SelectedItem="{Binding Session.ResultatSelectionne, Mode=TwoWay}">
                   <ListBox.ItemTemplate>
                     <DataTemplate>
                       <Grid ColumnDefinitions="140,70,200,70,*,*">
                         <TextBlock Text="{Binding TypeSegment}" Foreground="White" />
-                        <TextBlock Grid.Column="1" Text="{Binding Note}" Foreground="#FCD34D" ToolTip.Tip="{Binding DataContext.Session.Tooltips['result.note'], RelativeSource={RelativeSource AncestorType=Window}}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Note}" Foreground="#FCD34D" ToolTip.Tip="{Binding DataContext.Session.Tooltips[result.note], RelativeSource={RelativeSource AncestorType=Window}}" />
                         <TextBlock Grid.Column="2" Text="{Binding Ratings}" Foreground="#E5E7EB" TextWrapping="Wrap" />
                         <TextBlock Grid.Column="3" Text="{Binding Icons}" Foreground="#FBBF24" />
                         <TextBlock Grid.Column="4" Text="{Binding Breakdown}" Foreground="#E5E7EB" TextWrapping="Wrap" />
@@ -715,7 +715,7 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Diffusion" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.diffusion" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="page.diffusion" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="12">
@@ -918,9 +918,9 @@
           <StackPanel Spacing="8">
             <TextBlock Text="Actions sensibles" FontSize="20" FontWeight="Bold" Foreground="White" />
             <StackPanel Orientation="Horizontal" Spacing="12">
-              <Button Content="Buyout" ToolTip.Tip="{Binding Session.Tooltips['action.buyout']}" />
-              <Button Content="LOD" ToolTip.Tip="{Binding Session.Tooltips['action.lod']}" />
-              <Button Content="Diffusion" ToolTip.Tip="{Binding Session.Tooltips['action.diffusion']}" />
+              <Button Content="Buyout" ToolTip.Tip="{Binding Session.Tooltips[action.buyout]}" />
+              <Button Content="LOD" ToolTip.Tip="{Binding Session.Tooltips[action.lod]}" />
+              <Button Content="Diffusion" ToolTip.Tip="{Binding Session.Tooltips[action.diffusion]}" />
             </StackPanel>
           </StackPanel>
 
@@ -1055,7 +1055,7 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Impacts" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="impacts.popularite" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="impacts.popularite" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="6">
@@ -1076,10 +1076,10 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Aide / Codex" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.aide-codex" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="page.aide-codex" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <StackPanel Spacing="6">
-              <TextBox Watermark="Rechercher un terme" Text="{Binding Session.Codex.Recherche, Mode=TwoWay}" ToolTip.Tip="{Binding Session.Tooltips['ui.search']}" />
+              <TextBox Watermark="Rechercher un terme" Text="{Binding Session.Codex.Recherche, Mode=TwoWay}" ToolTip.Tip="{Binding Session.Tooltips[ui.search]}" />
               <Border Background="#111827" Padding="12" CornerRadius="8">
                 <ItemsControl ItemsSource="{Binding Session.Codex.Articles}">
                   <ItemsControl.ItemTemplate>
@@ -1087,7 +1087,7 @@
                       <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="{Binding Titre}" Foreground="#E5E7EB" />
                         <TextBlock Text="{Binding Categorie}" Foreground="#9CA3AF" />
-                        <Button Content="Ouvrir" Tag="{Binding Id}" Click="OnOuvrirArticle" ToolTip.Tip="{Binding DataContext.Session.Tooltips['ui.open-article'], RelativeSource={RelativeSource AncestorType=Window}}" />
+                        <Button Content="Ouvrir" Tag="{Binding Id}" Click="OnOuvrirArticle" ToolTip.Tip="{Binding DataContext.Session.Tooltips[ui.open-article], RelativeSource={RelativeSource AncestorType=Window}}" />
                       </StackPanel>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
