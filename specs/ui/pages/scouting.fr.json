@@ -32,12 +32,12 @@
     {"id": "ouvrir_profil", "libelle": "Ouvrir profil"}
   ],
   "validations": [
-    {"id": "scouting.selection", "message": "Sélectionnez un prospect."}
+    {"id": "scouting.selection", "message": "Sélectionnez un rapport ou une cible."}
   ],
   "warnings": ["Rapports de scouting en retard."],
-  "etatVide": "Aucun prospect disponible.",
+  "etatVide": "Aucun rapport disponible.",
   "tooltips": [
-    {"id": "potentiel", "libelle": "Potentiel", "texte": "Estimation du plafond de performance."}
+    {"id": "note", "libelle": "Note", "texte": "Synthèse scouting basée sur la performance et le potentiel."}
   ],
   "messagesErreur": ["Impossible de charger le scouting."]
 }

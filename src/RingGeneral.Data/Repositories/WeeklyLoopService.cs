@@ -10,10 +10,12 @@ public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
     private readonly SeededRandomProvider _random = new(42);
+    private readonly ScoutingService _scoutingService;
 
     public WeeklyLoopService(GameRepository repository)
     {
         _repository = repository;
+        _scoutingService = new ScoutingService(_random);
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -32,6 +34,7 @@ public sealed class WeeklyLoopService
         }
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
+        inboxItems.AddRange(VerifierOffresExpirantes(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
         var scouting = GenererScoutingHebdo(semaine);
         if (scouting is not null)
@@ -89,7 +92,10 @@ public sealed class WeeklyLoopService
 
         if (refresh.RapportsCrees == 0 && refresh.MissionsAvancees == 0)
         {
-            return null;
+            if (missions.Any(m => m.MissionId == mission.MissionId))
+            {
+                _repository.MettreAJourMission(mission);
+            }
         }
 
         var contenu = $"Scouting: {refresh.RapportsCrees} rapport(s) créé(s), {refresh.MissionsAvancees} mission(s) avancée(s).";

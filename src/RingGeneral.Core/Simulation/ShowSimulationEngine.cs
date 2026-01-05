@@ -91,6 +91,21 @@ public sealed class ShowSimulationEngine
                     note = Math.Max(0, note - 6);
                 }
             }
+            else
+            {
+                var incidentChance = Math.Clamp(0.04 + (segment.Intensite / 200.0), 0.02, 0.18);
+                if (_random.NextDouble() < incidentChance)
+                {
+                    var incident = segment.TypeSegment switch
+                    {
+                        "video" => "Panne technique",
+                        "angle_backstage" or "run_in" or "brawl" => "Incident backstage",
+                        _ => "Micro coupé"
+                    };
+                    events.Add(incident);
+                    note = Math.Max(0, note - 4);
+                }
+            }
 
             var fatigueImpact = AppliquerFatigue(segment, participants, fatigueDelta);
             var blessuresSegment = DeterminerBlessures(segment, participants, fatigueImpact, blessures, events);

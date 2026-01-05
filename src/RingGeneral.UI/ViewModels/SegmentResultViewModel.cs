@@ -4,13 +4,19 @@ namespace RingGeneral.UI.ViewModels;
 
 public sealed class SegmentResultViewModel
 {
-    public SegmentResultViewModel(SegmentReport report, string? libelle = null)
+    public SegmentResultViewModel(
+        SegmentReport report,
+        string? libelle = null,
+        IReadOnlyDictionary<string, string>? participantsNoms = null)
     {
         SegmentId = report.SegmentId;
         TypeSegment = libelle ?? report.TypeSegment;
         Note = report.Note;
         Duree = report.Impact.FatigueDelta.Values.Sum();
-        Participants = string.Join(", ", report.Impact.FatigueDelta.Keys);
+        ParticipantIds = report.Impact.FatigueDelta.Keys.ToList();
+        Participants = participantsNoms is null
+            ? string.Join(", ", ParticipantIds)
+            : string.Join(", ", ParticipantIds.Select(id => participantsNoms.TryGetValue(id, out var nom) ? nom : id));
         Evenements = report.Evenements.Count == 0 ? "Aucun" : string.Join(", ", report.Evenements);
         Breakdown = string.Join(" | ", report.Facteurs.Select(facteur => $"{facteur.Libelle} {facteur.Impact:+#;-#;0}"));
         Impacts = ConstruireImpacts(report);
@@ -22,6 +28,7 @@ public sealed class SegmentResultViewModel
     public int Note { get; }
     public int Duree { get; }
     public string Participants { get; }
+    public IReadOnlyList<string> ParticipantIds { get; }
     public string Evenements { get; }
     public string Breakdown { get; }
     public string Impacts { get; }

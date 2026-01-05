@@ -41,12 +41,18 @@
     "types": [
       {"id": "botch", "libelle": "Botch"},
       {"id": "blessure", "libelle": "Blessure"},
-      {"id": "incidentBackstage", "libelle": "Incident backstage"}
+      {"id": "incidentBackstage", "libelle": "Incident backstage"},
+      {"id": "panneTechnique", "libelle": "Panne technique"}
     ],
     "regles": [
       "Le risque de botch augmente avec l'intensité élevée.",
       "Les blessures sont plus probables si la durabilité est faible."
     ]
+  },
+  "recap": {
+    "sections": ["noteShow", "audience", "finances", "deltas", "segments"],
+    "deltas": ["popularite", "momentum", "storylineHeat", "fatigue", "blessures"],
+    "format": "Résumé FM complet avec breakdown par segment."
   },
   "messagesErreur": {
     "validation": "Validation échouée : segments incohérents.",
