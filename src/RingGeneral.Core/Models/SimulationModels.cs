@@ -48,7 +48,20 @@ public sealed record BookingPlan(
 public sealed record ValidationResult(
     bool EstValide,
     IReadOnlyList<string> Erreurs,
-    IReadOnlyList<string> Avertissements);
+    IReadOnlyList<string> Avertissements,
+    IReadOnlyList<ValidationIssue> Issues);
+
+public enum ValidationSeverity
+{
+    Erreur,
+    Avertissement
+}
+
+public sealed record ValidationIssue(
+    ValidationSeverity Severite,
+    string Code,
+    string Message,
+    string? SegmentId = null);
 
 public sealed record ImpactContext(
     string ShowId,

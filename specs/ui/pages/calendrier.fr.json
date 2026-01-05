@@ -12,12 +12,12 @@
       "colonnes": ["Date", "Type", "Nom", "Lieu", "Statut"]
     }
   ],
-  "filtres": ["Type", "Statut", "Région"],
+  "filtres": ["Type", "Statut", "Lieu", "Diffusion"],
   "panneauDetail": {
     "sections": ["Détails", "Conflits", "Ressources"]
   },
   "actions": [
-    {"id": "ajouter_evenement", "libelle": "Ajouter un événement"}
+    {"id": "creer_show", "libelle": "Créer show"}
   ],
   "validations": [
     {"id": "evenement.date", "message": "La date est obligatoire."}
