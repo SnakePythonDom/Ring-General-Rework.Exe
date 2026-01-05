@@ -48,6 +48,12 @@ public sealed class BakiWorkerContext
         value = input;
         return true;
     }
+
+    private static bool TryAssign(decimal input, out double value)
+    {
+        value = (double)input;
+        return true;
+    }
 }
 
 public sealed record BakiDerivedValues(int? ExperienceFactor)
@@ -56,7 +62,7 @@ public sealed record BakiDerivedValues(int? ExperienceFactor)
     {
         if (spec is null)
         {
-            return new BakiDerivedValues(null);
+            return new BakiDerivedValues((int?)null);
         }
 
         var hasAge = context.TryGetNumber(spec.AgeField, out var age);
@@ -64,7 +70,7 @@ public sealed record BakiDerivedValues(int? ExperienceFactor)
 
         if (!hasAge && !hasExperience)
         {
-            return new BakiDerivedValues(null);
+            return new BakiDerivedValues((int?)null);
         }
 
         var ageNormalized = hasAge
