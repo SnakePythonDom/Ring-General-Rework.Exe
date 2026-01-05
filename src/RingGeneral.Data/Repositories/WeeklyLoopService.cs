@@ -17,7 +17,6 @@ public sealed class WeeklyLoopService
     public WeeklyLoopService(GameRepository repository)
     {
         _repository = repository;
-        _scoutingService = new ScoutingService(_random);
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -70,31 +69,58 @@ public sealed class WeeklyLoopService
 
         var incidentsSpec = ChargerIncidentsSpec();
         var definitions = incidentsSpec.Incidents
-            .Select(incident => new BackstageIncidentDefinition(
+            .Select(incident => new IncidentDefinition(
                 incident.Id,
                 incident.Titre,
                 incident.Description,
-                incident.Chance,
-                incident.ParticipantsMin,
-                incident.ParticipantsMax,
-                incident.GraviteMin,
-                incident.GraviteMax,
+                _random.Next(incident.GraviteMin, incident.GraviteMax + 1),
                 incident.MoraleImpactMin,
-                incident.MoraleImpactMax))
+                incident.MoraleImpactMax,
+                Array.Empty<string>()))
             .ToList();
 
-        var morales = _repository.ChargerMorales(compagnieId);
-        var service = new BackstageService(_random);
-        var resultat = service.LancerIncidents(semaine, compagnieId, roster, morales, definitions);
-
-        foreach (var incident in resultat.Incidents)
+        var service = new BackstageService(_random, definitions);
+        var incidents = service.RollIncidents(semaine, roster);
+        if (incidents.Count == 0)
         {
-            _repository.EnregistrerBackstageIncident(incident);
+            return Array.Empty<InboxItem>();
         }
 
-        _repository.AppliquerMoraleImpacts(resultat.MoraleImpacts, semaine);
+        var definitionLookup = definitions.ToDictionary(definition => definition.IncidentType);
+        var impacts = new List<BackstageMoraleImpact>();
+        var inboxItems = new List<InboxItem>();
 
-        return resultat.InboxItems;
+        foreach (var incident in incidents)
+        {
+            _repository.EnregistrerBackstageIncident(incident);
+
+            var definition = definitionLookup.GetValueOrDefault(incident.IncidentType);
+            var moraleDelta = definition is null
+                ? 0
+                : _random.Next(definition.MoraleImpactMin, definition.MoraleImpactMax + 1);
+
+            if (moraleDelta != 0)
+            {
+                var raison = definition is null ? "Incident backstage" : $"Incident backstage : {definition.Libelle}";
+                impacts.Add(new BackstageMoraleImpact(incident.WorkerId, moraleDelta, raison, incident.IncidentId, null));
+            }
+
+            var workerName = roster.FirstOrDefault(worker => worker.WorkerId == incident.WorkerId)?.Nom ?? incident.WorkerId;
+            var titre = "Incident backstage";
+            var contenu = definition is null
+                ? $"{workerName} est impliqué dans un incident backstage."
+                : $"{workerName} : {definition.Libelle}. {definition.Description}";
+            if (moraleDelta != 0)
+            {
+                contenu += $" Impact moral {moraleDelta:+#;-#;0}.";
+            }
+
+            inboxItems.Add(new InboxItem("backstage", titre, contenu, semaine));
+        }
+
+        _repository.AppliquerMoraleImpacts(impacts, semaine);
+
+        return inboxItems;
     }
 
     private IEnumerable<InboxItem> GenererNews(int semaine)
@@ -137,12 +163,9 @@ public sealed class WeeklyLoopService
         var service = new ScoutingService(_repository, new SeededRandomProvider(semaine));
         var refresh = service.RafraichirHebdo(semaine);
 
-        if (refresh.RapportsCrees == 0 && refresh.MissionsAvancees == 0)
+        if (refresh.RapportsCrees == 0 && refresh.MissionsAvancees == 0 && refresh.MissionsTerminees == 0)
         {
-            if (missions.Any(m => m.MissionId == mission.MissionId))
-            {
-                _repository.MettreAJourMission(mission);
-            }
+            return null;
         }
 
         var contenu = $"Scouting: {refresh.RapportsCrees} rapport(s) créé(s), {refresh.MissionsAvancees} mission(s) avancée(s).";
@@ -376,6 +399,53 @@ public sealed class WeeklyLoopService
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         return JsonSerializer.Deserialize<WorkerGenerationSpec>(json, options)
                ?? throw new InvalidOperationException("Spec de génération de workers invalide.");
+    }
+
+    private void AppliquerFinancesHebdo(string showId, int semaine)
+    {
+        var companyId = _repository.ChargerCompagnieIdPourShow(showId);
+        if (string.IsNullOrWhiteSpace(companyId))
+        {
+            return;
+        }
+
+        var compagnie = _repository.ChargerEtatCompagnie(companyId);
+        if (compagnie is null)
+        {
+            return;
+        }
+
+        var contrats = _repository.ChargerPaieContrats(companyId);
+        var context = new WeeklyFinanceContext(companyId, semaine, compagnie.Tresorerie, contrats);
+        var engine = new FinanceEngine(FinanceSettings.V1());
+        var tick = new WeeklyFinanceTick(engine);
+        var resultat = tick.Executer(context);
+
+        _repository.AppliquerTransactionsFinancieres(companyId, semaine, resultat.Transactions);
+        _repository.EnregistrerSnapshotFinance(companyId, semaine);
+    }
+
+    private IEnumerable<InboxItem> VerifierOffresExpirantes(int semaine)
+    {
+        var offres = _repository.ChargerOffresExpirant(semaine);
+        if (offres.Count == 0)
+        {
+            return Array.Empty<InboxItem>();
+        }
+
+        var noms = _repository.ChargerNomsWorkers();
+        var items = new List<InboxItem>(offres.Count);
+
+        foreach (var offre in offres)
+        {
+            _repository.MettreAJourStatutOffre(offre.OfferId, "expiree");
+
+            var nom = noms.TryGetValue(offre.WorkerId, out var workerNom) ? workerNom : offre.WorkerId;
+            var contenu = $"L'offre contractuelle pour {nom} a expiré.";
+            items.Add(new InboxItem("contrat", "Offre expirée", contenu, semaine));
+        }
+
+        return items;
     }
 
 }

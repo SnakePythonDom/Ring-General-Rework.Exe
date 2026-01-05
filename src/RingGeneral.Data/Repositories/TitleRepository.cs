@@ -148,7 +148,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv
+            SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv, Morale
             FROM Workers
             WHERE CompanyId = $companyId;
             """;
@@ -167,7 +167,8 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
                 reader.GetInt32(6),
                 reader.GetString(7),
                 reader.GetInt32(8),
-                reader.GetString(9)));
+                reader.GetString(9),
+                reader.GetInt32(10)));
         }
 
         return workers;

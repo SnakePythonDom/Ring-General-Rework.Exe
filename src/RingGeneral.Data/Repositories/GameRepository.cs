@@ -1098,17 +1098,17 @@ public sealed class GameRepository : IScoutingRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO BackstageIncidents (BackstageIncidentId, CompanyId, Week, TypeId, Title, Description, Severity, WorkersJson)
+            INSERT INTO backstage_incidents (incident_id, company_id, semaine, type_id, titre, description, gravite, workers_json)
             VALUES ($id, $companyId, $week, $typeId, $title, $description, $severity, $workersJson);
             """;
         command.Parameters.AddWithValue("$id", incident.IncidentId);
-        command.Parameters.AddWithValue("$companyId", incident.CompanyId);
+        command.Parameters.AddWithValue("$companyId", ChargerCompanyIdPourWorker(connexion, incident.WorkerId));
         command.Parameters.AddWithValue("$week", incident.Week);
-        command.Parameters.AddWithValue("$typeId", incident.TypeId);
-        command.Parameters.AddWithValue("$title", incident.Titre);
+        command.Parameters.AddWithValue("$typeId", incident.IncidentType);
+        command.Parameters.AddWithValue("$title", incident.IncidentType);
         command.Parameters.AddWithValue("$description", incident.Description);
-        command.Parameters.AddWithValue("$severity", incident.Gravite);
-        command.Parameters.AddWithValue("$workersJson", JsonSerializer.Serialize(incident.Workers));
+        command.Parameters.AddWithValue("$severity", incident.Severity);
+        command.Parameters.AddWithValue("$workersJson", JsonSerializer.Serialize(new[] { incident.WorkerId }));
         command.ExecuteNonQuery();
     }
 
@@ -1117,15 +1117,15 @@ public sealed class GameRepository : IScoutingRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO DisciplinaryActions (DisciplinaryActionId, CompanyId, WorkerId, Week, TypeId, Severity, MoraleDelta, Notes, IncidentId)
+            INSERT INTO disciplinary_actions (action_id, company_id, worker_id, semaine, type_id, gravite, morale_delta, notes, incident_id)
             VALUES ($id, $companyId, $workerId, $week, $typeId, $severity, $moraleDelta, $notes, $incidentId);
             """;
         command.Parameters.AddWithValue("$id", action.ActionId);
-        command.Parameters.AddWithValue("$companyId", action.CompanyId);
+        command.Parameters.AddWithValue("$companyId", ChargerCompanyIdPourWorker(connexion, action.WorkerId));
         command.Parameters.AddWithValue("$workerId", action.WorkerId);
         command.Parameters.AddWithValue("$week", action.Week);
-        command.Parameters.AddWithValue("$typeId", action.TypeId);
-        command.Parameters.AddWithValue("$severity", action.Gravite);
+        command.Parameters.AddWithValue("$typeId", action.ActionType);
+        command.Parameters.AddWithValue("$severity", MapperGraviteDiscipline(action.ActionType));
         command.Parameters.AddWithValue("$moraleDelta", action.MoraleDelta);
         command.Parameters.AddWithValue("$notes", action.Notes);
         command.Parameters.AddWithValue("$incidentId", (object?)action.IncidentId ?? DBNull.Value);
@@ -1162,7 +1162,7 @@ public sealed class GameRepository : IScoutingRepository
             using var historyCommand = connexion.CreateCommand();
             historyCommand.Transaction = transaction;
             historyCommand.CommandText = """
-                INSERT INTO MoraleHistory (WorkerId, Week, MoraleBefore, MoraleAfter, Delta, Reason, IncidentId, ActionId)
+                INSERT INTO morale_history (worker_id, semaine, morale_avant, morale_apres, delta, raison, incident_id, action_id)
                 VALUES ($workerId, $week, $moraleAvant, $moraleApres, $delta, $reason, $incidentId, $actionId);
                 """;
             historyCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
@@ -1178,16 +1178,33 @@ public sealed class GameRepository : IScoutingRepository
             historiques.Add(new MoraleHistoryEntry(
                 impact.WorkerId,
                 week,
-                moraleAvant,
-                moraleApres,
                 impact.Delta,
+                moraleApres,
                 impact.Raison,
-                impact.IncidentId,
-                impact.ActionId));
+                impact.IncidentId));
         }
 
         transaction.Commit();
         return historiques;
+    }
+
+    private static string ChargerCompanyIdPourWorker(SqliteConnection connexion, string workerId)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT CompanyId FROM Workers WHERE WorkerId = $workerId;";
+        command.Parameters.AddWithValue("$workerId", workerId);
+        return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
+    }
+
+    private static int MapperGraviteDiscipline(string actionType)
+    {
+        return actionType switch
+        {
+            "SUSPENSION" => 3,
+            "AMENDE" => 2,
+            "AVERTISSEMENT" => 1,
+            _ => 0
+        };
     }
 
     public string ChargerCompagnieIdPourShow(string showId)
@@ -3346,10 +3363,11 @@ public sealed class GameRepository : IScoutingRepository
         var workers = new List<WorkerSnapshot>();
         while (reader.Read())
         {
-            var nomComplet = $"{reader.GetString(2)} {reader.GetString(1)}".Trim();
+            var nomComplet = reader.GetString(1);
             workers.Add(new WorkerSnapshot(
                 reader.GetString(0),
                 nomComplet,
+                reader.GetInt32(2),
                 reader.GetInt32(3),
                 reader.GetInt32(4),
                 reader.GetInt32(5),
