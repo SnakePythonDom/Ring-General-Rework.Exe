@@ -31,6 +31,7 @@ public sealed record ShowReport(
     string ShowId,
     int NoteGlobale,
     int Audience,
+    AudienceResult AudienceDetails,
     double Billetterie,
     double Merch,
     double Tv,
@@ -41,4 +42,3 @@ public sealed record ShowReport(
 public sealed record ShowSimulationResult(
     ShowReport RapportShow,
     GameStateDelta Delta);
-

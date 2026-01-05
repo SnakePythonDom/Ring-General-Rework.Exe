@@ -110,11 +110,42 @@ public sealed class SimulationEngineTests
         Assert.True(result.Delta.TitrePrestigeDelta["T-1"] != 0);
     }
 
+    [Fact]
+    public void Deal_influence_audience_et_revenus()
+    {
+        var deals = new Dictionary<string, TvDealDefinition>
+        {
+            ["TV-1"] = new(
+                "TV-1",
+                "COMP-1",
+                "Canal Ring",
+                20,
+                95,
+                4000,
+                30,
+                new[] { "Prime time", "Exclusivité" })
+        };
+        var engine = new ShowSimulationEngine(
+            new SeededRandomProvider(9),
+            new AudienceModel(),
+            new DealRevenueModel(deals));
+
+        var contextAvecDeal = ConstruireContexte(dealTvId: "TV-1");
+        var contextSansDeal = ConstruireContexte(dealTvId: null);
+
+        var resultAvec = engine.Simuler(contextAvecDeal);
+        var resultSans = engine.Simuler(contextSansDeal);
+
+        Assert.True(resultAvec.RapportShow.Audience > resultSans.RapportShow.Audience);
+        Assert.True(resultAvec.RapportShow.Tv > 0);
+        Assert.Equal(0, resultSans.RapportShow.Tv);
+    }
+
     private static ShowContext ConstruireContexte(
         IReadOnlyList<SegmentDefinition>? segments = null,
-        IReadOnlyList<WorkerSnapshot>? workers = null)
+        string? dealTvId = "TV-1")
     {
-        var show = new ShowDefinition("SHOW-TEST", "Test Show", 1, "FR", 90, "COMP-1", "TV-1");
+        var show = new ShowDefinition("SHOW-TEST", "Test Show", 1, "FR", 90, "COMP-1", dealTvId, "Paris", "Canal Ring");
         var company = new CompanyState("COMP-1", "Compagnie Test", "FR", 55, 10000, 50, 4);
         var workersList = workers?.ToList() ?? new List<WorkerSnapshot>
         {
