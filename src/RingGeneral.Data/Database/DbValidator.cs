@@ -55,7 +55,9 @@ public sealed class DbValidator : IDbValidator
             ["YouthPrograms"] = new[] { "ProgramId", "YouthStructureId", "Name" },
             ["YouthStaffAssignments"] = new[] { "YouthStaffAssignmentId", "YouthStructureId", "WorkerId" },
             ["Calendars"] = new[] { "CalendarId", "CompanyId", "Date" },
-            ["Venues"] = new[] { "VenueId", "Name" }
+            ["Venues"] = new[] { "VenueId", "Name" },
+            ["MatchTypes"] = new[] { "MatchTypeId", "Libelle" },
+            ["SegmentTemplates"] = new[] { "TemplateId", "Libelle", "SegmentsJson" }
         };
 
     public DbValidationResult Valider(string cheminDb)

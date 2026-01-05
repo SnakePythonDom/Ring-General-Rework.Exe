@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "match-types"
+  },
+  "types": [
+    {
+      "id": "simple",
+      "libelle": "Simple",
+      "description": "Un contre un classique.",
+      "participants": 2,
+      "dureeParDefaut": 8
+    },
+    {
+      "id": "tag",
+      "libelle": "Tag",
+      "description": "Deux contre deux.",
+      "participants": 4,
+      "dureeParDefaut": 10
+    },
+    {
+      "id": "triple",
+      "libelle": "Triple menace",
+      "description": "Trois participants.",
+      "participants": 3,
+      "dureeParDefaut": 9
+    },
+    {
+      "id": "fatal4",
+      "libelle": "Fatal 4-Way",
+      "description": "Quatre participants.",
+      "participants": 4,
+      "dureeParDefaut": 10
+    }
+  ]
+}

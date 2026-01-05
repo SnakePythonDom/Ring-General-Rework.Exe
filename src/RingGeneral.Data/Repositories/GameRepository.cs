@@ -9,6 +9,10 @@ namespace RingGeneral.Data.Repositories;
 public sealed class GameRepository : IScoutingRepository
 {
     private readonly SqliteConnectionFactory _factory;
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public GameRepository(SqliteConnectionFactory factory)
     {
@@ -370,38 +374,18 @@ public sealed class GameRepository : IScoutingRepository
                 valeur INTEGER NOT NULL,
                 UNIQUE(entity_type, entity_id, region)
             );
-            CREATE TABLE IF NOT EXISTS scout_reports (
-                report_id TEXT PRIMARY KEY,
-                worker_id TEXT NOT NULL,
-                nom TEXT NOT NULL,
-                region TEXT NOT NULL,
-                potentiel INTEGER NOT NULL,
-                in_ring INTEGER NOT NULL,
-                entertainment INTEGER NOT NULL,
-                story INTEGER NOT NULL,
-                resume TEXT NOT NULL,
-                notes TEXT NOT NULL,
-                semaine INTEGER NOT NULL,
-                source TEXT NOT NULL,
-                UNIQUE(worker_id, semaine)
+            CREATE TABLE IF NOT EXISTS MatchTypes (
+                MatchTypeId TEXT PRIMARY KEY,
+                Libelle TEXT NOT NULL,
+                Description TEXT,
+                Participants INTEGER,
+                DureeParDefaut INTEGER
             );
-            CREATE TABLE IF NOT EXISTS shortlists (
-                shortlist_id TEXT PRIMARY KEY,
-                worker_id TEXT NOT NULL,
-                nom TEXT NOT NULL,
-                note TEXT NOT NULL,
-                semaine INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS scout_missions (
-                mission_id TEXT PRIMARY KEY,
-                titre TEXT NOT NULL,
-                region TEXT NOT NULL,
-                focus TEXT NOT NULL,
-                progression INTEGER NOT NULL,
-                objectif INTEGER NOT NULL,
-                statut TEXT NOT NULL,
-                semaine_debut INTEGER NOT NULL,
-                semaine_maj INTEGER NOT NULL
+            CREATE TABLE IF NOT EXISTS SegmentTemplates (
+                TemplateId TEXT PRIMARY KEY,
+                Libelle TEXT NOT NULL,
+                Description TEXT,
+                SegmentsJson TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_workers_company ON workers(company_id);
             CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
@@ -3354,221 +3338,118 @@ public sealed class GameRepository : IScoutingRepository
         return chimies;
     }
 
-    public IReadOnlyList<TvDeal> ChargerTvDeals(string companyId)
+    public IReadOnlyList<MatchTypeDefinition> ChargerMatchTypes()
     {
         using var connexion = _factory.OuvrirConnexion();
-        var deals = new List<TvDeal>();
-
-        if (TableExiste(connexion, "tv_deals"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = """
-                SELECT tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min, base_revenue, revenue_per_point, penalty, constraints
-                FROM tv_deals
-                WHERE company_id = $companyId;
-                """;
-            command.Parameters.AddWithValue("$companyId", companyId);
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                deals.Add(new TvDeal(
-                    reader.GetString(0),
-                    reader.GetString(1),
-                    reader.GetString(2),
-                    reader.GetInt32(3),
-                    reader.GetInt32(4),
-                    reader.GetInt32(5),
-                    reader.GetDouble(6),
-                    reader.GetDouble(7),
-                    reader.GetDouble(8),
-                    reader.IsDBNull(9) ? string.Empty : reader.GetString(9)));
-            }
-
-            return deals;
-        }
-
-        if (TableExiste(connexion, "TVDeals"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = """
-                SELECT TvDealId, CompanyId, NetworkName, ReachBonus, AudienceCap, MinimumAudience, BaseRevenue, RevenuePerPoint, Penalty, Constraints
-                FROM TVDeals
-                WHERE CompanyId = $companyId;
-                """;
-            command.Parameters.AddWithValue("$companyId", companyId);
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                deals.Add(new TvDeal(
-                    reader.GetString(0),
-                    reader.GetString(1),
-                    reader.GetString(2),
-                    reader.GetInt32(3),
-                    reader.GetInt32(4),
-                    reader.GetInt32(5),
-                    reader.GetDouble(6),
-                    reader.GetDouble(7),
-                    reader.GetDouble(8),
-                    reader.IsDBNull(9) ? string.Empty : reader.GetString(9)));
-            }
-        }
-
-        return deals;
-    }
-
-    public IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistorique(string showId)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        var historique = new List<AudienceHistoryEntry>();
-
-        if (TableExiste(connexion, "audience_history"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = """
-                SELECT show_id, semaine, audience, reach, show_score, stars, saturation
-                FROM audience_history
-                WHERE show_id = $showId
-                ORDER BY semaine DESC;
-                """;
-            command.Parameters.AddWithValue("$showId", showId);
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                historique.Add(new AudienceHistoryEntry(
-                    reader.GetString(0),
-                    reader.GetInt32(1),
-                    reader.GetInt32(2),
-                    reader.GetInt32(3),
-                    reader.GetInt32(4),
-                    reader.GetInt32(5),
-                    reader.GetInt32(6)));
-            }
-
-            return historique;
-        }
-
-        if (TableExiste(connexion, "AudienceHistory"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = """
-                SELECT ShowId, Week, Audience, Reach, ShowScore, Stars, Saturation
-                FROM AudienceHistory
-                WHERE ShowId = $showId
-                ORDER BY Week DESC;
-                """;
-            command.Parameters.AddWithValue("$showId", showId);
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                historique.Add(new AudienceHistoryEntry(
-                    reader.GetString(0),
-                    reader.GetInt32(1),
-                    reader.GetInt32(2),
-                    reader.GetInt32(3),
-                    reader.GetInt32(4),
-                    reader.GetInt32(5),
-                    reader.GetInt32(6)));
-            }
-        }
-
-        return historique;
-    }
-
-    private static TvDeal? ChargerTvDeal(SqliteConnection connexion, string? tvDealId)
-    {
-        if (string.IsNullOrWhiteSpace(tvDealId))
-        {
-            return null;
-        }
-
-        if (TableExiste(connexion, "tv_deals"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = """
-                SELECT tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min, base_revenue, revenue_per_point, penalty, constraints
-                FROM tv_deals
-                WHERE tv_deal_id = $tvDealId;
-                """;
-            command.Parameters.AddWithValue("$tvDealId", tvDealId);
-            using var reader = command.ExecuteReader();
-            if (!reader.Read())
-            {
-                return null;
-            }
-
-            return new TvDeal(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetDouble(6),
-                reader.GetDouble(7),
-                reader.GetDouble(8),
-                reader.IsDBNull(9) ? string.Empty : reader.GetString(9));
-        }
-
-        if (TableExiste(connexion, "TVDeals"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = """
-                SELECT TvDealId, CompanyId, NetworkName, ReachBonus, AudienceCap, MinimumAudience, BaseRevenue, RevenuePerPoint, Penalty, Constraints
-                FROM TVDeals
-                WHERE TvDealId = $tvDealId;
-                """;
-            command.Parameters.AddWithValue("$tvDealId", tvDealId);
-            using var reader = command.ExecuteReader();
-            if (!reader.Read())
-            {
-                return null;
-            }
-
-            return new TvDeal(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetDouble(6),
-                reader.GetDouble(7),
-                reader.GetDouble(8),
-                reader.IsDBNull(9) ? string.Empty : reader.GetString(9));
-        }
-
-        return null;
-    }
-
-    private static int? ChargerSemaineShow(SqliteConnection connexion, string showId)
-    {
-        if (TableExiste(connexion, "shows"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = "SELECT semaine FROM shows WHERE show_id = $showId;";
-            command.Parameters.AddWithValue("$showId", showId);
-            var valeur = command.ExecuteScalar();
-            return valeur is null or DBNull ? null : Convert.ToInt32(valeur);
-        }
-
-        if (TableExiste(connexion, "Shows"))
-        {
-            using var command = connexion.CreateCommand();
-            command.CommandText = "SELECT Week FROM Shows WHERE ShowId = $showId;";
-            command.Parameters.AddWithValue("$showId", showId);
-            var valeur = command.ExecuteScalar();
-            return valeur is null or DBNull ? null : Convert.ToInt32(valeur);
-        }
-
-        return null;
-    }
-
-    private static bool TableExiste(SqliteConnection connexion, string table)
-    {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = $table;";
-        command.Parameters.AddWithValue("$table", table);
-        return command.ExecuteScalar() is not null;
+        command.CommandText = """
+            SELECT MatchTypeId, Libelle, Description, Participants, DureeParDefaut
+            FROM MatchTypes
+            ORDER BY Libelle ASC;
+            """;
+        using var reader = command.ExecuteReader();
+        var types = new List<MatchTypeDefinition>();
+        while (reader.Read())
+        {
+            types.Add(new MatchTypeDefinition(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.IsDBNull(2) ? null : reader.GetString(2),
+                reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                reader.IsDBNull(4) ? null : reader.GetInt32(4)));
+        }
+
+        return types;
+    }
+
+    public void EnregistrerMatchTypes(IReadOnlyList<MatchTypeDefinition> types)
+    {
+        if (types.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        foreach (var type in types)
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO MatchTypes (MatchTypeId, Libelle, Description, Participants, DureeParDefaut)
+                VALUES ($id, $libelle, $description, $participants, $duree)
+                ON CONFLICT(MatchTypeId)
+                DO UPDATE SET Libelle = $libelle,
+                              Description = $description,
+                              Participants = $participants,
+                              DureeParDefaut = $duree;
+                """;
+            command.Parameters.AddWithValue("$id", type.MatchTypeId);
+            command.Parameters.AddWithValue("$libelle", type.Libelle);
+            command.Parameters.AddWithValue("$description", (object?)type.Description ?? DBNull.Value);
+            command.Parameters.AddWithValue("$participants", (object?)type.Participants ?? DBNull.Value);
+            command.Parameters.AddWithValue("$duree", (object?)type.DureeParDefaut ?? DBNull.Value);
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
+    public IReadOnlyList<SegmentTemplateDefinition> ChargerSegmentTemplates()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT TemplateId, Libelle, Description, SegmentsJson
+            FROM SegmentTemplates
+            ORDER BY Libelle ASC;
+            """;
+        using var reader = command.ExecuteReader();
+        var templates = new List<SegmentTemplateDefinition>();
+        while (reader.Read())
+        {
+            var segmentsJson = reader.GetString(3);
+            var segments = JsonSerializer.Deserialize<IReadOnlyList<SegmentTemplateSegmentDefinition>>(segmentsJson, _jsonOptions)
+                ?? Array.Empty<SegmentTemplateSegmentDefinition>();
+            templates.Add(new SegmentTemplateDefinition(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.IsDBNull(2) ? null : reader.GetString(2),
+                segments));
+        }
+
+        return templates;
+    }
+
+    public void EnregistrerSegmentTemplates(IReadOnlyList<SegmentTemplateDefinition> templates)
+    {
+        if (templates.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        foreach (var template in templates)
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO SegmentTemplates (TemplateId, Libelle, Description, SegmentsJson)
+                VALUES ($id, $libelle, $description, $segments)
+                ON CONFLICT(TemplateId)
+                DO UPDATE SET Libelle = $libelle,
+                              Description = $description,
+                              SegmentsJson = $segments;
+                """;
+            command.Parameters.AddWithValue("$id", template.TemplateId);
+            command.Parameters.AddWithValue("$libelle", template.Libelle);
+            command.Parameters.AddWithValue("$description", (object?)template.Description ?? DBNull.Value);
+            command.Parameters.AddWithValue("$segments", JsonSerializer.Serialize(template.Segments, _jsonOptions));
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
     }
 
     private void SeedDatabase(SqliteConnection connexion)

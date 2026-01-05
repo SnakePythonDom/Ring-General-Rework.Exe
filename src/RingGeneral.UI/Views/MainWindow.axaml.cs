@@ -23,6 +23,22 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnAjouterDepuisBibliotheque(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AppliquerTemplateSelectionnee();
+        }
+    }
+
+    private void OnAppliquerTemplateBibliotheque(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentTemplateViewModel template)
+        {
+            shell.Session.AppliquerTemplate(template);
+        }
+    }
+
     private void OnSemaineSuivante(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)

@@ -388,9 +388,18 @@
                                 Click="OnEnregistrerSegment"
                                 Tag="{Binding .}" />
                       </StackPanel>
+                      <CheckBox Grid.Column="3" IsChecked="{Binding Session.NouveauSegmentMainEvent, Mode=TwoWay}" />
+                      <Button Grid.Column="4" Content="Ajouter" Click="OnAjouterSegment" />
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ComboBox Width="220"
+                                ItemsSource="{Binding Session.SegmentTemplates}"
+                                DisplayMemberPath="Libelle"
+                                SelectedItem="{Binding Session.TemplateSelectionnee, Mode=TwoWay}" />
+                      <Button Content="Ajouter depuis bibliothèque" Click="OnAjouterDepuisBibliotheque" />
                     </StackPanel>
-                  </Border>
-                </Grid>
+                  </StackPanel>
+                </Border>
               </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="12">
@@ -494,6 +503,30 @@
                   </StackPanel>
                 </Border>
               </Grid>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Bibliothèque" FontSize="20" FontWeight="Bold" Foreground="White" />
+            </Grid>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="8">
+                <ItemsControl ItemsSource="{Binding Session.SegmentTemplates}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="#0F172A" Padding="8" CornerRadius="6" Margin="0,4,0,4">
+                        <StackPanel Spacing="4">
+                          <TextBlock Text="{Binding Libelle}" Foreground="White" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding Description}" Foreground="#CBD5F5" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding SegmentsResume}" Foreground="#9CA3AF" TextWrapping="Wrap" />
+                          <Button Content="Appliquer" Click="OnAppliquerTemplateBibliotheque" Tag="{Binding .}" />
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
             </Border>
           </StackPanel>
 
