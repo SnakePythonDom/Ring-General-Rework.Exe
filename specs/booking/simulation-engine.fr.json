@@ -9,7 +9,9 @@
     {"id": "evaluationSegment", "libelle": "Évaluation segment par segment", "description": "Calcule InRing, Entertainment, Story."},
     {"id": "modificateurs", "libelle": "Modificateurs", "description": "Applique CrowdHeat, pacing, production."},
     {"id": "incidents", "libelle": "Incidents", "description": "Détermine botch, blessure, incident backstage."},
-    {"id": "scores", "libelle": "Scores finaux", "description": "Calcule score final par segment et show."}
+    {"id": "scores", "libelle": "Scores finaux", "description": "Calcule score final par segment et show."},
+    {"id": "recap", "libelle": "Récap show", "description": "Construit le récap FM (note, audience, finances, deltas)."},
+    {"id": "impacts", "libelle": "Impacts persistés", "description": "Applique popularité, momentum, heat, fatigue, blessures, finances."}
   ],
   "scores": {
     "composantes": ["InRing", "Entertainment", "Story"],

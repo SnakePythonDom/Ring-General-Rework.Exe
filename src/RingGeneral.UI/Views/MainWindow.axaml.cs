@@ -83,25 +83,9 @@ public sealed partial class MainWindow : Window
 
     private void OnOuvrirFicheWorker(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ShellViewModel shell)
+        if (DataContext is ShellViewModel shell && sender is Control control)
         {
-            shell.Session.OuvrirFicheWorker();
-        }
-    }
-
-    private void OnVoirImpacts(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.VoirImpacts();
-        }
-    }
-
-    private void OnVoirFinance(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.VoirFinances();
+            shell.Session.OuvrirFicheWorker(control.Tag as string);
         }
     }
 

@@ -98,18 +98,12 @@ public sealed class ShowSimulationEngine
                     note = Math.Max(0, note - 6);
                 }
             }
-            else
+            else if (segment.TypeSegment is "promo" or "angle_backstage" or "interview")
             {
-                var incidentChance = Math.Clamp(0.04 + (segment.Intensite / 200.0), 0.02, 0.18);
+                var incidentChance = Math.Clamp(0.04 + (segment.Intensite / 180.0) - (entertainment / 220.0), 0.02, 0.15);
                 if (_random.NextDouble() < incidentChance)
                 {
-                    var incident = segment.TypeSegment switch
-                    {
-                        "video" => "Panne technique",
-                        "angle_backstage" or "run_in" or "brawl" => "Incident backstage",
-                        _ => "Micro coupé"
-                    };
-                    events.Add(incident);
+                    events.Add("Incident backstage");
                     note = Math.Max(0, note - 4);
                 }
             }
@@ -182,10 +176,12 @@ public sealed class ShowSimulationEngine
             finances.Add(new FinanceTransaction("tv", tv, "Droits TV"));
         }
 
+        var totalFinances = billetterie + merch + tv;
         var pointsCles = new List<string>
         {
             $"Note globale : {noteShow}",
             $"Audience estimée : {audience}",
+            $"Finances : {totalFinances:0}",
             $"Impact popularité : {populariteDeltaCompagnie:+#;-#;0}"
         };
 

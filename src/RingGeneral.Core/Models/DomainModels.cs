@@ -81,6 +81,14 @@ public sealed record FinanceTransaction(
     double Montant,
     string Libelle);
 
+public sealed record ShowHistoryEntry(
+    string ShowId,
+    int Week,
+    int Note,
+    int Audience,
+    string Summary,
+    string? CreatedAt);
+
 public sealed record InboxItem(
     string Type,
     string Titre,

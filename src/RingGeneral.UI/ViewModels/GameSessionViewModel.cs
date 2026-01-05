@@ -56,6 +56,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         WorkersDisponibles = new ObservableCollection<ParticipantViewModel>();
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
+        HistoriqueShow = new ObservableCollection<ShowHistoryViewModel>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
         Storylines = new ObservableCollection<StorylineListItemViewModel>();
         StorylineOptions = new ObservableCollection<StorylineOptionViewModel>();
@@ -138,6 +139,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<ParticipantViewModel> WorkersDisponibles { get; }
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
+    public ObservableCollection<ShowHistoryViewModel> HistoriqueShow { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
     public ObservableCollection<StorylineListItemViewModel> Storylines { get; }
     public ObservableCollection<StorylineOptionViewModel> StorylineOptions { get; }
@@ -472,6 +474,13 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
     private ImpactPageViewModel? _impactSelectionnee;
 
+    public SegmentResultViewModel? ResultatSelectionne
+    {
+        get => _resultatSelectionne;
+        set => this.RaiseAndSetIfChanged(ref _resultatSelectionne, value);
+    }
+    private SegmentResultViewModel? _resultatSelectionne;
+
     public void OuvrirRechercheGlobale()
     {
         RechercheGlobaleVisible = true;
@@ -506,11 +515,13 @@ public sealed class GameSessionViewModel : ViewModelBase
         var resultat = engine.Simuler(_context);
         var participantsNoms = _context.Workers.ToDictionary(worker => worker.WorkerId, worker => worker.NomComplet);
         Resultats.Clear();
+        var workerNames = ConstruireNomsWorkers();
         foreach (var segment in resultat.RapportShow.Segments)
         {
             var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
-            Resultats.Add(new SegmentResultViewModel(segment, libelle, participantsNoms));
+            Resultats.Add(new SegmentResultViewModel(segment, workerNames, libelle));
         }
+        ResultatSelectionne = Resultats.FirstOrDefault();
 
         ResultatSelectionne = Resultats.FirstOrDefault();
         ResumeShow =
@@ -881,15 +892,9 @@ public sealed class GameSessionViewModel : ViewModelBase
             page.Id.Equals(pageId, StringComparison.OrdinalIgnoreCase));
     }
 
-    public void OuvrirFicheWorker()
+    public void OuvrirFicheWorker(string? workerId)
     {
-        if (ResultatSelectionne is null || _context is null)
-        {
-            return;
-        }
-
-        var workerId = ResultatSelectionne.ParticipantIds.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(workerId))
+        if (string.IsNullOrWhiteSpace(workerId) || _context is null)
         {
             return;
         }
@@ -900,18 +905,8 @@ public sealed class GameSessionViewModel : ViewModelBase
             return;
         }
 
-        RechercheGlobaleVisible = true;
+        OuvrirRechercheGlobale();
         RechercheGlobaleQuery = worker.NomComplet;
-    }
-
-    public void VoirImpacts()
-    {
-        SelectionnerImpact("impacts.popularite");
-    }
-
-    public void VoirFinances()
-    {
-        SelectionnerImpact("impacts.finances");
     }
 
     private void ChargerShow()
@@ -970,103 +965,25 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         ChargerStorylinesView();
         MettreAJourAttributs();
-        MettreAJourTableItems();
         MettreAJourIndexRechercheGlobale();
-        MettreAJourRechercheGlobale();
         ChargerCalendrier();
+        ChargerHistoriqueShow();
         MettreAJourAvertissements();
         InitialiserNouveauShow();
     }
 
-    private void ChargerStorylinesView()
+    private void ChargerHistoriqueShow()
     {
-        if (_context is null)
+        HistoriqueShow.Clear();
+        if (_repository is null || _context is null)
         {
             return;
         }
 
-        var selectionId = StorylineSelectionnee?.StorylineId;
-
-        Storylines.Clear();
-        StorylineOptions.Clear();
-        StorylineOptions.Add(new StorylineOptionViewModel(null, "Aucune"));
-
-        foreach (var storyline in _context.Storylines)
+        foreach (var entry in _repository.ChargerHistoriqueShow(_context.Show.ShowId))
         {
-            StorylineOptions.Add(new StorylineOptionViewModel(storyline.StorylineId, storyline.Nom));
-
-            var participants = storyline.Participants.Select(participant =>
-            {
-                var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == participant.WorkerId);
-                var nom = worker?.NomComplet ?? participant.WorkerId;
-                var momentum = worker?.Momentum ?? 0;
-                return new StorylineParticipantViewModel(participant.WorkerId, nom, participant.Role, momentum);
-            }).ToList();
-
-            Storylines.Add(new StorylineListItemViewModel(
-                storyline.StorylineId,
-                storyline.Nom,
-                storyline.Phase,
-                storyline.Heat,
-                storyline.Statut,
-                storyline.Resume ?? string.Empty,
-                participants));
+            HistoriqueShow.Add(new ShowHistoryViewModel(entry));
         }
-
-        StorylineSelectionnee = selectionId is null
-            ? null
-            : Storylines.FirstOrDefault(storyline => storyline.StorylineId == selectionId);
-
-        if (StorylineSelectionnee is null)
-        {
-            ChargerStorylineSelection();
-        }
-    }
-
-    private void ChargerStorylineSelection()
-    {
-        StorylineParticipantsEdition.Clear();
-
-        if (_context is null || StorylineSelectionnee is null)
-        {
-            StorylineNom = null;
-            StorylineResume = null;
-            StorylinePhaseSelection = StorylinePhases.FirstOrDefault();
-            StorylineStatutSelection = StorylineStatuts.FirstOrDefault();
-            StorylineParticipantSelectionId = null;
-            return;
-        }
-
-        var selection = _context.Storylines.FirstOrDefault(storyline => storyline.StorylineId == StorylineSelectionnee.StorylineId);
-        if (selection is null)
-        {
-            return;
-        }
-
-        StorylineNom = selection.Nom;
-        StorylineResume = selection.Resume;
-        StorylinePhaseSelection = StorylinePhases.FirstOrDefault(phase => phase.Id == selection.Phase) ?? StorylinePhases.FirstOrDefault();
-        StorylineStatutSelection = StorylineStatuts.FirstOrDefault(statut => statut.Id == selection.Statut) ?? StorylineStatuts.FirstOrDefault();
-        StorylineParticipantSelectionId = null;
-
-        foreach (var participant in selection.Participants)
-        {
-            var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == participant.WorkerId);
-            var nom = worker?.NomComplet ?? participant.WorkerId;
-            var momentum = worker?.Momentum ?? 0;
-            StorylineParticipantsEdition.Add(new StorylineParticipantViewModel(participant.WorkerId, nom, participant.Role, momentum));
-        }
-    }
-
-    private void ReinitialiserStorylineEdition()
-    {
-        StorylineSelectionnee = null;
-        StorylineNom = null;
-        StorylineResume = null;
-        StorylinePhaseSelection = StorylinePhases.FirstOrDefault();
-        StorylineStatutSelection = StorylineStatuts.FirstOrDefault();
-        StorylineParticipantsEdition.Clear();
-        StorylineParticipantSelectionId = null;
     }
 
     private void ChargerInbox()
@@ -1407,20 +1324,20 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         AjouterDeltas("impacts.popularite",
             delta.PopulariteCompagnieDelta.Select(kv => $"Compagnie {kv.Value:+#;-#;0}"),
-            delta.PopulariteWorkersDelta.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
+            delta.PopulariteWorkersDelta.Select(kv => $"{NommerWorker(kv.Key)} {kv.Value:+#;-#;0}"));
 
         AjouterDeltas("impacts.finances",
             delta.Finances.Select(tx => $"{tx.Libelle} {tx.Montant:+#;-#;0}"));
 
         AjouterDeltas("impacts.fatigue",
-            delta.FatigueDelta.Select(kv => $"{kv.Key} +{kv.Value}"),
-            delta.Blessures.Select(kv => $"{kv.Key} : {kv.Value}"));
+            delta.FatigueDelta.Select(kv => $"{NommerWorker(kv.Key)} +{kv.Value}"),
+            delta.Blessures.Select(kv => $"{NommerWorker(kv.Key)} : {kv.Value}"));
 
         AjouterDeltas("impacts.storylines",
-            delta.StorylineHeatDelta.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
+            delta.StorylineHeatDelta.Select(kv => $"{NommerStoryline(kv.Key)} {kv.Value:+#;-#;0}"));
 
         AjouterDeltas("impacts.titres",
-            delta.TitrePrestigeDelta.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
+            delta.TitrePrestigeDelta.Select(kv => $"{NommerTitre(kv.Key)} {kv.Value:+#;-#;0}"));
 
         foreach (var page in ImpactPages)
         {
@@ -1609,133 +1526,69 @@ public sealed class GameSessionViewModel : ViewModelBase
     private void MettreAJourRecapFm(ShowSimulationResult resultat)
     {
         RecapFm.Clear();
-        RecapFm.Add($"Note show : {resultat.RapportShow.NoteGlobale}");
-        RecapFm.Add($"Audience : {resultat.RapportShow.Audience}");
-        RecapFm.Add($"Finances : Billetterie {resultat.RapportShow.Billetterie:C} • Merch {resultat.RapportShow.Merch:C} • TV {resultat.RapportShow.Tv:C}");
-        RecapFm.Add($"Pop compagnie : {resultat.RapportShow.PopulariteCompagnieDelta:+#;-#;0}");
-        RecapFm.Add($"Momentum total : {resultat.Delta.MomentumDelta.Values.Sum():+#;-#;0}");
-        RecapFm.Add($"Heat storylines : {resultat.Delta.StorylineHeatDelta.Values.Sum():+#;-#;0}");
-        RecapFm.Add($"Fatigue cumulée : {resultat.Delta.FatigueDelta.Values.Sum():+#;-#;0}");
-        foreach (var segment in resultat.RapportShow.Segments)
+        var rapport = resultat.RapportShow;
+        var delta = resultat.Delta;
+        var totalFinances = rapport.Billetterie + rapport.Merch + rapport.Tv;
+        var workerNames = ConstruireNomsWorkers();
+
+        RecapFm.Add($"Note show {rapport.NoteGlobale} • Audience {rapport.Audience}");
+        RecapFm.Add($"Finances • Billetterie {rapport.Billetterie:C} • Merch {rapport.Merch:C} • TV {rapport.Tv:C} • Total {totalFinances:C}");
+
+        if (delta is not null)
+        {
+            var popCompagnie = delta.PopulariteCompagnieDelta.Values.Sum();
+            RecapFm.Add($"Δ Popularité • Compagnie {popCompagnie:+#;-#;0} • Workers {FormatterDelta(delta.PopulariteWorkersDelta, NommerWorker)}");
+            RecapFm.Add($"Δ Momentum • {FormatterDelta(delta.MomentumDelta, NommerWorker)}");
+            RecapFm.Add($"Δ Heat • {FormatterDelta(delta.StorylineHeatDelta, NommerStoryline)}");
+            RecapFm.Add($"Δ Fatigue • {FormatterDelta(delta.FatigueDelta, NommerWorker)}");
+        }
+
+        foreach (var segment in rapport.Segments)
         {
             var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
             var breakdown = string.Join(" | ", segment.Facteurs.Select(facteur => $"{facteur.Libelle} {facteur.Impact:+#;-#;0}"));
-            var impacts = new SegmentResultViewModel(segment, libelle).Impacts;
+            var impacts = new SegmentResultViewModel(segment, workerNames, libelle).Impacts;
             RecapFm.Add($"{libelle} • Note {segment.Note} • {breakdown} • {impacts}");
         }
     }
 
-    private void ChargerYouth()
+    private IReadOnlyDictionary<string, string> ConstruireNomsWorkers()
     {
-        if (_repository is null)
+        if (_context is null)
         {
-            return;
+            return new Dictionary<string, string>();
         }
 
-        YouthStructures.Clear();
-        foreach (var structure in _repository.ChargerYouthStructures())
-        {
-            YouthStructures.Add(new YouthStructureViewModel(
-                structure.YouthId,
-                structure.Nom,
-                structure.Region,
-                structure.Type,
-                structure.BudgetAnnuel,
-                structure.CapaciteMax,
-                structure.NiveauEquipements,
-                structure.QualiteCoaching,
-                structure.Philosophie,
-                structure.Actif,
-                structure.TraineesActifs));
-        }
-
-        YouthStructureSelection ??= YouthStructures.FirstOrDefault();
-        YouthBudgetNouveau = YouthStructureSelection?.BudgetAnnuel ?? 0;
+        return _context.Workers.ToDictionary(worker => worker.WorkerId, worker => worker.NomComplet);
     }
 
-    private void ChargerYouthDetails()
+    private string NommerWorker(string workerId)
     {
-        if (_repository is null || YouthStructureSelection is null)
-        {
-            return;
-        }
-
-        YouthTrainees.Clear();
-        foreach (var trainee in _repository.ChargerYouthTrainees(YouthStructureSelection.YouthId))
-        {
-            YouthTrainees.Add(new YouthTraineeViewModel(
-                trainee.WorkerId,
-                trainee.Nom,
-                trainee.InRing,
-                trainee.Entertainment,
-                trainee.Story,
-                trainee.Statut));
-        }
-
-        YouthPrograms.Clear();
-        foreach (var programme in _repository.ChargerYouthPrograms(YouthStructureSelection.YouthId))
-        {
-            YouthPrograms.Add(new YouthProgramViewModel(
-                programme.ProgramId,
-                programme.Nom,
-                programme.DureeSemaines,
-                programme.Focus));
-        }
-
-        YouthStaffAssignments.Clear();
-        foreach (var staff in _repository.ChargerYouthStaffAssignments(YouthStructureSelection.YouthId))
-        {
-            YouthStaffAssignments.Add(new YouthStaffAssignmentViewModel(
-                staff.AssignmentId,
-                staff.WorkerId,
-                staff.Nom,
-                staff.Role,
-                staff.SemaineDebut));
-        }
+        return _context?.Workers.FirstOrDefault(worker => worker.WorkerId == workerId)?.NomComplet ?? workerId;
     }
 
-    public void ChangerBudgetYouth()
+    private string NommerStoryline(string storylineId)
     {
-        if (_repository is null || YouthStructureSelection is null)
-        {
-            return;
-        }
-
-        _repository.ChangerBudgetYouth(YouthStructureSelection.YouthId, YouthBudgetNouveau);
-        YouthStructureSelection.BudgetAnnuel = YouthBudgetNouveau;
-        YouthActionMessage = $"Budget mis à jour: {YouthBudgetNouveau}€.";
+        return _context?.Storylines.FirstOrDefault(storyline => storyline.StorylineId == storylineId)?.Nom ?? storylineId;
     }
 
-    public void AffecterCoachYouth()
+    private string NommerTitre(string titreId)
     {
-        if (_repository is null || YouthStructureSelection is null)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(YouthCoachWorkerId) || string.IsNullOrWhiteSpace(YouthCoachRole))
-        {
-            YouthActionMessage = "Renseignez un worker ID et un rôle.";
-            return;
-        }
-
-        var semaine = _context?.Show.Semaine ?? 1;
-        _repository.AffecterCoachYouth(YouthStructureSelection.YouthId, YouthCoachWorkerId.Trim(), YouthCoachRole.Trim(), semaine);
-        YouthActionMessage = "Coach affecté à la structure.";
-        ChargerYouthDetails();
+        return _context?.Titres.FirstOrDefault(titre => titre.TitreId == titreId)?.Nom ?? titreId;
     }
 
-    public void DiplomerTrainee(string workerId)
+    private static string FormatterDelta(
+        IReadOnlyDictionary<string, int> deltas,
+        Func<string, string> nommer,
+        Func<int, string>? formatter = null)
     {
-        if (_repository is null || string.IsNullOrWhiteSpace(workerId))
+        if (deltas.Count == 0)
         {
-            return;
+            return "Aucun";
         }
 
-        var semaine = _context?.Show.Semaine ?? 1;
-        _repository.DiplomerTrainee(workerId, semaine);
-        YouthActionMessage = "Graduation enregistrée.";
-        ChargerYouthDetails();
+        formatter ??= value => value.ToString("+#;-#;0");
+        return string.Join(", ", deltas.Select(kv => $"{nommer(kv.Key)} {formatter(kv.Value)}"));
     }
 
     private static IReadOnlyDictionary<string, string> ChargerSegmentTypes()
