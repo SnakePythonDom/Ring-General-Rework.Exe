@@ -4,6 +4,7 @@ using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Models;
+using MatchType = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.Data.Repositories;
 
@@ -479,33 +480,6 @@ public sealed class GameRepository : IScoutingRepository
         using var alterCommand = connexion.CreateCommand();
         alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
         alterCommand.ExecuteNonQuery();
-    }
-
-    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
-    {
-        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
-        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
-    }
-
-    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"PRAGMA table_info({table});";
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
-        {
-            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-        }
-
-        using var alter = connexion.CreateCommand();
-        alter.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
-        alter.ExecuteNonQuery();
     }
 
     private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
@@ -1078,17 +1052,17 @@ public sealed class GameRepository : IScoutingRepository
         return items;
     }
 
-    public IReadOnlyList<BackstageWorker> ChargerBackstageRoster(string companyId)
+    public IReadOnlyList<WorkerBackstageProfile> ChargerBackstageRoster(string companyId)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = "SELECT WorkerId, Name FROM Workers WHERE CompanyId = $companyId;";
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
-        var roster = new List<BackstageWorker>();
+        var roster = new List<WorkerBackstageProfile>();
         while (reader.Read())
         {
-            roster.Add(new BackstageWorker(reader.GetString(0), reader.GetString(1)));
+            roster.Add(new WorkerBackstageProfile(reader.GetString(0), reader.GetString(1)));
         }
 
         return roster;
@@ -3487,30 +3461,6 @@ public sealed class GameRepository : IScoutingRepository
         return chimies;
     }
 
-    public IReadOnlyList<MatchTypeDefinition> ChargerMatchTypes()
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            SELECT MatchTypeId, Libelle, Description, Participants, DureeParDefaut
-            FROM MatchTypes
-            ORDER BY Libelle ASC;
-            """;
-        using var reader = command.ExecuteReader();
-        var types = new List<MatchTypeDefinition>();
-        while (reader.Read())
-        {
-            types.Add(new MatchTypeDefinition(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.IsDBNull(2) ? null : reader.GetString(2),
-                reader.IsDBNull(3) ? null : reader.GetInt32(3),
-                reader.IsDBNull(4) ? null : reader.GetInt32(4)));
-        }
-
-        return types;
-    }
-
     public void EnregistrerMatchTypes(IReadOnlyList<MatchTypeDefinition> types)
     {
         if (types.Count == 0)
@@ -3542,32 +3492,6 @@ public sealed class GameRepository : IScoutingRepository
         }
 
         transaction.Commit();
-    }
-
-    public IReadOnlyList<SegmentTemplateDefinition> ChargerSegmentTemplates()
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            SELECT TemplateId, Libelle, Description, SegmentsJson
-            FROM SegmentTemplates
-            ORDER BY Libelle ASC;
-            """;
-        using var reader = command.ExecuteReader();
-        var templates = new List<SegmentTemplateDefinition>();
-        while (reader.Read())
-        {
-            var segmentsJson = reader.GetString(3);
-            var segments = JsonSerializer.Deserialize<IReadOnlyList<SegmentTemplateSegmentDefinition>>(segmentsJson, _jsonOptions)
-                ?? Array.Empty<SegmentTemplateSegmentDefinition>();
-            templates.Add(new SegmentTemplateDefinition(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.IsDBNull(2) ? null : reader.GetString(2),
-                segments));
-        }
-
-        return templates;
     }
 
     public void EnregistrerSegmentTemplates(IReadOnlyList<SegmentTemplateDefinition> templates)

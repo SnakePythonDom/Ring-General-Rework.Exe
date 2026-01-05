@@ -30,6 +30,13 @@ public sealed record MoraleHistoryEntry(
     string Reason,
     string? IncidentId);
 
+public sealed record BackstageMoraleImpact(
+    string WorkerId,
+    int Delta,
+    string Raison,
+    string? IncidentId,
+    string? ActionId);
+
 public sealed record DisciplinaryAction(
     string ActionId,
     string IncidentId,
