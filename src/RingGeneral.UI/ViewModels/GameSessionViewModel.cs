@@ -1232,7 +1232,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         foreach (var storyline in _context.Storylines)
         {
             var participants = _context.Workers
-                .Where(worker => storyline.Participants.Contains(worker.WorkerId))
+                .Where(worker => storyline.Participants.Any(participant => participant.WorkerId == worker.WorkerId))
                 .ToList();
             var nomsParticipants = participants.Select(worker => worker.NomComplet).ToList();
             var momentum = participants.Count == 0 ? 0 : (int)Math.Round(participants.Average(worker => worker.Momentum));

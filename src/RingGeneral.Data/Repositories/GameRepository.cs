@@ -3419,10 +3419,10 @@ public sealed class GameRepository : IScoutingRepository
             storylines.Add(new StorylineInfo(
                 storylineId,
                 reader.GetString(1),
-                reader.GetString(2),
-                reader.GetInt32(3),
-                reader.GetString(4),
-                reader.IsDBNull(5) ? null : reader.GetString(5),
+                StorylinePhase.Setup,
+                reader.GetInt32(2),
+                StorylineStatus.Active,
+                null,
                 ChargerStorylineParticipants(connexion, storylineId)));
         }
 

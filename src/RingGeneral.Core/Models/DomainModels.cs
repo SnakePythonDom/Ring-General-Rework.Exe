@@ -50,11 +50,11 @@ public sealed record StorylineParticipant(
 public sealed record StorylineInfo(
     string StorylineId,
     string Nom,
-    string Phase,
-    int Heat,
     StorylinePhase Phase,
+    int Heat,
     StorylineStatus Status,
-    IReadOnlyList<string> Participants);
+    string? Resume,
+    IReadOnlyList<StorylineParticipant> Participants);
 
 public sealed record SegmentDefinition(
     string SegmentId,
