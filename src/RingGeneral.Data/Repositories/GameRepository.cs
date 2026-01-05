@@ -44,6 +44,34 @@ public sealed class GameRepository : IScoutingRepository
                 role_tv TEXT NOT NULL,
                 morale INTEGER NOT NULL DEFAULT 60
             );
+            CREATE TABLE IF NOT EXISTS Injuries (
+                InjuryId INTEGER PRIMARY KEY AUTOINCREMENT,
+                WorkerId TEXT NOT NULL,
+                Type TEXT NOT NULL,
+                Severity INTEGER NOT NULL,
+                StartDate INTEGER NOT NULL,
+                EndDate INTEGER,
+                IsActive INTEGER NOT NULL DEFAULT 1,
+                Notes TEXT
+            );
+            CREATE TABLE IF NOT EXISTS MedicalNotes (
+                MedicalNoteId INTEGER PRIMARY KEY AUTOINCREMENT,
+                InjuryId INTEGER,
+                WorkerId TEXT NOT NULL,
+                Note TEXT NOT NULL,
+                CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS RecoveryPlans (
+                RecoveryPlanId INTEGER PRIMARY KEY AUTOINCREMENT,
+                InjuryId INTEGER NOT NULL,
+                WorkerId TEXT NOT NULL,
+                StartDate INTEGER NOT NULL,
+                TargetDate INTEGER NOT NULL,
+                RecommendedRestWeeks INTEGER NOT NULL,
+                RiskLevel TEXT NOT NULL,
+                Status TEXT NOT NULL DEFAULT 'EN_COURS',
+                CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
             CREATE TABLE IF NOT EXISTS titles (
                 title_id TEXT PRIMARY KEY,
                 nom TEXT NOT NULL,
@@ -1688,6 +1716,24 @@ public sealed class GameRepository : IScoutingRepository
         }
 
         return noms;
+    }
+
+    public int ChargerSemaineShow(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT Week FROM Shows WHERE ShowId = $showId;";
+        command.Parameters.AddWithValue("$showId", showId);
+        return Convert.ToInt32(command.ExecuteScalar());
+    }
+
+    public int ChargerFatigueWorker(string workerId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT Fatigue FROM Workers WHERE WorkerId = $workerId;";
+        command.Parameters.AddWithValue("$workerId", workerId);
+        return Convert.ToInt32(command.ExecuteScalar());
     }
 
     public void RecupererFatigueHebdo()

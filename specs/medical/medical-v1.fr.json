@@ -2,65 +2,42 @@
   "meta": {
     "langue": "fr",
     "version": "v1",
-    "module": "medical",
-    "sourceDeVerite": "specs"
+    "domaine": "medical",
+    "objectif": "Suivi des blessures/fatigue, recommandations de repos et gestion du retour."
   },
-  "objectifs": [
-    "Suivre les blessures et la fatigue des catcheurs.",
-    "Recommander du repos et évaluer le risque de rechute.",
-    "Structurer le retour à l'écran avec des plans de récupération.",
-    "Notifier la direction via la boîte de réception."
-  ],
-  "blessures": {
-    "champs": [
-      "workerId",
-      "type",
-      "gravite",
-      "debutSemaine",
-      "finSemaine",
-      "statut",
-      "risque",
-      "notes"
-    ],
-    "statuts": ["ACTIVE", "EN_SUIVI", "RECUPEREE"]
-  },
-  "plansRecuperation": {
-    "champs": [
-      "injuryId",
-      "workerId",
-      "debutSemaine",
-      "retourEstime",
-      "statut",
-      "restrictions"
-    ],
-    "statuts": ["EN_COURS", "RETARD", "TERMINE"]
-  },
-  "notesMedicales": {
-    "champs": ["workerId", "injuryId", "semaine", "contenu"],
-    "types": ["diagnostic", "suivi", "retour"]
-  },
-  "recommandations": {
-    "repos": {
-      "seuilsFatigue": [30, 60, 80],
-      "seuilsGravite": [25, 50, 75],
-      "maxSemaines": 8
+  "entites": [
+    {
+      "id": "injury",
+      "libelle": "Blessure",
+      "champs": ["type", "gravite", "debut", "fin", "actif", "notes"]
     },
-    "risque": {
-      "sources": ["fatigue", "gravite", "retourAnticipe"],
-      "niveaux": ["faible", "modere", "eleve", "critique"]
+    {
+      "id": "medical_note",
+      "libelle": "Note médicale",
+      "champs": ["note", "date", "lienBlessure"]
+    },
+    {
+      "id": "recovery_plan",
+      "libelle": "Plan de retour",
+      "champs": ["semaineDebut", "semaineRetour", "reposConseille", "risque", "statut"]
     }
-  },
-  "inbox": {
-    "alertes": [
-      "Blessure grave détectée",
-      "Retour anticipé à valider",
-      "Risque de rechute élevé"
-    ]
-  },
-  "actions": [
-    "appliquer_blessure",
-    "planifier_repos",
-    "valider_retour",
-    "ajouter_note_medicale"
-  ]
+  ],
+  "regles": [
+    "La fatigue élevée augmente le risque de rechute.",
+    "La gravité dicte le repos conseillé et la fenêtre de retour.",
+    "Un plan de retour actif est requis pour marquer le retour."
+  ],
+  "ui": {
+    "pageMedical": {
+      "liste": ["Nom", "Type", "Gravité", "Durée", "Statut", "Actions"],
+      "actions": ["Planifier retour", "Ajouter note"]
+    },
+    "profilWorker": {
+      "section": "État médical",
+      "contenu": ["Statut blessure", "Fatigue", "Risques", "Retour prévu"]
+    },
+    "inbox": {
+      "alertes": ["Nouvelle blessure", "Retour approchant", "Risque élevé"]
+    }
+  }
 }

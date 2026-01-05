@@ -8,13 +8,8 @@
   "tables": [
     {
       "id": "liste_blessures",
-      "libelle": "Blessures actives",
-      "colonnes": ["Nom", "Type", "Gravité", "Durée estimée", "Risque", "Statut", "Retour cible"]
-    },
-    {
-      "id": "fatigue",
-      "libelle": "Fatigue & repos",
-      "colonnes": ["Nom", "Fatigue", "Repos conseillé", "Restrictions", "Disponibilité"]
+      "libelle": "Blessures",
+      "colonnes": ["Nom", "Type", "Gravité", "Durée", "Statut", "Actions"]
     }
   ],
   "filtres": ["Gravité", "Statut", "Rôle", "Risque"],
@@ -22,9 +17,9 @@
     "sections": ["Diagnostic", "Planning de retour", "Restrictions"]
   },
   "actions": [
-    {"id": "planifier_repos", "libelle": "Planifier repos"},
-    {"id": "valider_retour", "libelle": "Valider retour"},
-    {"id": "ouvrir_profil", "libelle": "Ouvrir profil"}
+    {"id": "planifier_retour", "libelle": "Planifier un retour"},
+    {"id": "ajouter_note", "libelle": "Ajouter une note médicale"},
+    {"id": "marquer_retour", "libelle": "Marquer le retour"}
   ],
   "validations": [
     {"id": "retour.date", "message": "La date de retour est requise."}

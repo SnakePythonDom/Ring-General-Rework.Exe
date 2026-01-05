@@ -1,28 +1,28 @@
 PRAGMA foreign_keys = ON;
 
-ALTER TABLE Injuries ADD COLUMN RiskLevel REAL NOT NULL DEFAULT 0;
-
 CREATE TABLE IF NOT EXISTS MedicalNotes (
     MedicalNoteId INTEGER PRIMARY KEY AUTOINCREMENT,
-    WorkerId TEXT NOT NULL,
     InjuryId INTEGER,
-    Week INTEGER NOT NULL,
-    Content TEXT NOT NULL,
+    WorkerId TEXT NOT NULL,
+    Note TEXT NOT NULL,
     CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (WorkerId) REFERENCES Workers(WorkerId),
-    FOREIGN KEY (InjuryId) REFERENCES Injuries(InjuryId)
+    FOREIGN KEY (InjuryId) REFERENCES Injuries(InjuryId),
+    FOREIGN KEY (WorkerId) REFERENCES Workers(WorkerId)
 );
 
 CREATE TABLE IF NOT EXISTS RecoveryPlans (
     RecoveryPlanId INTEGER PRIMARY KEY AUTOINCREMENT,
     InjuryId INTEGER NOT NULL,
     WorkerId TEXT NOT NULL,
-    StartWeek INTEGER NOT NULL,
-    TargetWeek INTEGER NOT NULL,
-    Status TEXT NOT NULL,
-    Notes TEXT,
-    CompletedWeek INTEGER,
+    StartDate INTEGER NOT NULL,
+    TargetDate INTEGER NOT NULL,
+    RecommendedRestWeeks INTEGER NOT NULL,
+    RiskLevel TEXT NOT NULL,
+    Status TEXT NOT NULL DEFAULT 'EN_COURS',
     CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (WorkerId) REFERENCES Workers(WorkerId),
-    FOREIGN KEY (InjuryId) REFERENCES Injuries(InjuryId)
+    FOREIGN KEY (InjuryId) REFERENCES Injuries(InjuryId),
+    FOREIGN KEY (WorkerId) REFERENCES Workers(WorkerId)
 );
+
+CREATE INDEX IF NOT EXISTS idx_recovery_plans_worker ON RecoveryPlans(WorkerId);
+CREATE INDEX IF NOT EXISTS idx_medical_notes_worker ON MedicalNotes(WorkerId);

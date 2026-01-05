@@ -3,6 +3,7 @@ using Avalonia.Collections;
 using ReactiveUI;
 using System.Reactive;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Medical;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
@@ -19,6 +20,8 @@ public sealed class GameSessionViewModel : ViewModelBase
 {
     private const string ShowId = "SHOW-001";
     private GameRepository? _repository;
+    private readonly MedicalRepository _medicalRepository;
+    private readonly InjuryService _injuryService;
     private readonly BookingValidator _validator = new();
     private readonly SegmentTypeCatalog _segmentCatalog;
     private readonly BookingBuilderService _bookingBuilder = new();
@@ -37,6 +40,8 @@ public sealed class GameSessionViewModel : ViewModelBase
             : cheminDb;
         var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
         _repository = new GameRepository(factory);
+        _medicalRepository = new MedicalRepository(factory);
+        _injuryService = new InjuryService(new MedicalRecommendations());
         _repository.Initialiser();
         _segmentCatalog = ChargerSegmentTypes();
         _tooltipHelper = new TooltipHelper(_helpProvider);
@@ -546,7 +551,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         MettreAJourImpacts(resultat);
         MettreAJourRecapFm(resultat);
 
-        var impactApplier = new ImpactApplier(_repository);
+        var impactApplier = new ImpactApplier(_repository, _medicalRepository, _injuryService);
         var segmentResults = resultat.RapportShow.Segments
             .Select(segment => new SegmentResult(segment.SegmentId, segment.Note, $"Segment {segment.TypeSegment}", segment))
             .ToList();

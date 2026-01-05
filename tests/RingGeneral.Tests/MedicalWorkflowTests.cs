@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Medical;
 using RingGeneral.Core.Models;
-using RingGeneral.Core.Services;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
 using Xunit;
@@ -10,52 +10,57 @@ namespace RingGeneral.Tests;
 public sealed class MedicalWorkflowTests
 {
     [Fact]
-    public void Blessure_PersisteEtSeRecupere()
+    public void Blessure_est_persisted_et_recuperee()
     {
-        var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-medical-{Guid.NewGuid():N}.db");
+        var chemin = Path.Combine(Path.GetTempPath(), $"ringgeneral-medical-{Guid.NewGuid():N}.db");
         try
         {
-            var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-            var repository = new GameRepository(factory);
-            repository.Initialiser();
+            var initializer = new DbInitializer();
+            initializer.CreateDatabaseIfMissing(chemin);
 
-            using (var connexion = factory.OuvrirConnexion())
-            using (var command = connexion.CreateCommand())
+            using (var connexion = new SqliteConnection($"Data Source={chemin}"))
             {
+                connexion.Open();
+                using var command = connexion.CreateCommand();
                 command.CommandText = """
-                    INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv)
-                    VALUES ('WORKER-TEST', 'Test', 'Medical', NULL, 50, 50, 50, 50, 20, 'AUCUNE', 0, 'NONE');
+                    INSERT INTO Workers (WorkerId, Name, Nationality)
+                    VALUES ($workerId, $nom, $nationalite);
                     """;
+                command.Parameters.AddWithValue("$workerId", "W-1");
+                command.Parameters.AddWithValue("$nom", "Alpha");
+                command.Parameters.AddWithValue("$nationalite", "FR");
                 command.ExecuteNonQuery();
             }
 
-            var medicalRepository = new MedicalRepository(factory);
+            var factory = new SqliteConnectionFactory($"Data Source={chemin}");
+            var repository = new MedicalRepository(factory);
             var injuryService = new InjuryService(new MedicalRecommendations());
 
-            var resultat = injuryService.AppliquerBlessure("WORKER-TEST", "ENTORSE", InjurySeverity.Moyenne, 12, 78);
+            var result = injuryService.AppliquerBlessure("W-1", "Entorse", InjurySeverity.Moyenne, 4, 72, "Test initial");
+            var injuryId = repository.AjouterBlessure(result.Blessure);
+            var planId = repository.AjouterPlanRecuperation(result.Plan with { InjuryId = injuryId });
 
-            medicalRepository.AjouterBlessure(resultat.Injury);
-            medicalRepository.AjouterPlan(resultat.RecoveryPlan);
-            medicalRepository.AjouterNote(resultat.MedicalNote);
+            Assert.True(injuryId > 0);
+            Assert.True(planId > 0);
 
-            var blessures = medicalRepository.ChargerBlessures("WORKER-TEST");
+            var blessure = repository.ChargerBlessure(injuryId);
+            Assert.NotNull(blessure);
+            Assert.True(blessure!.IsActive);
+            Assert.Equal(4 + result.Recommendation.RecommendedRestWeeks, blessure.EndWeek);
 
-            Assert.Single(blessures);
-            Assert.Equal(InjurySeverity.Moyenne, blessures[0].Severity);
-            Assert.Equal(InjuryStatus.Active, blessures[0].Status);
+            var recuperation = injuryService.RecupererBlessure(blessure, blessure.EndWeek ?? 5, "Rétabli");
+            repository.MettreAJourBlessure(recuperation);
 
-            var recuperation = injuryService.Recuperer(blessures[0], 16);
-            medicalRepository.MettreAJourBlessure(recuperation);
-
-            var blessuresMisesAJour = medicalRepository.ChargerBlessures("WORKER-TEST");
-            Assert.Equal(InjuryStatus.RetourEnCours, blessuresMisesAJour[0].Status);
-            Assert.Equal(16, blessuresMisesAJour[0].WeekEnd);
+            var blessureFinale = repository.ChargerBlessure(injuryId);
+            Assert.NotNull(blessureFinale);
+            Assert.False(blessureFinale!.IsActive);
+            Assert.Equal("Rétabli", blessureFinale.Notes);
         }
         finally
         {
-            if (File.Exists(dbPath))
+            if (File.Exists(chemin))
             {
-                File.Delete(dbPath);
+                File.Delete(chemin);
             }
         }
     }

@@ -1,22 +1,28 @@
 namespace RingGeneral.Core.Models;
 
-public sealed record Injury(
+public enum InjurySeverity
+{
+    Legere = 1,
+    Moyenne = 2,
+    Grave = 3
+}
+
+public sealed record InjuryRecord(
     int InjuryId,
     string WorkerId,
     string Type,
-    int Severity,
+    InjurySeverity Severity,
     int StartWeek,
     int? EndWeek,
     bool IsActive,
-    string? Notes,
-    double RiskLevel);
+    string? Notes);
 
 public sealed record MedicalNote(
     int MedicalNoteId,
-    string WorkerId,
     int? InjuryId,
-    int Week,
-    string Content);
+    string WorkerId,
+    string Note,
+    DateTimeOffset CreatedAt);
 
 public sealed record RecoveryPlan(
     int RecoveryPlanId,
@@ -24,23 +30,17 @@ public sealed record RecoveryPlan(
     string WorkerId,
     int StartWeek,
     int TargetWeek,
+    int RecommendedRestWeeks,
+    string RiskLevel,
     string Status,
-    string? Notes,
-    int? CompletedWeek);
+    DateTimeOffset CreatedAt);
 
 public sealed record MedicalRecommendation(
-    int ReposSemaines,
-    double Risque,
-    string Niveau,
-    string Conseil);
+    int RecommendedRestWeeks,
+    string RiskLevel,
+    string Message);
 
 public sealed record InjuryApplicationResult(
-    Injury Injury,
+    InjuryRecord Blessure,
     RecoveryPlan Plan,
     MedicalRecommendation Recommendation);
-
-public sealed record InjuryRecoveryResult(
-    int InjuryId,
-    string WorkerId,
-    int Week,
-    string Status);
