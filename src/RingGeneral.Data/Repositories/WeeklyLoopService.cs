@@ -231,6 +231,10 @@ public sealed class WeeklyLoopService
         }
 
         var show = _repository.ChargerShowDefinition(showId);
+        if (show is null)
+        {
+            return null;
+        }
         var structures = _repository.ChargerYouthStructuresPourGeneration();
         var annee = ((semaine - 1) / 52) + 1;
         var counters = _repository.ChargerGenerationCounters(annee);

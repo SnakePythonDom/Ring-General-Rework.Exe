@@ -20,7 +20,8 @@ public sealed class GameSessionViewModel : ViewModelBase
     private const string ShowId = "SHOW-001";
     private GameRepository? _repository;
     private readonly BookingValidator _validator = new();
-    private readonly IReadOnlyDictionary<string, string> _segmentLabels;
+    private readonly SegmentTypeCatalog _segmentCatalog;
+    private readonly BookingBuilderService _bookingBuilder = new();
     private readonly HelpContentProvider _helpProvider = new();
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _helpPages;
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _impactPages;
@@ -37,7 +38,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
         _repository = new GameRepository(factory);
         _repository.Initialiser();
-        _segmentLabels = ChargerSegmentTypes();
+        _segmentCatalog = ChargerSegmentTypes();
         _tooltipHelper = new TooltipHelper(_helpProvider);
         _helpPages = ChargerPages();
         _impactPages = _helpPages
@@ -45,6 +46,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
 
         Segments = new ObservableCollection<SegmentViewModel>();
+        ValidationIssues = new ObservableCollection<BookingIssueViewModel>();
         Resultats = new ObservableCollection<SegmentResultViewModel>();
         Inbox = new ObservableCollection<InboxItemViewModel>();
         AttributsPrincipaux = new ObservableCollection<AttributeViewModel>();
@@ -53,6 +55,8 @@ public sealed class GameSessionViewModel : ViewModelBase
         ImpactPages = new ObservableCollection<ImpactPageViewModel>();
         ShowsAVenir = new ObservableCollection<ShowCalendarItemViewModel>();
         SegmentTypes = new ObservableCollection<SegmentTypeOptionViewModel>();
+        StorylinesDisponibles = new ObservableCollection<StorylineOptionViewModel>();
+        TitresDisponibles = new ObservableCollection<TitleOptionViewModel>();
         WorkersDisponibles = new ObservableCollection<ParticipantViewModel>();
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
@@ -128,6 +132,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
 
     public ObservableCollection<SegmentViewModel> Segments { get; }
+    public ObservableCollection<BookingIssueViewModel> ValidationIssues { get; }
     public ObservableCollection<SegmentResultViewModel> Resultats { get; }
     public ObservableCollection<InboxItemViewModel> Inbox { get; }
     public ObservableCollection<AttributeViewModel> AttributsPrincipaux { get; }
@@ -136,6 +141,8 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<ImpactPageViewModel> ImpactPages { get; }
     public ObservableCollection<ShowCalendarItemViewModel> ShowsAVenir { get; }
     public ObservableCollection<SegmentTypeOptionViewModel> SegmentTypes { get; }
+    public ObservableCollection<StorylineOptionViewModel> StorylinesDisponibles { get; }
+    public ObservableCollection<TitleOptionViewModel> TitresDisponibles { get; }
     public ObservableCollection<ParticipantViewModel> WorkersDisponibles { get; }
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
@@ -160,6 +167,13 @@ public sealed class GameSessionViewModel : ViewModelBase
     public IReadOnlyList<WorldGenerationOptionViewModel> WorldGenerationModes { get; }
     public IReadOnlyList<StorylinePhaseOptionViewModel> StorylinePhases { get; }
     public IReadOnlyList<StorylineStatusOptionViewModel> StorylineStatuts { get; }
+
+    public SegmentViewModel? SegmentSelectionne
+    {
+        get => _segmentSelectionne;
+        set => this.RaiseAndSetIfChanged(ref _segmentSelectionne, value);
+    }
+    private SegmentViewModel? _segmentSelectionne;
 
     public YouthGenerationOptionViewModel? YouthGenerationSelection
     {
@@ -502,8 +516,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         var booking = _repository.ChargerBookingPlan(_context);
         var validation = _validator.ValiderBooking(booking);
-        ValidationErreurs = validation.EstValide ? null : string.Join("\n", validation.Erreurs);
-        ValidationAvertissements = validation.Avertissements.Count == 0 ? null : string.Join("\n", validation.Avertissements);
+        MettreAJourValidation(validation);
 
         if (!validation.EstValide)
         {
@@ -518,8 +531,8 @@ public sealed class GameSessionViewModel : ViewModelBase
         var workerNames = ConstruireNomsWorkers();
         foreach (var segment in resultat.RapportShow.Segments)
         {
-            var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
-            Resultats.Add(new SegmentResultViewModel(segment, workerNames, libelle));
+            var libelle = _segmentCatalog.Labels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
+            Resultats.Add(new SegmentResultViewModel(segment, libelle));
         }
         ResultatSelectionne = Resultats.FirstOrDefault();
 
@@ -586,6 +599,8 @@ public sealed class GameSessionViewModel : ViewModelBase
             ? SegmentTypes.FirstOrDefault()?.Id ?? "match"
             : NouveauSegmentTypeId;
         var participants = NouveauSegmentParticipants.Select(p => p.WorkerId).ToList();
+        var settings = ObtenirSettingsParDefaut(type);
+        var intensite = CalculerIntensite(settings, 60);
         var newSegment = new SegmentDefinition(
             $"SEG-{Guid.NewGuid():N}".ToUpperInvariant(),
             type,
@@ -594,9 +609,10 @@ public sealed class GameSessionViewModel : ViewModelBase
             NouveauSegmentMainEvent,
             string.IsNullOrWhiteSpace(NouveauSegmentStorylineId) ? null : NouveauSegmentStorylineId,
             null,
-            60,
+            intensite,
             null,
-            null);
+            null,
+            settings);
 
         _repository.AjouterSegment(_context.Show.ShowId, newSegment, Segments.Count + 1);
         NouveauSegmentParticipants.Clear();
@@ -615,17 +631,22 @@ public sealed class GameSessionViewModel : ViewModelBase
             return;
         }
 
+        var settings = segment.ConstruireSettings();
+        var intensite = CalculerIntensite(settings, segment.Intensite);
+        var storylineId = string.IsNullOrWhiteSpace(segment.StorylineId) ? null : segment.StorylineId;
+        var titreId = string.IsNullOrWhiteSpace(segment.TitreId) ? null : segment.TitreId;
         var updated = new SegmentDefinition(
             segment.SegmentId,
             segment.TypeSegment,
             segment.Participants.Select(p => p.WorkerId).ToList(),
             Math.Max(1, segment.DureeMinutes),
             segment.EstMainEvent,
-            string.IsNullOrWhiteSpace(segment.StorylineId) ? null : segment.StorylineId,
-            segment.TitreId,
-            segment.Intensite,
+            storylineId,
+            titreId,
+            intensite,
             segment.VainqueurId,
-            segment.PerdantId);
+            segment.PerdantId,
+            settings);
 
         _repository.MettreAJourSegment(updated);
         ChargerShow();
@@ -638,128 +659,59 @@ public sealed class GameSessionViewModel : ViewModelBase
             return;
         }
 
-        var copie = new SegmentDefinition(
-            $"SEG-{Guid.NewGuid():N}".ToUpperInvariant(),
+        var copieSegment = new SegmentDefinition(
+            segment.SegmentId,
             segment.TypeSegment,
             segment.Participants.Select(p => p.WorkerId).ToList(),
             segment.DureeMinutes,
             segment.EstMainEvent,
-            segment.StorylineId,
-            segment.TitreId,
+            string.IsNullOrWhiteSpace(segment.StorylineId) ? null : segment.StorylineId,
+            string.IsNullOrWhiteSpace(segment.TitreId) ? null : segment.TitreId,
             segment.Intensite,
             segment.VainqueurId,
-            segment.PerdantId);
+            segment.PerdantId,
+            segment.ConstruireSettings());
+
+        var copie = _bookingBuilder.DupliquerSegment(copieSegment);
 
         _repository.AjouterSegment(_context.Show.ShowId, copie, Segments.Count + 1);
         ChargerShow();
     }
 
-    public void CreerStoryline()
+    public void DupliquerMatch(SegmentViewModel segment)
     {
-        if (_context is null || _repository is null)
+        if (_context is null)
         {
             return;
         }
 
-        var nom = string.IsNullOrWhiteSpace(StorylineNom) ? "Nouvelle storyline" : StorylineNom.Trim();
-        var phase = StorylinePhaseSelection?.Id ?? "BUILD";
-        var statut = StorylineStatutSelection?.Id ?? "ACTIVE";
-        var participants = StorylineParticipantsEdition
-            .Select(participant => new StorylineParticipant(participant.WorkerId, participant.Role))
-            .ToList();
+        var copieSegment = new SegmentDefinition(
+            segment.SegmentId,
+            segment.TypeSegment,
+            segment.Participants.Select(p => p.WorkerId).ToList(),
+            segment.DureeMinutes,
+            segment.EstMainEvent,
+            string.IsNullOrWhiteSpace(segment.StorylineId) ? null : segment.StorylineId,
+            string.IsNullOrWhiteSpace(segment.TitreId) ? null : segment.TitreId,
+            segment.Intensite,
+            segment.VainqueurId,
+            segment.PerdantId,
+            segment.ConstruireSettings());
 
-        var storylineId = $"ST-{Guid.NewGuid():N}".ToUpperInvariant();
-        var storyline = _storylineService.Creer(storylineId, nom, participants);
-        storyline = _storylineService.MettreAJour(storyline, phase: phase, statut: statut, resume: StorylineResume);
-
-        _repository.CreerStoryline(_context.Show.CompagnieId, storyline);
-        _repository.AjouterStorylineEvent(storyline.StorylineId, "CREATED", _context.Show.Semaine, "Création storyline");
-        ReinitialiserStorylineEdition();
+        var copie = _bookingBuilder.DupliquerMatch(copieSegment);
+        _repository.AjouterSegment(_context.Show.ShowId, copie, Segments.Count + 1);
         ChargerShow();
     }
 
-    public void MettreAJourStoryline()
+    public void SupprimerSegment(SegmentViewModel segment)
     {
-        if (_context is null || _repository is null || StorylineSelectionnee is null)
+        if (_context is null)
         {
             return;
         }
 
-        var selection = _context.Storylines.FirstOrDefault(storyline => storyline.StorylineId == StorylineSelectionnee.StorylineId);
-        if (selection is null)
-        {
-            return;
-        }
-
-        var nom = string.IsNullOrWhiteSpace(StorylineNom) ? selection.Nom : StorylineNom.Trim();
-        var phase = StorylinePhaseSelection?.Id ?? selection.Phase;
-        var statut = StorylineStatutSelection?.Id ?? selection.Statut;
-        var participants = StorylineParticipantsEdition
-            .Select(participant => new StorylineParticipant(participant.WorkerId, participant.Role))
-            .ToList();
-
-        var updated = _storylineService.MettreAJour(selection, nom, phase, statut, StorylineResume, participants);
-        _repository.MettreAJourStoryline(updated);
-        _repository.AjouterStorylineEvent(updated.StorylineId, "UPDATED", _context.Show.Semaine, "Mise à jour storyline");
+        _repository.SupprimerSegment(segment.SegmentId);
         ChargerShow();
-    }
-
-    public void AvancerStoryline()
-    {
-        if (_context is null || _repository is null || StorylineSelectionnee is null)
-        {
-            return;
-        }
-
-        var selection = _context.Storylines.FirstOrDefault(storyline => storyline.StorylineId == StorylineSelectionnee.StorylineId);
-        if (selection is null)
-        {
-            return;
-        }
-
-        var updated = _storylineService.Avancer(selection);
-        _repository.MettreAJourStoryline(updated);
-        _repository.AjouterStorylineEvent(updated.StorylineId, "ADVANCED", _context.Show.Semaine, $"Phase {updated.Phase}");
-        ChargerShow();
-    }
-
-    public void SupprimerStoryline()
-    {
-        if (_repository is null || StorylineSelectionnee is null)
-        {
-            return;
-        }
-
-        _repository.SupprimerStoryline(StorylineSelectionnee.StorylineId);
-        ReinitialiserStorylineEdition();
-        ChargerShow();
-    }
-
-    public void AjouterParticipantStoryline()
-    {
-        if (StorylineParticipantSelectionId is null || _context is null)
-        {
-            return;
-        }
-
-        if (StorylineParticipantsEdition.Any(p => p.WorkerId == StorylineParticipantSelectionId))
-        {
-            return;
-        }
-
-        var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == StorylineParticipantSelectionId);
-        if (worker is null)
-        {
-            return;
-        }
-
-        StorylineParticipantsEdition.Add(new StorylineParticipantViewModel(worker.WorkerId, worker.NomComplet, "principal", worker.Momentum));
-        StorylineParticipantSelectionId = null;
-    }
-
-    public void RetirerParticipantStoryline(StorylineParticipantViewModel participant)
-    {
-        StorylineParticipantsEdition.Remove(participant);
     }
 
     public void DeplacerSegment(SegmentViewModel segment, int delta)
@@ -850,6 +802,33 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerShow();
     }
 
+    public void CorrigerIssue(BookingIssueViewModel issue)
+    {
+        if (_context is null || _repository is null)
+        {
+            return;
+        }
+
+        switch (issue.Code)
+        {
+            case "booking.empty":
+                AjouterSegment();
+                break;
+            case "booking.duration.exceed":
+                CorrigerDureeTotale();
+                break;
+            case "booking.main-event.missing":
+                MarquerMainEvent();
+                break;
+            case "segment.duration.invalid":
+                CorrigerDureeSegment(issue.SegmentId);
+                break;
+            default:
+                SelectionnerSegment(issue.SegmentId);
+                break;
+        }
+    }
+
     public void EnregistrerParametresGeneration()
     {
         var youthMode = YouthGenerationSelection?.Mode ?? YouthGenerationMode.Realiste;
@@ -911,12 +890,8 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerShow()
     {
-        if (_repository is null)
-        {
-            return;
-        }
-
-        _context = _repository.ChargerShowContext(ShowId);
+        var selectionId = SegmentSelectionne?.SegmentId;
+        _context = _repository?.ChargerShowContext(ShowId);
         if (_context is null)
         {
             return;
@@ -925,23 +900,23 @@ public sealed class GameSessionViewModel : ViewModelBase
         Segments.Clear();
         WorkersDisponibles.Clear();
         StorylinesDisponibles.Clear();
+        TitresDisponibles.Clear();
 
         foreach (var worker in _context.Workers)
         {
             WorkersDisponibles.Add(new ParticipantViewModel(worker.WorkerId, worker.NomComplet));
         }
 
-        StorylinesDisponibles.Add(new StorylineOptionViewModel(null, "Aucune storyline", 0, "-", "N/A"));
+        StorylinesDisponibles.Add(new StorylineOptionViewModel(string.Empty, "Aucune storyline"));
         foreach (var storyline in _context.Storylines)
         {
-            var phase = ObtenirLibellePhase(storyline.Phase);
-            var statut = ObtenirLibelleStatut(storyline.Status);
-            StorylinesDisponibles.Add(new StorylineOptionViewModel(
-                storyline.StorylineId,
-                $"{storyline.Nom} • Heat {storyline.Heat} • {phase}",
-                storyline.Heat,
-                phase,
-                statut));
+            StorylinesDisponibles.Add(new StorylineOptionViewModel(storyline.StorylineId, storyline.Nom));
+        }
+
+        TitresDisponibles.Add(new TitleOptionViewModel(string.Empty, "Aucun titre"));
+        foreach (var titre in _context.Titres)
+        {
+            TitresDisponibles.Add(new TitleOptionViewModel(titre.TitreId, titre.Nom));
         }
 
         foreach (var segment in _context.Segments)
@@ -954,16 +929,20 @@ public sealed class GameSessionViewModel : ViewModelBase
                 segment.TypeSegment,
                 segment.DureeMinutes,
                 segment.EstMainEvent,
-                _segmentLabels,
+                _segmentCatalog,
                 participants,
                 segment.StorylineId,
                 segment.TitreId,
                 segment.Intensite,
                 segment.VainqueurId,
-                segment.PerdantId));
+                segment.PerdantId,
+                segment.Settings));
         }
 
-        ChargerStorylinesView();
+        SegmentSelectionne = selectionId is null
+            ? Segments.FirstOrDefault()
+            : Segments.FirstOrDefault(segment => segment.SegmentId == selectionId) ?? Segments.FirstOrDefault();
+
         MettreAJourAttributs();
         MettreAJourIndexRechercheGlobale();
         ChargerCalendrier();
@@ -972,18 +951,70 @@ public sealed class GameSessionViewModel : ViewModelBase
         InitialiserNouveauShow();
     }
 
-    private void ChargerHistoriqueShow()
+    private void SelectionnerSegment(string? segmentId)
     {
-        HistoriqueShow.Clear();
-        if (_repository is null || _context is null)
+        if (string.IsNullOrWhiteSpace(segmentId))
         {
             return;
         }
 
-        foreach (var entry in _repository.ChargerHistoriqueShow(_context.Show.ShowId))
+        SegmentSelectionne = Segments.FirstOrDefault(segment => segment.SegmentId == segmentId);
+    }
+
+    private void CorrigerDureeSegment(string? segmentId)
+    {
+        if (string.IsNullOrWhiteSpace(segmentId))
         {
-            HistoriqueShow.Add(new ShowHistoryViewModel(entry));
+            return;
         }
+
+        var segment = Segments.FirstOrDefault(s => s.SegmentId == segmentId);
+        if (segment is null)
+        {
+            return;
+        }
+
+        segment.DureeMinutes = Math.Max(1, segment.DureeMinutes);
+        EnregistrerSegment(segment);
+        SegmentSelectionne = segment;
+    }
+
+    private void CorrigerDureeTotale()
+    {
+        if (_context is null || Segments.Count == 0)
+        {
+            return;
+        }
+
+        var total = Segments.Sum(segment => segment.DureeMinutes);
+        var excedent = total - _context.Show.DureeMinutes;
+        if (excedent <= 0)
+        {
+            return;
+        }
+
+        var segmentCible = Segments.OrderByDescending(segment => segment.DureeMinutes).First();
+        segmentCible.DureeMinutes = Math.Max(1, segmentCible.DureeMinutes - excedent);
+        EnregistrerSegment(segmentCible);
+        SegmentSelectionne = segmentCible;
+    }
+
+    private void MarquerMainEvent()
+    {
+        if (Segments.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var segment in Segments)
+        {
+            segment.EstMainEvent = false;
+        }
+
+        var segmentCible = Segments.Last();
+        segmentCible.EstMainEvent = true;
+        EnregistrerSegment(segmentCible);
+        SegmentSelectionne = segmentCible;
     }
 
     private void ChargerInbox()
@@ -1425,7 +1456,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     private void InitialiserSegmentTypes()
     {
         SegmentTypes.Clear();
-        foreach (var type in _segmentLabels)
+        foreach (var type in _segmentCatalog.Labels)
         {
             SegmentTypes.Add(new SegmentTypeOptionViewModel(type.Key, type.Value));
         }
@@ -1454,6 +1485,37 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauShowDiffusion = _context.Show.Diffusion;
         NouveauSegmentTypeId = SegmentTypes.FirstOrDefault()?.Id;
         NouveauSegmentStorylineId = StorylineOptions.FirstOrDefault()?.Id;
+    }
+
+    private IReadOnlyDictionary<string, string> ObtenirSettingsParDefaut(string typeSegment)
+    {
+        var settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var consigneId in _segmentCatalog.ObtenirConsignesPourType(typeSegment))
+        {
+            var option = _segmentCatalog.ObtenirOptionsConsigne(consigneId).FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(option))
+            {
+                settings[consigneId] = option;
+            }
+        }
+
+        return settings;
+    }
+
+    private static int CalculerIntensite(IReadOnlyDictionary<string, string> settings, int valeurParDefaut)
+    {
+        if (!settings.TryGetValue("intensite", out var intensite))
+        {
+            return valeurParDefaut;
+        }
+
+        return intensite.ToUpperInvariant() switch
+        {
+            "FAIBLE" => 35,
+            "MOYENNE" => 60,
+            "FORTE" => 85,
+            _ => valeurParDefaut
+        };
     }
 
     private void ChargerCalendrier()
@@ -1503,23 +1565,49 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         var plan = new BookingPlan(_context.Show.ShowId, segments, _context.Show.DureeMinutes, etat);
         var validation = _validator.ValiderBooking(plan);
-        ValidationErreurs = validation.EstValide ? null : string.Join("\n", validation.Erreurs);
+        MettreAJourValidation(validation);
+    }
+
+    private void MettreAJourValidation(ValidationResult validation)
+    {
+        ValidationIssues.Clear();
+        foreach (var issue in validation.Issues)
+        {
+            var action = issue.Code switch
+            {
+                "booking.empty" => "Ajouter",
+                "booking.duration.exceed" => "Réduire",
+                "booking.main-event.missing" => "Marquer",
+                "segment.duration.invalid" => "Corriger",
+                "segment.participants.empty" => "Sélectionner",
+                "segment.participant.injured" => "Voir",
+                "segment.participant.fatigue" => "Voir",
+                _ => "Corriger"
+            };
+
+            ValidationIssues.Add(new BookingIssueViewModel(
+                issue.Code,
+                issue.Message,
+                issue.Severite,
+                issue.SegmentId,
+                action));
+        }
+
+        ValidationErreurs = validation.Erreurs.Count == 0 ? null : string.Join("\n", validation.Erreurs);
         ValidationAvertissements = validation.Avertissements.Count == 0 ? null : string.Join("\n", validation.Avertissements);
+
+        var messagesParSegment = validation.Issues
+            .Where(issue => !string.IsNullOrWhiteSpace(issue.SegmentId))
+            .GroupBy(issue => issue.SegmentId!)
+            .ToDictionary(
+                groupe => groupe.Key,
+                groupe => string.Join(" ", groupe.Select(issue => issue.Message)));
 
         foreach (var segment in Segments)
         {
-            var messages = new List<string>();
-            if (segment.Participants.Count == 0)
-            {
-                messages.Add("Ajoutez des participants.");
-            }
-
-            if (segment.DureeMinutes <= 0)
-            {
-                messages.Add("Durée invalide.");
-            }
-
-            segment.Avertissements = messages.Count == 0 ? null : string.Join(" ", messages);
+            segment.Avertissements = messagesParSegment.TryGetValue(segment.SegmentId, out var message)
+                ? message
+                : null;
         }
     }
 
@@ -1545,53 +1633,14 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         foreach (var segment in rapport.Segments)
         {
-            var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
+            var libelle = _segmentCatalog.Labels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
             var breakdown = string.Join(" | ", segment.Facteurs.Select(facteur => $"{facteur.Libelle} {facteur.Impact:+#;-#;0}"));
             var impacts = new SegmentResultViewModel(segment, workerNames, libelle).Impacts;
             RecapFm.Add($"{libelle} • Note {segment.Note} • {breakdown} • {impacts}");
         }
     }
 
-    private IReadOnlyDictionary<string, string> ConstruireNomsWorkers()
-    {
-        if (_context is null)
-        {
-            return new Dictionary<string, string>();
-        }
-
-        return _context.Workers.ToDictionary(worker => worker.WorkerId, worker => worker.NomComplet);
-    }
-
-    private string NommerWorker(string workerId)
-    {
-        return _context?.Workers.FirstOrDefault(worker => worker.WorkerId == workerId)?.NomComplet ?? workerId;
-    }
-
-    private string NommerStoryline(string storylineId)
-    {
-        return _context?.Storylines.FirstOrDefault(storyline => storyline.StorylineId == storylineId)?.Nom ?? storylineId;
-    }
-
-    private string NommerTitre(string titreId)
-    {
-        return _context?.Titres.FirstOrDefault(titre => titre.TitreId == titreId)?.Nom ?? titreId;
-    }
-
-    private static string FormatterDelta(
-        IReadOnlyDictionary<string, int> deltas,
-        Func<string, string> nommer,
-        Func<int, string>? formatter = null)
-    {
-        if (deltas.Count == 0)
-        {
-            return "Aucun";
-        }
-
-        formatter ??= value => value.ToString("+#;-#;0");
-        return string.Join(", ", deltas.Select(kv => $"{nommer(kv.Key)} {formatter(kv.Value)}"));
-    }
-
-    private static IReadOnlyDictionary<string, string> ChargerSegmentTypes()
+    private static SegmentTypeCatalog ChargerSegmentTypes()
     {
         var reader = new SpecsReader();
         var chemins = new[]
@@ -1603,14 +1652,38 @@ public sealed class GameSessionViewModel : ViewModelBase
         var chemin = chemins.FirstOrDefault(File.Exists);
         if (chemin is null)
         {
-            return new Dictionary<string, string>();
+            return new SegmentTypeCatalog(
+                new Dictionary<string, string>(),
+                new Dictionary<string, IReadOnlyList<string>>(),
+                new Dictionary<string, IReadOnlyList<string>>(),
+                new Dictionary<string, string>());
         }
 
         var spec = reader.Charger<SegmentTypesSpec>(chemin);
-        return spec.Types.ToDictionary(type => type.Id, type => type.Libelle);
+        var labels = spec.Types.ToDictionary(type => type.Id, type => type.Libelle);
+        var consignesParType = spec.Types
+            .Where(type => type.Consignes is not null)
+            .ToDictionary(type => type.Id, type => (IReadOnlyList<string>)type.Consignes!);
+
+        var consigneOptions = spec.Consignes ?? new Dictionary<string, IReadOnlyList<string>>();
+        var consigneLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["intensite"] = "Intensité",
+            ["storyHeavy"] = "Storyline importante",
+            ["finish"] = "Finish",
+            ["risqueBotch"] = "Risque de botch",
+            ["ton"] = "Ton",
+            ["typeMatch"] = "Type de match"
+        };
+
+        return new SegmentTypeCatalog(labels, consignesParType, consigneOptions, consigneLabels);
     }
 }
 
 public sealed record YouthGenerationOptionViewModel(string Libelle, YouthGenerationMode Mode);
 
 public sealed record WorldGenerationOptionViewModel(string Libelle, WorldGenerationMode Mode);
+
+public sealed record StorylineOptionViewModel(string StorylineId, string Nom);
+
+public sealed record TitleOptionViewModel(string TitreId, string Nom);

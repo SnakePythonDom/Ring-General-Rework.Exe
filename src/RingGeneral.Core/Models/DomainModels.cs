@@ -65,7 +65,8 @@ public sealed record SegmentDefinition(
     string? TitreId,
     int Intensite,
     string? VainqueurId,
-    string? PerdantId);
+    string? PerdantId,
+    IReadOnlyDictionary<string, string>? Settings = null);
 
 public sealed record ShowContext(
     ShowDefinition Show,

@@ -84,6 +84,31 @@ public sealed class GameRepository : IScoutingRepository
                 vainqueur_id TEXT,
                 perdant_id TEXT
             );
+            CREATE TABLE IF NOT EXISTS ShowSegments (
+                ShowSegmentId TEXT PRIMARY KEY,
+                ShowId TEXT NOT NULL,
+                OrderIndex INTEGER NOT NULL,
+                SegmentType TEXT NOT NULL,
+                DurationMinutes INTEGER NOT NULL,
+                StorylineId TEXT,
+                TitleId TEXT,
+                IsMainEvent INTEGER NOT NULL DEFAULT 0,
+                Intensity INTEGER NOT NULL DEFAULT 50,
+                WinnerWorkerId TEXT,
+                LoserWorkerId TEXT
+            );
+            CREATE TABLE IF NOT EXISTS SegmentParticipants (
+                ShowSegmentId TEXT NOT NULL,
+                WorkerId TEXT NOT NULL,
+                Role TEXT,
+                PRIMARY KEY (ShowSegmentId, WorkerId)
+            );
+            CREATE TABLE IF NOT EXISTS SegmentSettings (
+                ShowSegmentId TEXT NOT NULL,
+                SettingKey TEXT NOT NULL,
+                SettingValue TEXT NOT NULL,
+                PRIMARY KEY (ShowSegmentId, SettingKey)
+            );
             CREATE TABLE IF NOT EXISTS chimies (
                 worker_a TEXT NOT NULL,
                 worker_b TEXT NOT NULL,
@@ -323,10 +348,7 @@ public sealed class GameRepository : IScoutingRepository
             CREATE INDEX IF NOT EXISTS idx_youth_staff_youth ON youth_staff_assignments(youth_id);
             CREATE INDEX IF NOT EXISTS idx_worker_attributes_worker ON worker_attributes(worker_id);
             CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
-            CREATE INDEX IF NOT EXISTS idx_scout_reports_worker ON scout_reports(worker_id);
-            CREATE INDEX IF NOT EXISTS idx_scout_reports_semaine ON scout_reports(semaine);
-            CREATE INDEX IF NOT EXISTS idx_shortlists_worker ON shortlists(worker_id);
-            CREATE INDEX IF NOT EXISTS idx_scout_missions_statut ON scout_missions(statut);
+            CREATE INDEX IF NOT EXISTS idx_show_segments_order ON ShowSegments(ShowId, OrderIndex);
             """;
         commande.ExecuteNonQuery();
 
@@ -344,7 +366,11 @@ public sealed class GameRepository : IScoutingRepository
     public ShowContext? ChargerShowContext(string showId)
     {
         using var connexion = _factory.OuvrirConnexion();
-        AssurerColonnesSupplementaires(connexion);
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
 
         var show = ChargerShow(connexion, showId);
         if (show is null)
@@ -368,17 +394,6 @@ public sealed class GameRepository : IScoutingRepository
         return new ShowContext(show, compagnie, workers, titres, storylines, segments, chimies);
     }
 
-    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
-    {
-        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
-        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
-        AjouterColonneSiAbsente(connexion, "youth_trainees", "semaine_inscription", "INTEGER");
-        AjouterColonneSiAbsente(connexion, "youth_trainees", "semaine_graduation", "INTEGER");
-    }
-
     private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
     {
         using var command = connexion.CreateCommand();
@@ -395,6 +410,15 @@ public sealed class GameRepository : IScoutingRepository
         using var alter = connexion.CreateCommand();
         alter.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
         alter.ExecuteNonQuery();
+    }
+
+    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
+    {
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
     }
 
     public BookingPlan ChargerBookingPlan(ShowContext context)
@@ -487,17 +511,18 @@ public sealed class GameRepository : IScoutingRepository
     public void AjouterSegment(string showId, SegmentDefinition segment, int ordre)
     {
         using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
         using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = """
-            INSERT INTO segments (segment_id, show_id, ordre, type, duree, participants_json, storyline_id, title_id, main_event, intensite, vainqueur_id, perdant_id)
-            VALUES ($segmentId, $showId, $ordre, $type, $duree, $participants, $storylineId, $titleId, $mainEvent, $intensite, $vainqueurId, $perdantId);
+            INSERT INTO ShowSegments (ShowSegmentId, ShowId, OrderIndex, SegmentType, DurationMinutes, StorylineId, TitleId, IsMainEvent, Intensity, WinnerWorkerId, LoserWorkerId)
+            VALUES ($segmentId, $showId, $ordre, $type, $duree, $storylineId, $titleId, $mainEvent, $intensite, $vainqueurId, $perdantId);
             """;
         command.Parameters.AddWithValue("$segmentId", segment.SegmentId);
         command.Parameters.AddWithValue("$showId", showId);
         command.Parameters.AddWithValue("$ordre", ordre);
         command.Parameters.AddWithValue("$type", segment.TypeSegment);
         command.Parameters.AddWithValue("$duree", segment.DureeMinutes);
-        command.Parameters.AddWithValue("$participants", JsonSerializer.Serialize(segment.Participants, _jsonOptions));
         command.Parameters.AddWithValue("$storylineId", (object?)segment.StorylineId ?? DBNull.Value);
         command.Parameters.AddWithValue("$titleId", (object?)segment.TitreId ?? DBNull.Value);
         command.Parameters.AddWithValue("$mainEvent", segment.EstMainEvent ? 1 : 0);
@@ -505,29 +530,34 @@ public sealed class GameRepository : IScoutingRepository
         command.Parameters.AddWithValue("$vainqueurId", (object?)segment.VainqueurId ?? DBNull.Value);
         command.Parameters.AddWithValue("$perdantId", (object?)segment.PerdantId ?? DBNull.Value);
         command.ExecuteNonQuery();
+
+        SauvegarderParticipants(connexion, transaction, segment.SegmentId, segment.Participants);
+        SauvegarderSettings(connexion, transaction, segment.SegmentId, segment.Settings);
+
+        transaction.Commit();
     }
 
     public void MettreAJourSegment(SegmentDefinition segment)
     {
         using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
         using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = """
-            UPDATE segments
-            SET type = $type,
-                duree = $duree,
-                participants_json = $participants,
-                storyline_id = $storylineId,
-                title_id = $titleId,
-                main_event = $mainEvent,
-                intensite = $intensite,
-                vainqueur_id = $vainqueurId,
-                perdant_id = $perdantId
-            WHERE segment_id = $segmentId;
+            UPDATE ShowSegments
+            SET SegmentType = $type,
+                DurationMinutes = $duree,
+                StorylineId = $storylineId,
+                TitleId = $titleId,
+                IsMainEvent = $mainEvent,
+                Intensity = $intensite,
+                WinnerWorkerId = $vainqueurId,
+                LoserWorkerId = $perdantId
+            WHERE ShowSegmentId = $segmentId;
             """;
         command.Parameters.AddWithValue("$segmentId", segment.SegmentId);
         command.Parameters.AddWithValue("$type", segment.TypeSegment);
         command.Parameters.AddWithValue("$duree", segment.DureeMinutes);
-        command.Parameters.AddWithValue("$participants", JsonSerializer.Serialize(segment.Participants, _jsonOptions));
         command.Parameters.AddWithValue("$storylineId", (object?)segment.StorylineId ?? DBNull.Value);
         command.Parameters.AddWithValue("$titleId", (object?)segment.TitreId ?? DBNull.Value);
         command.Parameters.AddWithValue("$mainEvent", segment.EstMainEvent ? 1 : 0);
@@ -535,6 +565,13 @@ public sealed class GameRepository : IScoutingRepository
         command.Parameters.AddWithValue("$vainqueurId", (object?)segment.VainqueurId ?? DBNull.Value);
         command.Parameters.AddWithValue("$perdantId", (object?)segment.PerdantId ?? DBNull.Value);
         command.ExecuteNonQuery();
+
+        SupprimerParticipants(connexion, transaction, segment.SegmentId);
+        SauvegarderParticipants(connexion, transaction, segment.SegmentId, segment.Participants);
+        SupprimerSettings(connexion, transaction, segment.SegmentId);
+        SauvegarderSettings(connexion, transaction, segment.SegmentId, segment.Settings);
+
+        transaction.Commit();
     }
 
     public void MettreAJourOrdreSegments(string showId, IReadOnlyList<string> segmentIds)
@@ -546,9 +583,9 @@ public sealed class GameRepository : IScoutingRepository
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
             command.CommandText = """
-                UPDATE segments
-                SET ordre = $ordre
-                WHERE segment_id = $segmentId AND show_id = $showId;
+                UPDATE ShowSegments
+                SET OrderIndex = $ordre
+                WHERE ShowSegmentId = $segmentId AND ShowId = $showId;
                 """;
             command.Parameters.AddWithValue("$ordre", i + 1);
             command.Parameters.AddWithValue("$segmentId", segmentIds[i]);
@@ -559,131 +596,19 @@ public sealed class GameRepository : IScoutingRepository
         transaction.Commit();
     }
 
-    public IReadOnlyList<StorylineInfo> ChargerStorylines()
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        return ChargerStorylines(connexion);
-    }
-
-    public void CreerStoryline(string compagnieId, StorylineInfo storyline)
+    public void SupprimerSegment(string segmentId)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var transaction = connexion.BeginTransaction();
+        SupprimerParticipants(connexion, transaction, segmentId);
+        SupprimerSettings(connexion, transaction, segmentId);
 
         using var command = connexion.CreateCommand();
         command.Transaction = transaction;
-        command.CommandText = """
-            INSERT INTO Storylines (StorylineId, CompanyId, Name, Phase, Heat, Status, Summary, SimLevel, IsActive)
-            VALUES ($storylineId, $companyId, $name, $phase, $heat, $status, $summary, 0, 1);
-            """;
-        command.Parameters.AddWithValue("$storylineId", storyline.StorylineId);
-        command.Parameters.AddWithValue("$companyId", compagnieId);
-        command.Parameters.AddWithValue("$name", storyline.Nom);
-        command.Parameters.AddWithValue("$phase", storyline.Phase);
-        command.Parameters.AddWithValue("$heat", storyline.Heat);
-        command.Parameters.AddWithValue("$status", storyline.Statut);
-        command.Parameters.AddWithValue("$summary", (object?)storyline.Resume ?? DBNull.Value);
+        command.CommandText = "DELETE FROM ShowSegments WHERE ShowSegmentId = $segmentId;";
+        command.Parameters.AddWithValue("$segmentId", segmentId);
         command.ExecuteNonQuery();
-
-        MettreAJourStorylineParticipants(connexion, transaction, storyline.StorylineId, storyline.Participants);
-
         transaction.Commit();
-    }
-
-    public void MettreAJourStoryline(StorylineInfo storyline)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var transaction = connexion.BeginTransaction();
-
-        using var command = connexion.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = """
-            UPDATE Storylines
-            SET Name = $name,
-                Phase = $phase,
-                Heat = $heat,
-                Status = $status,
-                Summary = $summary
-            WHERE StorylineId = $storylineId;
-            """;
-        command.Parameters.AddWithValue("$storylineId", storyline.StorylineId);
-        command.Parameters.AddWithValue("$name", storyline.Nom);
-        command.Parameters.AddWithValue("$phase", storyline.Phase);
-        command.Parameters.AddWithValue("$heat", storyline.Heat);
-        command.Parameters.AddWithValue("$status", storyline.Statut);
-        command.Parameters.AddWithValue("$summary", (object?)storyline.Resume ?? DBNull.Value);
-        command.ExecuteNonQuery();
-
-        MettreAJourStorylineParticipants(connexion, transaction, storyline.StorylineId, storyline.Participants);
-
-        transaction.Commit();
-    }
-
-    public void SupprimerStoryline(string storylineId)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var transaction = connexion.BeginTransaction();
-
-        using var participantCommand = connexion.CreateCommand();
-        participantCommand.Transaction = transaction;
-        participantCommand.CommandText = "DELETE FROM StorylineParticipants WHERE StorylineId = $storylineId;";
-        participantCommand.Parameters.AddWithValue("$storylineId", storylineId);
-        participantCommand.ExecuteNonQuery();
-
-        using var eventCommand = connexion.CreateCommand();
-        eventCommand.Transaction = transaction;
-        eventCommand.CommandText = "DELETE FROM StorylineEvents WHERE StorylineId = $storylineId;";
-        eventCommand.Parameters.AddWithValue("$storylineId", storylineId);
-        eventCommand.ExecuteNonQuery();
-
-        using var command = connexion.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = "DELETE FROM Storylines WHERE StorylineId = $storylineId;";
-        command.Parameters.AddWithValue("$storylineId", storylineId);
-        command.ExecuteNonQuery();
-
-        transaction.Commit();
-    }
-
-    public void AjouterStorylineEvent(string storylineId, string typeEvenement, int? semaine, string? details)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            INSERT INTO StorylineEvents (StorylineId, EventType, EventWeek, Details)
-            VALUES ($storylineId, $type, $week, $details);
-            """;
-        command.Parameters.AddWithValue("$storylineId", storylineId);
-        command.Parameters.AddWithValue("$type", typeEvenement);
-        command.Parameters.AddWithValue("$week", (object?)semaine ?? DBNull.Value);
-        command.Parameters.AddWithValue("$details", (object?)details ?? DBNull.Value);
-        command.ExecuteNonQuery();
-    }
-
-    public IReadOnlyList<StorylineEvent> ChargerStorylineEvents(string storylineId)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            SELECT StorylineEventId, StorylineId, EventType, EventWeek, Details
-            FROM StorylineEvents
-            WHERE StorylineId = $storylineId
-            ORDER BY StorylineEventId DESC;
-            """;
-        command.Parameters.AddWithValue("$storylineId", storylineId);
-        using var reader = command.ExecuteReader();
-        var events = new List<StorylineEvent>();
-        while (reader.Read())
-        {
-            events.Add(new StorylineEvent(
-                reader.GetInt64(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.IsDBNull(3) ? null : reader.GetInt32(3),
-                reader.IsDBNull(4) ? null : reader.GetString(4)));
-        }
-
-        return events;
     }
 
     public void EnregistrerRapport(ShowReport rapport)
@@ -1797,7 +1722,7 @@ public sealed class GameRepository : IScoutingRepository
         return reader.IsDBNull(index) ? 0m : Convert.ToDecimal(reader.GetDouble(index));
     }
 
-    public ShowDefinition ChargerShowDefinition(string showId)
+    public ShowDefinition? ChargerShowDefinition(string showId)
     {
         using var connexion = _factory.OuvrirConnexion();
         return ChargerShow(connexion, showId);
@@ -2507,32 +2432,7 @@ public sealed class GameRepository : IScoutingRepository
         command.ExecuteNonQuery();
     }
 
-    private static void UpsertWorkerAttribute(SqliteConnection connexion, SqliteTransaction transaction, string workerId, string attributId, int valeur)
-    {
-        using var deleteCommand = connexion.CreateCommand();
-        deleteCommand.Transaction = transaction;
-        deleteCommand.CommandText = """
-            DELETE FROM worker_attributes
-            WHERE worker_id = $workerId
-              AND attribut_id = $attributId;
-            """;
-        deleteCommand.Parameters.AddWithValue("$workerId", workerId);
-        deleteCommand.Parameters.AddWithValue("$attributId", attributId);
-        deleteCommand.ExecuteNonQuery();
-
-        using var insertCommand = connexion.CreateCommand();
-        insertCommand.Transaction = transaction;
-        insertCommand.CommandText = """
-            INSERT INTO worker_attributes (worker_id, attribut_id, valeur)
-            VALUES ($workerId, $attributId, $valeur);
-            """;
-        insertCommand.Parameters.AddWithValue("$workerId", workerId);
-        insertCommand.Parameters.AddWithValue("$attributId", attributId);
-        insertCommand.Parameters.AddWithValue("$valeur", valeur);
-        insertCommand.ExecuteNonQuery();
-    }
-
-    private static ShowDefinition ChargerShow(SqliteConnection connexion, string showId)
+    private static ShowDefinition? ChargerShow(SqliteConnection connexion, string showId)
     {
         using var command = connexion.CreateCommand();
         command.CommandText = """
@@ -2575,9 +2475,9 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT CompanyId, Name, RegionId, Prestige, Treasury, AverageAudience, Reach
-            FROM Companies
-            WHERE CompanyId = $companyId;
+            SELECT company_id, nom, region, prestige, tresorerie, audience_moyenne, reach
+            FROM companies
+            WHERE company_id = $companyId;
             """;
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
@@ -2624,8 +2524,13 @@ public sealed class GameRepository : IScoutingRepository
         }
 
         var participantsMap = ChargerParticipants(connexion, segments.Select(segment => segment.SegmentId).ToList());
+        var settingsMap = ChargerSettings(connexion, segments.Select(segment => segment.SegmentId).ToList());
         return segments
-            .Select(segment => segment with { Participants = participantsMap.GetValueOrDefault(segment.SegmentId, new List<string>()) })
+            .Select(segment => segment with
+            {
+                Participants = participantsMap.GetValueOrDefault(segment.SegmentId, new List<string>()),
+                Settings = settingsMap.GetValueOrDefault(segment.SegmentId, new Dictionary<string, string>())
+            })
             .ToList();
     }
 
@@ -2659,6 +2564,103 @@ public sealed class GameRepository : IScoutingRepository
         return participants;
     }
 
+    private static Dictionary<string, Dictionary<string, string>> ChargerSettings(
+        SqliteConnection connexion,
+        IReadOnlyList<string> segmentIds)
+    {
+        var settings = segmentIds.ToDictionary(id => id, _ => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
+        if (segmentIds.Count == 0)
+        {
+            return settings;
+        }
+
+        using var command = connexion.CreateCommand();
+        var placeholders = segmentIds.Select((id, index) => $"$id{index}").ToList();
+        command.CommandText = $"SELECT ShowSegmentId, SettingKey, SettingValue FROM SegmentSettings WHERE ShowSegmentId IN ({string.Join(", ", placeholders)});";
+        for (var i = 0; i < segmentIds.Count; i++)
+        {
+            command.Parameters.AddWithValue(placeholders[i], segmentIds[i]);
+        }
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var segmentId = reader.GetString(0);
+            var key = reader.GetString(1);
+            var value = reader.GetString(2);
+            if (settings.TryGetValue(segmentId, out var map))
+            {
+                map[key] = value;
+            }
+        }
+
+        return settings;
+    }
+
+    private static void SupprimerParticipants(SqliteConnection connexion, SqliteTransaction transaction, string segmentId)
+    {
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "DELETE FROM SegmentParticipants WHERE ShowSegmentId = $segmentId;";
+        command.Parameters.AddWithValue("$segmentId", segmentId);
+        command.ExecuteNonQuery();
+    }
+
+    private static void SauvegarderParticipants(
+        SqliteConnection connexion,
+        SqliteTransaction transaction,
+        string segmentId,
+        IReadOnlyList<string> participants)
+    {
+        foreach (var participantId in participants.Distinct())
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO SegmentParticipants (ShowSegmentId, WorkerId)
+                VALUES ($segmentId, $workerId);
+                """;
+            command.Parameters.AddWithValue("$segmentId", segmentId);
+            command.Parameters.AddWithValue("$workerId", participantId);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SupprimerSettings(SqliteConnection connexion, SqliteTransaction transaction, string segmentId)
+    {
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "DELETE FROM SegmentSettings WHERE ShowSegmentId = $segmentId;";
+        command.Parameters.AddWithValue("$segmentId", segmentId);
+        command.ExecuteNonQuery();
+    }
+
+    private static void SauvegarderSettings(
+        SqliteConnection connexion,
+        SqliteTransaction transaction,
+        string segmentId,
+        IReadOnlyDictionary<string, string>? settings)
+    {
+        if (settings is null)
+        {
+            return;
+        }
+
+        foreach (var (key, value) in settings)
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO SegmentSettings (ShowSegmentId, SettingKey, SettingValue)
+                VALUES ($segmentId, $key, $value);
+                """;
+            command.Parameters.AddWithValue("$segmentId", segmentId);
+            command.Parameters.AddWithValue("$key", key);
+            command.Parameters.AddWithValue("$value", value);
+            command.ExecuteNonQuery();
+        }
+    }
+
     private static List<WorkerSnapshot> ChargerWorkers(SqliteConnection connexion, IReadOnlyList<string> workerIds)
     {
         if (workerIds.Count == 0)
@@ -2669,9 +2671,9 @@ public sealed class GameRepository : IScoutingRepository
         using var command = connexion.CreateCommand();
         var placeholders = workerIds.Select((id, index) => $"$id{index}").ToList();
         command.CommandText = $"""
-            SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv
-            FROM Workers
-            WHERE WorkerId IN ({string.Join(", ", placeholders)});
+            SELECT worker_id, nom, prenom, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv
+            FROM workers
+            WHERE worker_id IN ({string.Join(", ", placeholders)});
             """;
         for (var i = 0; i < workerIds.Count; i++)
         {
@@ -2682,17 +2684,18 @@ public sealed class GameRepository : IScoutingRepository
         var workers = new List<WorkerSnapshot>();
         while (reader.Read())
         {
+            var nomComplet = $"{reader.GetString(2)} {reader.GetString(1)}".Trim();
             workers.Add(new WorkerSnapshot(
                 reader.GetString(0),
-                reader.GetString(1),
-                reader.GetInt32(2),
+                nomComplet,
                 reader.GetInt32(3),
                 reader.GetInt32(4),
                 reader.GetInt32(5),
                 reader.GetInt32(6),
-                reader.GetString(7),
-                reader.GetInt32(8),
-                reader.GetString(9)));
+                reader.GetInt32(7),
+                reader.GetString(8),
+                reader.GetInt32(9),
+                reader.GetString(10)));
         }
 
         return workers;
@@ -2701,7 +2704,7 @@ public sealed class GameRepository : IScoutingRepository
     private static List<TitleInfo> ChargerTitres(SqliteConnection connexion)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT TitleId, Name, Prestige, HolderWorkerId FROM Titles;";
+        command.CommandText = "SELECT title_id, nom, prestige, detenteur_id FROM titles;";
         using var reader = command.ExecuteReader();
         var titres = new List<TitleInfo>();
         while (reader.Read())
@@ -2719,7 +2722,7 @@ public sealed class GameRepository : IScoutingRepository
     private static List<StorylineInfo> ChargerStorylines(SqliteConnection connexion)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT StorylineId, Name, Phase, Heat, Status, Summary FROM Storylines;";
+        command.CommandText = "SELECT storyline_id, nom, heat FROM storylines;";
         using var reader = command.ExecuteReader();
         var storylines = new List<StorylineInfo>();
         while (reader.Read())
@@ -2768,7 +2771,7 @@ public sealed class GameRepository : IScoutingRepository
     private static List<StorylineParticipant> ChargerStorylineParticipants(SqliteConnection connexion, string storylineId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, Role FROM StorylineParticipants WHERE StorylineId = $storylineId;";
+        command.CommandText = "SELECT worker_id FROM storyline_participants WHERE storyline_id = $storylineId;";
         command.Parameters.AddWithValue("$storylineId", storylineId);
         using var reader = command.ExecuteReader();
         var participants = new List<StorylineParticipant>();
@@ -2785,7 +2788,7 @@ public sealed class GameRepository : IScoutingRepository
     private static Dictionary<string, int> ChargerChimies(SqliteConnection connexion)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerA, WorkerB, Value FROM Chimies;";
+        command.CommandText = "SELECT worker_a, worker_b, valeur FROM chimies;";
         using var reader = command.ExecuteReader();
         var chimies = new Dictionary<string, int>();
         while (reader.Read())
@@ -2887,13 +2890,35 @@ public sealed class GameRepository : IScoutingRepository
         using var segmentCommand = connexion.CreateCommand();
         segmentCommand.Transaction = transaction;
         segmentCommand.CommandText = """
-            INSERT INTO segments (segment_id, show_id, ordre, type, duree, participants_json, storyline_id, title_id, main_event, intensite, vainqueur_id, perdant_id)
+            INSERT INTO ShowSegments (ShowSegmentId, ShowId, OrderIndex, SegmentType, DurationMinutes, StorylineId, TitleId, IsMainEvent, Intensity, WinnerWorkerId, LoserWorkerId)
             VALUES
-            ('SEG-001', 'SHOW-001', 1, 'promo', 8, '["W-001","W-002"]', 'S-001', NULL, 0, 40, NULL, NULL),
-            ('SEG-002', 'SHOW-001', 2, 'match', 12, '["W-003","W-004"]', NULL, NULL, 0, 60, 'W-003', 'W-004'),
-            ('SEG-003', 'SHOW-001', 3, 'match', 18, '["W-001","W-002"]', 'S-001', 'T-001', 1, 75, 'W-001', 'W-002');
+            ('SEG-001', 'SHOW-001', 1, 'promo', 8, 'S-001', NULL, 0, 40, NULL, NULL),
+            ('SEG-002', 'SHOW-001', 2, 'match', 12, NULL, NULL, 0, 60, 'W-003', 'W-004'),
+            ('SEG-003', 'SHOW-001', 3, 'match', 18, 'S-001', 'T-001', 1, 75, 'W-001', 'W-002');
             """;
         segmentCommand.ExecuteNonQuery();
+
+        using var participantCommand = connexion.CreateCommand();
+        participantCommand.Transaction = transaction;
+        participantCommand.CommandText = """
+            INSERT INTO SegmentParticipants (ShowSegmentId, WorkerId)
+            VALUES
+            ('SEG-001', 'W-001'), ('SEG-001', 'W-002'),
+            ('SEG-002', 'W-003'), ('SEG-002', 'W-004'),
+            ('SEG-003', 'W-001'), ('SEG-003', 'W-002');
+            """;
+        participantCommand.ExecuteNonQuery();
+
+        using var settingsCommand = connexion.CreateCommand();
+        settingsCommand.Transaction = transaction;
+        settingsCommand.CommandText = """
+            INSERT INTO SegmentSettings (ShowSegmentId, SettingKey, SettingValue)
+            VALUES
+            ('SEG-001', 'storyHeavy', 'OUI'),
+            ('SEG-002', 'typeMatch', 'Singles'),
+            ('SEG-003', 'typeMatch', 'Singles');
+            """;
+        settingsCommand.ExecuteNonQuery();
 
         using var chimieCommand = connexion.CreateCommand();
         chimieCommand.Transaction = transaction;
