@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "templates-segments"
+  },
+  "templates": [
+    {
+      "id": "ouverture-dynamique",
+      "libelle": "Ouverture dynamique",
+      "description": "Promo rapide + match d'ouverture pour lancer le show.",
+      "segments": [
+        {
+          "typeSegment": "promo",
+          "duree": 3,
+          "autoParticipants": 1,
+          "mainEvent": false
+        },
+        {
+          "typeSegment": "match",
+          "duree": 8,
+          "autoParticipants": 2,
+          "matchTypeId": "simple",
+          "mainEvent": false
+        }
+      ]
+    },
+    {
+      "id": "relance-storyline",
+      "libelle": "Relance storyline",
+      "description": "Angle backstage puis match pour faire avancer la rivalité.",
+      "segments": [
+        {
+          "typeSegment": "angle_backstage",
+          "duree": 2,
+          "autoParticipants": 2,
+          "mainEvent": false
+        },
+        {
+          "typeSegment": "match",
+          "duree": 10,
+          "autoParticipants": 2,
+          "matchTypeId": "simple",
+          "mainEvent": false
+        }
+      ]
+    },
+    {
+      "id": "main-event-classique",
+      "libelle": "Main event classique",
+      "description": "Match long en conclusion.",
+      "segments": [
+        {
+          "typeSegment": "match",
+          "duree": 15,
+          "autoParticipants": 2,
+          "matchTypeId": "simple",
+          "mainEvent": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
@@ -7,6 +8,10 @@ namespace RingGeneral.Data.Repositories;
 public sealed class GameRepository
 {
     private readonly SqliteConnectionFactory _factory;
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public GameRepository(SqliteConnectionFactory factory)
     {
@@ -178,6 +183,19 @@ public sealed class GameRepository
                 region TEXT NOT NULL,
                 valeur INTEGER NOT NULL,
                 UNIQUE(entity_type, entity_id, region)
+            );
+            CREATE TABLE IF NOT EXISTS MatchTypes (
+                MatchTypeId TEXT PRIMARY KEY,
+                Libelle TEXT NOT NULL,
+                Description TEXT,
+                Participants INTEGER,
+                DureeParDefaut INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS SegmentTemplates (
+                TemplateId TEXT PRIMARY KEY,
+                Libelle TEXT NOT NULL,
+                Description TEXT,
+                SegmentsJson TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_workers_company ON workers(company_id);
             CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
@@ -1242,6 +1260,120 @@ public sealed class GameRepository
         }
 
         return chimies;
+    }
+
+    public IReadOnlyList<MatchTypeDefinition> ChargerMatchTypes()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT MatchTypeId, Libelle, Description, Participants, DureeParDefaut
+            FROM MatchTypes
+            ORDER BY Libelle ASC;
+            """;
+        using var reader = command.ExecuteReader();
+        var types = new List<MatchTypeDefinition>();
+        while (reader.Read())
+        {
+            types.Add(new MatchTypeDefinition(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.IsDBNull(2) ? null : reader.GetString(2),
+                reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                reader.IsDBNull(4) ? null : reader.GetInt32(4)));
+        }
+
+        return types;
+    }
+
+    public void EnregistrerMatchTypes(IReadOnlyList<MatchTypeDefinition> types)
+    {
+        if (types.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        foreach (var type in types)
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO MatchTypes (MatchTypeId, Libelle, Description, Participants, DureeParDefaut)
+                VALUES ($id, $libelle, $description, $participants, $duree)
+                ON CONFLICT(MatchTypeId)
+                DO UPDATE SET Libelle = $libelle,
+                              Description = $description,
+                              Participants = $participants,
+                              DureeParDefaut = $duree;
+                """;
+            command.Parameters.AddWithValue("$id", type.MatchTypeId);
+            command.Parameters.AddWithValue("$libelle", type.Libelle);
+            command.Parameters.AddWithValue("$description", (object?)type.Description ?? DBNull.Value);
+            command.Parameters.AddWithValue("$participants", (object?)type.Participants ?? DBNull.Value);
+            command.Parameters.AddWithValue("$duree", (object?)type.DureeParDefaut ?? DBNull.Value);
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
+    public IReadOnlyList<SegmentTemplateDefinition> ChargerSegmentTemplates()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT TemplateId, Libelle, Description, SegmentsJson
+            FROM SegmentTemplates
+            ORDER BY Libelle ASC;
+            """;
+        using var reader = command.ExecuteReader();
+        var templates = new List<SegmentTemplateDefinition>();
+        while (reader.Read())
+        {
+            var segmentsJson = reader.GetString(3);
+            var segments = JsonSerializer.Deserialize<IReadOnlyList<SegmentTemplateSegmentDefinition>>(segmentsJson, _jsonOptions)
+                ?? Array.Empty<SegmentTemplateSegmentDefinition>();
+            templates.Add(new SegmentTemplateDefinition(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.IsDBNull(2) ? null : reader.GetString(2),
+                segments));
+        }
+
+        return templates;
+    }
+
+    public void EnregistrerSegmentTemplates(IReadOnlyList<SegmentTemplateDefinition> templates)
+    {
+        if (templates.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        foreach (var template in templates)
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO SegmentTemplates (TemplateId, Libelle, Description, SegmentsJson)
+                VALUES ($id, $libelle, $description, $segments)
+                ON CONFLICT(TemplateId)
+                DO UPDATE SET Libelle = $libelle,
+                              Description = $description,
+                              SegmentsJson = $segments;
+                """;
+            command.Parameters.AddWithValue("$id", template.TemplateId);
+            command.Parameters.AddWithValue("$libelle", template.Libelle);
+            command.Parameters.AddWithValue("$description", (object?)template.Description ?? DBNull.Value);
+            command.Parameters.AddWithValue("$segments", JsonSerializer.Serialize(template.Segments, _jsonOptions));
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
     }
 
     private void SeedDatabase(SqliteConnection connexion)

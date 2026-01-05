@@ -32,7 +32,9 @@ public sealed class DbValidator : IDbValidator
             ["YouthStructures"] = new[] { "YouthStructureId", "CompanyId" },
             ["YouthTrainees"] = new[] { "YouthTraineeId", "YouthStructureId", "WorkerId" },
             ["Calendars"] = new[] { "CalendarId", "CompanyId", "Date" },
-            ["Venues"] = new[] { "VenueId", "Name" }
+            ["Venues"] = new[] { "VenueId", "Name" },
+            ["MatchTypes"] = new[] { "MatchTypeId", "Libelle" },
+            ["SegmentTemplates"] = new[] { "TemplateId", "Libelle", "SegmentsJson" }
         };
 
     public DbValidationResult Valider(string cheminDb)

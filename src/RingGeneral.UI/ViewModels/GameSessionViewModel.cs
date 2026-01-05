@@ -4,6 +4,7 @@ using ReactiveUI;
 using System.Reactive;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
+using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Database;
@@ -20,6 +21,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     private GameRepository? _repository;
     private readonly BookingValidator _validator = new();
     private readonly IReadOnlyDictionary<string, string> _segmentLabels;
+    private readonly TemplateService _templateService = new();
     private readonly HelpContentProvider _helpProvider = new();
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _helpPages;
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _impactPages;
@@ -55,6 +57,8 @@ public sealed class GameSessionViewModel : ViewModelBase
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
+        SegmentTemplates = new ObservableCollection<SegmentTemplateViewModel>();
+        MatchTypes = new ObservableCollection<MatchTypeOptionViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
         YouthGenerationModes = new[]
@@ -71,6 +75,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         InitialiserSegmentTypes();
         InitialiserConsignesBooking();
+        InitialiserBibliotheque();
         ChargerShow();
         ChargerInbox();
         ChargerImpactsInitial();
@@ -90,6 +95,8 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
+    public ObservableCollection<SegmentTemplateViewModel> SegmentTemplates { get; }
+    public ObservableCollection<MatchTypeOptionViewModel> MatchTypes { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
@@ -211,6 +218,13 @@ public sealed class GameSessionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _nouveauSegmentParticipantId, value);
     }
     private string? _nouveauSegmentParticipantId;
+
+    public SegmentTemplateViewModel? TemplateSelectionnee
+    {
+        get => _templateSelectionnee;
+        set => this.RaiseAndSetIfChanged(ref _templateSelectionnee, value);
+    }
+    private SegmentTemplateViewModel? _templateSelectionnee;
 
     public string? ResumeShow
     {
@@ -481,6 +495,33 @@ public sealed class GameSessionViewModel : ViewModelBase
             segment.PerdantId);
 
         _repository.AjouterSegment(_context.Show.ShowId, copie, Segments.Count + 1);
+        ChargerShow();
+    }
+
+    public void AppliquerTemplateSelectionnee()
+    {
+        if (TemplateSelectionnee is null)
+        {
+            return;
+        }
+
+        AppliquerTemplate(TemplateSelectionnee);
+    }
+
+    public void AppliquerTemplate(SegmentTemplateViewModel template)
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var segments = _templateService.AppliquerTemplate(template.Definition, _context.Workers);
+        var ordre = Segments.Count + 1;
+        foreach (var segment in segments)
+        {
+            _repository.AjouterSegment(_context.Show.ShowId, segment, ordre++);
+        }
+
         ChargerShow();
     }
 
@@ -996,6 +1037,49 @@ public sealed class GameSessionViewModel : ViewModelBase
         ConsignesBooking.Add("Évitez d'utiliser un même participant sur trop de segments.");
     }
 
+    private void InitialiserBibliotheque()
+    {
+        if (_repository is null)
+        {
+            return;
+        }
+
+        var matchTypes = _repository.ChargerMatchTypes().ToList();
+        if (matchTypes.Count == 0)
+        {
+            matchTypes = ChargerMatchTypesSpec().ToList();
+            if (matchTypes.Count > 0)
+            {
+                _repository.EnregistrerMatchTypes(matchTypes);
+            }
+        }
+
+        MatchTypes.Clear();
+        foreach (var matchType in matchTypes)
+        {
+            MatchTypes.Add(new MatchTypeOptionViewModel(matchType));
+        }
+
+        var templates = _repository.ChargerSegmentTemplates().ToList();
+        if (templates.Count == 0)
+        {
+            templates = ChargerSegmentTemplatesSpec().ToList();
+            if (templates.Count > 0)
+            {
+                _repository.EnregistrerSegmentTemplates(templates);
+            }
+        }
+
+        SegmentTemplates.Clear();
+        var matchTypeLabels = matchTypes.ToDictionary(type => type.MatchTypeId, type => type.Libelle);
+        foreach (var template in templates)
+        {
+            SegmentTemplates.Add(new SegmentTemplateViewModel(template, _segmentLabels, matchTypeLabels));
+        }
+
+        TemplateSelectionnee = SegmentTemplates.FirstOrDefault();
+    }
+
     private void InitialiserNouveauShow()
     {
         if (_context is null)
@@ -1107,6 +1191,58 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         var spec = reader.Charger<SegmentTypesSpec>(chemin);
         return spec.Types.ToDictionary(type => type.Id, type => type.Libelle);
+    }
+
+    private static IReadOnlyList<MatchTypeDefinition> ChargerMatchTypesSpec()
+    {
+        var reader = new SpecsReader();
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "library", "match-types.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "library", "match-types.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            return Array.Empty<MatchTypeDefinition>();
+        }
+
+        var spec = reader.Charger<MatchTypesSpec>(chemin);
+        return spec.Types.Select(type => new MatchTypeDefinition(
+            type.Id,
+            type.Libelle,
+            type.Description,
+            type.Participants,
+            type.DureeParDefaut)).ToList();
+    }
+
+    private static IReadOnlyList<SegmentTemplateDefinition> ChargerSegmentTemplatesSpec()
+    {
+        var reader = new SpecsReader();
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "library", "segments.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "library", "segments.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            return Array.Empty<SegmentTemplateDefinition>();
+        }
+
+        var spec = reader.Charger<LibrarySegmentsSpec>(chemin);
+        return spec.Templates.Select(template => new SegmentTemplateDefinition(
+            template.Id,
+            template.Libelle,
+            template.Description,
+            template.Segments.Select(segment => new SegmentTemplateSegmentDefinition(
+                segment.TypeSegment,
+                segment.Duree,
+                segment.MainEvent,
+                segment.AutoParticipants,
+                segment.MatchTypeId)).ToList())).ToList();
     }
 }
 
