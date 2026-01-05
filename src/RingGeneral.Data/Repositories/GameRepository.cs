@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
+using RingGeneral.Data.Models;
 
 namespace RingGeneral.Data.Repositories;
 
@@ -366,6 +367,15 @@ public sealed class GameRepository : IScoutingRepository
                 youth_generation_mode TEXT NOT NULL,
                 world_generation_mode TEXT NOT NULL,
                 semaine_pivot_annuelle INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS ui_table_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                recherche TEXT,
+                filtre_type TEXT,
+                filtre_statut TEXT,
+                colonnes_visibles TEXT,
+                colonnes_ordre TEXT,
+                tri_colonnes TEXT
             );
             CREATE TABLE IF NOT EXISTS popularity_regionale (
                 entity_type TEXT NOT NULL,
@@ -2211,6 +2221,28 @@ public sealed class GameRepository : IScoutingRepository
         return reader.IsDBNull(index) ? 0m : Convert.ToDecimal(reader.GetDouble(index));
     }
 
+    private static T? LireJson<T>(SqliteDataReader reader, int index)
+    {
+        if (reader.IsDBNull(index))
+        {
+            return default;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<T>(reader.GetString(index), _jsonOptions);
+        }
+        catch (JsonException)
+        {
+            return default;
+        }
+    }
+
+    private static string? SerializeJson<T>(T value)
+    {
+        return value is null ? null : JsonSerializer.Serialize(value, _jsonOptions);
+    }
+
     public ShowDefinition? ChargerShowDefinition(string showId)
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -2253,6 +2285,65 @@ public sealed class GameRepository : IScoutingRepository
         command.Parameters.AddWithValue("$youthMode", options.YouthMode.ToString());
         command.Parameters.AddWithValue("$worldMode", options.WorldMode.ToString());
         command.Parameters.AddWithValue("$pivot", options.SemainePivotAnnuelle.HasValue ? options.SemainePivotAnnuelle.Value : DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public TableUiSettings ChargerTableUiSettings()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT recherche, filtre_type, filtre_statut, colonnes_visibles, colonnes_ordre, tri_colonnes
+            FROM ui_table_settings
+            WHERE id = 1;
+            """;
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return new TableUiSettings(null, null, null, new Dictionary<string, bool>(), new List<string>(), new List<TableSortSetting>());
+        }
+
+        var colonnesVisibles = LireJson<Dictionary<string, bool>>(reader, 3) ?? new Dictionary<string, bool>();
+        var colonnesOrdre = LireJson<List<string>>(reader, 4) ?? new List<string>();
+        var tris = LireJson<List<TableSortSetting>>(reader, 5) ?? new List<TableSortSetting>();
+        return new TableUiSettings(
+            reader.IsDBNull(0) ? null : reader.GetString(0),
+            reader.IsDBNull(1) ? null : reader.GetString(1),
+            reader.IsDBNull(2) ? null : reader.GetString(2),
+            colonnesVisibles,
+            colonnesOrdre,
+            tris);
+    }
+
+    public void SauvegarderTableUiSettings(TableUiSettings settings)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO ui_table_settings (
+                id,
+                recherche,
+                filtre_type,
+                filtre_statut,
+                colonnes_visibles,
+                colonnes_ordre,
+                tri_colonnes
+            )
+            VALUES (1, $recherche, $filtreType, $filtreStatut, $colonnesVisibles, $colonnesOrdre, $triColonnes)
+            ON CONFLICT(id) DO UPDATE SET
+                recherche = excluded.recherche,
+                filtre_type = excluded.filtre_type,
+                filtre_statut = excluded.filtre_statut,
+                colonnes_visibles = excluded.colonnes_visibles,
+                colonnes_ordre = excluded.colonnes_ordre,
+                tri_colonnes = excluded.tri_colonnes;
+            """;
+        command.Parameters.AddWithValue("$recherche", (object?)settings.Recherche ?? DBNull.Value);
+        command.Parameters.AddWithValue("$filtreType", (object?)settings.FiltreType ?? DBNull.Value);
+        command.Parameters.AddWithValue("$filtreStatut", (object?)settings.FiltreStatut ?? DBNull.Value);
+        command.Parameters.AddWithValue("$colonnesVisibles", SerializeJson(settings.ColonnesVisibles));
+        command.Parameters.AddWithValue("$colonnesOrdre", SerializeJson(settings.ColonnesOrdre));
+        command.Parameters.AddWithValue("$triColonnes", SerializeJson(settings.Tris));
         command.ExecuteNonQuery();
     }
 
