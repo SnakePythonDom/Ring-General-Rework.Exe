@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "show-recap",
+    "version": "v1"
+  },
+  "sections": [
+    {
+      "id": "note-show",
+      "titre": "Note globale",
+      "champs": ["note", "audience", "style", "region"]
+    },
+    {
+      "id": "ratings",
+      "titre": "Ratings segment par segment",
+      "champs": ["segment", "inring", "divertissement", "story", "noteFinale"],
+      "details": "Afficher les composantes dans un format lisible FR."
+    },
+    {
+      "id": "finances",
+      "titre": "Finances du show",
+      "champs": ["billetterie", "merch", "tv", "total", "deltaTresorerie"]
+    },
+    {
+      "id": "impacts",
+      "titre": "Impacts persistés",
+      "champs": ["popularite", "momentum", "heat", "fatigue", "blessures", "titres"]
+    },
+    {
+      "id": "historique",
+      "titre": "Historique consultable",
+      "champs": ["semaine", "note", "audience", "resume"]
+    }
+  ],
+  "regles": [
+    "Le récap show doit inclure la note globale, l'audience et les finances.",
+    "Les deltas d'impacts doivent être affichés par catégorie avec au moins un exemple.",
+    "Les segments doivent afficher un breakdown clair en français."
+  ],
+  "format": {
+    "separateur": " • ",
+    "delta": "+#;-#;0",
+    "monnaie": "€"
+  }
+}

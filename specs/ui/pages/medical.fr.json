@@ -12,7 +12,7 @@
       "colonnes": ["Nom", "Type", "Gravité", "Durée", "Statut", "Actions"]
     }
   ],
-  "filtres": ["Gravité", "Statut", "Rôle"],
+  "filtres": ["Gravité", "Statut", "Rôle", "Risque"],
   "panneauDetail": {
     "sections": ["Diagnostic", "Planning de retour", "Restrictions"]
   },
@@ -24,8 +24,11 @@
   "validations": [
     {"id": "retour.date", "message": "La date de retour est requise."}
   ],
-  "warnings": ["Risque élevé de rechute pour certains catcheurs."],
-  "etatVide": "Aucune blessure enregistrée.",
+  "warnings": [
+    "Risque élevé de rechute pour certains catcheurs.",
+    "Retours anticipés en attente de validation."
+  ],
+  "etatVide": "Aucune blessure enregistrée cette semaine.",
   "tooltips": [
     {"id": "gravite", "libelle": "Gravité", "texte": "Impact sur la disponibilité et la performance."}
   ],

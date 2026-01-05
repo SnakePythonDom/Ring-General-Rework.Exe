@@ -1,37 +1,41 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using ReactiveUI;
 
 namespace RingGeneral.UI.ViewModels;
 
 public sealed class SegmentViewModel : ReactiveObject
 {
-    private readonly IReadOnlyDictionary<string, string> _segmentLabels;
+    private readonly SegmentTypeCatalog _catalog;
 
     public SegmentViewModel(
         string segmentId,
         string typeSegment,
         int dureeMinutes,
         bool estMainEvent,
-        IReadOnlyDictionary<string, string> segmentLabels,
+        SegmentTypeCatalog catalog,
         IReadOnlyList<ParticipantViewModel> participants,
         string? storylineId,
         string? titreId,
         int intensite,
         string? vainqueurId,
-        string? perdantId)
+        string? perdantId,
+        IReadOnlyDictionary<string, string>? settings)
     {
         SegmentId = segmentId;
-        _segmentLabels = segmentLabels;
+        _catalog = catalog;
         _typeSegment = typeSegment;
         _typeSegmentLibelle = ObtenirLibelle(typeSegment);
         _dureeMinutes = dureeMinutes;
         _estMainEvent = estMainEvent;
-        StorylineId = storylineId;
-        TitreId = titreId;
-        Intensite = intensite;
-        VainqueurId = vainqueurId;
-        PerdantId = perdantId;
+        _storylineId = storylineId;
+        _titreId = titreId;
+        _intensite = intensite;
+        _vainqueurId = vainqueurId;
+        _perdantId = perdantId;
         Participants = new ObservableCollection<ParticipantViewModel>(participants);
+        Consignes = new ObservableCollection<SegmentConsigneViewModel>();
+        RechargerConsignes(settings);
     }
 
     public string SegmentId { get; }
@@ -43,6 +47,7 @@ public sealed class SegmentViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _typeSegment, value);
             TypeSegmentLibelle = ObtenirLibelle(value);
+            RechargerConsignes(null);
         }
     }
     private string _typeSegment;
@@ -83,12 +88,67 @@ public sealed class SegmentViewModel : ReactiveObject
     private string? _avertissements;
 
     public ObservableCollection<ParticipantViewModel> Participants { get; }
-    public string? StorylineId { get; }
-    public string? TitreId { get; }
-    public int Intensite { get; }
-    public string? VainqueurId { get; }
-    public string? PerdantId { get; }
+    public ObservableCollection<SegmentConsigneViewModel> Consignes { get; }
+
+    public string? StorylineId
+    {
+        get => _storylineId;
+        set => this.RaiseAndSetIfChanged(ref _storylineId, value);
+    }
+    private string? _storylineId;
+
+    public string? TitreId
+    {
+        get => _titreId;
+        set => this.RaiseAndSetIfChanged(ref _titreId, value);
+    }
+    private string? _titreId;
+
+    public int Intensite
+    {
+        get => _intensite;
+        set => this.RaiseAndSetIfChanged(ref _intensite, value);
+    }
+    private int _intensite;
+
+    public string? VainqueurId
+    {
+        get => _vainqueurId;
+        set => this.RaiseAndSetIfChanged(ref _vainqueurId, value);
+    }
+    private string? _vainqueurId;
+
+    public string? PerdantId
+    {
+        get => _perdantId;
+        set => this.RaiseAndSetIfChanged(ref _perdantId, value);
+    }
+    private string? _perdantId;
 
     private string ObtenirLibelle(string typeSegment)
-        => _segmentLabels.TryGetValue(typeSegment, out var libelle) ? libelle : typeSegment;
+        => _catalog.Labels.TryGetValue(typeSegment, out var libelle) ? libelle : typeSegment;
+
+    private void RechargerConsignes(IReadOnlyDictionary<string, string>? settings)
+    {
+        Consignes.Clear();
+        foreach (var consigneId in _catalog.ObtenirConsignesPourType(TypeSegment))
+        {
+            var options = _catalog.ObtenirOptionsConsigne(consigneId);
+            var selection = settings is not null && settings.TryGetValue(consigneId, out var valeur)
+                ? valeur
+                : options.FirstOrDefault();
+            Consignes.Add(new SegmentConsigneViewModel(
+                consigneId,
+                _catalog.ObtenirLibelleConsigne(consigneId),
+                options,
+                selection));
+        }
+    }
+
+    public IReadOnlyDictionary<string, string> ConstruireSettings()
+    {
+        return Consignes
+            .Where(consigne => !string.IsNullOrWhiteSpace(consigne.Selection))
+            .ToDictionary(consigne => consigne.Id, consigne => consigne.Selection!, StringComparer.OrdinalIgnoreCase);
+    }
 }
