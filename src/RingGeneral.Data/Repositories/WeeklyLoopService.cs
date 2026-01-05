@@ -10,6 +10,7 @@ public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
     private readonly SeededRandomProvider _random = new(42);
+    private readonly WeeklyFinanceTick _financeTick = new(new FinanceEngine(FinanceSettings.V1()));
 
     public WeeklyLoopService(GameRepository repository)
     {
@@ -20,6 +21,7 @@ public sealed class WeeklyLoopService
     {
         var semaine = _repository.IncrementerSemaine(showId);
         _repository.RecupererFatigueHebdo();
+        AppliquerFinancesHebdo(showId, semaine);
 
         var inboxItems = new List<InboxItem>();
         var generation = GenererWorkers(semaine, showId);
@@ -45,6 +47,33 @@ public sealed class WeeklyLoopService
         }
 
         return inboxItems;
+    }
+
+    private void AppliquerFinancesHebdo(string showId, int semaine)
+    {
+        var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
+        if (string.IsNullOrWhiteSpace(compagnieId))
+        {
+            return;
+        }
+
+        var semaineCible = Math.Max(1, semaine - 1);
+        var compagnie = _repository.ChargerEtatCompagnie(compagnieId);
+        if (compagnie is null)
+        {
+            return;
+        }
+
+        var contrats = _repository.ChargerPaieContrats(compagnieId);
+        var context = new WeeklyFinanceContext(compagnieId, semaineCible, compagnie.Tresorerie, contrats);
+        var resultat = _financeTick.Executer(context);
+
+        if (resultat.Transactions.Count > 0)
+        {
+            _repository.AppliquerTransactionsFinancieres(compagnieId, semaineCible, resultat.Transactions);
+        }
+
+        _repository.EnregistrerSnapshotFinance(compagnieId, semaineCible);
     }
 
     private IEnumerable<InboxItem> GenererNews(int semaine)

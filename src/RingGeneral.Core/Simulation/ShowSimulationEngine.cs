@@ -6,6 +6,7 @@ namespace RingGeneral.Core.Simulation;
 public sealed class ShowSimulationEngine
 {
     private readonly IRandomProvider _random;
+    private readonly FinanceEngine _financeEngine = new(FinanceSettings.V1());
 
     public ShowSimulationEngine(IRandomProvider random)
     {
@@ -147,21 +148,24 @@ public sealed class ShowSimulationEngine
         populariteCompagnie[context.Compagnie.CompagnieId] = populariteDeltaCompagnie;
 
         var audience = Math.Clamp((context.Compagnie.AudienceMoyenne + noteShow + context.Compagnie.Prestige) / 3, 0, 100);
-        var billetterie = Math.Round(1500 + audience * 75 + context.Compagnie.Reach * 20, 2);
-        var merch = Math.Round(300 + audience * 20, 2);
-        var tv = context.Show.DealTvId is null ? 0 : Math.Round(5000 + audience * 40, 2);
-        finances.Add(new FinanceTransaction("billetterie", billetterie, "Billetterie"));
-        finances.Add(new FinanceTransaction("merch", merch, "Merchandising"));
-        if (tv > 0)
-        {
-            finances.Add(new FinanceTransaction("tv", tv, "Droits TV"));
-        }
+        var financeResult = _financeEngine.CalculerFinancesShow(new ShowFinanceContext(
+            context.Compagnie,
+            audience,
+            context.Show.DureeMinutes,
+            context.Workers.Select(worker => worker.Popularite).ToList(),
+            context.Show.DealTvId is not null));
+        finances.AddRange(financeResult.Transactions);
+
+        var billetterie = financeResult.Billetterie;
+        var merch = financeResult.Merch;
+        var tv = financeResult.Tv;
 
         var pointsCles = new List<string>
         {
             $"Note globale : {noteShow}",
             $"Audience estimée : {audience}",
-            $"Impact popularité : {populariteDeltaCompagnie:+#;-#;0}"
+            $"Impact popularité : {populariteDeltaCompagnie:+#;-#;0}",
+            $"Coûts de production : {-financeResult.CoutProduction:#,0}"
         };
 
         var rapportShow = new ShowReport(

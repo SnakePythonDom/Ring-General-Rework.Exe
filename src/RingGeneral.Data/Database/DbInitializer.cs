@@ -4,7 +4,7 @@ namespace RingGeneral.Data.Database;
 
 public sealed class DbInitializer
 {
-    public const int SchemaVersionActuelle = 1;
+    public const int SchemaVersionActuelle = 2;
 
     public void CreateDatabaseIfMissing(string cheminDb)
     {
