@@ -32,6 +32,7 @@ public sealed class WeeklyLoopService
         }
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
+        inboxItems.AddRange(VerifierOffresExpirantes(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
         var scouting = GenererScouting(semaine);
         if (scouting is not null)
@@ -79,6 +80,24 @@ public sealed class WeeklyLoopService
                 var contenu = $"{nom} arrive en fin de contrat dans {semainesRestantes} semaine(s).";
                 yield return new InboxItem("contrat", titre, contenu, semaine);
             }
+        }
+    }
+
+    private IEnumerable<InboxItem> VerifierOffresExpirantes(int semaine)
+    {
+        var offres = _repository.ChargerOffresExpirant(semaine);
+        if (offres.Count == 0)
+        {
+            yield break;
+        }
+
+        var noms = _repository.ChargerNomsWorkers();
+        foreach (var offre in offres)
+        {
+            _repository.MettreAJourStatutOffre(offre.OfferId, "expiree");
+            var nom = noms.TryGetValue(offre.WorkerId, out var workerNom) ? workerNom : offre.WorkerId;
+            var contenu = $"L'offre pour {nom} a expiré (semaine {offre.ExpirationWeek}).";
+            yield return new InboxItem("contrat", "Offre expirée", contenu, semaine);
         }
     }
 
