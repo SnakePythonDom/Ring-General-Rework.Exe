@@ -155,6 +155,25 @@ public sealed class SaveManagerViewModel : ViewModelBase
         }
     }
 
+    public void ExporterBase(string cheminDestination, SaveSlotViewModel? slot)
+    {
+        if (slot is null)
+        {
+            StatutErreur("Sélectionnez une sauvegarde à exporter.");
+            return;
+        }
+
+        try
+        {
+            _storage.ExporterBase(new SaveInfo(slot.Nom, slot.Chemin, slot.DerniereModification), cheminDestination);
+            StatutOk($"Base exportée vers {cheminDestination}.");
+        }
+        catch (Exception ex)
+        {
+            StatutErreur($"Impossible d'exporter la base : {ex.Message}");
+        }
+    }
+
     public bool DefinirSauvegardeCourante(SaveSlotViewModel slot)
     {
         var validation = _storage.ValiderBase(slot.Chemin);
