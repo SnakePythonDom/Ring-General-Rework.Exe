@@ -3648,8 +3648,8 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
         using var youthProgrammeCommand = connexion.CreateCommand();
         youthProgrammeCommand.Transaction = transaction;
         youthProgrammeCommand.CommandText = """
-            INSERT INTO youth_programs (programme_id, youth_id, nom, type, duree_semaines, focus_attributs, actif)
-            VALUES ('PROG-001', 'YOUTH-001', 'Fondamentaux', 'fundamentaux', 12, '["in_ring","story"]', 1);
+            INSERT INTO youth_programs (program_id, youth_id, nom, duree_semaines, focus)
+            VALUES ('PROG-001', 'YOUTH-001', 'Fondamentaux', 12, 'in_ring,story');
             """;
         youthProgrammeCommand.ExecuteNonQuery();
 
