@@ -1,5 +1,5 @@
 using ReactiveUI;
-using RingGeneral.Core.Models;
+using MatchTypeModel = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.UI.ViewModels;
 
@@ -39,6 +39,6 @@ public sealed class MatchTypeViewModel : ReactiveObject
 
     public int Ordre { get; }
 
-    public MatchType VersModele()
+    public MatchTypeModel VersModele()
         => new(MatchTypeId, Nom, Description, EstActif, Ordre);
 }

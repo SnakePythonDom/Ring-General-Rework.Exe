@@ -25,7 +25,6 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly MedicalRepository _medicalRepository;
     private readonly InjuryService _injuryService;
     private readonly BookingValidator _validator = new();
-    private readonly TemplateService _templateService = new();
     private readonly IReadOnlyDictionary<string, string> _segmentLabels;
     private readonly TemplateService _templateService = new();
     private readonly HelpContentProvider _helpProvider = new();
@@ -72,8 +71,6 @@ public sealed class GameSessionViewModel : ViewModelBase
         RecapFm = new ObservableCollection<string>();
         HistoriqueShow = new ObservableCollection<ShowHistoryViewModel>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
-        SegmentTemplates = new ObservableCollection<SegmentTemplateViewModel>();
-        MatchTypes = new ObservableCollection<MatchTypeOptionViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
         TableItems = new ObservableCollection<TableViewItemViewModel>();
@@ -173,8 +170,6 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<string> RecapFm { get; }
     public ObservableCollection<ShowHistoryViewModel> HistoriqueShow { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
-    public ObservableCollection<SegmentTemplateViewModel> SegmentTemplates { get; }
-    public ObservableCollection<MatchTypeOptionViewModel> MatchTypes { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
@@ -625,27 +620,6 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerShow();
     }
 
-    public void AppliquerTemplateSelectionnee()
-    {
-        if (_context is null || TemplateSelectionnee is null)
-        {
-            return;
-        }
-
-        var template = new SegmentTemplate(
-            TemplateSelectionnee.TemplateId,
-            TemplateSelectionnee.Nom,
-            TemplateSelectionnee.TypeSegment,
-            TemplateSelectionnee.DureeMinutes,
-            TemplateSelectionnee.EstMainEvent,
-            TemplateSelectionnee.Intensite,
-            TemplateSelectionnee.MatchTypeId);
-
-        var segment = _templateService.AppliquerTemplate(template);
-        _repository.AjouterSegment(_context.Show.ShowId, segment, Segments.Count + 1);
-        ChargerShow();
-    }
-
     public void EnregistrerSegment(SegmentViewModel segment)
     {
         if (_context is null)
@@ -717,12 +691,17 @@ public sealed class GameSessionViewModel : ViewModelBase
             return;
         }
 
-        var segments = _templateService.AppliquerTemplate(template.Definition, _context.Workers);
-        var ordre = Segments.Count + 1;
-        foreach (var segment in segments)
-        {
-            _repository.AjouterSegment(_context.Show.ShowId, segment, ordre++);
-        }
+        var segmentTemplate = new SegmentTemplate(
+            template.TemplateId,
+            template.Nom,
+            template.TypeSegment,
+            template.DureeMinutes,
+            template.EstMainEvent,
+            template.Intensite,
+            template.MatchTypeId);
+
+        var segment = _templateService.AppliquerTemplate(segmentTemplate);
+        _repository.AjouterSegment(_context.Show.ShowId, segment, Segments.Count + 1);
 
         ChargerShow();
     }
@@ -1789,17 +1768,18 @@ public sealed class GameSessionViewModel : ViewModelBase
         var matchTypes = _repository.ChargerMatchTypes().ToList();
         if (matchTypes.Count == 0)
         {
-            matchTypes = ChargerMatchTypesSpec().ToList();
-            if (matchTypes.Count > 0)
+            var matchTypeDefinitions = ChargerMatchTypesSpec().ToList();
+            if (matchTypeDefinitions.Count > 0)
             {
-                _repository.EnregistrerMatchTypes(matchTypes);
+                _repository.EnregistrerMatchTypes(matchTypeDefinitions);
+                matchTypes = _repository.ChargerMatchTypes().ToList();
             }
         }
 
         MatchTypes.Clear();
         foreach (var matchType in matchTypes)
         {
-            MatchTypes.Add(new MatchTypeOptionViewModel(matchType));
+            MatchTypes.Add(new MatchTypeViewModel(matchType.MatchTypeId, matchType.Nom, matchType.Description, matchType.EstActif, matchType.Ordre));
         }
 
         var templates = _repository.ChargerSegmentTemplates().ToList();
@@ -1813,10 +1793,21 @@ public sealed class GameSessionViewModel : ViewModelBase
         }
 
         SegmentTemplates.Clear();
-        var matchTypeLabels = matchTypes.ToDictionary(type => type.MatchTypeId, type => type.Libelle);
+        var matchTypeLabels = matchTypes.ToDictionary(type => type.MatchTypeId, type => type.Nom);
         foreach (var template in templates)
         {
-            SegmentTemplates.Add(new SegmentTemplateViewModel(template, _segmentLabels, matchTypeLabels));
+            var typeLabel = _segmentLabels.TryGetValue(template.TypeSegment, out var libelle) ? libelle : template.TypeSegment;
+            matchTypeLabels.TryGetValue(template.MatchTypeId ?? string.Empty, out var matchNom);
+            SegmentTemplates.Add(new SegmentTemplateViewModel(
+                template.TemplateId,
+                template.Nom,
+                template.TypeSegment,
+                typeLabel,
+                template.DureeMinutes,
+                template.EstMainEvent,
+                template.Intensite,
+                template.MatchTypeId,
+                matchNom));
         }
 
         TemplateSelectionnee = SegmentTemplates.FirstOrDefault();
@@ -2086,7 +2077,5 @@ public sealed class GameSessionViewModel : ViewModelBase
 public sealed record YouthGenerationOptionViewModel(string Libelle, YouthGenerationMode Mode);
 
 public sealed record WorldGenerationOptionViewModel(string Libelle, WorldGenerationMode Mode);
-
-public sealed record StorylineOptionViewModel(string StorylineId, string Nom);
 
 public sealed record TitleOptionViewModel(string TitreId, string Nom);

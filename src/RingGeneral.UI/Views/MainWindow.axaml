@@ -245,7 +245,7 @@
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Booking" FontSize="20" FontWeight="Bold" Foreground="White" />
-              <Button Grid.Column="1" Content="?" Tag="page.booking" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+              <Button Grid.Column="1" Content="?" Tag="page.booking" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="10">
