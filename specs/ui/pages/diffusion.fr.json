@@ -8,12 +8,12 @@
     {
       "id": "liste_diffusion",
       "libelle": "Contrats de diffusion",
-      "colonnes": ["Diffuseur", "Type", "Début", "Fin", "Revenus", "Statut"]
+      "colonnes": ["Diffuseur", "Type", "Reach", "Contraintes", "Début", "Fin", "Revenus", "Statut"]
     }
   ],
   "filtres": ["Type", "Statut"],
   "panneauDetail": {
-    "sections": ["Conditions", "Pénalités", "Audiences"]
+    "sections": ["Carte de reach", "Contraintes", "Revenus", "Audiences"]
   },
   "actions": [
     {"id": "negocier", "libelle": "Négocier"}
@@ -24,6 +24,8 @@
   "warnings": ["Contrat TV expirant bientôt."],
   "etatVide": "Aucun contrat de diffusion.",
   "tooltips": [
+    {"id": "reach", "libelle": "Reach", "texte": "Couverture estimée du diffuseur."},
+    {"id": "contraintes", "libelle": "Contraintes", "texte": "Contraintes éditoriales et horaires."},
     {"id": "revenus", "libelle": "Revenus", "texte": "Revenus hebdomadaires estimés."}
   ],
   "messagesErreur": ["Impossible de charger la diffusion."]

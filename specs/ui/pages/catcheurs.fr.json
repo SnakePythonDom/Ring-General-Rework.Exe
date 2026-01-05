@@ -14,7 +14,7 @@
   ],
   "filtres": ["Rôle", "Division", "Popularité", "Statut contrat"],
   "panneauDetail": {
-    "sections": ["Profil", "Attributs", "Historique", "Notes récentes"]
+    "sections": ["Profil", "État médical", "Attributs", "Historique", "Notes récentes"]
   },
   "actions": [
     {"id": "proposer_contrat", "libelle": "Proposer un contrat"},

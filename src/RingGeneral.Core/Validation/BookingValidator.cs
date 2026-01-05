@@ -7,31 +7,43 @@ public sealed class BookingValidator : IValidator
 {
     public ValidationResult ValiderBooking(BookingPlan plan)
     {
-        var erreurs = new List<string>();
-        var avertissements = new List<string>();
+        var issues = new List<ValidationIssue>();
 
         if (plan.Segments.Count == 0)
         {
-            erreurs.Add("Aucun segment n'a été booké.");
+            issues.Add(new ValidationIssue(
+                ValidationSeverity.Erreur,
+                "booking.empty",
+                "Aucun segment n'a été booké."));
         }
 
         var dureeTotale = plan.Segments.Sum(segment => segment.DureeMinutes);
         if (plan.DureeShowMinutes.HasValue && dureeTotale > plan.DureeShowMinutes.Value)
         {
-            erreurs.Add($"La durée totale ({dureeTotale} min) dépasse la durée du show ({plan.DureeShowMinutes.Value} min).");
+            issues.Add(new ValidationIssue(
+                ValidationSeverity.Erreur,
+                "booking.duration.exceed",
+                $"La durée totale ({dureeTotale} min) dépasse la durée du show ({plan.DureeShowMinutes.Value} min)."));
         }
 
         var mainEvent = plan.Segments.FirstOrDefault(segment => segment.EstMainEvent);
         if (mainEvent is null && plan.Segments.Count > 0)
         {
-            avertissements.Add("Aucun main event n'a été défini.");
+            issues.Add(new ValidationIssue(
+                ValidationSeverity.Avertissement,
+                "booking.main-event.missing",
+                "Aucun main event n'a été défini."));
         }
         else if (mainEvent?.ParticipantsDetails is not null && mainEvent.ParticipantsDetails.Count > 0)
         {
             var scoreMainEvent = mainEvent.ParticipantsDetails.Average(participant => participant.Popularite);
             if (scoreMainEvent < 45)
             {
-                avertissements.Add("Le main event semble trop faible pour porter le show.");
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Avertissement,
+                    "booking.main-event.weak",
+                    "Le main event semble trop faible pour porter le show.",
+                    mainEvent.SegmentId));
             }
         }
 
@@ -42,31 +54,73 @@ public sealed class BookingValidator : IValidator
                 .Where(groupe => groupe.Count() > 1);
             if (groupes.Any())
             {
-                avertissements.Add("Des promos répétées avec les mêmes participants ont été détectées.");
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Avertissement,
+                    "booking.promos.repetition",
+                    "Des promos répétées avec les mêmes participants ont été détectées."));
+            }
+        }
+
+        foreach (var segment in plan.Segments)
+        {
+            if (segment.Participants.Count == 0)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Avertissement,
+                    "segment.participants.empty",
+                    "Ajoutez des participants à ce segment.",
+                    segment.SegmentId));
+            }
+
+            if (segment.DureeMinutes <= 0)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Avertissement,
+                    "segment.duration.invalid",
+                    "La durée du segment est invalide.",
+                    segment.SegmentId));
             }
         }
 
         if (plan.EtatWorkers is not null)
         {
-            foreach (var participantId in plan.Segments.SelectMany(segment => segment.Participants).Distinct())
+            foreach (var segment in plan.Segments)
             {
-                if (!plan.EtatWorkers.TryGetValue(participantId, out var health))
+                foreach (var participantId in segment.Participants)
                 {
-                    continue;
-                }
+                    if (!plan.EtatWorkers.TryGetValue(participantId, out var health))
+                    {
+                        continue;
+                    }
 
-                if (health.Blessure is not "AUCUNE")
-                {
-                    avertissements.Add($"Attention : {participantId} est blessé ({health.Blessure}).");
-                }
+                    if (health.Blessure is not "AUCUNE")
+                    {
+                        issues.Add(new ValidationIssue(
+                            ValidationSeverity.Avertissement,
+                            "segment.participant.injured",
+                            $"Attention : {participantId} est blessé ({health.Blessure}).",
+                            segment.SegmentId));
+                    }
 
-                if (health.Fatigue >= 70)
-                {
-                    avertissements.Add($"Attention : {participantId} est très fatigué ({health.Fatigue}).");
+                    if (health.Fatigue >= 70)
+                    {
+                        issues.Add(new ValidationIssue(
+                            ValidationSeverity.Avertissement,
+                            "segment.participant.fatigue",
+                            $"Attention : {participantId} est très fatigué ({health.Fatigue}).",
+                            segment.SegmentId));
+                    }
                 }
             }
         }
 
-        return new ValidationResult(erreurs.Count == 0, erreurs, avertissements);
+        var erreurs = issues.Where(issue => issue.Severite == ValidationSeverity.Erreur)
+            .Select(issue => issue.Message)
+            .ToList();
+        var avertissements = issues.Where(issue => issue.Severite == ValidationSeverity.Avertissement)
+            .Select(issue => issue.Message)
+            .ToList();
+
+        return new ValidationResult(erreurs.Count == 0, erreurs, avertissements, issues);
     }
 }

@@ -23,6 +23,22 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnAjouterDepuisBibliotheque(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AppliquerTemplateSelectionnee();
+        }
+    }
+
+    private void OnAppliquerTemplateBibliotheque(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentTemplateViewModel template)
+        {
+            shell.Session.AppliquerTemplate(template);
+        }
+    }
+
     private void OnSemaineSuivante(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)
@@ -81,11 +97,43 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnOuvrirFicheWorker(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control)
+        {
+            shell.Session.OuvrirFicheWorker(control.Tag as string);
+        }
+    }
+
     private void OnOuvrirArticle(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string articleId)
         {
             shell.Session.Codex.OuvrirArticle(articleId);
+        }
+    }
+
+    private void OnChangerBudgetYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.ChangerBudgetYouth();
+        }
+    }
+
+    private void OnAffecterCoachYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AffecterCoachYouth();
+        }
+    }
+
+    private void OnGraduationYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string workerId)
+        {
+            shell.Session.DiplomerTrainee(workerId);
         }
     }
 
@@ -222,6 +270,103 @@ public sealed partial class MainWindow : Window
         }
 
         shell.Saves.ExporterPack(chemin, slot);
+    }
+
+    private void OnAjouterSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterSegment();
+        }
+    }
+
+    private void OnCopierSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.CopierSegment(segment);
+        }
+    }
+
+    private void OnDupliquerMatch(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.DupliquerMatch(segment);
+        }
+    }
+
+    private void OnSupprimerSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.SupprimerSegment(segment);
+        }
+    }
+
+    private void OnEnregistrerSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.EnregistrerSegment(segment);
+        }
+    }
+
+    private void OnDeplacerSegmentHaut(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, -1);
+        }
+    }
+
+    private void OnDeplacerSegmentBas(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, 1);
+        }
+    }
+
+    private void OnAjouterParticipant(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.AjouterParticipant(segment);
+        }
+    }
+
+    private void OnRetirerParticipant(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant &&
+            control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.RetirerParticipant(segment, participant);
+        }
+    }
+
+    private void OnAjouterParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterParticipantNouveauSegment();
+        }
+    }
+
+    private void OnRetirerParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant)
+        {
+            shell.Session.RetirerParticipantNouveauSegment(participant);
+        }
+    }
+
+    private void OnCorrigerIssue(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is BookingIssueViewModel issue)
+        {
+            shell.Session.CorrigerIssue(issue);
+        }
     }
 
     private async void OnImporterPack(object? sender, RoutedEventArgs e)

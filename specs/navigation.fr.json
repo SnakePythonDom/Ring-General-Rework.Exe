@@ -57,8 +57,15 @@
           {"id": "nav.roster.catcheurs", "libelle": "Catcheurs", "route": "/catcheurs"},
           {"id": "nav.roster.staff", "libelle": "Staff", "route": "/staff"},
           {"id": "nav.roster.contrats", "libelle": "Contrats", "route": "/contrats"},
-          {"id": "nav.roster.medical", "libelle": "Médical", "route": "/medical"}
+          {"id": "nav.roster.medical", "libelle": "Médical", "route": "/medical"},
+          {"id": "nav.roster.backstage", "libelle": "Backstage", "route": "/backstage"}
         ]
+      },
+      {
+        "id": "nav.backstage",
+        "libelle": "Backstage",
+        "icone": "backstage",
+        "route": "/backstage"
       },
       {
         "id": "nav.booking",
