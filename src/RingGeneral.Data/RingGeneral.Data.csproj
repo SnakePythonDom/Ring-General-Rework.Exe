@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RingGeneral.Core\RingGeneral.Core.csproj" />
+    <ProjectReference Include="..\RingGeneral.Specs\RingGeneral.Specs.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\data\migrations\**\*.sql">

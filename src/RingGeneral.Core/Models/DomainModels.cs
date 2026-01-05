@@ -30,7 +30,8 @@ public sealed record WorkerSnapshot(
     int Fatigue,
     string Blessure,
     int Momentum,
-    string RoleTv);
+    string RoleTv,
+    int Morale);
 
 public sealed record WorkerHealth(
     int Fatigue,

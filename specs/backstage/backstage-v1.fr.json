@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "backstage-v1",
+    "version": 1
+  },
+  "morale": {
+    "echelle": "0-100",
+    "valeurDefaut": 60,
+    "seuils": [
+      {"id": "bas", "libelle": "Bas", "min": 0, "max": 39},
+      {"id": "stable", "libelle": "Stable", "min": 40, "max": 69},
+      {"id": "haut", "libelle": "Haut", "min": 70, "max": 100}
+    ]
+  },
+  "discipline": {
+    "actions": [
+      {"id": "avertissement", "libelle": "Avertissement", "gravite": 1, "moraleDelta": -2},
+      {"id": "amende", "libelle": "Amende", "gravite": 2, "moraleDelta": -5},
+      {"id": "suspension", "libelle": "Suspension", "gravite": 3, "moraleDelta": -8}
+    ]
+  }
+}

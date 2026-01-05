@@ -87,8 +87,8 @@ public sealed class SimulationEngineTests
         var company = new CompanyState("COMP-1", "Compagnie Test", "FR", 55, 10000, 50, 4);
         var workers = new List<WorkerSnapshot>
         {
-            new("W-1", "Alpha", 70, 60, 55, 50, 10, "AUCUNE", 2, "MAIN_EVENT"),
-            new("W-2", "Beta", 65, 65, 58, 48, 12, "AUCUNE", 1, "MID")
+            new("W-1", "Alpha", 70, 60, 55, 50, 10, "AUCUNE", 2, "MAIN_EVENT", 62),
+            new("W-2", "Beta", 65, 65, 58, 48, 12, "AUCUNE", 1, "MID", 58)
         };
         var titles = new List<TitleInfo> { new("T-1", "Titre Test", 60, "W-1") };
         var storylines = new List<StorylineInfo> { new("S-1", "Storyline Test", 45, new[] { "W-1" }) };

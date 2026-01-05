@@ -1,0 +1,42 @@
+{
+  "meta": {"langue": "fr", "pageId": "backstage", "titre": "Backstage"},
+  "onglets": [
+    {"id": "incidents", "libelle": "Incidents"},
+    {"id": "morale", "libelle": "Morale"},
+    {"id": "discipline", "libelle": "Discipline"}
+  ],
+  "tables": [
+    {
+      "id": "incidents",
+      "libelle": "Incidents récents",
+      "colonnes": ["Semaine", "Gravité", "Type", "Impliqués", "Statut"]
+    },
+    {
+      "id": "morale",
+      "libelle": "Roster & morale",
+      "colonnes": ["Catcheur", "Morale", "Tendance", "Notes"]
+    },
+    {
+      "id": "actions",
+      "libelle": "Actions disciplinaires",
+      "colonnes": ["Semaine", "Type", "Gravité", "Cible", "Impact morale"]
+    }
+  ],
+  "filtres": ["Type d'incident", "Gravité", "Statut", "Catcheur"],
+  "panneauDetail": {
+    "sections": ["Contexte", "Historique morale", "Sanctions"]
+  },
+  "actions": [
+    {"id": "enregistrer_action", "libelle": "Enregistrer une sanction"},
+    {"id": "noter_incident", "libelle": "Ajouter une note"}
+  ],
+  "validations": [
+    {"id": "backstage.selection", "message": "Sélectionnez un incident pour continuer."}
+  ],
+  "warnings": ["Des incidents critiques n'ont pas été traités."],
+  "etatVide": "Aucun incident à signaler cette semaine.",
+  "tooltips": [
+    {"id": "incidents.gravite", "libelle": "Gravité", "texte": "Niveau d'impact sur la cohésion backstage."}
+  ],
+  "messagesErreur": ["Impossible de charger les incidents backstage."]
+}

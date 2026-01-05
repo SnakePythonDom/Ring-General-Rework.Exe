@@ -79,7 +79,11 @@ public sealed class ShowSimulationEngine
 
             var baseScore = (int)Math.Round((inRing + entertainment + story) / 3.0);
             var crowdBonus = (crowdHeat - 50) / 10;
+            var moraleBonus = participants.Count == 0
+                ? 0
+                : (int)Math.Round((participants.Average(worker => worker.Morale) - 50) / 10.0);
             var note = Math.Clamp(baseScore + crowdBonus + pacingPenalty + chimieBonus, 0, 100);
+            note = Math.Clamp(note + moraleBonus, 0, 100);
 
             var events = new List<string>();
             if (segment.TypeSegment == "match")
@@ -104,6 +108,7 @@ public sealed class ShowSimulationEngine
                 new("Chaleur du public", crowdBonus),
                 new("Pacing", pacingPenalty),
                 new("Chimie", chimieBonus),
+                new("Morale", moraleBonus),
                 new("Storyline", segment.StorylineId is null ? 0 : 4)
             };
 
