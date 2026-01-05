@@ -62,6 +62,12 @@
         ]
       },
       {
+        "id": "nav.backstage",
+        "libelle": "Backstage",
+        "icone": "backstage",
+        "route": "/backstage"
+      },
+      {
         "id": "nav.booking",
         "libelle": "Booking",
         "icone": "booking",
