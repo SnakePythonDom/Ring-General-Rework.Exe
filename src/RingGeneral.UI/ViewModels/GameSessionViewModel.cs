@@ -552,13 +552,12 @@ public sealed class GameSessionViewModel : ViewModelBase
         var seed = HashCode.Combine(_context.Show.ShowId, _context.Show.Semaine);
         var engine = new ShowSimulationEngine(new SeededRandomProvider(seed));
         var resultat = engine.Simuler(_context);
-        var participantsNoms = _context.Workers.ToDictionary(worker => worker.WorkerId, worker => worker.NomComplet);
         Resultats.Clear();
         var workerNames = ConstruireNomsWorkers();
         foreach (var segment in resultat.RapportShow.Segments)
         {
             var libelle = _segmentCatalog.Labels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
-            Resultats.Add(new SegmentResultViewModel(segment, libelle));
+            Resultats.Add(new SegmentResultViewModel(segment, workerNames, libelle));
         }
         ResultatSelectionne = Resultats.FirstOrDefault();
 
@@ -892,7 +891,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         var youthMode = YouthGenerationSelection?.Mode ?? YouthGenerationMode.Realiste;
         var worldMode = WorldGenerationSelection?.Mode ?? WorldGenerationMode.Desactivee;
-        var pivot = SemainePivotAnnuelle > 0 ? SemainePivotAnnuelle : null;
+        var pivot = SemainePivotAnnuelle > 0 ? SemainePivotAnnuelle : (int?)null;
         _repository.SauvegarderParametresGeneration(new WorkerGenerationOptions(youthMode, worldMode, pivot));
         ParametresGenerationMessage = "Paramètres de génération enregistrés.";
     }
@@ -1001,6 +1000,7 @@ public sealed class GameSessionViewModel : ViewModelBase
                 segment.Settings));
         }
 
+        var selectionId = SegmentSelectionne?.SegmentId;
         SegmentSelectionne = selectionId is null
             ? Segments.FirstOrDefault()
             : Segments.FirstOrDefault(segment => segment.SegmentId == selectionId) ?? Segments.FirstOrDefault();
@@ -1578,14 +1578,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void AppliquerTriTable()
     {
-        TableItemsView.SortDescriptions.Clear();
-        foreach (var tri in _tableSortSettings)
-        {
-            var direction = tri.Direction == TableSortDirection.Ascending
-                ? ListSortDirection.Ascending
-                : ListSortDirection.Descending;
-            TableItemsView.SortDescriptions.Add(new SortDescription(tri.ColumnId, direction));
-        }
+        TableItemsView.Refresh();
 
         TableTriResume = _tableSortSettings.Count == 0
             ? "Tri : aucun"

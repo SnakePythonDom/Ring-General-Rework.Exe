@@ -936,6 +936,71 @@ public sealed class GameRepository : IScoutingRepository
         transaction.Commit();
     }
 
+    public IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistorique(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        if (TableExiste(connexion, "audience_history"))
+        {
+            return ChargerAudienceHistoriqueLower(connexion, showId);
+        }
+
+        return ChargerAudienceHistoriqueUpper(connexion, showId);
+    }
+
+    private static IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistoriqueLower(SqliteConnection connexion, string showId)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT show_id, semaine, audience, reach, show_score, stars, saturation
+            FROM audience_history
+            WHERE show_id = $showId
+            ORDER BY semaine DESC;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        using var reader = command.ExecuteReader();
+        var entries = new List<AudienceHistoryEntry>();
+        while (reader.Read())
+        {
+            entries.Add(new AudienceHistoryEntry(
+                reader.GetString(0),
+                reader.GetInt32(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6)));
+        }
+
+        return entries;
+    }
+
+    private static IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistoriqueUpper(SqliteConnection connexion, string showId)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ShowId, Week, Audience, Reach, ShowScore, Stars, Saturation
+            FROM AudienceHistory
+            WHERE ShowId = $showId
+            ORDER BY Week DESC;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        using var reader = command.ExecuteReader();
+        var entries = new List<AudienceHistoryEntry>();
+        while (reader.Read())
+        {
+            entries.Add(new AudienceHistoryEntry(
+                reader.GetString(0),
+                reader.GetInt32(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6)));
+        }
+
+        return entries;
+    }
+
     public void AppliquerDelta(string showId, GameStateDelta delta)
     {
         using var connexion = _factory.OuvrirConnexion();
