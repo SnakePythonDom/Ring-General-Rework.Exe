@@ -122,6 +122,25 @@ public sealed class GameRepository : IScoutingRepository
                 libelle TEXT NOT NULL,
                 semaine INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS FinanceTransactions (
+                FinanceTransactionId INTEGER PRIMARY KEY AUTOINCREMENT,
+                CompanyId TEXT NOT NULL,
+                ShowId TEXT,
+                Date TEXT,
+                Week INTEGER,
+                Category TEXT NOT NULL,
+                Amount REAL NOT NULL,
+                Description TEXT
+            );
+            CREATE TABLE IF NOT EXISTS CompanyBalanceSnapshots (
+                CompanyBalanceSnapshotId INTEGER PRIMARY KEY AUTOINCREMENT,
+                CompanyId TEXT NOT NULL,
+                Week INTEGER NOT NULL,
+                Balance REAL NOT NULL,
+                Revenues REAL NOT NULL,
+                Expenses REAL NOT NULL,
+                CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
             CREATE TABLE IF NOT EXISTS show_history (
                 show_id TEXT NOT NULL,
                 semaine INTEGER NOT NULL,
@@ -220,9 +239,9 @@ public sealed class GameRepository : IScoutingRepository
                 negotiation_id TEXT PRIMARY KEY,
                 worker_id TEXT NOT NULL,
                 company_id TEXT NOT NULL,
-                statut TEXT NOT NULL,
-                last_offer_id TEXT,
-                updated_week INTEGER NOT NULL
+                fin_semaine INTEGER NOT NULL,
+                salaire REAL NOT NULL DEFAULT 0,
+                pay_frequency TEXT NOT NULL DEFAULT 'Hebdomadaire'
             );
             CREATE TABLE IF NOT EXISTS youth_structures (
                 youth_id TEXT PRIMARY KEY,
@@ -936,6 +955,148 @@ public sealed class GameRepository : IScoutingRepository
         }
 
         return compagnies;
+    }
+
+    public CompanyState? ChargerEtatCompagnie(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        if (TableExiste(connexion, "Companies"))
+        {
+            return ChargerCompagnie(connexion, companyId);
+        }
+
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT company_id, nom, region, prestige, tresorerie, audience_moyenne, reach
+            FROM companies
+            WHERE company_id = $companyId;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new CompanyState(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetInt32(3),
+            reader.GetDouble(4),
+            reader.GetInt32(5),
+            reader.GetInt32(6));
+    }
+
+    public IReadOnlyList<ContractPayroll> ChargerPaieContrats(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        if (TableExiste(connexion, "Contracts"))
+        {
+            return ChargerPaieContratsUpper(connexion, companyId);
+        }
+
+        return ChargerPaieContratsLower(connexion, companyId);
+    }
+
+    public double AppliquerTransactionsFinancieres(
+        string companyId,
+        int semaine,
+        IReadOnlyList<FinanceTransaction> transactions)
+    {
+        if (transactions.Count == 0)
+        {
+            var compagnie = ChargerEtatCompagnie(companyId);
+            return compagnie?.Tresorerie ?? 0;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var dbTransaction = connexion.BeginTransaction();
+
+        foreach (var transactionFin in transactions)
+        {
+            using var command = connexion.CreateCommand();
+            command.Transaction = dbTransaction;
+            command.CommandText = """
+                INSERT INTO FinanceTransactions (CompanyId, ShowId, Date, Week, Category, Amount, Description)
+                VALUES ($companyId, NULL, $date, $week, $category, $amount, $description);
+                """;
+            command.Parameters.AddWithValue("$companyId", companyId);
+            command.Parameters.AddWithValue("$date", DateTimeOffset.UtcNow.ToString("O"));
+            command.Parameters.AddWithValue("$week", semaine);
+            command.Parameters.AddWithValue("$category", transactionFin.Type);
+            command.Parameters.AddWithValue("$amount", transactionFin.Montant);
+            command.Parameters.AddWithValue("$description", transactionFin.Libelle);
+            command.ExecuteNonQuery();
+
+            using var treasuryCommand = connexion.CreateCommand();
+            treasuryCommand.Transaction = dbTransaction;
+            treasuryCommand.CommandText = "UPDATE Companies SET Treasury = Treasury + $amount WHERE CompanyId = $companyId;";
+            treasuryCommand.Parameters.AddWithValue("$amount", transactionFin.Montant);
+            treasuryCommand.Parameters.AddWithValue("$companyId", companyId);
+            treasuryCommand.ExecuteNonQuery();
+        }
+
+        using var balanceCommand = connexion.CreateCommand();
+        balanceCommand.Transaction = dbTransaction;
+        balanceCommand.CommandText = "SELECT Treasury FROM Companies WHERE CompanyId = $companyId;";
+        balanceCommand.Parameters.AddWithValue("$companyId", companyId);
+        var tresorerie = Convert.ToDouble(balanceCommand.ExecuteScalar());
+
+        dbTransaction.Commit();
+        return tresorerie;
+    }
+
+    public void EnregistrerSnapshotFinance(string companyId, int semaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        if (!TableExiste(connexion, "CompanyBalanceSnapshots") || !TableExiste(connexion, "FinanceTransactions"))
+        {
+            return;
+        }
+
+        using var transaction = connexion.BeginTransaction();
+
+        using var totalsCommand = connexion.CreateCommand();
+        totalsCommand.Transaction = transaction;
+        totalsCommand.CommandText = """
+            SELECT
+                COALESCE(SUM(CASE WHEN Amount > 0 THEN Amount ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN Amount < 0 THEN -Amount ELSE 0 END), 0)
+            FROM FinanceTransactions
+            WHERE CompanyId = $companyId AND Week = $week;
+            """;
+        totalsCommand.Parameters.AddWithValue("$companyId", companyId);
+        totalsCommand.Parameters.AddWithValue("$week", semaine);
+        using var reader = totalsCommand.ExecuteReader();
+        var revenus = 0.0;
+        var depenses = 0.0;
+        if (reader.Read())
+        {
+            revenus = reader.GetDouble(0);
+            depenses = reader.GetDouble(1);
+        }
+
+        using var balanceCommand = connexion.CreateCommand();
+        balanceCommand.Transaction = transaction;
+        balanceCommand.CommandText = "SELECT Treasury FROM Companies WHERE CompanyId = $companyId;";
+        balanceCommand.Parameters.AddWithValue("$companyId", companyId);
+        var balance = Convert.ToDouble(balanceCommand.ExecuteScalar());
+
+        using var insertCommand = connexion.CreateCommand();
+        insertCommand.Transaction = transaction;
+        insertCommand.CommandText = """
+            INSERT INTO CompanyBalanceSnapshots (CompanyId, Week, Balance, Revenues, Expenses)
+            VALUES ($companyId, $week, $balance, $revenus, $depenses);
+            """;
+        insertCommand.Parameters.AddWithValue("$companyId", companyId);
+        insertCommand.Parameters.AddWithValue("$week", semaine);
+        insertCommand.Parameters.AddWithValue("$balance", balance);
+        insertCommand.Parameters.AddWithValue("$revenus", revenus);
+        insertCommand.Parameters.AddWithValue("$depenses", depenses);
+        insertCommand.ExecuteNonQuery();
+
+        transaction.Commit();
     }
 
     public void AppliquerImpactCompagnie(string compagnieId, int deltaPrestige, double deltaTresorerie)
@@ -2496,6 +2657,114 @@ public sealed class GameRepository : IScoutingRepository
             reader.GetInt32(6));
     }
 
+    private static IReadOnlyList<ContractPayroll> ChargerPaieContratsUpper(SqliteConnection connexion, string companyId)
+    {
+        var hasSalary = ColonneExiste(connexion, "Contracts", "Salary");
+        var hasFrequency = ColonneExiste(connexion, "Contracts", "PayFrequency");
+        var salaryColumn = hasSalary ? "Contracts.Salary" : "0";
+        var frequencyColumn = hasFrequency ? "Contracts.PayFrequency" : "'Hebdomadaire'";
+
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"""
+            SELECT Contracts.WorkerId,
+                   COALESCE(Workers.Name, Contracts.WorkerId),
+                   {salaryColumn},
+                   {frequencyColumn}
+            FROM Contracts
+            LEFT JOIN Workers ON Workers.WorkerId = Contracts.WorkerId
+            WHERE Contracts.CompanyId = $companyId;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        var contrats = new List<ContractPayroll>();
+        while (reader.Read())
+        {
+            var salaire = reader.IsDBNull(2) ? 0 : reader.GetDouble(2);
+            var frequence = reader.IsDBNull(3) ? PayrollFrequency.Hebdomadaire : ConvertFrequence(reader.GetString(3));
+            contrats.Add(new ContractPayroll(
+                reader.GetString(0),
+                reader.GetString(1),
+                salaire,
+                frequence));
+        }
+
+        return contrats;
+    }
+
+    private static IReadOnlyList<ContractPayroll> ChargerPaieContratsLower(SqliteConnection connexion, string companyId)
+    {
+        var hasSalary = ColonneExiste(connexion, "contracts", "salaire");
+        var hasFrequency = ColonneExiste(connexion, "contracts", "pay_frequency");
+        var salaryColumn = hasSalary ? "c.salaire" : "0";
+        var frequencyColumn = hasFrequency ? "c.pay_frequency" : "'Hebdomadaire'";
+
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"""
+            SELECT c.worker_id,
+                   TRIM(COALESCE(w.prenom, '') || ' ' || COALESCE(w.nom, c.worker_id)),
+                   {salaryColumn},
+                   {frequencyColumn}
+            FROM contracts c
+            LEFT JOIN workers w ON w.worker_id = c.worker_id
+            WHERE c.company_id = $companyId;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        var contrats = new List<ContractPayroll>();
+        while (reader.Read())
+        {
+            var salaire = reader.IsDBNull(2) ? 0 : reader.GetDouble(2);
+            var frequence = reader.IsDBNull(3) ? PayrollFrequency.Hebdomadaire : ConvertFrequence(reader.GetString(3));
+            contrats.Add(new ContractPayroll(
+                reader.GetString(0),
+                reader.GetString(1),
+                salaire,
+                frequence));
+        }
+
+        return contrats;
+    }
+
+    private static PayrollFrequency ConvertFrequence(string? valeur)
+    {
+        if (string.IsNullOrWhiteSpace(valeur))
+        {
+            return PayrollFrequency.Hebdomadaire;
+        }
+
+        return valeur.Trim().ToLowerInvariant() switch
+        {
+            "mensuelle" => PayrollFrequency.Mensuelle,
+            "mensuel" => PayrollFrequency.Mensuelle,
+            "monthly" => PayrollFrequency.Mensuelle,
+            _ => PayrollFrequency.Hebdomadaire
+        };
+    }
+
+    private static bool TableExiste(SqliteConnection connexion, string table)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = $table;";
+        command.Parameters.AddWithValue("$table", table);
+        return command.ExecuteScalar() is not null;
+    }
+
+    private static bool ColonneExiste(SqliteConnection connexion, string table, string colonne)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private List<SegmentDefinition> ChargerSegments(SqliteConnection connexion, string showId)
     {
         using var command = connexion.CreateCommand();
@@ -2931,12 +3200,12 @@ public sealed class GameRepository : IScoutingRepository
         using var contractCommand = connexion.CreateCommand();
         contractCommand.Transaction = transaction;
         contractCommand.CommandText = """
-            INSERT INTO contracts (worker_id, company_id, fin_semaine)
+            INSERT INTO contracts (worker_id, company_id, fin_semaine, salaire, pay_frequency)
             VALUES
-            ('W-001', 'COMP-001', 30),
-            ('W-002', 'COMP-001', 12),
-            ('W-003', 'COMP-001', 6),
-            ('W-004', 'COMP-001', 20);
+            ('W-001', 'COMP-001', 30, 1200, 'Hebdomadaire'),
+            ('W-002', 'COMP-001', 12, 850, 'Hebdomadaire'),
+            ('W-003', 'COMP-001', 6, 700, 'Mensuelle'),
+            ('W-004', 'COMP-001', 20, 600, 'Hebdomadaire');
             """;
         contractCommand.ExecuteNonQuery();
 
