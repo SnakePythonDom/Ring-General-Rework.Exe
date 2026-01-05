@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "show-recap"
+  },
+  "sections": [
+    {
+      "id": "note_show",
+      "titre": "Note globale",
+      "champs": ["note", "qualite", "commentaire"]
+    },
+    {
+      "id": "audience",
+      "titre": "Audience",
+      "champs": ["audience", "tendance", "comparaison"]
+    },
+    {
+      "id": "finances",
+      "titre": "Finances",
+      "champs": ["billetterie", "merch", "tv", "total"]
+    },
+    {
+      "id": "impacts",
+      "titre": "Impacts clés",
+      "champs": ["popularite", "momentum", "heat", "fatigue", "blessures"]
+    },
+    {
+      "id": "segments",
+      "titre": "Segments",
+      "champs": ["liste", "notes", "breakdown"]
+    },
+    {
+      "id": "conclusion",
+      "titre": "Conclusion",
+      "champs": ["points_forts", "points_faibles", "recommandations"]
+    }
+  ],
+  "format": {
+    "resume": "Note {note} • Audience {audience} • Finances {total}",
+    "items": {
+      "impact": "{type} {delta:+#;-#;0}",
+      "segment": "{libelle} • Note {note}"
+    }
+  }
+}

@@ -68,6 +68,48 @@ public sealed class SimulationEngineTests
     }
 
     [Fact]
+    public void Storyline_heat_baisse_si_ignoree()
+    {
+        var context = ConstruireContexte(segments: new[]
+        {
+            new SegmentDefinition("SEG-1", "promo", new[] { "W-1" }, 6, false, null, null, 40, null, null)
+        });
+
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(8));
+        var result = engine.Simuler(context);
+
+        Assert.True(result.Delta.StorylineHeatDelta["S-1"] < 0);
+    }
+
+    [Fact]
+    public void Storyline_heat_depend_de_la_qualite_du_segment()
+    {
+        var segments = new[]
+        {
+            new SegmentDefinition("SEG-1", "match", new[] { "W-1" }, 8, false, "S-1", null, 65, "W-1", null)
+        };
+
+        var highContext = ConstruireContexte(
+            segments: segments,
+            workers: new[]
+            {
+                new WorkerSnapshot("W-1", "Alpha", 85, 80, 78, 60, 8, "AUCUNE", 75, "MAIN_EVENT")
+            });
+        var lowContext = ConstruireContexte(
+            segments: segments,
+            workers: new[]
+            {
+                new WorkerSnapshot("W-1", "Omega", 35, 30, 28, 40, 12, "AUCUNE", 20, "LOWCARD")
+            });
+
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(9));
+        var deltaHigh = engine.Simuler(highContext).Delta.StorylineHeatDelta["S-1"];
+        var deltaLow = engine.Simuler(lowContext).Delta.StorylineHeatDelta["S-1"];
+
+        Assert.True(deltaHigh > deltaLow);
+    }
+
+    [Fact]
     public void Title_prestige_varie_sur_match_de_titre()
     {
         var context = ConstruireContexte(segments: new[]
@@ -81,23 +123,28 @@ public sealed class SimulationEngineTests
         Assert.True(result.Delta.TitrePrestigeDelta["T-1"] != 0);
     }
 
-    private static ShowContext ConstruireContexte(IReadOnlyList<SegmentDefinition>? segments = null)
+    private static ShowContext ConstruireContexte(
+        IReadOnlyList<SegmentDefinition>? segments = null,
+        IReadOnlyList<WorkerSnapshot>? workers = null)
     {
         var show = new ShowDefinition("SHOW-TEST", "Test Show", 1, "FR", 90, "COMP-1", "TV-1");
         var company = new CompanyState("COMP-1", "Compagnie Test", "FR", 55, 10000, 50, 4);
-        var workers = new List<WorkerSnapshot>
+        var workersList = workers?.ToList() ?? new List<WorkerSnapshot>
         {
             new("W-1", "Alpha", 70, 60, 55, 50, 10, "AUCUNE", 2, "MAIN_EVENT"),
             new("W-2", "Beta", 65, 65, 58, 48, 12, "AUCUNE", 1, "MID")
         };
         var titles = new List<TitleInfo> { new("T-1", "Titre Test", 60, "W-1") };
-        var storylines = new List<StorylineInfo> { new("S-1", "Storyline Test", 45, new[] { "W-1" }) };
+        var storylines = new List<StorylineInfo>
+        {
+            new("S-1", "Storyline Test", 45, StorylinePhase.Setup, StorylineStatus.Active, new[] { "W-1" })
+        };
         var segmentsList = segments ?? new List<SegmentDefinition>
         {
             new("SEG-1", "match", new[] { "W-1", "W-2" }, 12, true, "S-1", "T-1", 70, "W-1", "W-2")
         };
         var chimies = new Dictionary<string, int> { ["W-1|W-2"] = 5 };
 
-        return new ShowContext(show, company, workers, titles, storylines, segmentsList, chimies);
+        return new ShowContext(show, company, workersList, titles, storylines, segmentsList, chimies);
     }
 }

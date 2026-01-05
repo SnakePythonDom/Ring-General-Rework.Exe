@@ -55,6 +55,33 @@ public sealed class WorkerGenerationServiceTests
     }
 
     [Fact]
+    public void GenerateWeekly_NeGenerePasHorsSemainePivot()
+    {
+        var spec = ChargerSpec();
+        var options = new WorkerGenerationOptions(YouthGenerationMode.Realiste, WorldGenerationMode.Desactivee, 1);
+        var youth = new YouthStructureState(
+            "YOUTH-001",
+            "Academy",
+            "COMP-001",
+            "FR",
+            "ACADEMY",
+            80000,
+            24,
+            3,
+            12,
+            "HYBRIDE",
+            true,
+            null,
+            5);
+        var state = new GameState(2, "COMP-001", "FR", options, new[] { youth }, new GenerationCounters(1, 0, new Dictionary<string, int>(), new Dictionary<string, int>(), 0, new Dictionary<string, int>()));
+
+        var service = new WorkerGenerationService(new SeededRandomProvider(7), spec);
+        var report = service.GenerateWeekly(state, 7);
+
+        Assert.Empty(report.Workers);
+    }
+
+    [Fact]
     public void GenerateWeekly_RespecteCapGlobal()
     {
         var spec = ChargerSpec();
