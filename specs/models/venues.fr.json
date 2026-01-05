@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "venues"
+  },
+  "champsIdentite": [
+    {"id": "venueId", "libelle": "ID lieu"},
+    {"id": "nom", "libelle": "Nom"},
+    {"id": "region", "libelle": "Région"}
+  ],
+  "champsDetails": [
+    {"id": "ville", "libelle": "Ville"},
+    {"id": "capacite", "libelle": "Capacité", "type": "number"}
+  ],
+  "validations": [
+    "venueId est obligatoire et unique.",
+    "nom est obligatoire.",
+    "region est obligatoire."
+  ],
+  "etatVide": {
+    "libelle": "Aucun lieu enregistré.",
+    "messageErreur": "Impossible de charger les lieux."
+  }
+}
