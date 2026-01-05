@@ -224,6 +224,103 @@ public sealed partial class MainWindow : Window
         shell.Saves.ExporterPack(chemin, slot);
     }
 
+    private void OnAjouterSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterSegment();
+        }
+    }
+
+    private void OnCopierSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.CopierSegment(segment);
+        }
+    }
+
+    private void OnDupliquerMatch(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.DupliquerMatch(segment);
+        }
+    }
+
+    private void OnSupprimerSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.SupprimerSegment(segment);
+        }
+    }
+
+    private void OnEnregistrerSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.EnregistrerSegment(segment);
+        }
+    }
+
+    private void OnDeplacerSegmentHaut(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, -1);
+        }
+    }
+
+    private void OnDeplacerSegmentBas(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, 1);
+        }
+    }
+
+    private void OnAjouterParticipant(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.AjouterParticipant(segment);
+        }
+    }
+
+    private void OnRetirerParticipant(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant &&
+            control.Tag is SegmentViewModel segment)
+        {
+            shell.Session.RetirerParticipant(segment, participant);
+        }
+    }
+
+    private void OnAjouterParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterParticipantNouveauSegment();
+        }
+    }
+
+    private void OnRetirerParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant)
+        {
+            shell.Session.RetirerParticipantNouveauSegment(participant);
+        }
+    }
+
+    private void OnCorrigerIssue(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is BookingIssueViewModel issue)
+        {
+            shell.Session.CorrigerIssue(issue);
+        }
+    }
+
     private async void OnImporterPack(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ShellViewModel shell)

@@ -248,7 +248,7 @@
               <Button Grid.Column="1" Content="?" Tag="page.booking" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
-              <StackPanel Spacing="6">
+              <StackPanel Spacing="10">
                 <TextBlock Text="Consignes" Foreground="#F9FAFB" FontWeight="SemiBold" />
                 <ItemsControl ItemsSource="{Binding Session.ConsignesBooking}">
                   <ItemsControl.ItemTemplate>
@@ -257,102 +257,168 @@
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <Grid ColumnDefinitions="160,80,*,90,240">
-                  <TextBlock Text="Type" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="1" Text="Durée" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="2" Text="Participants" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="3" Text="Main event" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="4" Text="Actions" Foreground="#9CA3AF" />
-                </Grid>
-                <ItemsControl ItemsSource="{Binding Session.Segments}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Border Background="#0F172A" Padding="8" CornerRadius="6" Margin="0,4,0,4">
-                        <StackPanel Spacing="6">
-                          <Grid ColumnDefinitions="160,80,*,90,240">
-                            <ComboBox ItemsSource="{Binding DataContext.Session.SegmentTypes, RelativeSource={RelativeSource AncestorType=Window}}"
-                                      SelectedValuePath="Id"
-                                      DisplayMemberPath="Label"
-                                      SelectedValue="{Binding TypeSegment, Mode=TwoWay}" />
-                            <TextBox Grid.Column="1" Text="{Binding DureeMinutes, Mode=TwoWay}" />
-                            <StackPanel Grid.Column="2" Spacing="4">
-                              <ItemsControl ItemsSource="{Binding Participants}">
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                      <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
-                                      <Button Content="Retirer"
-                                              Click="OnRetirerParticipant"
-                                              Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
-                                    </StackPanel>
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                              <StackPanel Orientation="Horizontal" Spacing="6">
-                                <ComboBox Width="180"
-                                          ItemsSource="{Binding DataContext.Session.WorkersDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
-                                          SelectedValuePath="WorkerId"
-                                          DisplayMemberPath="Nom"
-                                          SelectedValue="{Binding ParticipantSelectionneeId, Mode=TwoWay}" />
-                                <Button Content="Ajouter" Click="OnAjouterParticipant" />
-                              </StackPanel>
+                <Grid ColumnDefinitions="2*,3*" ColumnSpacing="12">
+                  <StackPanel Grid.Column="0" Spacing="6">
+                    <TextBlock Text="Timeline" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                    <ListBox ItemsSource="{Binding Session.Segments}"
+                             SelectedItem="{Binding Session.SegmentSelectionne, Mode=TwoWay}"
+                             MaxHeight="380">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate>
+                          <Border Background="#0F172A" Padding="8" CornerRadius="6" Margin="0,4,0,4">
+                            <StackPanel Spacing="6">
+                              <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="2">
+                                  <TextBlock Text="{Binding TypeSegmentLibelle}" Foreground="#E5E7EB" FontWeight="SemiBold" />
+                                  <TextBlock Text="{Binding DureeMinutes, StringFormat='Durée {0} min'}" Foreground="#94A3B8" />
+                                  <TextBlock Text="{Binding Participants.Count, StringFormat='Participants {0}'}" Foreground="#94A3B8" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                  <Button Content="↑" Click="OnDeplacerSegmentHaut" Tag="{Binding .}" />
+                                  <Button Content="↓" Click="OnDeplacerSegmentBas" Tag="{Binding .}" />
+                                  <Button Content="Copier" Click="OnCopierSegment" Tag="{Binding .}" />
+                                  <Button Content="Dupliquer match" Click="OnDupliquerMatch" Tag="{Binding .}" />
+                                  <Button Content="Supprimer" Click="OnSupprimerSegment" Tag="{Binding .}" />
+                                </StackPanel>
+                              </Grid>
+                              <TextBlock Text="{Binding Avertissements}" Foreground="#FBBF24" TextWrapping="Wrap" />
                             </StackPanel>
-                            <CheckBox Grid.Column="3" IsChecked="{Binding EstMainEvent, Mode=TwoWay}" />
-                            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
-                              <Button Content="↑" Click="OnDeplacerSegmentHaut" />
-                              <Button Content="↓" Click="OnDeplacerSegmentBas" />
-                              <Button Content="Copier" Click="OnCopierSegment" />
-                              <Button Content="Enregistrer" Click="OnEnregistrerSegment" />
+                          </Border>
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Border Background="#1F2937" Padding="8" CornerRadius="6">
+                      <StackPanel Spacing="6">
+                        <TextBlock Text="Ajouter un segment" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                        <Grid ColumnDefinitions="160,80,*,90,120">
+                          <ComboBox ItemsSource="{Binding Session.SegmentTypes}"
+                                    SelectedValuePath="Id"
+                                    DisplayMemberPath="Label"
+                                    SelectedValue="{Binding Session.NouveauSegmentTypeId, Mode=TwoWay}" />
+                          <TextBox Grid.Column="1" Text="{Binding Session.NouveauSegmentDuree, Mode=TwoWay}" />
+                          <StackPanel Grid.Column="2" Spacing="4">
+                            <ItemsControl ItemsSource="{Binding Session.NouveauSegmentParticipants}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                  <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                                    <Button Content="Retirer" Click="OnRetirerParticipantNouveauSegment" />
+                                  </StackPanel>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <ComboBox Width="180"
+                                        ItemsSource="{Binding Session.WorkersDisponibles}"
+                                        SelectedValuePath="WorkerId"
+                                        DisplayMemberPath="Nom"
+                                        SelectedValue="{Binding Session.NouveauSegmentParticipantId, Mode=TwoWay}" />
+                              <Button Content="Ajouter" Click="OnAjouterParticipantNouveauSegment" />
                             </StackPanel>
-                          </Grid>
-                          <TextBlock Text="{Binding Avertissements}" Foreground="#FBBF24" TextWrapping="Wrap" />
-                        </StackPanel>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Border Background="#1F2937" Padding="8" CornerRadius="6">
-                  <StackPanel Spacing="6">
-                    <TextBlock Text="Ajouter un segment" Foreground="#F9FAFB" FontWeight="SemiBold" />
-                    <Grid ColumnDefinitions="160,80,*,90,120">
-                      <ComboBox ItemsSource="{Binding Session.SegmentTypes}"
-                                SelectedValuePath="Id"
-                                DisplayMemberPath="Label"
-                                SelectedValue="{Binding Session.NouveauSegmentTypeId, Mode=TwoWay}" />
-                      <TextBox Grid.Column="1" Text="{Binding Session.NouveauSegmentDuree, Mode=TwoWay}" />
-                      <StackPanel Grid.Column="2" Spacing="4">
-                        <ItemsControl ItemsSource="{Binding Session.NouveauSegmentParticipants}">
+                          </StackPanel>
+                          <CheckBox Grid.Column="3" IsChecked="{Binding Session.NouveauSegmentMainEvent, Mode=TwoWay}" />
+                          <Button Grid.Column="4" Content="Ajouter" Click="OnAjouterSegment" />
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                  <Border Grid.Column="1" Background="#1F2937" Padding="10" CornerRadius="6">
+                    <StackPanel Spacing="8" DataContext="{Binding Session.SegmentSelectionne}">
+                      <TextBlock Text="Détails du segment" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                      <StackPanel Spacing="6">
+                        <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                          <TextBlock Text="Type" Foreground="#CBD5F5" />
+                          <ComboBox Grid.Column="1"
+                                    ItemsSource="{Binding DataContext.Session.SegmentTypes, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    SelectedValuePath="Id"
+                                    DisplayMemberPath="Label"
+                                    SelectedValue="{Binding TypeSegment, Mode=TwoWay}" />
+                          <TextBlock Grid.Row="1" Text="Durée" Foreground="#CBD5F5" />
+                          <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DureeMinutes, Mode=TwoWay}" />
+                          <TextBlock Grid.Row="2" Text="Main event" Foreground="#CBD5F5" />
+                          <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding EstMainEvent, Mode=TwoWay}" />
+                          <TextBlock Grid.Row="3" Text="Storyline" Foreground="#CBD5F5" />
+                          <ComboBox Grid.Row="3" Grid.Column="1"
+                                    ItemsSource="{Binding DataContext.Session.StorylinesDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    SelectedValuePath="StorylineId"
+                                    DisplayMemberPath="Nom"
+                                    SelectedValue="{Binding StorylineId, Mode=TwoWay}" />
+                          <TextBlock Grid.Row="4" Text="Titre" Foreground="#CBD5F5" />
+                          <ComboBox Grid.Row="4" Grid.Column="1"
+                                    ItemsSource="{Binding DataContext.Session.TitresDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    SelectedValuePath="TitreId"
+                                    DisplayMemberPath="Nom"
+                                    SelectedValue="{Binding TitreId, Mode=TwoWay}" />
+                        </Grid>
+                        <TextBlock Text="Participants" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                        <ItemsControl ItemsSource="{Binding Participants}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
                               <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
-                                <Button Content="Retirer" Click="OnRetirerParticipantNouveauSegment" />
+                                <Button Content="Retirer"
+                                        Click="OnRetirerParticipant"
+                                        Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                               </StackPanel>
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                          <ComboBox Width="180"
-                                    ItemsSource="{Binding Session.WorkersDisponibles}"
+                          <ComboBox Width="200"
+                                    ItemsSource="{Binding DataContext.Session.WorkersDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
                                     SelectedValuePath="WorkerId"
                                     DisplayMemberPath="Nom"
-                                    SelectedValue="{Binding Session.NouveauSegmentParticipantId, Mode=TwoWay}" />
-                          <Button Content="Ajouter" Click="OnAjouterParticipantNouveauSegment" />
+                                    SelectedValue="{Binding ParticipantSelectionneeId, Mode=TwoWay}" />
+                          <Button Content="Ajouter" Click="OnAjouterParticipant" />
                         </StackPanel>
+                        <TextBlock Text="Consignes" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                        <ItemsControl ItemsSource="{Binding Consignes}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{Binding Libelle}" Foreground="#CBD5F5" Width="160" />
+                                <ComboBox ItemsSource="{Binding Options}"
+                                          SelectedItem="{Binding Selection, Mode=TwoWay}" />
+                              </StackPanel>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Content="Enregistrer les modifications"
+                                HorizontalAlignment="Left"
+                                Click="OnEnregistrerSegment"
+                                Tag="{Binding .}" />
                       </StackPanel>
-                      <CheckBox Grid.Column="3" IsChecked="{Binding Session.NouveauSegmentMainEvent, Mode=TwoWay}" />
-                      <Button Grid.Column="4" Content="Ajouter" Click="OnAjouterSegment" />
-                    </Grid>
-                  </StackPanel>
-                </Border>
+                    </StackPanel>
+                  </Border>
+                </Grid>
               </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="12">
               <Button Content="Simuler le show" Click="OnSimulerShow" ToolTip.Tip="{Binding Session.Tooltips['booking.simuler']}" />
               <Button Content="Semaine suivante" Click="OnSemaineSuivante" ToolTip.Tip="{Binding Session.Tooltips['booking.semaine']}" />
             </StackPanel>
-            <TextBlock Text="{Binding Session.ValidationErreurs}" Foreground="#F87171" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" ToolTip.Tip="{Binding Session.Tooltips['booking.warning']}" />
+            <Border Background="#111827" Padding="10" CornerRadius="8">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Validation" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{Binding Session.ValidationIssues}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="#0F172A" Padding="8" CornerRadius="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBlock Text="{Binding Message}" Foreground="#FBBF24" TextWrapping="Wrap" />
+                          <Button Grid.Column="1"
+                                  Content="{Binding ActionLabel}"
+                                  Click="OnCorrigerIssue"
+                                  Tag="{Binding .}" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding Session.ValidationErreurs}" Foreground="#F87171" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" ToolTip.Tip="{Binding Session.Tooltips['booking.warning']}" />
+              </StackPanel>
+            </Border>
           </StackPanel>
 
           <StackPanel Spacing="8">
