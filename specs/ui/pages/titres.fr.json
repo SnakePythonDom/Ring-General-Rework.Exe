@@ -14,7 +14,7 @@
   ],
   "filtres": ["Division", "Statut"],
   "panneauDetail": {
-    "sections": ["Détails", "Champions", "Historique des règnes", "Contenders"]
+    "sections": ["Détails", "Champion actuel", "Règnes", "Historique des matchs de titre", "Contenders"]
   },
   "actions": [
     {"id": "creer_titre", "libelle": "Créer un titre"}
