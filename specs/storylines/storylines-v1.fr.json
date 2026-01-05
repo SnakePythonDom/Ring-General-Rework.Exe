@@ -2,59 +2,42 @@
   "meta": {
     "langue": "fr",
     "version": "v1",
-    "domaine": "storylines"
+    "titre": "Storylines + Heat + Momentum"
   },
-  "entites": {
-    "storyline": {
-      "champs": [
-        {"id": "storylineId", "type": "string", "description": "Identifiant unique."},
-        {"id": "companyId", "type": "string", "description": "Compagnie propriétaire."},
-        {"id": "name", "type": "string", "description": "Titre de la storyline."},
-        {"id": "heat", "type": "int", "description": "Chaleur de la storyline (0-100)."},
-        {"id": "phase", "type": "enum", "description": "Phase narrative."},
-        {"id": "status", "type": "enum", "description": "Statut opérationnel."}
-      ],
-      "phases": ["Setup", "Rising", "Climax", "Fallout"],
-      "statuts": ["Active", "Suspended", "Completed"]
-    },
+  "crud": {
+    "champs": [
+      {"id": "storylineId", "libelle": "ID"},
+      {"id": "nom", "libelle": "Nom"},
+      {"id": "phase", "libelle": "Phase", "enum": ["BUILD", "PEAK", "BLOWOFF"]},
+      {"id": "statut", "libelle": "Statut", "enum": ["ACTIVE", "SUSPENDUE", "TERMINEE"]},
+      {"id": "heat", "libelle": "Heat", "echelle": "0-100"},
+      {"id": "resume", "libelle": "Résumé"}
+    ],
     "participants": {
-      "champs": [
-        {"id": "storylineId", "type": "string"},
-        {"id": "workerId", "type": "string"},
-        {"id": "role", "type": "string", "description": "Rôle narratif (lead/support)."}
+      "roles": ["principal", "support", "manager"],
+      "regles": [
+        "Au moins 2 participants pour une storyline active.",
+        "Les participants affichent leur momentum."
       ]
     },
-    "events": {
-      "champs": [
-        {"id": "storylineEventId", "type": "string"},
-        {"id": "storylineId", "type": "string"},
-        {"id": "week", "type": "int"},
-        {"id": "segmentId", "type": "string"},
-        {"id": "type", "type": "string"},
-        {"id": "note", "type": "int"},
-        {"id": "heatDelta", "type": "int"},
-        {"id": "momentumDelta", "type": "int"},
-        {"id": "description", "type": "string"}
-      ],
-      "types": ["segment", "news", "decision", "injury"]
-    }
+    "actions": ["creer", "mettre_a_jour", "avancer_phase", "supprimer"]
+  },
+  "liaisonsSegments": {
+    "champ": "storylineId",
+    "types": ["match", "promo", "angle_backstage", "interview", "brawl", "run_in", "video"]
   },
   "heat": {
-    "borne": "0-100",
     "regles": [
-      "Un segment lié apporte un gain de base.",
-      "La qualité du segment module le gain (bon segment = +, mauvais segment = -).",
-      "Une storyline ignorée pendant le show perd de la heat."
+      "Un segment lié fait progresser la heat selon la qualité.",
+      "Plusieurs segments dans un même show appliquent un bonus réduit.",
+      "Une storyline ignorée sur le show perd de la heat."
     ]
   },
   "momentum": {
+    "visibilite": "Momentum des participants affiché dans la liste et le détail.",
     "usage": [
-      "Momentum élevé des participants améliore la progression.",
-      "Momentum faible peut ralentir la montée de heat."
+      "Identifier les participants chauds pour planifier les segments.",
+      "Prioriser les storylines avec momentum positif."
     ]
-  },
-  "ui": {
-    "liste": ["titre", "heat", "phase", "participants", "statut"],
-    "filtres": ["phase", "statut", "heat"]
   }
 }

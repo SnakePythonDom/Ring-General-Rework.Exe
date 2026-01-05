@@ -86,7 +86,11 @@ public sealed class SegmentViewModel : ReactiveObject
     public string? StorylineId
     {
         get => _storylineId;
-        set => this.RaiseAndSetIfChanged(ref _storylineId, value);
+        set
+        {
+            var normalisee = string.IsNullOrWhiteSpace(value) ? null : value;
+            this.RaiseAndSetIfChanged(ref _storylineId, normalisee);
+        }
     }
     private string? _storylineId;
     public string? TitreId { get; }

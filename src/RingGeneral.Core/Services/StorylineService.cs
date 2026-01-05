@@ -1,88 +1,70 @@
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Simulation;
 
 namespace RingGeneral.Core.Services;
 
 public sealed class StorylineService
 {
-    public StorylineDefinition Creer(string compagnieId, string nom, IReadOnlyList<string> participants)
+    private readonly HeatModel _heatModel;
+
+    public StorylineService(HeatModel? heatModel = null)
     {
-        if (string.IsNullOrWhiteSpace(compagnieId))
-        {
-            throw new ArgumentException("CompagnieId requis.", nameof(compagnieId));
-        }
+        _heatModel = heatModel ?? new HeatModel();
+    }
 
-        if (string.IsNullOrWhiteSpace(nom))
-        {
-            throw new ArgumentException("Nom de storyline requis.", nameof(nom));
-        }
+    public StorylineInfo Creer(string storylineId, string nom, IReadOnlyList<StorylineParticipant> participants)
+    {
+        var phase = "BUILD";
+        var statut = "ACTIVE";
 
-        var storylineId = $"STORY-{Guid.NewGuid():N}".ToUpperInvariant();
-        return new StorylineDefinition(
+        return new StorylineInfo(
             storylineId,
-            compagnieId,
-            nom.Trim(),
-            50,
-            StorylinePhase.Setup,
-            StorylineStatus.Active,
+            nom,
+            phase,
+            0,
+            statut,
+            null,
             participants);
     }
 
-    public StorylineDefinition MettreAJour(
-        StorylineDefinition storyline,
+    public StorylineInfo MettreAJour(
+        StorylineInfo storyline,
         string? nom = null,
-        int? heat = null,
-        StorylinePhase? phase = null,
-        StorylineStatus? status = null,
-        IReadOnlyList<string>? participants = null)
+        string? phase = null,
+        string? statut = null,
+        string? resume = null,
+        IReadOnlyList<StorylineParticipant>? participants = null)
     {
         return storyline with
         {
-            Nom = string.IsNullOrWhiteSpace(nom) ? storyline.Nom : nom.Trim(),
-            Heat = heat ?? storyline.Heat,
+            Nom = nom ?? storyline.Nom,
             Phase = phase ?? storyline.Phase,
-            Status = status ?? storyline.Status,
+            Statut = statut ?? storyline.Statut,
+            Resume = resume ?? storyline.Resume,
             Participants = participants ?? storyline.Participants
         };
     }
 
-    public StorylineDefinition Avancer(StorylineDefinition storyline)
+    public StorylineInfo Avancer(StorylineInfo storyline)
     {
-        if (storyline.Status == StorylineStatus.Completed)
+        var phaseSuivante = storyline.Phase switch
         {
-            return storyline with { Heat = Math.Clamp(storyline.Heat, 0, 100) };
-        }
-
-        var heat = Math.Clamp(storyline.Heat, 0, 100);
-        var status = storyline.Status;
-        var phase = storyline.Phase;
-
-        if (heat <= 10)
-        {
-            status = StorylineStatus.Suspended;
-            phase = StorylinePhase.Setup;
-        }
-        else
-        {
-            status = StorylineStatus.Active;
-            phase = heat switch
-            {
-                < 40 => StorylinePhase.Setup,
-                < 70 => StorylinePhase.Rising,
-                < 90 => StorylinePhase.Climax,
-                _ => StorylinePhase.Fallout
-            };
-        }
-
-        if (phase == StorylinePhase.Fallout && heat < 50)
-        {
-            status = StorylineStatus.Completed;
-        }
-
-        return storyline with
-        {
-            Heat = heat,
-            Status = status,
-            Phase = phase
+            "BUILD" => "PEAK",
+            "PEAK" => "BLOWOFF",
+            _ => storyline.Phase
         };
+
+        var statut = storyline.Statut;
+        if (phaseSuivante == "BLOWOFF" && storyline.Heat >= 80)
+        {
+            statut = "TERMINEE";
+        }
+
+        return storyline with { Phase = phaseSuivante, Statut = statut };
+    }
+
+    public int EvaluerDeltaHeatSegment(int noteSegment, int segmentsPrecedents)
+    {
+        return _heatModel.CalculerDeltaSegment(noteSegment, segmentsPrecedents);
     }
 }

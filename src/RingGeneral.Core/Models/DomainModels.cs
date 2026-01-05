@@ -42,24 +42,14 @@ public sealed record TitleInfo(
     int Prestige,
     string? DetenteurId);
 
-public enum StorylinePhase
-{
-    Setup,
-    Rising,
-    Climax,
-    Fallout
-}
-
-public enum StorylineStatus
-{
-    Active,
-    Suspended,
-    Completed
-}
+public sealed record StorylineParticipant(
+    string WorkerId,
+    string Role);
 
 public sealed record StorylineInfo(
     string StorylineId,
     string Nom,
+    string Phase,
     int Heat,
     StorylinePhase Phase,
     StorylineStatus Status,
@@ -145,3 +135,10 @@ public sealed record GameStateDelta(
     IReadOnlyDictionary<string, int> StorylineHeatDelta,
     IReadOnlyDictionary<string, int> TitrePrestigeDelta,
     IReadOnlyList<FinanceTransaction> Finances);
+
+public sealed record StorylineEvent(
+    long StorylineEventId,
+    string StorylineId,
+    string TypeEvenement,
+    int? Semaine,
+    string? Details);

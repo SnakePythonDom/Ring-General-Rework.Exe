@@ -1,20 +1,15 @@
-ALTER TABLE Storylines ADD COLUMN Phase TEXT NOT NULL DEFAULT 'Setup';
-ALTER TABLE Storylines ADD COLUMN Status TEXT NOT NULL DEFAULT 'Active';
+PRAGMA foreign_keys = ON;
+
+ALTER TABLE Storylines ADD COLUMN Phase TEXT NOT NULL DEFAULT 'BUILD';
+ALTER TABLE Storylines ADD COLUMN Status TEXT NOT NULL DEFAULT 'ACTIVE';
+ALTER TABLE Storylines ADD COLUMN Summary TEXT;
 
 CREATE TABLE IF NOT EXISTS StorylineEvents (
     StorylineEventId INTEGER PRIMARY KEY AUTOINCREMENT,
     StorylineId TEXT NOT NULL,
-    Week INTEGER NOT NULL,
-    SegmentId TEXT,
-    Type TEXT NOT NULL,
-    Note INTEGER,
-    HeatDelta INTEGER NOT NULL DEFAULT 0,
-    MomentumDelta INTEGER NOT NULL DEFAULT 0,
-    Description TEXT,
+    EventType TEXT NOT NULL,
+    EventWeek INTEGER,
+    Details TEXT,
     CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (StorylineId) REFERENCES Storylines(StorylineId),
-    FOREIGN KEY (SegmentId) REFERENCES ShowSegments(ShowSegmentId)
+    FOREIGN KEY (StorylineId) REFERENCES Storylines(StorylineId)
 );
-
-CREATE INDEX IF NOT EXISTS idx_storyline_events_storyline ON StorylineEvents(StorylineId);
-CREATE INDEX IF NOT EXISTS idx_storyline_events_week ON StorylineEvents(Week);

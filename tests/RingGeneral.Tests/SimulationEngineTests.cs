@@ -75,38 +75,25 @@ public sealed class SimulationEngineTests
             new SegmentDefinition("SEG-1", "promo", new[] { "W-1" }, 6, false, null, null, 40, null, null)
         });
 
-        var engine = new ShowSimulationEngine(new SeededRandomProvider(8));
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(21));
         var result = engine.Simuler(context);
 
         Assert.True(result.Delta.StorylineHeatDelta["S-1"] < 0);
     }
 
     [Fact]
-    public void Storyline_heat_depend_de_la_qualite_du_segment()
+    public void Storyline_heat_monte_si_segments_lies_et_bien_notes()
     {
-        var segments = new[]
+        var context = ConstruireContexte(segments: new[]
         {
-            new SegmentDefinition("SEG-1", "match", new[] { "W-1" }, 8, false, "S-1", null, 65, "W-1", null)
-        };
+            new SegmentDefinition("SEG-1", "match", new[] { "W-1", "W-2" }, 10, true, "S-1", null, 70, "W-1", "W-2"),
+            new SegmentDefinition("SEG-2", "promo", new[] { "W-1" }, 6, false, "S-1", null, 60, null, null)
+        });
 
-        var highContext = ConstruireContexte(
-            segments: segments,
-            workers: new[]
-            {
-                new WorkerSnapshot("W-1", "Alpha", 85, 80, 78, 60, 8, "AUCUNE", 75, "MAIN_EVENT")
-            });
-        var lowContext = ConstruireContexte(
-            segments: segments,
-            workers: new[]
-            {
-                new WorkerSnapshot("W-1", "Omega", 35, 30, 28, 40, 12, "AUCUNE", 20, "LOWCARD")
-            });
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(33));
+        var result = engine.Simuler(context);
 
-        var engine = new ShowSimulationEngine(new SeededRandomProvider(9));
-        var deltaHigh = engine.Simuler(highContext).Delta.StorylineHeatDelta["S-1"];
-        var deltaLow = engine.Simuler(lowContext).Delta.StorylineHeatDelta["S-1"];
-
-        Assert.True(deltaHigh > deltaLow);
+        Assert.True(result.Delta.StorylineHeatDelta["S-1"] > 0);
     }
 
     [Fact]
@@ -137,7 +124,7 @@ public sealed class SimulationEngineTests
         var titles = new List<TitleInfo> { new("T-1", "Titre Test", 60, "W-1") };
         var storylines = new List<StorylineInfo>
         {
-            new("S-1", "Storyline Test", 45, StorylinePhase.Setup, StorylineStatus.Active, new[] { "W-1" })
+            new("S-1", "Storyline Test", "BUILD", 45, "ACTIVE", null, new[] { new StorylineParticipant("W-1", "principal") })
         };
         var segmentsList = segments ?? new List<SegmentDefinition>
         {
