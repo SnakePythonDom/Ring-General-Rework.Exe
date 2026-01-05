@@ -55,9 +55,39 @@ public sealed class GameSessionViewModel : ViewModelBase
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
-        HistoriqueShows = new ObservableCollection<ShowHistoryEntryViewModel>();
+        StorylinesDisponibles = new ObservableCollection<StorylineOptionViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
+        TableItems = new ObservableCollection<TableViewItemViewModel>();
+        TableItemsView = new DataGridCollectionView(TableItems)
+        {
+            Filter = FiltrerTableItems
+        };
+        TableConfiguration = new TableViewConfigurationViewModel();
+        TableTypeFilters = new ObservableCollection<TableFilterOptionViewModel>
+        {
+            new("tous", "Tous"),
+            new("worker", "Workers"),
+            new("company", "Compagnies"),
+            new("title", "Titres"),
+            new("storyline", "Storylines")
+        };
+        TableStatusFilters = new ObservableCollection<TableFilterOptionViewModel>
+        {
+            new("tous", "Tous"),
+            new("actif", "Actif"),
+            new("repos", "En repos"),
+            new("blesse", "Blessé"),
+            new("vacant", "Vacant"),
+            new("en-cours", "En cours"),
+            new("suspendue", "Suspendue"),
+            new("terminee", "Terminée")
+        };
+        TableSelectedTypeFilter = TableTypeFilters[0];
+        TableSelectedStatusFilter = TableStatusFilters[0];
+        RechercheGlobaleResultats = new ObservableCollection<GlobalSearchResultViewModel>();
+        OuvrirRechercheGlobaleCommand = ReactiveCommand.Create(OuvrirRechercheGlobale);
+        FermerRechercheGlobaleCommand = ReactiveCommand.Create(FermerRechercheGlobale);
         YouthGenerationModes = new[]
         {
             new YouthGenerationOptionViewModel("Désactivée", YouthGenerationMode.Desactivee),
@@ -92,7 +122,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
-    public ObservableCollection<ShowHistoryEntryViewModel> HistoriqueShows { get; }
+    public ObservableCollection<StorylineOptionViewModel> StorylinesDisponibles { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
@@ -214,6 +244,13 @@ public sealed class GameSessionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _nouveauSegmentParticipantId, value);
     }
     private string? _nouveauSegmentParticipantId;
+
+    public string? NouveauSegmentStorylineId
+    {
+        get => _nouveauSegmentStorylineId;
+        set => this.RaiseAndSetIfChanged(ref _nouveauSegmentStorylineId, value);
+    }
+    private string? _nouveauSegmentStorylineId;
 
     public string? ResumeShow
     {
@@ -438,7 +475,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             participants,
             Math.Max(1, NouveauSegmentDuree),
             NouveauSegmentMainEvent,
-            null,
+            NouveauSegmentStorylineId,
             null,
             60,
             null,
@@ -450,6 +487,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauSegmentDuree = 8;
         NouveauSegmentMainEvent = false;
         NouveauSegmentParticipantId = null;
+        NouveauSegmentStorylineId = null;
         ChargerShow();
     }
 
@@ -664,12 +702,37 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerShow()
     {
+        if (_repository is null)
+        {
+            return;
+        }
+
+        _context = _repository.ChargerShowContext(ShowId);
+        if (_context is null)
+        {
+            return;
+        }
+
         Segments.Clear();
         WorkersDisponibles.Clear();
+        StorylinesDisponibles.Clear();
 
         foreach (var worker in _context.Workers)
         {
             WorkersDisponibles.Add(new ParticipantViewModel(worker.WorkerId, worker.NomComplet));
+        }
+
+        StorylinesDisponibles.Add(new StorylineOptionViewModel(null, "Aucune storyline", 0, "-", "N/A"));
+        foreach (var storyline in _context.Storylines)
+        {
+            var phase = ObtenirLibellePhase(storyline.Phase);
+            var statut = ObtenirLibelleStatut(storyline.Status);
+            StorylinesDisponibles.Add(new StorylineOptionViewModel(
+                storyline.StorylineId,
+                $"{storyline.Nom} • Heat {storyline.Heat} • {phase}",
+                storyline.Heat,
+                phase,
+                statut));
         }
 
         foreach (var segment in _context.Segments)
@@ -692,6 +755,9 @@ public sealed class GameSessionViewModel : ViewModelBase
         }
 
         MettreAJourAttributs();
+        MettreAJourTableItems();
+        MettreAJourIndexRechercheGlobale();
+        MettreAJourRechercheGlobale();
         ChargerCalendrier();
         MettreAJourAvertissements();
         InitialiserNouveauShow();
@@ -750,6 +816,109 @@ public sealed class GameSessionViewModel : ViewModelBase
         AttributsPrincipaux.Add(new AttributeViewModel("Momentum", worker.Momentum, _tooltipHelper.Obtenir("attr.momentum")));
     }
 
+    private void MettreAJourTableItems()
+    {
+        TableItems.Clear();
+        if (_context is null)
+        {
+            return;
+        }
+
+        TableItems.Add(new TableViewItemViewModel(
+            _context.Compagnie.CompagnieId,
+            _context.Compagnie.Nom,
+            "Compagnie",
+            _context.Compagnie.Region,
+            "Promotion",
+            "Actif",
+            _context.Compagnie.Prestige,
+            0,
+            _context.Compagnie.AudienceMoyenne,
+            $"Prestige {_context.Compagnie.Prestige}",
+            new[] { _context.Compagnie.Region }));
+
+        foreach (var worker in _context.Workers)
+        {
+            var statut = string.IsNullOrWhiteSpace(worker.Blessure) ? "Actif" : "Blessé";
+            var note = (int)Math.Round((worker.InRing + worker.Entertainment + worker.Story) / 3.0);
+            TableItems.Add(new TableViewItemViewModel(
+                worker.WorkerId,
+                worker.NomComplet,
+                "Worker",
+                _context.Compagnie.Nom,
+                worker.RoleTv,
+                statut,
+                worker.Popularite,
+                worker.Momentum,
+                note,
+                $"{worker.RoleTv} • Popularité {worker.Popularite}",
+                new[] { worker.RoleTv }));
+        }
+
+        foreach (var titre in _context.Titres)
+        {
+            var detenteur = _context.Workers.FirstOrDefault(worker => worker.WorkerId == titre.DetenteurId);
+            var detenteurNom = detenteur?.NomComplet ?? "Vacant";
+            var statut = detenteur is null ? "Vacant" : "Défendu";
+            TableItems.Add(new TableViewItemViewModel(
+                titre.TitreId,
+                titre.Nom,
+                "Titre",
+                _context.Compagnie.Nom,
+                detenteurNom,
+                statut,
+                titre.Prestige,
+                detenteur?.Momentum ?? 0,
+                titre.Prestige,
+                $"Détenteur {detenteurNom}",
+                new[] { statut }));
+        }
+
+        foreach (var storyline in _context.Storylines)
+        {
+            var participants = _context.Workers
+                .Where(worker => storyline.Participants.Contains(worker.WorkerId))
+                .ToList();
+            var nomsParticipants = participants.Select(worker => worker.NomComplet).ToList();
+            var momentum = participants.Count == 0 ? 0 : (int)Math.Round(participants.Average(worker => worker.Momentum));
+            var phase = ObtenirLibellePhase(storyline.Phase);
+            var statut = ObtenirLibelleStatut(storyline.Status);
+            TableItems.Add(new TableViewItemViewModel(
+                storyline.StorylineId,
+                storyline.Nom,
+                "Storyline",
+                _context.Compagnie.Nom,
+                string.Join(", ", nomsParticipants),
+                $"{phase} • {statut}",
+                storyline.Heat,
+                momentum,
+                storyline.Heat,
+                $"Phase {phase} • {statut}",
+                new[] { phase, statut }));
+        }
+
+        MettreAJourResumeTable();
+    }
+
+    private static string ObtenirLibellePhase(StorylinePhase phase)
+        => phase switch
+        {
+            StorylinePhase.Setup => "Lancement",
+            StorylinePhase.Rising => "Montée",
+            StorylinePhase.Climax => "Climax",
+            StorylinePhase.Fallout => "Retombées",
+            _ => phase.ToString()
+        };
+
+    private static string ObtenirLibelleStatut(StorylineStatus status)
+        => status switch
+        {
+            StorylineStatus.Active => "En cours",
+            StorylineStatus.Suspended => "Suspendue",
+            StorylineStatus.Completed => "Terminée",
+            _ => status.ToString()
+        };
+
     private bool FiltrerTableItems(object? item)
     {
         if (item is not TableViewItemViewModel tableItem)
@@ -788,15 +957,18 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         if (TableSelectedStatusFilter.Id != "tous")
         {
-            var statutId = tableItem.Statut.ToLowerInvariant() switch
+            var statutLower = tableItem.Statut.ToLowerInvariant();
+            var statutId = statutLower switch
             {
-                "actif" => "actif",
-                "en repos" => "repos",
-                "blessé" => "blesse",
-                "vacant" => "vacant",
-                "en cours" => "en-cours",
-                "défendu" => "en-cours",
-                _ => tableItem.Statut.ToLowerInvariant()
+                _ when statutLower.Contains("suspendue") => "suspendue",
+                _ when statutLower.Contains("terminée") => "terminee",
+                _ when statutLower.Contains("en cours") => "en-cours",
+                _ when statutLower == "actif" => "actif",
+                _ when statutLower == "en repos" => "repos",
+                _ when statutLower == "blessé" => "blesse",
+                _ when statutLower == "vacant" => "vacant",
+                _ when statutLower == "défendu" => "en-cours",
+                _ => statutLower
             };
 
             if (!statutId.Equals(TableSelectedStatusFilter.Id, StringComparison.OrdinalIgnoreCase))
@@ -858,10 +1030,11 @@ public sealed class GameSessionViewModel : ViewModelBase
                 .Where(worker => storyline.Participants.Contains(worker.WorkerId))
                 .Select(worker => worker.NomComplet)
                 .Take(3);
+            var phase = ObtenirLibellePhase(storyline.Phase);
             _rechercheGlobaleIndex.Add(new GlobalSearchResultViewModel(
                 "Storyline",
                 storyline.Nom,
-                $"Participants {string.Join(", ", participants)}",
+                $"Participants {string.Join(", ", participants)} • Phase {phase}",
                 $"Heat {storyline.Heat}"));
         }
     }
@@ -1071,6 +1244,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauShowLieu = _context.Show.Lieu;
         NouveauShowDiffusion = _context.Show.Diffusion;
         NouveauSegmentTypeId = SegmentTypes.FirstOrDefault()?.Id;
+        NouveauSegmentStorylineId = null;
     }
 
     private void ChargerCalendrier()

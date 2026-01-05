@@ -296,6 +296,14 @@
                                           SelectedValue="{Binding ParticipantSelectionneeId, Mode=TwoWay}" />
                                 <Button Content="Ajouter" Click="OnAjouterParticipant" />
                               </StackPanel>
+                              <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="Storyline" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                <ComboBox Width="240"
+                                          ItemsSource="{Binding DataContext.Session.StorylinesDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
+                                          SelectedValuePath="StorylineId"
+                                          DisplayMemberPath="Libelle"
+                                          SelectedValue="{Binding StorylineId, Mode=TwoWay}" />
+                              </StackPanel>
                             </StackPanel>
                             <CheckBox Grid.Column="3" IsChecked="{Binding EstMainEvent, Mode=TwoWay}" />
                             <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
@@ -338,6 +346,14 @@
                                     DisplayMemberPath="Nom"
                                     SelectedValue="{Binding Session.NouveauSegmentParticipantId, Mode=TwoWay}" />
                           <Button Content="Ajouter" Click="OnAjouterParticipantNouveauSegment" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <TextBlock Text="Storyline" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                          <ComboBox Width="240"
+                                    ItemsSource="{Binding Session.StorylinesDisponibles}"
+                                    SelectedValuePath="StorylineId"
+                                    DisplayMemberPath="Libelle"
+                                    SelectedValue="{Binding Session.NouveauSegmentStorylineId, Mode=TwoWay}" />
                         </StackPanel>
                       </StackPanel>
                       <CheckBox Grid.Column="3" IsChecked="{Binding Session.NouveauSegmentMainEvent, Mode=TwoWay}" />

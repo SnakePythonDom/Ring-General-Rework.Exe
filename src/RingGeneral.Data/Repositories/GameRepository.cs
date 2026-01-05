@@ -2217,6 +2217,8 @@ public sealed class GameRepository : IScoutingRepository
                 storylineId,
                 reader.GetString(1),
                 reader.GetInt32(2),
+                StorylinePhase.Setup,
+                StorylineStatus.Active,
                 ChargerStorylineParticipants(connexion, storylineId)));
         }
 
