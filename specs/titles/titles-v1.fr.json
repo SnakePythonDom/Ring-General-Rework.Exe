@@ -1,48 +1,59 @@
 {
   "meta": {
     "langue": "fr",
-    "specId": "titles.v1",
-    "titre": "Titres complets"
+    "version": "v1",
+    "module": "titres"
   },
-  "modules": [
-    {
-      "id": "crud",
-      "libelle": "Gestion des titres",
-      "fonctionnalites": [
-        "Création, édition et suppression des titres",
-        "Mise à jour du prestige et du statut",
-        "Gestion des champions actuels"
+  "entites": {
+    "titres": {
+      "description": "Titres gérés par la compagnie avec prestige et champion actuel.",
+      "champs": [
+        {"id": "titleId", "libelle": "Identifiant"},
+        {"id": "companyId", "libelle": "Compagnie"},
+        {"id": "nom", "libelle": "Nom"},
+        {"id": "prestige", "libelle": "Prestige", "echelle": "0-100"},
+        {"id": "holderWorkerId", "libelle": "Champion"}
       ]
     },
-    {
-      "id": "regnes",
-      "libelle": "Règnes & historique",
-      "fonctionnalites": [
-        "Enregistrement des changements de champion",
-        "Historique des règnes et dates clés",
-        "Historique des matchs de titre"
+    "regnes": {
+      "description": "Historique des règnes d'un titre.",
+      "champs": [
+        {"id": "titleReignId", "libelle": "Identifiant"},
+        {"id": "titleId", "libelle": "Titre"},
+        {"id": "workerId", "libelle": "Champion"},
+        {"id": "startDate", "libelle": "Début"},
+        {"id": "endDate", "libelle": "Fin"},
+        {"id": "isCurrent", "libelle": "En cours"}
       ]
     },
-    {
-      "id": "contenders",
-      "libelle": "Contenders v1",
-      "fonctionnalites": [
-        "Classement automatique basique",
-        "Exclusion du champion actuel",
-        "Top 5 mis à jour après chaque show"
+    "matchsTitre": {
+      "description": "Matches de titre (défenses, changements).",
+      "champs": [
+        {"id": "titleMatchId", "libelle": "Identifiant"},
+        {"id": "titleId", "libelle": "Titre"},
+        {"id": "showId", "libelle": "Show"},
+        {"id": "week", "libelle": "Semaine"},
+        {"id": "championId", "libelle": "Champion"},
+        {"id": "challengerId", "libelle": "Aspirant"},
+        {"id": "winnerId", "libelle": "Vainqueur"},
+        {"id": "isTitleChange", "libelle": "Changement"},
+        {"id": "prestigeDelta", "libelle": "Variation prestige"}
       ]
     },
-    {
-      "id": "prestige",
-      "libelle": "Prestige dynamique",
-      "fonctionnalites": [
-        "Prestige augmente sur défense réussie",
-        "Prestige baisse lors d'un changement de champion"
+    "contenders": {
+      "description": "Classement automatique des contenders.",
+      "champs": [
+        {"id": "titleId", "libelle": "Titre"},
+        {"id": "workerId", "libelle": "Catcheur"},
+        {"id": "rank", "libelle": "Rang"},
+        {"id": "score", "libelle": "Score"},
+        {"id": "reason", "libelle": "Justification"}
       ]
     }
-  ],
-  "testsAttendus": [
-    "Un changement de champion crée un nouveau règne avec fin du règne précédent.",
-    "Le prestige varie selon les défenses de titre."
+  },
+  "regles": [
+    "Chaque changement de champion crée un nouveau règne.",
+    "Les défenses réussies augmentent le prestige du titre.",
+    "Le classement des contenders exclut le champion en titre."
   ]
 }

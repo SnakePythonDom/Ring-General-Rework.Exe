@@ -5,48 +5,45 @@ namespace RingGeneral.Core.Services;
 
 public sealed class ContenderService
 {
-    public IReadOnlyList<ContenderRankingEntry> CalculerClassement(
-        TitleInfo titre,
-        IReadOnlyList<WorkerSnapshot> workers,
-        int week,
-        int max = 5)
+    private readonly IContenderRepository _repository;
+
+    public ContenderService(IContenderRepository repository)
     {
-        var championId = titre.DetenteurId;
+        _repository = repository;
+    }
+
+    public IReadOnlyList<ContenderRanking> MettreAJourClassement(string titleId, int maxContenders = 5)
+    {
+        var titre = _repository.ChargerTitre(titleId)
+            ?? throw new InvalidOperationException($"Titre introuvable : {titleId}");
+
+        var workers = _repository.ChargerWorkersCompagnie(titre.CompanyId);
         var classement = workers
-            .Where(worker => !string.Equals(worker.WorkerId, championId, StringComparison.OrdinalIgnoreCase))
+            .Where(worker => !string.Equals(worker.WorkerId, titre.HolderWorkerId, StringComparison.OrdinalIgnoreCase))
+            .Where(worker => string.Equals(worker.Blessure, "AUCUNE", StringComparison.OrdinalIgnoreCase))
             .Select(worker => new
             {
-                worker.WorkerId,
+                Worker = worker,
                 Score = CalculerScore(worker)
             })
             .OrderByDescending(entry => entry.Score)
-            .ThenBy(entry => entry.WorkerId)
-            .Take(max)
-            .Select((entry, index) => new ContenderRankingEntry(
-                titre.TitreId,
-                entry.WorkerId,
+            .ThenByDescending(entry => entry.Worker.Popularite)
+            .Take(maxContenders)
+            .Select((entry, index) => new ContenderRanking(
+                titleId,
+                entry.Worker.WorkerId,
                 index + 1,
                 entry.Score,
-                week))
+                $"Popularité {entry.Worker.Popularite} • Momentum {entry.Worker.Momentum}"))
             .ToList();
 
+        _repository.EnregistrerClassement(titleId, classement);
         return classement;
     }
 
-    public IReadOnlyList<ContenderRankingEntry> MettreAJourClassement(
-        IContenderRankingRepository repository,
-        TitleInfo titre,
-        IReadOnlyList<WorkerSnapshot> workers,
-        int week,
-        int max = 5)
+    private static double CalculerScore(WorkerSnapshot worker)
     {
-        var classement = CalculerClassement(titre, workers, week, max);
-        repository.RemplacerClassement(titre.TitreId, week, classement);
-        return classement;
-    }
-
-    private static int CalculerScore(WorkerSnapshot worker)
-    {
-        return worker.Popularite + worker.Momentum * 2 - worker.Fatigue;
+        var technique = (worker.InRing + worker.Entertainment + worker.Story) / 3.0;
+        return (worker.Popularite * 0.6) + (worker.Momentum * 0.2) + (technique * 0.2);
     }
 }

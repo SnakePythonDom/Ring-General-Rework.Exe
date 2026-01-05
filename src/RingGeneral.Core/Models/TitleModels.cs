@@ -1,13 +1,12 @@
 namespace RingGeneral.Core.Models;
 
-public sealed record TitleRecord(
+public sealed record TitleDetail(
     string TitleId,
     string CompanyId,
-    string Name,
     int Prestige,
     string? HolderWorkerId);
 
-public sealed record TitleReignRecord(
+public sealed record TitleReignDetail(
     int TitleReignId,
     string TitleId,
     string WorkerId,
@@ -16,36 +15,31 @@ public sealed record TitleReignRecord(
     bool IsCurrent);
 
 public sealed record TitleMatchRecord(
-    int TitleMatchId,
     string TitleId,
-    string ChampionWorkerId,
-    string ChallengerWorkerId,
-    string WinnerWorkerId,
-    string LoserWorkerId,
-    int Week,
     string? ShowId,
-    string? SegmentId,
-    bool IsTitleChange);
+    int Week,
+    string? ChampionId,
+    string ChallengerId,
+    string WinnerId,
+    bool IsTitleChange,
+    int PrestigeDelta);
 
-public sealed record ContenderRankingEntry(
+public sealed record ContenderRanking(
     string TitleId,
     string WorkerId,
     int Rank,
-    int Score,
-    int Week);
+    double Score,
+    string Reason);
 
-public sealed record TitleDefenseRequest(
+public sealed record TitleMatchInput(
     string TitleId,
-    string ChampionId,
     string ChallengerId,
     string WinnerId,
-    string LoserId,
     int Week,
-    string? ShowId,
-    string? SegmentId);
+    string? ChampionId = null,
+    string? ShowId = null);
 
-public sealed record TitleChangeResult(
-    bool ChampionChange,
+public sealed record TitleMatchOutcome(
+    bool TitleChanged,
     int PrestigeDelta,
-    int? NewReignId,
-    int? ClosedReignId);
+    int? NewReignId);

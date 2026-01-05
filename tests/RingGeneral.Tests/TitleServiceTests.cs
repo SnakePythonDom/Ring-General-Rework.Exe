@@ -1,6 +1,8 @@
-using RingGeneral.Core.Interfaces;
+using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Services;
+using RingGeneral.Data.Database;
+using RingGeneral.Data.Repositories;
 using Xunit;
 
 namespace RingGeneral.Tests;
@@ -8,151 +10,113 @@ namespace RingGeneral.Tests;
 public sealed class TitleServiceTests
 {
     [Fact]
-    public void Changement_champion_cree_un_nouveau_regne()
+    public void ChangementChampionCreeUnNouveauRegne()
     {
-        var repository = new InMemoryTitleRepository();
-        repository.CreerTitre(new TitleRecord("T-1", "COMP-1", "Titre Test", 50, "W-1"));
-        repository.AjouterRegne(new TitleReignRecord(0, "T-1", "W-1", 1, null, true));
+        using var db = CreerBaseDeTest();
+        var repository = new TitleRepository(db.Factory);
         var service = new TitleService(repository);
 
-        var resultat = service.EnregistrerDefense(new TitleDefenseRequest(
-            "T-1",
-            "W-1",
-            "W-2",
-            "W-2",
-            "W-1",
-            10,
-            "SHOW-1",
-            "SEG-1"));
+        var outcome = service.EnregistrerMatch(new TitleMatchInput(
+            "TITLE-1",
+            "WORKER-2",
+            "WORKER-2",
+            5,
+            "WORKER-1"));
 
-        Assert.True(resultat.ChampionChange);
-        Assert.Equal(2, repository.Reigns.Count);
-        Assert.Equal("W-2", repository.Titles["T-1"].HolderWorkerId);
-        Assert.Equal(10, repository.Reigns[0].EndDate);
-        Assert.True(repository.Reigns[1].IsCurrent);
+        Assert.True(outcome.TitleChanged);
+
+        using var connexion = db.Factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT WorkerId, StartDate, EndDate, IsCurrent FROM TitleReigns ORDER BY TitleReignId;";
+        using var reader = command.ExecuteReader();
+        Assert.True(reader.Read());
+        Assert.Equal("WORKER-1", reader.GetString(0));
+        Assert.Equal(1, reader.GetInt32(1));
+        Assert.Equal(5, reader.GetInt32(2));
+        Assert.Equal(0, reader.GetInt32(3));
+        Assert.True(reader.Read());
+        Assert.Equal("WORKER-2", reader.GetString(0));
+        Assert.Equal(5, reader.GetInt32(1));
+        Assert.True(reader.IsDBNull(2));
+        Assert.Equal(1, reader.GetInt32(3));
     }
 
     [Fact]
-    public void Prestige_varie_selon_les_defenses()
+    public void PrestigeVarieApresUneDefenseReussie()
     {
-        var repository = new InMemoryTitleRepository();
-        repository.CreerTitre(new TitleRecord("T-1", "COMP-1", "Titre Test", 50, "W-1"));
-        repository.AjouterRegne(new TitleReignRecord(0, "T-1", "W-1", 1, null, true));
+        using var db = CreerBaseDeTest();
+        var repository = new TitleRepository(db.Factory);
         var service = new TitleService(repository);
 
-        service.EnregistrerDefense(new TitleDefenseRequest(
-            "T-1",
-            "W-1",
-            "W-2",
-            "W-1",
-            "W-2",
-            2,
-            null,
-            null));
-
-        service.EnregistrerDefense(new TitleDefenseRequest(
-            "T-1",
-            "W-1",
-            "W-3",
-            "W-3",
-            "W-1",
+        var outcome = service.EnregistrerMatch(new TitleMatchInput(
+            "TITLE-1",
+            "WORKER-2",
+            "WORKER-1",
             3,
-            null,
-            null));
+            "WORKER-1"));
 
-        Assert.True(repository.PrestigeAdjustments[0].Delta > 0);
-        Assert.True(repository.PrestigeAdjustments[1].Delta < 0);
+        Assert.False(outcome.TitleChanged);
+        Assert.True(outcome.PrestigeDelta > 0);
+
+        using var connexion = db.Factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT Prestige FROM Titles WHERE TitleId = 'TITLE-1';";
+        var prestige = Convert.ToInt32(command.ExecuteScalar());
+        Assert.True(prestige > 40);
     }
 
-    private sealed class InMemoryTitleRepository : ITitleRepository
+    private static TestDatabase CreerBaseDeTest()
     {
-        private int _reignId = 1;
-        private int _matchId = 1;
+        var chemin = Path.Combine(Path.GetTempPath(), $"rg-test-{Guid.NewGuid():N}.db");
+        var initializer = new DbInitializer();
+        initializer.CreateDatabaseIfMissing(chemin);
 
-        public Dictionary<string, TitleRecord> Titles { get; } = new();
-        public List<TitleReignRecord> Reigns { get; } = new();
-        public List<TitleMatchRecord> Matches { get; } = new();
-        public List<(string TitleId, int Delta)> PrestigeAdjustments { get; } = new();
+        var factory = new SqliteConnectionFactory($"Data Source={chemin}");
+        using var connexion = factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "PRAGMA foreign_keys = ON;";
+        command.ExecuteNonQuery();
 
-        public TitleRecord? ChargerTitre(string titleId)
+        InsererDonnees(command, "INSERT INTO Countries (CountryId, Code, Name) VALUES ('COUNTRY-1', 'FR', 'France');");
+        InsererDonnees(command, "INSERT INTO Regions (RegionId, CountryId, Name) VALUES ('REGION-1', 'COUNTRY-1', 'Ile-de-France');");
+        InsererDonnees(command, """
+            INSERT INTO Companies (CompanyId, Name, RegionId, Prestige, Treasury, AverageAudience, Reach, SimLevel)
+            VALUES ('COMP-1', 'Compagnie Test', 'REGION-1', 50, 0, 0, 0, 0);
+            """);
+        InsererDonnees(command, """
+            INSERT INTO Workers (WorkerId, Name, Nationality, CompanyId, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv, SimLevel)
+            VALUES ('WORKER-1', 'Champion', 'FR', 'COMP-1', 70, 60, 50, 65, 0, 'AUCUNE', 10, 'NONE', 0);
+            """);
+        InsererDonnees(command, """
+            INSERT INTO Workers (WorkerId, Name, Nationality, CompanyId, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv, SimLevel)
+            VALUES ('WORKER-2', 'Aspirant', 'FR', 'COMP-1', 65, 55, 45, 60, 0, 'AUCUNE', 8, 'NONE', 0);
+            """);
+        InsererDonnees(command, """
+            INSERT INTO Titles (TitleId, CompanyId, Name, Prestige, HolderWorkerId)
+            VALUES ('TITLE-1', 'COMP-1', 'Titre Test', 40, 'WORKER-1');
+            """);
+        InsererDonnees(command, """
+            INSERT INTO TitleReigns (TitleId, WorkerId, StartDate, IsCurrent)
+            VALUES ('TITLE-1', 'WORKER-1', 1, 1);
+            """);
+
+        return new TestDatabase(factory, chemin);
+    }
+
+    private static void InsererDonnees(SqliteCommand command, string sql)
+    {
+        command.CommandText = sql;
+        command.ExecuteNonQuery();
+    }
+
+    private sealed record TestDatabase(SqliteConnectionFactory Factory, string Chemin) : IDisposable
+    {
+        public void Dispose()
         {
-            return Titles.TryGetValue(titleId, out var title) ? title : null;
-        }
-
-        public IReadOnlyList<TitleRecord> ChargerTitresCompagnie(string companyId)
-        {
-            return Titles.Values.Where(title => title.CompanyId == companyId).ToList();
-        }
-
-        public void CreerTitre(TitleRecord title)
-        {
-            Titles[title.TitleId] = title;
-        }
-
-        public void MettreAJourTitre(TitleRecord title)
-        {
-            Titles[title.TitleId] = title;
-        }
-
-        public void SupprimerTitre(string titleId)
-        {
-            Titles.Remove(titleId);
-            Reigns.RemoveAll(reign => reign.TitleId == titleId);
-            Matches.RemoveAll(match => match.TitleId == titleId);
-        }
-
-        public TitleReignRecord? ChargerRegneActuel(string titleId)
-        {
-            return Reigns.LastOrDefault(reign => reign.TitleId == titleId && reign.IsCurrent);
-        }
-
-        public IReadOnlyList<TitleReignRecord> ChargerRegnes(string titleId)
-        {
-            return Reigns.Where(reign => reign.TitleId == titleId).ToList();
-        }
-
-        public int AjouterRegne(TitleReignRecord reign)
-        {
-            var created = reign with { TitleReignId = _reignId++ };
-            Reigns.Add(created);
-            return created.TitleReignId;
-        }
-
-        public void CloreRegne(int reignId, int endDate)
-        {
-            var index = Reigns.FindIndex(reign => reign.TitleReignId == reignId);
-            if (index >= 0)
+            if (File.Exists(Chemin))
             {
-                var reign = Reigns[index];
-                Reigns[index] = reign with { EndDate = endDate, IsCurrent = false };
+                File.Delete(Chemin);
             }
-        }
-
-        public void MettreAJourDetenteur(string titleId, string? workerId)
-        {
-            if (Titles.TryGetValue(titleId, out var title))
-            {
-                Titles[titleId] = title with { HolderWorkerId = workerId };
-            }
-        }
-
-        public void AjouterMatchTitre(TitleMatchRecord match)
-        {
-            Matches.Add(match with { TitleMatchId = _matchId++ });
-        }
-
-        public IReadOnlyList<TitleMatchRecord> ChargerMatchsTitrePourWorker(string workerId)
-        {
-            return Matches.Where(match =>
-                match.ChampionWorkerId == workerId ||
-                match.ChallengerWorkerId == workerId ||
-                match.WinnerWorkerId == workerId ||
-                match.LoserWorkerId == workerId).ToList();
-        }
-
-        public void AjusterPrestige(string titleId, int delta)
-        {
-            PrestigeAdjustments.Add((titleId, delta));
         }
     }
 }

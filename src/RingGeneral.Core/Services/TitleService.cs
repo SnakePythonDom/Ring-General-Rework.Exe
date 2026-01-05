@@ -12,94 +12,70 @@ public sealed class TitleService
         _repository = repository;
     }
 
-    public void CreerTitre(TitleRecord title, int week)
+    public TitleMatchOutcome EnregistrerMatch(TitleMatchInput input)
     {
-        _repository.CreerTitre(title);
+        var titre = _repository.ChargerTitre(input.TitleId)
+            ?? throw new InvalidOperationException($"Titre introuvable : {input.TitleId}");
 
-        if (!string.IsNullOrWhiteSpace(title.HolderWorkerId))
+        var championActuel = input.ChampionId ?? titre.HolderWorkerId;
+        var changement = !string.IsNullOrWhiteSpace(championActuel)
+            && !string.Equals(championActuel, input.WinnerId, StringComparison.OrdinalIgnoreCase);
+
+        var regneCourant = _repository.ChargerRegneCourant(input.TitleId);
+        var defenses = regneCourant is null
+            ? 0
+            : _repository.CompterDefenses(input.TitleId, regneCourant.StartDate);
+
+        var deltaPrestige = CalculerDeltaPrestige(championActuel, changement, defenses);
+
+        if (string.IsNullOrWhiteSpace(championActuel) || changement)
         {
-            var reign = new TitleReignRecord(0, title.TitleId, title.HolderWorkerId, week, null, true);
-            _repository.AjouterRegne(reign);
-        }
-    }
+            if (regneCourant is not null)
+            {
+                _repository.CloreRegne(regneCourant.TitleReignId, input.Week);
+            }
 
-    public void MettreAJourTitre(TitleRecord title)
-    {
-        _repository.MettreAJourTitre(title);
-    }
-
-    public void SupprimerTitre(string titleId)
-    {
-        _repository.SupprimerTitre(titleId);
-    }
-
-    public TitleChangeResult EnregistrerDefense(TitleDefenseRequest request)
-    {
-        if (!string.Equals(request.WinnerId, request.ChampionId, StringComparison.OrdinalIgnoreCase))
-        {
-            return EnregistrerChangementChampion(request);
-        }
-
-        var match = new TitleMatchRecord(
-            0,
-            request.TitleId,
-            request.ChampionId,
-            request.ChallengerId,
-            request.WinnerId,
-            request.LoserId,
-            request.Week,
-            request.ShowId,
-            request.SegmentId,
-            false);
-        _repository.AjouterMatchTitre(match);
-
-        var delta = CalculerDeltaPrestige(defenseReussie: true, changementChampion: false);
-        _repository.AjusterPrestige(request.TitleId, delta);
-
-        return new TitleChangeResult(false, delta, null, null);
-    }
-
-    private TitleChangeResult EnregistrerChangementChampion(TitleDefenseRequest request)
-    {
-        int? reignClotureId = null;
-        var regneActuel = _repository.ChargerRegneActuel(request.TitleId);
-        if (regneActuel is not null)
-        {
-            _repository.CloreRegne(regneActuel.TitleReignId, request.Week);
-            reignClotureId = regneActuel.TitleReignId;
+            var nouveauRegneId = _repository.CreerRegne(input.TitleId, input.WinnerId, input.Week);
+            _repository.MettreAJourChampion(input.TitleId, input.WinnerId);
+            _repository.AjouterMatch(new TitleMatchRecord(
+                input.TitleId,
+                input.ShowId,
+                input.Week,
+                championActuel,
+                input.ChallengerId,
+                input.WinnerId,
+                true,
+                deltaPrestige));
+            _repository.MettreAJourPrestige(input.TitleId, deltaPrestige);
+            return new TitleMatchOutcome(true, deltaPrestige, nouveauRegneId);
         }
 
-        _repository.MettreAJourDetenteur(request.TitleId, request.WinnerId);
-
-        var nouveauRegne = new TitleReignRecord(0, request.TitleId, request.WinnerId, request.Week, null, true);
-        var nouveauRegneId = _repository.AjouterRegne(nouveauRegne);
-
-        var match = new TitleMatchRecord(
-            0,
-            request.TitleId,
-            request.ChampionId,
-            request.ChallengerId,
-            request.WinnerId,
-            request.LoserId,
-            request.Week,
-            request.ShowId,
-            request.SegmentId,
-            true);
-        _repository.AjouterMatchTitre(match);
-
-        var delta = CalculerDeltaPrestige(defenseReussie: false, changementChampion: true);
-        _repository.AjusterPrestige(request.TitleId, delta);
-
-        return new TitleChangeResult(true, delta, nouveauRegneId, reignClotureId);
+        _repository.AjouterMatch(new TitleMatchRecord(
+            input.TitleId,
+            input.ShowId,
+            input.Week,
+            championActuel,
+            input.ChallengerId,
+            input.WinnerId,
+            false,
+            deltaPrestige));
+        _repository.MettreAJourPrestige(input.TitleId, deltaPrestige);
+        return new TitleMatchOutcome(false, deltaPrestige, null);
     }
 
-    private static int CalculerDeltaPrestige(bool defenseReussie, bool changementChampion)
+    private static int CalculerDeltaPrestige(string? championActuel, bool changement, int defenses)
     {
-        if (changementChampion)
+        if (string.IsNullOrWhiteSpace(championActuel))
         {
-            return -3;
+            return 4;
         }
 
-        return defenseReussie ? 2 : 0;
+        if (changement)
+        {
+            return -2;
+        }
+
+        var bonus = Math.Clamp(defenses / 2, 0, 3);
+        return 2 + bonus;
     }
 }
