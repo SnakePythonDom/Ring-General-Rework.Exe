@@ -1,46 +1,63 @@
-using RingGeneral.Core.Models;
+using System.Collections.Generic;
+using ReactiveUI;
 
 namespace RingGeneral.UI.ViewModels;
 
-public sealed class SegmentTemplateViewModel
+public sealed class SegmentTemplateViewModel : ReactiveObject
 {
     public SegmentTemplateViewModel(
-        SegmentTemplateDefinition definition,
-        IReadOnlyDictionary<string, string> segmentLabels,
-        IReadOnlyDictionary<string, string> matchTypeLabels)
+        string templateId,
+        string nom,
+        string typeSegment,
+        string typeSegmentLibelle,
+        int dureeMinutes,
+        bool estMainEvent,
+        int intensite,
+        string? matchTypeId,
+        string? matchTypeNom)
     {
-        Definition = definition;
-        TemplateId = definition.TemplateId;
-        Libelle = definition.Libelle;
-        Description = definition.Description ?? string.Empty;
-        SegmentsResume = ConstruireResume(definition, segmentLabels, matchTypeLabels);
-        SegmentCount = definition.Segments.Count;
+        TemplateId = templateId;
+        Nom = nom;
+        TypeSegment = typeSegment;
+        TypeSegmentLibelle = typeSegmentLibelle;
+        DureeMinutes = dureeMinutes;
+        EstMainEvent = estMainEvent;
+        Intensite = intensite;
+        MatchTypeId = matchTypeId;
+        MatchTypeNom = matchTypeNom;
     }
 
-    public SegmentTemplateDefinition Definition { get; }
     public string TemplateId { get; }
-    public string Libelle { get; }
-    public string Description { get; }
-    public string SegmentsResume { get; }
-    public int SegmentCount { get; }
+    public string Nom { get; }
+    public string TypeSegment { get; }
+    public string TypeSegmentLibelle { get; }
+    public int DureeMinutes { get; }
+    public bool EstMainEvent { get; }
+    public int Intensite { get; }
+    public string? MatchTypeId { get; }
+    public string? MatchTypeNom { get; }
 
-    private static string ConstruireResume(
-        SegmentTemplateDefinition definition,
-        IReadOnlyDictionary<string, string> segmentLabels,
-        IReadOnlyDictionary<string, string> matchTypeLabels)
+    public string Resume
     {
-        var segments = definition.Segments.Select(segment =>
+        get
         {
-            var typeLabel = segmentLabels.TryGetValue(segment.TypeSegment, out var label)
-                ? label
-                : segment.TypeSegment;
-            var matchLabel = segment.MatchTypeId is not null && matchTypeLabels.TryGetValue(segment.MatchTypeId, out var match)
-                ? $" ({match})"
-                : string.Empty;
-            var mainEvent = segment.EstMainEvent ? " • Main event" : string.Empty;
-            return $"{typeLabel}{matchLabel} {segment.DureeMinutes}min{mainEvent}";
-        });
+            var details = new List<string>
+            {
+                TypeSegmentLibelle,
+                $"{DureeMinutes} min"
+            };
 
-        return string.Join(" | ", segments);
+            if (!string.IsNullOrWhiteSpace(MatchTypeNom))
+            {
+                details.Add(MatchTypeNom);
+            }
+
+            if (EstMainEvent)
+            {
+                details.Add("Main event");
+            }
+
+            return string.Join(" • ", details);
+        }
     }
 }

@@ -401,56 +401,88 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnCreerStoryline(object? sender, RoutedEventArgs e)
+    private void OnAjouterSegment(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)
         {
-            shell.Session.CreerStoryline();
+            shell.Session.AjouterSegment();
         }
     }
 
-    private void OnMettreAJourStoryline(object? sender, RoutedEventArgs e)
+    private void OnAjouterParticipant(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ShellViewModel shell)
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
         {
-            shell.Session.MettreAJourStoryline();
+            shell.Session.AjouterParticipant(segment);
         }
     }
 
-    private void OnAvancerStoryline(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.AvancerStoryline();
-        }
-    }
-
-    private void OnSupprimerStoryline(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.SupprimerStoryline();
-        }
-    }
-
-    private void OnAjouterParticipantStoryline(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.AjouterParticipantStoryline();
-        }
-    }
-
-    private void OnRetirerParticipantStoryline(object? sender, RoutedEventArgs e)
+    private void OnRetirerParticipant(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ShellViewModel shell || sender is not Control control)
         {
             return;
         }
 
-        if (control.DataContext is StorylineParticipantViewModel participant)
+        if (control.DataContext is ParticipantViewModel participant && control.Tag is SegmentViewModel segment)
         {
-            shell.Session.RetirerParticipantStoryline(participant);
+            shell.Session.RetirerParticipant(segment, participant);
+        }
+    }
+
+    private void OnAjouterParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterParticipantNouveauSegment();
+        }
+    }
+
+    private void OnRetirerParticipantNouveauSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant)
+        {
+            shell.Session.RetirerParticipantNouveauSegment(participant);
+        }
+    }
+
+    private void OnEnregistrerSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.EnregistrerSegment(segment);
+        }
+    }
+
+    private void OnCopierSegment(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.CopierSegment(segment);
+        }
+    }
+
+    private void OnDeplacerSegmentHaut(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, -1);
+        }
+    }
+
+    private void OnDeplacerSegmentBas(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
+        {
+            shell.Session.DeplacerSegment(segment, 1);
+        }
+    }
+
+    private void OnAppliquerTemplate(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AppliquerTemplateSelectionnee();
         }
     }
 

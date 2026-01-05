@@ -1,36 +1,33 @@
 {
   "meta": {
     "langue": "fr",
-    "modele": "match-types"
+    "modele": "types-de-match"
   },
   "types": [
     {
-      "id": "simple",
-      "libelle": "Simple",
-      "description": "Un contre un classique.",
-      "participants": 2,
-      "dureeParDefaut": 8
+      "id": "singles",
+      "nom": "Singles",
+      "description": "1 contre 1",
+      "actif": true
     },
     {
       "id": "tag",
-      "libelle": "Tag",
-      "description": "Deux contre deux.",
-      "participants": 4,
-      "dureeParDefaut": 10
+      "nom": "Tag team",
+      "description": "2 contre 2",
+      "actif": true
     },
     {
-      "id": "triple",
-      "libelle": "Triple menace",
-      "description": "Trois participants.",
-      "participants": 3,
-      "dureeParDefaut": 9
+      "id": "triple-threat",
+      "nom": "Triple threat",
+      "description": "3 participants, sans élimination",
+      "actif": true
     },
     {
-      "id": "fatal4",
-      "libelle": "Fatal 4-Way",
-      "description": "Quatre participants.",
-      "participants": 4,
-      "dureeParDefaut": 10
+      "id": "fatal-four-way",
+      "nom": "Fatal four-way",
+      "description": "4 participants, vainqueur direct",
+      "actif": false
     }
-  ]
+  ],
+  "etatVide": "Aucun type de match défini."
 }

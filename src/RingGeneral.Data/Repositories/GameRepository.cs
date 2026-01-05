@@ -374,18 +374,21 @@ public sealed class GameRepository : IScoutingRepository
                 valeur INTEGER NOT NULL,
                 UNIQUE(entity_type, entity_id, region)
             );
-            CREATE TABLE IF NOT EXISTS MatchTypes (
-                MatchTypeId TEXT PRIMARY KEY,
-                Libelle TEXT NOT NULL,
-                Description TEXT,
-                Participants INTEGER,
-                DureeParDefaut INTEGER
+            CREATE TABLE IF NOT EXISTS match_types (
+                match_type_id TEXT PRIMARY KEY,
+                nom TEXT NOT NULL,
+                description TEXT,
+                actif INTEGER NOT NULL,
+                ordre INTEGER NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS SegmentTemplates (
-                TemplateId TEXT PRIMARY KEY,
-                Libelle TEXT NOT NULL,
-                Description TEXT,
-                SegmentsJson TEXT NOT NULL
+            CREATE TABLE IF NOT EXISTS segment_templates (
+                template_id TEXT PRIMARY KEY,
+                nom TEXT NOT NULL,
+                type_segment TEXT NOT NULL,
+                duree INTEGER NOT NULL,
+                main_event INTEGER NOT NULL,
+                intensite INTEGER NOT NULL,
+                match_type_id TEXT
             );
             CREATE INDEX IF NOT EXISTS idx_workers_company ON workers(company_id);
             CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
@@ -404,10 +407,8 @@ public sealed class GameRepository : IScoutingRepository
             CREATE INDEX IF NOT EXISTS idx_youth_staff_youth ON youth_staff_assignments(youth_id);
             CREATE INDEX IF NOT EXISTS idx_worker_attributes_worker ON worker_attributes(worker_id);
             CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
-            CREATE INDEX IF NOT EXISTS idx_injuries_worker ON injuries(worker_id);
-            CREATE INDEX IF NOT EXISTS idx_injuries_statut ON injuries(statut);
-            CREATE INDEX IF NOT EXISTS idx_medical_notes_worker ON medical_notes(worker_id);
-            CREATE INDEX IF NOT EXISTS idx_recovery_plans_worker ON recovery_plans(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_match_types_actif ON match_types(actif);
+            CREATE INDEX IF NOT EXISTS idx_segment_templates_type ON segment_templates(type_segment);
             """;
         commande.ExecuteNonQuery();
 
@@ -420,6 +421,8 @@ public sealed class GameRepository : IScoutingRepository
         {
             SeedDatabase(connexion);
         }
+
+        InitialiserBibliotheque(connexion);
     }
 
     public ShowContext? ChargerShowContext(string showId)
@@ -679,19 +682,74 @@ public sealed class GameRepository : IScoutingRepository
         transaction.Commit();
     }
 
-    public void SupprimerSegment(string segmentId)
+    public IReadOnlyList<SegmentTemplate> ChargerSegmentTemplates()
     {
         using var connexion = _factory.OuvrirConnexion();
-        using var transaction = connexion.BeginTransaction();
-        SupprimerParticipants(connexion, transaction, segmentId);
-        SupprimerSettings(connexion, transaction, segmentId);
-
         using var command = connexion.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = "DELETE FROM ShowSegments WHERE ShowSegmentId = $segmentId;";
-        command.Parameters.AddWithValue("$segmentId", segmentId);
+        command.CommandText = """
+            SELECT template_id, nom, type_segment, duree, main_event, intensite, match_type_id
+            FROM segment_templates
+            ORDER BY nom ASC;
+            """;
+        using var reader = command.ExecuteReader();
+        var templates = new List<SegmentTemplate>();
+        while (reader.Read())
+        {
+            templates.Add(new SegmentTemplate(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4) == 1,
+                reader.GetInt32(5),
+                reader.IsDBNull(6) ? null : reader.GetString(6)));
+        }
+
+        return templates;
+    }
+
+    public IReadOnlyList<MatchType> ChargerMatchTypes()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT match_type_id, nom, description, actif, ordre
+            FROM match_types
+            ORDER BY ordre ASC, nom ASC;
+            """;
+        using var reader = command.ExecuteReader();
+        var types = new List<MatchType>();
+        while (reader.Read())
+        {
+            types.Add(new MatchType(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.IsDBNull(2) ? null : reader.GetString(2),
+                reader.GetInt32(3) == 1,
+                reader.GetInt32(4)));
+        }
+
+        return types;
+    }
+
+    public void MettreAJourMatchType(MatchType matchType)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE match_types
+            SET nom = $nom,
+                description = $description,
+                actif = $actif,
+                ordre = $ordre
+            WHERE match_type_id = $id;
+            """;
+        command.Parameters.AddWithValue("$id", matchType.MatchTypeId);
+        command.Parameters.AddWithValue("$nom", matchType.Nom);
+        command.Parameters.AddWithValue("$description", (object?)matchType.Description ?? DBNull.Value);
+        command.Parameters.AddWithValue("$actif", matchType.EstActif ? 1 : 0);
+        command.Parameters.AddWithValue("$ordre", matchType.Ordre);
         command.ExecuteNonQuery();
-        transaction.Commit();
     }
 
     public void EnregistrerRapport(ShowReport rapport)
@@ -3621,6 +3679,56 @@ public sealed class GameRepository : IScoutingRepository
             VALUES (1, 'Realiste', 'Desactivee', 1);
             """;
         settingsCommand.ExecuteNonQuery();
+
+        transaction.Commit();
+    }
+
+    private static void InitialiserBibliotheque(SqliteConnection connexion)
+    {
+        using var matchCountCommand = connexion.CreateCommand();
+        matchCountCommand.CommandText = "SELECT COUNT(1) FROM match_types";
+        var matchCount = Convert.ToInt32(matchCountCommand.ExecuteScalar());
+
+        using var templateCountCommand = connexion.CreateCommand();
+        templateCountCommand.CommandText = "SELECT COUNT(1) FROM segment_templates";
+        var templateCount = Convert.ToInt32(templateCountCommand.ExecuteScalar());
+
+        if (matchCount > 0 && templateCount > 0)
+        {
+            return;
+        }
+
+        using var transaction = connexion.BeginTransaction();
+
+        if (matchCount == 0)
+        {
+            using var matchCommand = connexion.CreateCommand();
+            matchCommand.Transaction = transaction;
+            matchCommand.CommandText = """
+                INSERT INTO match_types (match_type_id, nom, description, actif, ordre)
+                VALUES
+                ('singles', 'Singles', '1 contre 1', 1, 1),
+                ('tag', 'Tag team', '2 contre 2', 1, 2),
+                ('triple-threat', 'Triple threat', '3 participants, sans élimination', 1, 3),
+                ('fatal-four-way', 'Fatal four-way', '4 participants, vainqueur direct', 0, 4);
+                """;
+            matchCommand.ExecuteNonQuery();
+        }
+
+        if (templateCount == 0)
+        {
+            using var templateCommand = connexion.CreateCommand();
+            templateCommand.Transaction = transaction;
+            templateCommand.CommandText = """
+                INSERT INTO segment_templates (template_id, nom, type_segment, duree, main_event, intensite, match_type_id)
+                VALUES
+                ('tpl-open-promo', 'Ouverture promo', 'promo', 6, 0, 35, NULL),
+                ('tpl-angle-backstage', 'Angle backstage', 'angle_backstage', 4, 0, 30, NULL),
+                ('tpl-match-simple', 'Match simple', 'match', 10, 0, 60, 'singles'),
+                ('tpl-main-event', 'Main event classique', 'match', 18, 1, 75, 'singles');
+                """;
+            templateCommand.ExecuteNonQuery();
+        }
 
         transaction.Commit();
     }

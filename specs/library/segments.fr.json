@@ -1,62 +1,43 @@
 {
   "meta": {
     "langue": "fr",
-    "modele": "templates-segments"
+    "modele": "bibliotheque-segments"
   },
   "templates": [
     {
-      "id": "ouverture-dynamique",
-      "libelle": "Ouverture dynamique",
-      "description": "Promo rapide + match d'ouverture pour lancer le show.",
-      "segments": [
-        {
-          "typeSegment": "promo",
-          "duree": 3,
-          "autoParticipants": 1,
-          "mainEvent": false
-        },
-        {
-          "typeSegment": "match",
-          "duree": 8,
-          "autoParticipants": 2,
-          "matchTypeId": "simple",
-          "mainEvent": false
-        }
-      ]
+      "id": "tpl-open-promo",
+      "nom": "Ouverture promo",
+      "typeSegment": "promo",
+      "duree": 6,
+      "intensite": 35,
+      "mainEvent": false
     },
     {
-      "id": "relance-storyline",
-      "libelle": "Relance storyline",
-      "description": "Angle backstage puis match pour faire avancer la rivalité.",
-      "segments": [
-        {
-          "typeSegment": "angle_backstage",
-          "duree": 2,
-          "autoParticipants": 2,
-          "mainEvent": false
-        },
-        {
-          "typeSegment": "match",
-          "duree": 10,
-          "autoParticipants": 2,
-          "matchTypeId": "simple",
-          "mainEvent": false
-        }
-      ]
+      "id": "tpl-angle-backstage",
+      "nom": "Angle backstage",
+      "typeSegment": "angle_backstage",
+      "duree": 4,
+      "intensite": 30,
+      "mainEvent": false
     },
     {
-      "id": "main-event-classique",
-      "libelle": "Main event classique",
-      "description": "Match long en conclusion.",
-      "segments": [
-        {
-          "typeSegment": "match",
-          "duree": 15,
-          "autoParticipants": 2,
-          "matchTypeId": "simple",
-          "mainEvent": true
-        }
-      ]
+      "id": "tpl-match-simple",
+      "nom": "Match simple",
+      "typeSegment": "match",
+      "matchTypeId": "singles",
+      "duree": 10,
+      "intensite": 60,
+      "mainEvent": false
+    },
+    {
+      "id": "tpl-main-event",
+      "nom": "Main event classique",
+      "typeSegment": "match",
+      "matchTypeId": "singles",
+      "duree": 18,
+      "intensite": 75,
+      "mainEvent": true
     }
-  ]
+  ],
+  "etatVide": "Aucun template de segment disponible."
 }

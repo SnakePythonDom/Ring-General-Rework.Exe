@@ -7,32 +7,25 @@ namespace RingGeneral.Tests;
 public sealed class TemplateServiceTests
 {
     [Fact]
-    public void AppliquerTemplate_cree_les_segments_attendus()
+    public void Appliquer_template_cree_un_segment_base()
     {
-        var template = new SegmentTemplateDefinition(
-            "template-test",
-            "Template test",
-            "Description",
-            new List<SegmentTemplateSegmentDefinition>
-            {
-                new("match", 8, false, 2, "simple"),
-                new("promo", 3, false, 1, null)
-            });
-
-        var workers = new List<WorkerSnapshot>
-        {
-            new("W-001", "Worker 1", 50, 50, 50, 50, 10, "AUCUNE", 40, "NONE"),
-            new("W-002", "Worker 2", 50, 50, 50, 50, 10, "AUCUNE", 40, "NONE"),
-            new("W-003", "Worker 3", 50, 50, 50, 50, 10, "AUCUNE", 40, "NONE")
-        };
-
+        var template = new SegmentTemplate(
+            "TPL-001",
+            "Match rapide",
+            "match",
+            10,
+            false,
+            65,
+            "singles");
         var service = new TemplateService();
-        var segments = service.AppliquerTemplate(template, workers);
 
-        Assert.Equal(2, segments.Count);
-        Assert.Equal(2, segments[0].Participants.Count);
-        Assert.Equal(1, segments[1].Participants.Count);
-        Assert.Equal("match", segments[0].TypeSegment);
-        Assert.Equal("promo", segments[1].TypeSegment);
+        var segment = service.AppliquerTemplate(template);
+
+        Assert.StartsWith("SEG-", segment.SegmentId);
+        Assert.Equal("match", segment.TypeSegment);
+        Assert.Equal(10, segment.DureeMinutes);
+        Assert.False(segment.EstMainEvent);
+        Assert.Equal(65, segment.Intensite);
+        Assert.Empty(segment.Participants);
     }
 }

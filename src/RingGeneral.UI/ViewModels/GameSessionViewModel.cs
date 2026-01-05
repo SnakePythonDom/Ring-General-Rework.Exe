@@ -23,6 +23,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly MedicalRepository _medicalRepository;
     private readonly InjuryService _injuryService;
     private readonly BookingValidator _validator = new();
+    private readonly TemplateService _templateService = new();
     private readonly IReadOnlyDictionary<string, string> _segmentLabels;
     private readonly TemplateService _templateService = new();
     private readonly HelpContentProvider _helpProvider = new();
@@ -60,8 +61,8 @@ public sealed class GameSessionViewModel : ViewModelBase
         ImpactPages = new ObservableCollection<ImpactPageViewModel>();
         ShowsAVenir = new ObservableCollection<ShowCalendarItemViewModel>();
         SegmentTypes = new ObservableCollection<SegmentTypeOptionViewModel>();
-        StorylinesDisponibles = new ObservableCollection<StorylineOptionViewModel>();
-        TitresDisponibles = new ObservableCollection<TitleOptionViewModel>();
+        SegmentTemplates = new ObservableCollection<SegmentTemplateViewModel>();
+        MatchTypes = new ObservableCollection<MatchTypeViewModel>();
         WorkersDisponibles = new ObservableCollection<ParticipantViewModel>();
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
@@ -129,6 +130,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         InitialiserConsignesBooking();
         InitialiserBibliotheque();
         ChargerShow();
+        ChargerBibliotheque();
         ChargerInbox();
         ChargerHistoriqueShow();
         ChargerImpactsInitial();
@@ -146,8 +148,8 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<ImpactPageViewModel> ImpactPages { get; }
     public ObservableCollection<ShowCalendarItemViewModel> ShowsAVenir { get; }
     public ObservableCollection<SegmentTypeOptionViewModel> SegmentTypes { get; }
-    public ObservableCollection<StorylineOptionViewModel> StorylinesDisponibles { get; }
-    public ObservableCollection<TitleOptionViewModel> TitresDisponibles { get; }
+    public ObservableCollection<SegmentTemplateViewModel> SegmentTemplates { get; }
+    public ObservableCollection<MatchTypeViewModel> MatchTypes { get; }
     public ObservableCollection<ParticipantViewModel> WorkersDisponibles { get; }
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
@@ -578,6 +580,27 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauSegmentMainEvent = false;
         NouveauSegmentParticipantId = null;
         NouveauSegmentStorylineId = null;
+        ChargerShow();
+    }
+
+    public void AppliquerTemplateSelectionnee()
+    {
+        if (_context is null || TemplateSelectionnee is null)
+        {
+            return;
+        }
+
+        var template = new SegmentTemplate(
+            TemplateSelectionnee.TemplateId,
+            TemplateSelectionnee.Nom,
+            TemplateSelectionnee.TypeSegment,
+            TemplateSelectionnee.DureeMinutes,
+            TemplateSelectionnee.EstMainEvent,
+            TemplateSelectionnee.Intensite,
+            TemplateSelectionnee.MatchTypeId);
+
+        var segment = _templateService.AppliquerTemplate(template);
+        _repository.AjouterSegment(_context.Show.ShowId, segment, Segments.Count + 1);
         ChargerShow();
     }
 
@@ -1021,6 +1044,50 @@ public sealed class GameSessionViewModel : ViewModelBase
         segmentCible.EstMainEvent = true;
         EnregistrerSegment(segmentCible);
         SegmentSelectionne = segmentCible;
+    }
+
+    private void ChargerBibliotheque()
+    {
+        SegmentTemplates.Clear();
+        MatchTypes.Clear();
+
+        if (_repository is null)
+        {
+            return;
+        }
+
+        var matchTypes = _repository.ChargerMatchTypes();
+        var matchMap = matchTypes.ToDictionary(type => type.MatchTypeId, type => type.Nom);
+        foreach (var matchType in matchTypes)
+        {
+            var vm = new MatchTypeViewModel(matchType.MatchTypeId, matchType.Nom, matchType.Description, matchType.EstActif, matchType.Ordre);
+            vm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(MatchTypeViewModel.EstActif))
+                {
+                    _repository.MettreAJourMatchType(vm.VersModele());
+                }
+            };
+            MatchTypes.Add(vm);
+        }
+
+        foreach (var template in _repository.ChargerSegmentTemplates())
+        {
+            var label = _segmentLabels.TryGetValue(template.TypeSegment, out var libelle) ? libelle : template.TypeSegment;
+            matchMap.TryGetValue(template.MatchTypeId ?? string.Empty, out var matchNom);
+            SegmentTemplates.Add(new SegmentTemplateViewModel(
+                template.TemplateId,
+                template.Nom,
+                template.TypeSegment,
+                label,
+                template.DureeMinutes,
+                template.EstMainEvent,
+                template.Intensite,
+                template.MatchTypeId,
+                matchNom));
+        }
+
+        TemplateSelectionnee ??= SegmentTemplates.FirstOrDefault();
     }
 
     private void ChargerInbox()
