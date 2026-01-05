@@ -4,60 +4,32 @@ namespace RingGeneral.Core.Services;
 
 public sealed class MedicalRecommendations
 {
-    public MedicalRecommendation Evaluer(int fatigue, InjurySeverity severity)
+    public MedicalRecommendation Recommander(int fatigue, int severite)
     {
-        var baseRest = severity switch
+        var fatigueClamped = Math.Clamp(fatigue, 0, 100);
+        var severiteClamped = Math.Clamp(severite, 0, 100);
+
+        var repos = (int)Math.Ceiling(severiteClamped / 25.0 + fatigueClamped / 40.0);
+        if (severiteClamped == 0)
         {
-            InjurySeverity.Legere => 1,
-            InjurySeverity.Moyenne => 3,
-            InjurySeverity.Grave => 6,
-            _ => 0
-        };
-
-        var fatigueBonus = fatigue switch
-        {
-            >= 85 => 2,
-            >= 70 => 1,
-            _ => 0
-        };
-
-        var repos = baseRest + fatigueBonus;
-        var niveau = DeterminerRisque(fatigue, severity);
-        var message = niveau switch
-        {
-            "Élevé" => "Repos renforcé recommandé pour limiter le risque.",
-            "Modéré" => "Repos et suivi conseillés avant le retour.",
-            _ => "Surveiller la charge de travail."
-        };
-
-        return new MedicalRecommendation(repos, niveau, message);
-    }
-
-    public MedicalRiskAssessment EvaluerRisque(int fatigue, InjurySeverity severity)
-    {
-        var niveau = DeterminerRisque(fatigue, severity);
-        var message = niveau switch
-        {
-            "Élevé" => "Risque élevé de rechute, ajuster la charge immédiatement.",
-            "Modéré" => "Risque modéré, prévoir un repos supplémentaire.",
-            _ => "Risque faible, maintien sous surveillance."
-        };
-
-        return new MedicalRiskAssessment(niveau, message);
-    }
-
-    private static string DeterminerRisque(int fatigue, InjurySeverity severity)
-    {
-        if (severity == InjurySeverity.Grave || fatigue >= 70)
-        {
-            return "Élevé";
+            repos = Math.Max(0, repos - 1);
         }
 
-        if (severity == InjurySeverity.Moyenne || fatigue >= 50)
-        {
-            return "Modéré";
-        }
+        repos = Math.Clamp(repos, severiteClamped > 0 ? 1 : 0, 8);
 
-        return "Faible";
+        var risque = Math.Clamp((severiteClamped / 100.0) * 0.6 + (fatigueClamped / 100.0) * 0.4, 0, 1);
+        var niveau = risque switch
+        {
+            < 0.25 => "faible",
+            < 0.5 => "modéré",
+            < 0.75 => "élevé",
+            _ => "critique"
+        };
+
+        var conseil = repos == 0
+            ? "Surveillez la charge de travail et privilégiez la récupération légère."
+            : $"Repos conseillé : {repos} semaine(s), éviter les matchs intenses.";
+
+        return new MedicalRecommendation(repos, risque, niveau, conseil);
     }
 }

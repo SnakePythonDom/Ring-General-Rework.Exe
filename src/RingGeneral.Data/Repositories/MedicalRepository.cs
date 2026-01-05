@@ -1,10 +1,11 @@
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class MedicalRepository
+public sealed class MedicalRepository : RepositoryBase, IMedicalRepository
 {
     private readonly SqliteConnectionFactory _factory;
 
@@ -13,40 +14,147 @@ public sealed class MedicalRepository
         _factory = factory;
     }
 
-    public void AjouterBlessure(InjuryRecord injury)
+    public int AjouterBlessure(Injury injury)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO injuries (injury_id, worker_id, type, severite, statut, semaine_debut, semaine_fin, duree_semaines)
-            VALUES ($id, $workerId, $type, $severite, $statut, $debut, $fin, $duree);
+            INSERT INTO Injuries (WorkerId, Type, Severity, StartDate, EndDate, IsActive, Notes, RiskLevel)
+            VALUES ($workerId, $type, $severity, $startDate, $endDate, $isActive, $notes, $risk);
+            SELECT last_insert_rowid();
             """;
-        command.Parameters.AddWithValue("$id", injury.InjuryId);
-        command.Parameters.AddWithValue("$workerId", injury.WorkerId);
-        command.Parameters.AddWithValue("$type", injury.Type);
-        command.Parameters.AddWithValue("$severite", injury.Severity.ToString().ToUpperInvariant());
-        command.Parameters.AddWithValue("$statut", injury.Status.ToString().ToUpperInvariant());
-        command.Parameters.AddWithValue("$debut", injury.WeekStart);
-        command.Parameters.AddWithValue("$fin", (object?)injury.WeekEnd ?? DBNull.Value);
-        command.Parameters.AddWithValue("$duree", injury.DurationWeeks);
+        AjouterParametre(command, "$workerId", injury.WorkerId);
+        AjouterParametre(command, "$type", injury.Type);
+        AjouterParametre(command, "$severity", injury.Severity);
+        AjouterParametre(command, "$startDate", injury.StartWeek);
+        AjouterParametre(command, "$endDate", (object?)injury.EndWeek ?? DBNull.Value);
+        AjouterParametre(command, "$isActive", injury.IsActive ? 1 : 0);
+        AjouterParametre(command, "$notes", (object?)injury.Notes ?? DBNull.Value);
+        AjouterParametre(command, "$risk", injury.RiskLevel);
+
+        var result = command.ExecuteScalar();
+        return result is null or DBNull ? 0 : Convert.ToInt32(result);
+    }
+
+    public Injury? ChargerBlessure(int injuryId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT InjuryId, WorkerId, Type, Severity, StartDate, EndDate, IsActive, Notes, RiskLevel
+            FROM Injuries
+            WHERE InjuryId = $injuryId;
+            """;
+        AjouterParametre(command, "$injuryId", injuryId);
+
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new Injury(
+            reader.GetInt32(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetInt32(3),
+            reader.GetInt32(4),
+            reader.IsDBNull(5) ? null : reader.GetInt32(5),
+            reader.GetInt32(6) == 1,
+            reader.IsDBNull(7) ? null : reader.GetString(7),
+            reader.IsDBNull(8) ? 0 : reader.GetDouble(8));
+    }
+
+    public void MettreAJourBlessure(Injury injury)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE Injuries
+            SET Type = $type,
+                Severity = $severity,
+                StartDate = $startDate,
+                EndDate = $endDate,
+                IsActive = $isActive,
+                Notes = $notes,
+                RiskLevel = $risk
+            WHERE InjuryId = $injuryId;
+            """;
+        AjouterParametre(command, "$injuryId", injury.InjuryId);
+        AjouterParametre(command, "$type", injury.Type);
+        AjouterParametre(command, "$severity", injury.Severity);
+        AjouterParametre(command, "$startDate", injury.StartWeek);
+        AjouterParametre(command, "$endDate", (object?)injury.EndWeek ?? DBNull.Value);
+        AjouterParametre(command, "$isActive", injury.IsActive ? 1 : 0);
+        AjouterParametre(command, "$notes", (object?)injury.Notes ?? DBNull.Value);
+        AjouterParametre(command, "$risk", injury.RiskLevel);
         command.ExecuteNonQuery();
     }
 
-    public void MettreAJourBlessure(InjuryRecord injury)
+    public int AjouterPlan(RecoveryPlan plan)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            UPDATE injuries
-            SET statut = $statut,
-                semaine_fin = $fin,
-                duree_semaines = $duree
-            WHERE injury_id = $id;
+            INSERT INTO RecoveryPlans (InjuryId, WorkerId, StartWeek, TargetWeek, Status, Notes, CompletedWeek)
+            VALUES ($injuryId, $workerId, $startWeek, $targetWeek, $status, $notes, $completedWeek);
+            SELECT last_insert_rowid();
             """;
-        command.Parameters.AddWithValue("$id", injury.InjuryId);
-        command.Parameters.AddWithValue("$statut", injury.Status.ToString().ToUpperInvariant());
-        command.Parameters.AddWithValue("$fin", (object?)injury.WeekEnd ?? DBNull.Value);
-        command.Parameters.AddWithValue("$duree", injury.DurationWeeks);
+        AjouterParametre(command, "$injuryId", plan.InjuryId);
+        AjouterParametre(command, "$workerId", plan.WorkerId);
+        AjouterParametre(command, "$startWeek", plan.StartWeek);
+        AjouterParametre(command, "$targetWeek", plan.TargetWeek);
+        AjouterParametre(command, "$status", plan.Status);
+        AjouterParametre(command, "$notes", (object?)plan.Notes ?? DBNull.Value);
+        AjouterParametre(command, "$completedWeek", (object?)plan.CompletedWeek ?? DBNull.Value);
+
+        var result = command.ExecuteScalar();
+        return result is null or DBNull ? 0 : Convert.ToInt32(result);
+    }
+
+    public RecoveryPlan? ChargerPlanPourBlessure(int injuryId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT RecoveryPlanId, InjuryId, WorkerId, StartWeek, TargetWeek, Status, Notes, CompletedWeek
+            FROM RecoveryPlans
+            WHERE InjuryId = $injuryId
+            ORDER BY RecoveryPlanId DESC
+            LIMIT 1;
+            """;
+        AjouterParametre(command, "$injuryId", injuryId);
+
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new RecoveryPlan(
+            reader.GetInt32(0),
+            reader.GetInt32(1),
+            reader.GetString(2),
+            reader.GetInt32(3),
+            reader.GetInt32(4),
+            reader.GetString(5),
+            reader.IsDBNull(6) ? null : reader.GetString(6),
+            reader.IsDBNull(7) ? null : reader.GetInt32(7));
+    }
+
+    public void MettreAJourPlanStatut(int injuryId, string statut, int? completedWeek)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE RecoveryPlans
+            SET Status = $status,
+                CompletedWeek = $completedWeek
+            WHERE InjuryId = $injuryId;
+            """;
+        AjouterParametre(command, "$injuryId", injuryId);
+        AjouterParametre(command, "$status", statut);
+        AjouterParametre(command, "$completedWeek", (object?)completedWeek ?? DBNull.Value);
         command.ExecuteNonQuery();
     }
 
@@ -55,68 +163,41 @@ public sealed class MedicalRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO medical_notes (note_id, worker_id, injury_id, type_note, contenu, semaine, auteur)
-            VALUES ($id, $workerId, $injuryId, $type, $contenu, $semaine, $auteur);
+            INSERT INTO MedicalNotes (WorkerId, InjuryId, Week, Content)
+            VALUES ($workerId, $injuryId, $week, $content);
             """;
-        command.Parameters.AddWithValue("$id", note.NoteId);
-        command.Parameters.AddWithValue("$workerId", note.WorkerId);
-        command.Parameters.AddWithValue("$injuryId", (object?)note.InjuryId ?? DBNull.Value);
-        command.Parameters.AddWithValue("$type", note.Type);
-        command.Parameters.AddWithValue("$contenu", note.Content);
-        command.Parameters.AddWithValue("$semaine", note.Week);
-        command.Parameters.AddWithValue("$auteur", (object?)note.Author ?? DBNull.Value);
+        AjouterParametre(command, "$workerId", note.WorkerId);
+        AjouterParametre(command, "$injuryId", (object?)note.InjuryId ?? DBNull.Value);
+        AjouterParametre(command, "$week", note.Week);
+        AjouterParametre(command, "$content", note.Content);
         command.ExecuteNonQuery();
     }
 
-    public void AjouterPlan(RecoveryPlan plan)
+    public void MettreAJourStatutBlessureWorker(string workerId, string statut)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO recovery_plans (plan_id, injury_id, worker_id, statut, semaine_debut, semaine_fin, duree_semaines, repos_conseille, restrictions, notes)
-            VALUES ($id, $injuryId, $workerId, $statut, $debut, $fin, $duree, $repos, $restrictions, $notes);
+            UPDATE Workers
+            SET InjuryStatus = $status
+            WHERE WorkerId = $workerId;
             """;
-        command.Parameters.AddWithValue("$id", plan.PlanId);
-        command.Parameters.AddWithValue("$injuryId", plan.InjuryId);
-        command.Parameters.AddWithValue("$workerId", plan.WorkerId);
-        command.Parameters.AddWithValue("$statut", plan.Status.ToString().ToUpperInvariant());
-        command.Parameters.AddWithValue("$debut", plan.WeekStart);
-        command.Parameters.AddWithValue("$fin", (object?)plan.WeekEnd ?? DBNull.Value);
-        command.Parameters.AddWithValue("$duree", plan.DurationWeeks);
-        command.Parameters.AddWithValue("$repos", plan.RecommendedRestWeeks);
-        command.Parameters.AddWithValue("$restrictions", (object?)plan.Restrictions ?? DBNull.Value);
-        command.Parameters.AddWithValue("$notes", (object?)plan.Notes ?? DBNull.Value);
+        AjouterParametre(command, "$workerId", workerId);
+        AjouterParametre(command, "$status", statut);
         command.ExecuteNonQuery();
     }
 
-    public IReadOnlyList<InjuryRecord> ChargerBlessures(string workerId)
+    public string? ChargerStatutBlessureWorker(string workerId)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT injury_id, worker_id, type, severite, statut, semaine_debut, semaine_fin, duree_semaines
-            FROM injuries
-            WHERE worker_id = $workerId
-            ORDER BY semaine_debut DESC;
+            SELECT InjuryStatus
+            FROM Workers
+            WHERE WorkerId = $workerId;
             """;
-        command.Parameters.AddWithValue("$workerId", workerId);
-        using var reader = command.ExecuteReader();
-        var blessures = new List<InjuryRecord>();
-        while (reader.Read())
-        {
-            var severite = Enum.Parse<InjurySeverity>(reader.GetString(3), true);
-            var statut = Enum.Parse<InjuryStatus>(reader.GetString(4), true);
-            blessures.Add(new InjuryRecord(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                severite,
-                statut,
-                reader.GetInt32(5),
-                reader.IsDBNull(6) ? null : reader.GetInt32(6),
-                reader.GetInt32(7)));
-        }
-
-        return blessures;
+        AjouterParametre(command, "$workerId", workerId);
+        var result = command.ExecuteScalar();
+        return result is null or DBNull ? null : Convert.ToString(result);
     }
 }

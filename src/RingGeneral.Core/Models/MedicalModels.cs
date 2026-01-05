@@ -1,63 +1,46 @@
 namespace RingGeneral.Core.Models;
 
-public enum InjurySeverity
-{
-    Aucune,
-    Legere,
-    Moyenne,
-    Grave
-}
-
-public enum InjuryStatus
-{
-    Active,
-    Repos,
-    RetourEnCours,
-    Retabli
-}
-
-public sealed record InjuryRecord(
-    string InjuryId,
+public sealed record Injury(
+    int InjuryId,
     string WorkerId,
     string Type,
-    InjurySeverity Severity,
-    InjuryStatus Status,
-    int WeekStart,
-    int? WeekEnd,
-    int DurationWeeks);
+    int Severity,
+    int StartWeek,
+    int? EndWeek,
+    bool IsActive,
+    string? Notes,
+    double RiskLevel);
 
 public sealed record MedicalNote(
-    string NoteId,
+    int MedicalNoteId,
     string WorkerId,
-    string? InjuryId,
-    string Type,
-    string Content,
+    int? InjuryId,
     int Week,
-    string? Author);
+    string Content);
 
 public sealed record RecoveryPlan(
-    string PlanId,
-    string InjuryId,
+    int RecoveryPlanId,
+    int InjuryId,
     string WorkerId,
-    InjuryStatus Status,
-    int WeekStart,
-    int? WeekEnd,
-    int DurationWeeks,
-    int RecommendedRestWeeks,
-    string? Restrictions,
-    string? Notes);
+    int StartWeek,
+    int TargetWeek,
+    string Status,
+    string? Notes,
+    int? CompletedWeek);
 
 public sealed record MedicalRecommendation(
-    int RecommendedRestWeeks,
-    string RiskLevel,
-    string Message);
-
-public sealed record MedicalRiskAssessment(
-    string RiskLevel,
-    string Message);
+    int ReposSemaines,
+    double Risque,
+    string Niveau,
+    string Conseil);
 
 public sealed record InjuryApplicationResult(
-    InjuryRecord Injury,
-    RecoveryPlan RecoveryPlan,
-    MedicalNote MedicalNote,
-    MedicalRiskAssessment RiskAssessment);
+    Injury Injury,
+    RecoveryPlan Plan,
+    MedicalRecommendation Recommendation);
+
+public sealed record InjuryRecoveryResult(
+    int InjuryId,
+    string WorkerId,
+    int Week,
+    string Status);

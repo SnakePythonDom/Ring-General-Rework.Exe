@@ -8,24 +8,32 @@
   "tables": [
     {
       "id": "liste_blessures",
-      "libelle": "Blessures",
-      "colonnes": ["Nom", "Type", "Gravité", "Durée", "Repos conseillé", "Risque", "Statut", "Actions"]
+      "libelle": "Blessures actives",
+      "colonnes": ["Nom", "Type", "Gravité", "Durée estimée", "Risque", "Statut", "Retour cible"]
+    },
+    {
+      "id": "fatigue",
+      "libelle": "Fatigue & repos",
+      "colonnes": ["Nom", "Fatigue", "Repos conseillé", "Restrictions", "Disponibilité"]
     }
   ],
-  "filtres": ["Gravité", "Statut", "Rôle"],
+  "filtres": ["Gravité", "Statut", "Rôle", "Risque"],
   "panneauDetail": {
     "sections": ["Diagnostic", "Planning de retour", "Restrictions"]
   },
   "actions": [
-    {"id": "planifier_retour", "libelle": "Planifier un retour"},
-    {"id": "planifier_repos", "libelle": "Planifier un repos"},
-    {"id": "ouvrir_profil", "libelle": "Ouvrir le profil"}
+    {"id": "planifier_repos", "libelle": "Planifier repos"},
+    {"id": "valider_retour", "libelle": "Valider retour"},
+    {"id": "ouvrir_profil", "libelle": "Ouvrir profil"}
   ],
   "validations": [
     {"id": "retour.date", "message": "La date de retour est requise."}
   ],
-  "warnings": ["Risque élevé de rechute pour certains catcheurs."],
-  "etatVide": "Aucune blessure ou fatigue critique enregistrée.",
+  "warnings": [
+    "Risque élevé de rechute pour certains catcheurs.",
+    "Retours anticipés en attente de validation."
+  ],
+  "etatVide": "Aucune blessure enregistrée cette semaine.",
   "tooltips": [
     {"id": "gravite", "libelle": "Gravité", "texte": "Impact sur la disponibilité et la performance."}
   ],

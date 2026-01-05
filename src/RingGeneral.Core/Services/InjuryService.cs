@@ -1,75 +1,103 @@
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 
 namespace RingGeneral.Core.Services;
 
 public sealed class InjuryService
 {
+    private readonly IMedicalRepository _repository;
     private readonly MedicalRecommendations _recommendations;
 
-    public InjuryService(MedicalRecommendations recommendations)
+    public InjuryService(IMedicalRepository repository, MedicalRecommendations recommendations)
     {
+        _repository = repository;
         _recommendations = recommendations;
     }
 
     public InjuryApplicationResult AppliquerBlessure(
         string workerId,
         string type,
-        InjurySeverity severity,
+        int severite,
         int semaine,
-        int fatigue)
+        int fatigue,
+        string? note = null)
     {
-        var recommendation = _recommendations.Evaluer(fatigue, severity);
-        var injury = new InjuryRecord(
-            Guid.NewGuid().ToString("N"),
+        if (string.IsNullOrWhiteSpace(workerId))
+        {
+            throw new ArgumentException("WorkerId manquant.", nameof(workerId));
+        }
+
+        if (string.IsNullOrWhiteSpace(type))
+        {
+            throw new ArgumentException("Type de blessure manquant.", nameof(type));
+        }
+
+        var recommendation = _recommendations.Recommander(fatigue, severite);
+        var retourEstime = recommendation.ReposSemaines == 0 ? (int?)null : semaine + recommendation.ReposSemaines;
+
+        var injury = new Injury(
+            0,
             workerId,
             type,
-            severity,
-            InjuryStatus.Active,
+            Math.Clamp(severite, 0, 100),
             semaine,
-            null,
-            recommendation.RecommendedRestWeeks);
+            retourEstime,
+            true,
+            note,
+            recommendation.Risque);
+
+        var injuryId = _repository.AjouterBlessure(injury);
+        var injuryPersisted = injury with { InjuryId = injuryId };
+
+        _repository.MettreAJourStatutBlessureWorker(workerId, type);
 
         var plan = new RecoveryPlan(
-            Guid.NewGuid().ToString("N"),
-            injury.InjuryId,
+            0,
+            injuryId,
             workerId,
-            InjuryStatus.Repos,
             semaine,
-            null,
-            recommendation.RecommendedRestWeeks,
-            recommendation.RecommendedRestWeeks,
-            "Limiter les segments à faible intensité.",
-            recommendation.Message);
+            retourEstime ?? semaine,
+            "EN_COURS",
+            recommendation.Conseil,
+            null);
+        var planId = _repository.AjouterPlan(plan);
+        var planPersisted = plan with { RecoveryPlanId = planId };
 
-        var note = new MedicalNote(
-            Guid.NewGuid().ToString("N"),
-            workerId,
-            injury.InjuryId,
-            "DIAGNOSTIC",
-            $"Blessure {type} ({severity}) détectée. {recommendation.Message}",
-            semaine,
-            "Equipe médicale");
-
-        var risk = _recommendations.EvaluerRisque(fatigue, severity);
-
-        return new InjuryApplicationResult(injury, plan, note, risk);
-    }
-
-    public InjuryRecord Recuperer(InjuryRecord injury, int semaine)
-    {
-        var status = semaine >= injury.WeekStart + injury.DurationWeeks
-            ? InjuryStatus.Retabli
-            : InjuryStatus.RetourEnCours;
-
-        return injury with
+        if (!string.IsNullOrWhiteSpace(note))
         {
-            Status = status,
-            WeekEnd = semaine
-        };
+            _repository.AjouterNote(new MedicalNote(0, workerId, injuryId, semaine, note));
+        }
+
+        return new InjuryApplicationResult(injuryPersisted, planPersisted, recommendation);
     }
 
-    public MedicalRiskAssessment EvaluerRisque(int fatigue, InjurySeverity severity)
+    public InjuryRecoveryResult RecupererBlessure(int injuryId, int semaine, string? note = null)
     {
-        return _recommendations.EvaluerRisque(fatigue, severity);
+        var injury = _repository.ChargerBlessure(injuryId)
+            ?? throw new InvalidOperationException($"Blessure introuvable: {injuryId}.");
+
+        var updated = injury with { EndWeek = semaine, IsActive = false };
+        _repository.MettreAJourBlessure(updated);
+        _repository.MettreAJourPlanStatut(injuryId, "TERMINE", semaine);
+        _repository.MettreAJourStatutBlessureWorker(injury.WorkerId, "AUCUNE");
+
+        if (!string.IsNullOrWhiteSpace(note))
+        {
+            _repository.AjouterNote(new MedicalNote(0, injury.WorkerId, injuryId, semaine, note));
+        }
+
+        return new InjuryRecoveryResult(injuryId, injury.WorkerId, semaine, "TERMINE");
+    }
+
+    public double CalculerRisque(int fatigue, int severite, bool retourAnticipe = false)
+    {
+        var recommendation = _recommendations.Recommander(fatigue, severite);
+        var risque = recommendation.Risque;
+        if (retourAnticipe)
+        {
+            risque = Math.Min(1.0, risque + 0.15);
+        }
+
+        return risque;
     }
 }

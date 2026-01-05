@@ -1,73 +1,66 @@
 {
   "meta": {
     "langue": "fr",
-    "spec": "medical-v1"
+    "version": "v1",
+    "module": "medical",
+    "sourceDeVerite": "specs"
   },
+  "objectifs": [
+    "Suivre les blessures et la fatigue des catcheurs.",
+    "Recommander du repos et évaluer le risque de rechute.",
+    "Structurer le retour à l'écran avec des plans de récupération.",
+    "Notifier la direction via la boîte de réception."
+  ],
   "blessures": {
-    "severites": ["AUCUNE", "LEGERE", "MOYENNE", "GRAVE"],
-    "types": ["ENTORSE", "COMMOTION", "LACERATION", "FRACTURE", "SURMENAGE"],
-    "statuts": ["ACTIVE", "REPOS", "RETOUR_EN_COURS", "RETABLI"],
     "champs": [
-      {"id": "type", "libelle": "Type"},
-      {"id": "severite", "libelle": "Gravité"},
-      {"id": "debut", "libelle": "Début"},
-      {"id": "fin", "libelle": "Fin prévue"},
-      {"id": "statut", "libelle": "Statut"}
-    ]
-  },
-  "fatigue": {
-    "seuils": {
-      "moderee": 50,
-      "elevee": 70,
-      "critique": 85
-    },
-    "effets": [
-      "Au-delà de 70, le risque de blessure augmente.",
-      "Au-delà de 85, le repos devient obligatoire avant un retour."
-    ]
-  },
-  "repos": {
-    "recommandations": [
-      {"severite": "LEGERE", "reposSemaines": 1, "message": "Repos léger conseillé."},
-      {"severite": "MOYENNE", "reposSemaines": 3, "message": "Repos complet et suivi médical."},
-      {"severite": "GRAVE", "reposSemaines": 6, "message": "Repos prolongé et réévaluation obligatoire."}
-    ]
-  },
-  "risques": {
-    "niveaux": ["FAIBLE", "MODERE", "ELEVE"],
-    "regles": [
-      "Fatigue >= 70 et blessure active -> risque ÉLEVÉ.",
-      "Fatigue entre 50-69 -> risque MODÉRÉ.",
-      "Blessure grave même en récupération -> risque ÉLEVÉ."
-    ]
-  },
-  "retour": {
-    "conditions": [
-      "Blessure doit être en statut RETOUR_EN_COURS ou RETABLI.",
-      "Fatigue <= 60 recommandée avant retour complet.",
-      "Validation médicale requise pour blessures graves."
+      "workerId",
+      "type",
+      "gravite",
+      "debutSemaine",
+      "finSemaine",
+      "statut",
+      "risque",
+      "notes"
     ],
-    "alertes": [
-      "Risque de rechute si retour anticipé.",
-      "Plan de retour en retard par rapport au repos conseillé."
-    ]
+    "statuts": ["ACTIVE", "EN_SUIVI", "RECUPEREE"]
+  },
+  "plansRecuperation": {
+    "champs": [
+      "injuryId",
+      "workerId",
+      "debutSemaine",
+      "retourEstime",
+      "statut",
+      "restrictions"
+    ],
+    "statuts": ["EN_COURS", "RETARD", "TERMINE"]
+  },
+  "notesMedicales": {
+    "champs": ["workerId", "injuryId", "semaine", "contenu"],
+    "types": ["diagnostic", "suivi", "retour"]
+  },
+  "recommandations": {
+    "repos": {
+      "seuilsFatigue": [30, 60, 80],
+      "seuilsGravite": [25, 50, 75],
+      "maxSemaines": 8
+    },
+    "risque": {
+      "sources": ["fatigue", "gravite", "retourAnticipe"],
+      "niveaux": ["faible", "modere", "eleve", "critique"]
+    }
   },
   "inbox": {
-    "types": [
-      {"id": "medical", "libelle": "Médical"}
-    ],
-    "messages": [
-      "Un nouveau rapport médical est disponible.",
-      "Un catcheur est apte au retour sous conditions.",
-      "Risque élevé détecté : ajustez la charge de travail."
+    "alertes": [
+      "Blessure grave détectée",
+      "Retour anticipé à valider",
+      "Risque de rechute élevé"
     ]
   },
-  "ui": {
-    "page": "medical",
-    "actions": [
-      "Planifier repos",
-      "Valider retour",
-      "Ouvrir profil"
-    ]
-  }
+  "actions": [
+    "appliquer_blessure",
+    "planifier_repos",
+    "valider_retour",
+    "ajouter_note_medicale"
+  ]
 }
