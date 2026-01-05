@@ -138,7 +138,27 @@ public sealed class GameRepository
             CREATE TABLE IF NOT EXISTS youth_trainees (
                 worker_id TEXT NOT NULL,
                 youth_id TEXT NOT NULL,
-                statut TEXT NOT NULL
+                statut TEXT NOT NULL,
+                start_semaine INTEGER,
+                fin_semaine INTEGER,
+                programme_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS youth_programs (
+                programme_id TEXT PRIMARY KEY,
+                youth_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                type TEXT NOT NULL,
+                duree_semaines INTEGER NOT NULL,
+                focus_attributs TEXT,
+                actif INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS youth_staff_assignments (
+                assignment_id TEXT PRIMARY KEY,
+                youth_id TEXT NOT NULL,
+                worker_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                start_semaine INTEGER NOT NULL,
+                fin_semaine INTEGER
             );
             CREATE TABLE IF NOT EXISTS youth_generation_state (
                 youth_id TEXT PRIMARY KEY,
@@ -187,6 +207,8 @@ public sealed class GameRepository
             CREATE INDEX IF NOT EXISTS idx_youth_company ON youth_structures(company_id);
             CREATE INDEX IF NOT EXISTS idx_youth_region ON youth_structures(region);
             CREATE INDEX IF NOT EXISTS idx_youth_trainees_youth ON youth_trainees(youth_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_programs_youth ON youth_programs(youth_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_staff_youth ON youth_staff_assignments(youth_id);
             CREATE INDEX IF NOT EXISTS idx_worker_attributes_worker ON worker_attributes(worker_id);
             CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
             """;
@@ -205,19 +227,11 @@ public sealed class GameRepository
 
     public ShowContext? ChargerShowContext(string showId)
     {
-        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
-        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
-    }
+        using var connexion = _factory.OuvrirConnexion();
+        AssurerColonnesSupplementaires(connexion);
 
-    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"PRAGMA table_info({table});";
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
+        var show = ChargerShow(connexion, showId);
+        if (show is null)
         {
             return null;
         }
@@ -236,6 +250,36 @@ public sealed class GameRepository
         var chimies = ChargerChimies(connexion);
 
         return new ShowContext(show, compagnie, workers, titres, storylines, segments, chimies);
+    }
+
+    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
+    {
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
+        AjouterColonneSiAbsente(connexion, "youth_trainees", "start_semaine", "INTEGER");
+        AjouterColonneSiAbsente(connexion, "youth_trainees", "fin_semaine", "INTEGER");
+        AjouterColonneSiAbsente(connexion, "youth_trainees", "programme_id", "TEXT");
+    }
+
+    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        using var alterCommand = connexion.CreateCommand();
+        alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
+        alterCommand.ExecuteNonQuery();
     }
 
     public BookingPlan ChargerBookingPlan(ShowContext context)
@@ -906,11 +950,12 @@ public sealed class GameRepository
                 using var youthCommand = connexion.CreateCommand();
                 youthCommand.Transaction = transaction;
                 youthCommand.CommandText = """
-                    INSERT INTO youth_trainees (worker_id, youth_id, statut)
-                    VALUES ($workerId, $youthId, 'EN_FORMATION');
+                    INSERT INTO youth_trainees (worker_id, youth_id, statut, start_semaine)
+                    VALUES ($workerId, $youthId, 'EN_FORMATION', $semaine);
                     """;
                 youthCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
                 youthCommand.Parameters.AddWithValue("$youthId", worker.YouthId);
+                youthCommand.Parameters.AddWithValue("$semaine", report.Semaine);
                 youthCommand.ExecuteNonQuery();
             }
 
@@ -931,6 +976,91 @@ public sealed class GameRepository
 
         MettreAJourCounters(transaction, report);
         MettreAJourGenerationState(transaction, report);
+
+        transaction.Commit();
+    }
+
+    public IReadOnlyList<YouthTraineeProgressionState> ChargerTraineesPourProgression()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT yt.worker_id,
+                   yt.youth_id,
+                   w.in_ring,
+                   w.entertainment,
+                   w.story,
+                   yt.statut
+            FROM youth_trainees yt
+            INNER JOIN workers w ON w.worker_id = yt.worker_id
+            WHERE yt.statut = 'EN_FORMATION';
+            """;
+        using var reader = command.ExecuteReader();
+        var trainees = new List<YouthTraineeProgressionState>();
+        while (reader.Read())
+        {
+            trainees.Add(new YouthTraineeProgressionState(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetString(5)));
+        }
+
+        return trainees;
+    }
+
+    public void AppliquerProgressionYouth(YouthProgressionReport report)
+    {
+        if (report.Updates.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        foreach (var update in report.Updates)
+        {
+            using var workerCommand = connexion.CreateCommand();
+            workerCommand.Transaction = transaction;
+            workerCommand.CommandText = """
+                UPDATE workers
+                SET in_ring = $inRing,
+                    entertainment = $entertainment,
+                    story = $story,
+                    type_worker = CASE WHEN $gradue = 1 THEN 'CATCHEUR' ELSE type_worker END
+                WHERE worker_id = $workerId;
+                """;
+            workerCommand.Parameters.AddWithValue("$inRing", update.NouveauInRing);
+            workerCommand.Parameters.AddWithValue("$entertainment", update.NouveauEntertainment);
+            workerCommand.Parameters.AddWithValue("$story", update.NouveauStory);
+            workerCommand.Parameters.AddWithValue("$gradue", update.EstGradue ? 1 : 0);
+            workerCommand.Parameters.AddWithValue("$workerId", update.WorkerId);
+            workerCommand.ExecuteNonQuery();
+
+            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "in_ring", update.NouveauInRing);
+            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "entertainment", update.NouveauEntertainment);
+            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "story", update.NouveauStory);
+
+            if (update.EstGradue)
+            {
+                using var gradCommand = connexion.CreateCommand();
+                gradCommand.Transaction = transaction;
+                gradCommand.CommandText = """
+                    UPDATE youth_trainees
+                    SET statut = 'GRADUE',
+                        fin_semaine = $semaine
+                    WHERE worker_id = $workerId
+                      AND youth_id = $youthId;
+                    """;
+                gradCommand.Parameters.AddWithValue("$semaine", report.Semaine);
+                gradCommand.Parameters.AddWithValue("$workerId", update.WorkerId);
+                gradCommand.Parameters.AddWithValue("$youthId", update.YouthId);
+                gradCommand.ExecuteNonQuery();
+            }
+        }
 
         transaction.Commit();
     }
@@ -1010,6 +1140,31 @@ public sealed class GameRepository
         command.Parameters.AddWithValue("$workerType", workerType);
         command.Parameters.AddWithValue("$delta", delta);
         command.ExecuteNonQuery();
+    }
+
+    private static void UpsertWorkerAttribute(SqliteConnection connexion, SqliteTransaction transaction, string workerId, string attributId, int valeur)
+    {
+        using var deleteCommand = connexion.CreateCommand();
+        deleteCommand.Transaction = transaction;
+        deleteCommand.CommandText = """
+            DELETE FROM worker_attributes
+            WHERE worker_id = $workerId
+              AND attribut_id = $attributId;
+            """;
+        deleteCommand.Parameters.AddWithValue("$workerId", workerId);
+        deleteCommand.Parameters.AddWithValue("$attributId", attributId);
+        deleteCommand.ExecuteNonQuery();
+
+        using var insertCommand = connexion.CreateCommand();
+        insertCommand.Transaction = transaction;
+        insertCommand.CommandText = """
+            INSERT INTO worker_attributes (worker_id, attribut_id, valeur)
+            VALUES ($workerId, $attributId, $valeur);
+            """;
+        insertCommand.Parameters.AddWithValue("$workerId", workerId);
+        insertCommand.Parameters.AddWithValue("$attributId", attributId);
+        insertCommand.Parameters.AddWithValue("$valeur", valeur);
+        insertCommand.ExecuteNonQuery();
     }
 
     private static ShowDefinition ChargerShow(SqliteConnection connexion, string showId)
@@ -1264,6 +1419,14 @@ public sealed class GameRepository
             """;
         youthCommand.ExecuteNonQuery();
 
+        using var youthProgrammeCommand = connexion.CreateCommand();
+        youthProgrammeCommand.Transaction = transaction;
+        youthProgrammeCommand.CommandText = """
+            INSERT INTO youth_programs (programme_id, youth_id, nom, type, duree_semaines, focus_attributs, actif)
+            VALUES ('PROG-001', 'YOUTH-001', 'Fondamentaux', 'fundamentaux', 12, '["in_ring","story"]', 1);
+            """;
+        youthProgrammeCommand.ExecuteNonQuery();
+
         using var workersCommand = connexion.CreateCommand();
         workersCommand.Transaction = transaction;
         workersCommand.CommandText = """
@@ -1275,6 +1438,14 @@ public sealed class GameRepository
             ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID', 'CATCHEUR');
             """;
         workersCommand.ExecuteNonQuery();
+
+        using var youthStaffCommand = connexion.CreateCommand();
+        youthStaffCommand.Transaction = transaction;
+        youthStaffCommand.CommandText = """
+            INSERT INTO youth_staff_assignments (assignment_id, youth_id, worker_id, role, start_semaine)
+            VALUES ('YSTAFF-001', 'YOUTH-001', 'W-001', 'entraineur_principal', 1);
+            """;
+        youthStaffCommand.ExecuteNonQuery();
 
         using var titleCommand = connexion.CreateCommand();
         titleCommand.Transaction = transaction;

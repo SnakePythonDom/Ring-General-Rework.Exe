@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "langue": "fr",
+    "sourceDeVerite": "specs",
+    "modele": "youth-v1"
+  },
+  "structures": {
+    "defaults": {
+      "budgetAnnuel": 80000,
+      "capaciteMax": 24,
+      "niveauInfrastructure": 3,
+      "qualiteStaff": 12,
+      "philosophie": "HYBRIDE"
+    },
+    "types": {
+      "WRESTLING_SCHOOL": { "capaciteMax": 18, "niveauInfrastructure": 2 },
+      "DOJO": { "capaciteMax": 18, "niveauInfrastructure": 2 },
+      "ACADEMY": { "capaciteMax": 24, "niveauInfrastructure": 3 },
+      "PERFORMANCE_CENTER": { "capaciteMax": 28, "niveauInfrastructure": 4 },
+      "TERRITOIRE_DEVELOPPEMENT": { "capaciteMax": 24, "niveauInfrastructure": 3 }
+    }
+  },
+  "progression": {
+    "gainBase": 0.45,
+    "bonusInfrastructureParNiveau": 0.08,
+    "bonusCoachingParPoint": 0.02,
+    "bonusBudget": [
+      { "min": 0, "max": 30000, "bonus": 0.0 },
+      { "min": 30001, "max": 80000, "bonus": 0.15 },
+      { "min": 80001, "max": 150000, "bonus": 0.3 },
+      { "min": 150001, "max": 300000, "bonus": 0.45 }
+    ],
+    "gainMax": 1.6,
+    "distribution": {
+      "in_ring": 0.4,
+      "entertainment": 0.3,
+      "story": 0.3
+    },
+    "philosophie": {
+      "LUCHA": { "inRing": 0.1, "entertainment": 0.0, "story": 0.0 },
+      "PURO": { "inRing": 0.1, "entertainment": 0.0, "story": 0.0 },
+      "ENTERTAINMENT": { "inRing": 0.0, "entertainment": 0.1, "story": 0.0 },
+      "HYBRIDE": { "inRing": 0.05, "entertainment": 0.05, "story": 0.0 }
+    }
+  },
+  "graduation": {
+    "seuilGlobal": 12,
+    "seuilInRing": 10,
+    "seuilEntertainment": 9,
+    "seuilStory": 9
+  }
+}
