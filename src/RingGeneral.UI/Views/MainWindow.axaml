@@ -345,6 +345,18 @@
                     </Grid>
                   </StackPanel>
                 </Border>
+                <Border Background="#1F2937" Padding="8" CornerRadius="6">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Ajouter depuis bibliothèque" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                    <Grid ColumnDefinitions="*,120">
+                      <ComboBox ItemsSource="{Binding Session.SegmentTemplates}"
+                                SelectedItem="{Binding Session.TemplateSelectionnee, Mode=TwoWay}"
+                                DisplayMemberPath="Nom" />
+                      <Button Grid.Column="1" Content="Ajouter" Click="OnAppliquerTemplate" />
+                    </Grid>
+                    <TextBlock Text="{Binding Session.TemplateSelectionnee.Resume}" Foreground="#9CA3AF" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
               </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="12">
@@ -353,6 +365,53 @@
             </StackPanel>
             <TextBlock Text="{Binding Session.ValidationErreurs}" Foreground="#F87171" TextWrapping="Wrap" />
             <TextBlock Text="{Binding Session.ValidationAvertissements}" Foreground="#FBBF24" TextWrapping="Wrap" ToolTip.Tip="{Binding Session.Tooltips['booking.warning']}" />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Bibliothèque" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="page.segments" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+            </Grid>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <Grid ColumnDefinitions="2*,*" ColumnSpacing="12">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Templates de segments" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                  <ListBox ItemsSource="{Binding Session.SegmentTemplates}"
+                           SelectedItem="{Binding Session.TemplateSelectionnee, Mode=TwoWay}"
+                           MaxHeight="220">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#0F172A" Padding="8" CornerRadius="6">
+                          <StackPanel>
+                            <TextBlock Text="{Binding Nom}" Foreground="White" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Resume}" Foreground="#9CA3AF" TextWrapping="Wrap" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <Button Content="Appliquer" Click="OnAppliquerTemplate" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="6">
+                  <TextBlock Text="Types de match" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                  <ItemsControl ItemsSource="{Binding Session.MatchTypes}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#0F172A" Padding="6" CornerRadius="6" Margin="0,0,0,6">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <CheckBox IsChecked="{Binding EstActif, Mode=TwoWay}" VerticalAlignment="Center" />
+                            <StackPanel>
+                              <TextBlock Text="{Binding Nom}" Foreground="White" FontWeight="SemiBold" />
+                              <TextBlock Text="{Binding Description}" Foreground="#9CA3AF" TextWrapping="Wrap" />
+                            </StackPanel>
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Grid>
+            </Border>
           </StackPanel>
 
           <StackPanel Spacing="8">
