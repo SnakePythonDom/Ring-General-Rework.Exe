@@ -5,6 +5,31 @@
 - **Scripts SQL** : batch d'INSERT/UPDATE exécutés via un client SQLite.
 - **Import CSV** : possible si un outil d'import est ajouté plus tard.
 
+## Import BAKI → Ring General (attributs)
+
+Le mapping et la normalisation des attributs se configurent via :
+`specs/import/baki-attribute-mapping.fr.json`.
+
+Points clés à ajuster :
+- **`sourceScales`** : échelles BAKI par attribut (ex. 0–100).
+- **`mappings`** : méthode de conversion (`Linear`, `Piecewise`, `Quantile`), `clamp`, `rounding`, `defaultIfMissing`.
+- **`normalization`** : plafonds anti-extrêmes (cap élite / catastrophique, variance).
+- **`randomVariation`** : micro-variation déterministe (seed).
+- **`roleCoherence`** : planchers / plafonds selon rôle (Main Eventer, Rookie).
+
+Outil diagnostic :
+```bash
+dotnet run --project src/RingGeneral.Tools.BakiImporter -- attr-report \
+  --source <baki.db> \
+  --out <report.json> \
+  --spec specs/import/baki-attribute-mapping.fr.json
+```
+
+Le rapport liste :
+- distributions min/max/moyenne avant/après conversion,
+- top 20 “surboostés” et “trop faibles”,
+- histogrammes par attribut.
+
 ## Exemples SQL
 
 ### Insérer une compagnie
