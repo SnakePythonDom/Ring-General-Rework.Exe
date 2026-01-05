@@ -42,10 +42,27 @@ public sealed record TitleInfo(
     int Prestige,
     string? DetenteurId);
 
+public enum StorylinePhase
+{
+    Setup,
+    Rising,
+    Climax,
+    Fallout
+}
+
+public enum StorylineStatus
+{
+    Active,
+    Suspended,
+    Completed
+}
+
 public sealed record StorylineInfo(
     string StorylineId,
     string Nom,
     int Heat,
+    StorylinePhase Phase,
+    StorylineStatus Status,
     IReadOnlyList<string> Participants);
 
 public sealed record SegmentDefinition(
