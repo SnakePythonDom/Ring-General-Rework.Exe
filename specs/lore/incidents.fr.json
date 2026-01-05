@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "incidents"
+  },
+  "incidents": [
+    {
+      "id": "RETARD",
+      "libelle": "Retard en répétition",
+      "description": "Un talent est arrivé en retard à la répétition sans prévenir.",
+      "gravite": 25,
+      "moraleImpact": {"min": -4, "max": -2},
+      "tags": ["ponctualite", "discipline"]
+    },
+    {
+      "id": "ALTERCATION",
+      "libelle": "Altercation backstage",
+      "description": "Deux talents ont eu une altercation verbale après le show.",
+      "gravite": 55,
+      "moraleImpact": {"min": -10, "max": -6},
+      "tags": ["conflit", "etoiles"]
+    },
+    {
+      "id": "BLESSEMENT_EVITE",
+      "libelle": "Blessure évitée de justesse",
+      "description": "Un accident a été évité de peu, la tension est montée.",
+      "gravite": 70,
+      "moraleImpact": {"min": -16, "max": -10},
+      "tags": ["securite", "pression"]
+    }
+  ],
+  "sanctionsSuggerees": [
+    {"incidentId": "RETARD", "action": "AVERTISSEMENT"},
+    {"incidentId": "ALTERCATION", "action": "AMENDE"},
+    {"incidentId": "BLESSEMENT_EVITE", "action": "SUSPENSION"}
+  ]
+}

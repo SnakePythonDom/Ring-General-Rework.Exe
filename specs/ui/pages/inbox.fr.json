@@ -3,8 +3,10 @@
   "onglets": [
     {"id": "tous", "libelle": "Tous"},
     {"id": "critique", "libelle": "Critique"},
+    {"id": "medical", "libelle": "Médical"},
     {"id": "contrats", "libelle": "Contrats"},
-    {"id": "scouting", "libelle": "Scouting"}
+    {"id": "scouting", "libelle": "Scouting"},
+    {"id": "medical", "libelle": "Médical"}
   ],
   "tables": [
     {
@@ -24,7 +26,10 @@
   "validations": [
     {"id": "inbox.selection", "message": "Sélectionnez un message."}
   ],
-  "warnings": ["Des messages critiques restent non lus."],
+  "warnings": [
+    "Des messages critiques restent non lus.",
+    "Des alertes médicales requièrent une validation."
+  ],
   "etatVide": "Aucun message dans votre boîte de réception.",
   "tooltips": [
     {"id": "message.type", "libelle": "Type", "texte": "Indique la catégorie du message."}

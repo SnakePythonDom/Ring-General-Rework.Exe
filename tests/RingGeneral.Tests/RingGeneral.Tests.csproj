@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/RingGeneral.Core/RingGeneral.Core.csproj" />
+    <ProjectReference Include="../../src/RingGeneral.Data/RingGeneral.Data.csproj" />
     <ProjectReference Include="../../src/RingGeneral.Specs/RingGeneral.Specs.csproj" />
   </ItemGroup>
 </Project>

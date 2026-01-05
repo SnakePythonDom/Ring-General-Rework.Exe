@@ -5,6 +5,7 @@
     {"id": "attributs", "libelle": "Attributs"},
     {"id": "contrats", "libelle": "Contrats"},
     {"id": "historique", "libelle": "Historique"},
+    {"id": "medical", "libelle": "Médical"},
     {"id": "notes", "libelle": "Notes"},
     {"id": "shortlist", "libelle": "Shortlist"}
   ],
@@ -14,6 +15,7 @@
       "Attributs",
       "Contrats",
       "Historique",
+      "État médical",
       "Notes",
       "Shortlist"
     ]
