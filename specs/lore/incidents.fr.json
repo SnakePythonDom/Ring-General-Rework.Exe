@@ -1,44 +1,37 @@
 {
   "meta": {
     "langue": "fr",
-    "modele": "incidents-backstage"
+    "modele": "incidents"
   },
   "incidents": [
     {
-      "id": "retard",
-      "titre": "Retard au briefing",
-      "description": "{workers} arrivent en retard au briefing.",
-      "chance": 0.28,
-      "participantsMin": 1,
-      "participantsMax": 2,
-      "graviteMin": 1,
-      "graviteMax": 3,
-      "moraleImpactMin": -4,
-      "moraleImpactMax": -1
+      "id": "RETARD",
+      "libelle": "Retard en répétition",
+      "description": "Un talent est arrivé en retard à la répétition sans prévenir.",
+      "gravite": 25,
+      "moraleImpact": {"min": -4, "max": -2},
+      "tags": ["ponctualite", "discipline"]
     },
     {
-      "id": "conflit_egos",
-      "titre": "Conflit d'egos",
-      "description": "Tensions entre {workers} en coulisses.",
-      "chance": 0.22,
-      "participantsMin": 2,
-      "participantsMax": 3,
-      "graviteMin": 2,
-      "graviteMax": 4,
-      "moraleImpactMin": -6,
-      "moraleImpactMax": -2
+      "id": "ALTERCATION",
+      "libelle": "Altercation backstage",
+      "description": "Deux talents ont eu une altercation verbale après le show.",
+      "gravite": 55,
+      "moraleImpact": {"min": -10, "max": -6},
+      "tags": ["conflit", "etoiles"]
     },
     {
-      "id": "manque_preparation",
-      "titre": "Manque de préparation",
-      "description": "{workers} arrivent sans avoir revu le plan du show.",
-      "chance": 0.18,
-      "participantsMin": 1,
-      "participantsMax": 2,
-      "graviteMin": 1,
-      "graviteMax": 2,
-      "moraleImpactMin": -3,
-      "moraleImpactMax": -1
+      "id": "BLESSEMENT_EVITE",
+      "libelle": "Blessure évitée de justesse",
+      "description": "Un accident a été évité de peu, la tension est montée.",
+      "gravite": 70,
+      "moraleImpact": {"min": -16, "max": -10},
+      "tags": ["securite", "pression"]
     }
+  ],
+  "sanctionsSuggerees": [
+    {"incidentId": "RETARD", "action": "AVERTISSEMENT"},
+    {"incidentId": "ALTERCATION", "action": "AMENDE"},
+    {"incidentId": "BLESSEMENT_EVITE", "action": "SUSPENSION"}
   ]
 }

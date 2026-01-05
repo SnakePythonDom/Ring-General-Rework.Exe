@@ -1,5 +1,9 @@
 {
-  "meta": {"langue": "fr", "pageId": "backstage", "titre": "Backstage"},
+  "meta": {
+    "langue": "fr",
+    "pageId": "backstage",
+    "titre": "Backstage"
+  },
   "onglets": [
     {"id": "incidents", "libelle": "Incidents"},
     {"id": "morale", "libelle": "Morale"},
@@ -8,35 +12,39 @@
   "tables": [
     {
       "id": "incidents",
-      "libelle": "Incidents récents",
-      "colonnes": ["Semaine", "Gravité", "Type", "Impliqués", "Statut"]
+      "libelle": "Incidents en cours",
+      "colonnes": ["Semaine", "Catcheur", "Type", "Gravité", "Statut", "Action"]
     },
     {
-      "id": "morale",
-      "libelle": "Roster & morale",
-      "colonnes": ["Catcheur", "Morale", "Tendance", "Notes"]
+      "id": "morale-roster",
+      "libelle": "Morale du roster",
+      "colonnes": ["Catcheur", "Morale", "Tendance", "Dernier impact"]
     },
     {
       "id": "actions",
       "libelle": "Actions disciplinaires",
-      "colonnes": ["Semaine", "Type", "Gravité", "Cible", "Impact morale"]
+      "colonnes": ["Semaine", "Catcheur", "Sanction", "Impact morale", "Notes"]
     }
   ],
-  "filtres": ["Type d'incident", "Gravité", "Statut", "Catcheur"],
+  "filtres": ["Semaine", "Gravité", "Statut"],
   "panneauDetail": {
-    "sections": ["Contexte", "Historique morale", "Sanctions"]
+    "sections": ["Résumé", "Historique morale", "Décision", "Conséquences"]
   },
   "actions": [
-    {"id": "enregistrer_action", "libelle": "Enregistrer une sanction"},
-    {"id": "noter_incident", "libelle": "Ajouter une note"}
+    {"id": "sanctionner", "libelle": "Sanctionner"},
+    {"id": "apaiser", "libelle": "Mesure d'apaisement"},
+    {"id": "clore_incident", "libelle": "Clore l'incident"}
   ],
   "validations": [
-    {"id": "backstage.selection", "message": "Sélectionnez un incident pour continuer."}
+    {"id": "backstage.selection", "message": "Sélectionnez un incident pour agir."}
   ],
-  "warnings": ["Des incidents critiques n'ont pas été traités."],
-  "etatVide": "Aucun incident à signaler cette semaine.",
+  "warnings": [
+    "Des incidents graves sont en attente de décision.",
+    "Le moral global du roster est en baisse."
+  ],
+  "etatVide": "Aucun incident backstage à signaler.",
   "tooltips": [
-    {"id": "incidents.gravite", "libelle": "Gravité", "texte": "Niveau d'impact sur la cohésion backstage."}
+    {"id": "morale.info", "libelle": "Morale", "texte": "Le moral influence la performance et la rétention des talents."}
   ],
   "messagesErreur": ["Impossible de charger les incidents backstage."]
 }

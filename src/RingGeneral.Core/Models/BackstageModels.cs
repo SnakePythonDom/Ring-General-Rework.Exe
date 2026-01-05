@@ -1,70 +1,40 @@
 namespace RingGeneral.Core.Models;
 
-public sealed record BackstageWorker(
+public sealed record WorkerBackstageProfile(
     string WorkerId,
-    string NomComplet);
+    string Nom);
 
-public sealed record BackstageIncidentDefinition(
-    string TypeId,
-    string Titre,
-    string DescriptionTemplate,
-    double Chance,
-    int ParticipantsMin,
-    int ParticipantsMax,
-    int GraviteMin,
-    int GraviteMax,
-    int MoraleImpactMin,
-    int MoraleImpactMax);
-
-public sealed record DisciplinaryActionDefinition(
-    string TypeId,
+public sealed record IncidentDefinition(
+    string IncidentType,
     string Libelle,
-    int Gravite,
-    int MoraleDelta);
+    string Description,
+    int Severity,
+    int MoraleImpactMin,
+    int MoraleImpactMax,
+    IReadOnlyList<string> Tags);
 
 public sealed record BackstageIncident(
     string IncidentId,
-    string CompanyId,
-    int Week,
-    string TypeId,
-    string Titre,
+    string WorkerId,
+    string IncidentType,
     string Description,
-    int Gravite,
-    IReadOnlyList<string> Workers);
-
-public sealed record DisciplinaryAction(
-    string ActionId,
-    string CompanyId,
-    string WorkerId,
+    int Severity,
     int Week,
-    string TypeId,
-    int Gravite,
-    int MoraleDelta,
-    string Notes,
-    string? IncidentId);
-
-public sealed record BackstageMoraleImpact(
-    string WorkerId,
-    int Delta,
-    string Raison,
-    string? IncidentId,
-    string? ActionId);
+    string Status);
 
 public sealed record MoraleHistoryEntry(
     string WorkerId,
     int Week,
-    int MoraleAvant,
-    int MoraleApres,
     int Delta,
-    string Raison,
-    string? IncidentId,
-    string? ActionId);
+    int Value,
+    string Reason,
+    string? IncidentId);
 
-public sealed record BackstageRollResult(
-    IReadOnlyList<BackstageIncident> Incidents,
-    IReadOnlyList<BackstageMoraleImpact> MoraleImpacts,
-    IReadOnlyList<InboxItem> InboxItems);
-
-public sealed record DisciplineResult(
-    DisciplinaryAction Action,
-    BackstageMoraleImpact MoraleImpact);
+public sealed record DisciplinaryAction(
+    string ActionId,
+    string IncidentId,
+    string WorkerId,
+    string ActionType,
+    int MoraleDelta,
+    int Week,
+    string? Notes);

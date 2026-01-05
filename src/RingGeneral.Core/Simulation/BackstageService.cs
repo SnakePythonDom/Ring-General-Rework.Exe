@@ -6,95 +6,61 @@ namespace RingGeneral.Core.Simulation;
 public sealed class BackstageService
 {
     private readonly IRandomProvider _random;
+    private readonly IReadOnlyList<IncidentDefinition> _definitions;
 
-    public BackstageService(IRandomProvider random)
+    public BackstageService(IRandomProvider random, IReadOnlyList<IncidentDefinition> definitions)
     {
         _random = random;
+        _definitions = definitions;
     }
 
-    public BackstageRollResult LancerIncidents(
+    public IReadOnlyList<BackstageIncident> RollIncidents(
         int week,
-        string companyId,
-        IReadOnlyList<BackstageWorker> roster,
-        IReadOnlyDictionary<string, int> morales,
-        IReadOnlyList<BackstageIncidentDefinition> definitions)
+        IReadOnlyList<WorkerBackstageProfile> roster,
+        int maxIncidents = 2)
     {
-        var incidents = new List<BackstageIncident>();
-        var impacts = new List<BackstageMoraleImpact>();
-        var inbox = new List<InboxItem>();
-
-        if (roster.Count == 0 || definitions.Count == 0)
+        if (roster.Count == 0 || _definitions.Count == 0 || maxIncidents <= 0)
         {
-            return new BackstageRollResult(incidents, impacts, inbox);
+            return [];
         }
 
-        var facteurMorale = morales.Count == 0
-            ? 1.0
-            : Math.Clamp(1.2 - (morales.Values.Average() / 100.0), 0.6, 1.4);
-
-        foreach (var definition in definitions)
+        var max = Math.Min(maxIncidents, roster.Count);
+        var count = _random.Next(0, max + 1);
+        if (count == 0)
         {
-            if (_random.NextDouble() > definition.Chance * facteurMorale)
-            {
-                continue;
-            }
+            return [];
+        }
 
-            var participants = TirerParticipants(roster, definition.ParticipantsMin, definition.ParticipantsMax);
-            if (participants.Count == 0)
-            {
-                continue;
-            }
-
-            var incidentId = $"INC-{Guid.NewGuid():N}";
-            var gravite = _random.Next(definition.GraviteMin, definition.GraviteMax + 1);
-            var moraleDelta = _random.Next(definition.MoraleImpactMin, definition.MoraleImpactMax + 1);
-            var noms = string.Join(", ", participants.Select(worker => worker.NomComplet));
-            var description = definition.DescriptionTemplate
-                .Replace("{worker}", participants[0].NomComplet, StringComparison.OrdinalIgnoreCase)
-                .Replace("{workers}", noms, StringComparison.OrdinalIgnoreCase);
+        var incidents = new List<BackstageIncident>(count);
+        var indices = new HashSet<int>();
+        for (var i = 0; i < count; i++)
+        {
+            var workerIndex = TirerIndexUnique(roster.Count, indices);
+            var worker = roster[workerIndex];
+            var definition = _definitions[_random.Next(0, _definitions.Count)];
+            var incidentId = $"INC-{week}-{worker.WorkerId}-{i + 1}";
 
             incidents.Add(new BackstageIncident(
                 incidentId,
-                companyId,
+                worker.WorkerId,
+                definition.IncidentType,
+                definition.Description,
+                definition.Severity,
                 week,
-                definition.TypeId,
-                definition.Titre,
-                description,
-                gravite,
-                participants.Select(worker => worker.WorkerId).ToList()));
-
-            foreach (var participant in participants)
-            {
-                impacts.Add(new BackstageMoraleImpact(
-                    participant.WorkerId,
-                    moraleDelta,
-                    $"Incident: {definition.Titre}",
-                    incidentId,
-                    null));
-            }
-
-            inbox.Add(new InboxItem("incident", definition.Titre, description, week));
+                "OPEN"));
         }
 
-        return new BackstageRollResult(incidents, impacts, inbox);
+        return incidents;
     }
 
-    private List<BackstageWorker> TirerParticipants(
-        IReadOnlyList<BackstageWorker> roster,
-        int participantsMin,
-        int participantsMax)
+    private int TirerIndexUnique(int max, HashSet<int> dejaUtilises)
     {
-        var total = Math.Min(roster.Count, _random.Next(participantsMin, participantsMax + 1));
-        var disponibles = roster.ToList();
-        var selection = new List<BackstageWorker>();
-
-        for (var i = 0; i < total; i++)
+        var index = _random.Next(0, max);
+        while (!dejaUtilises.Add(index))
         {
-            var index = _random.Next(0, disponibles.Count);
-            selection.Add(disponibles[index]);
-            disponibles.RemoveAt(index);
+            index = _random.Next(0, max);
         }
 
-        return selection;
+        return index;
     }
 }
