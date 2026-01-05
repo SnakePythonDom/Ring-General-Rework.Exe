@@ -55,6 +55,33 @@ public sealed class WorkerGenerationServiceTests
     }
 
     [Fact]
+    public void GenerateWeekly_NeGenerePasHorsSemainePivot()
+    {
+        var spec = ChargerSpec();
+        var options = new WorkerGenerationOptions(YouthGenerationMode.Realiste, WorldGenerationMode.Desactivee, 1);
+        var youth = new YouthStructureState(
+            "YOUTH-001",
+            "Academy",
+            "COMP-001",
+            "FR",
+            "ACADEMY",
+            80000,
+            24,
+            3,
+            12,
+            "HYBRIDE",
+            true,
+            null,
+            5);
+        var state = new GameState(2, "COMP-001", "FR", options, new[] { youth }, new GenerationCounters(1, 0, new Dictionary<string, int>(), new Dictionary<string, int>(), 0, new Dictionary<string, int>()));
+
+        var service = new WorkerGenerationService(new SeededRandomProvider(7), spec);
+        var report = service.GenerateWeekly(state, 7);
+
+        Assert.Empty(report.Workers);
+    }
+
+    [Fact]
     public void GenerateWeekly_RespecteCapGlobal()
     {
         var spec = ChargerSpec();
@@ -81,6 +108,35 @@ public sealed class WorkerGenerationServiceTests
 
         Assert.Empty(report.Workers);
         Assert.Contains(report.ResultatsStructures, result => result.Raison == "Cap mondial atteint.");
+    }
+
+    [Fact]
+    public void GenerateWeekly_RespecteCapParStructure()
+    {
+        var spec = ChargerSpec();
+        var options = new WorkerGenerationOptions(YouthGenerationMode.Realiste, WorldGenerationMode.Desactivee, 1);
+        var youth = new YouthStructureState(
+            "YOUTH-002",
+            "Performance Center",
+            "COMP-001",
+            "FR",
+            "PERFORMANCE_CENTER",
+            250000,
+            24,
+            5,
+            18,
+            "HYBRIDE",
+            true,
+            null,
+            0);
+        var state = new GameState(1, "COMP-001", "FR", options, new[] { youth }, new GenerationCounters(1, 0, new Dictionary<string, int>(), new Dictionary<string, int>(), 0, new Dictionary<string, int>()));
+
+        var service = new WorkerGenerationService(new SeededRandomProvider(21), spec);
+        var report = service.GenerateWeekly(state, 21);
+
+        var generated = report.ResultatsStructures.FirstOrDefault(result => result.YouthId == youth.YouthId);
+        Assert.NotNull(generated);
+        Assert.True(generated!.NombreGeneres <= spec.Caps.Trainees.ParStructure.MaxParPeriode);
     }
 
     [Fact]

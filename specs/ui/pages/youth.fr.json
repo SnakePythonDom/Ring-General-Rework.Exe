@@ -2,23 +2,42 @@
   "meta": {"langue": "fr", "pageId": "youth", "titre": "Youth"},
   "onglets": [
     {"id": "structures", "libelle": "Structures"},
-    {"id": "cohortes", "libelle": "Cohortes"},
-    {"id": "programmes", "libelle": "Programmes"}
+    {"id": "trainees", "libelle": "Trainees"},
+    {"id": "programmes", "libelle": "Programmes"},
+    {"id": "staff", "libelle": "Staff"}
   ],
   "tables": [
     {
       "id": "liste_structures",
       "libelle": "Structures Youth",
-      "colonnes": ["Nom", "Type", "Région", "Capacité", "Budget"]
+      "colonnes": ["Nom", "Type", "Région", "Capacité", "Budget", "Infrastructure", "Philosophie"]
+    },
+    {
+      "id": "liste_trainees",
+      "libelle": "Trainees",
+      "colonnes": ["Nom", "Âge", "Niveau", "Spécialité", "Statut"]
+    },
+    {
+      "id": "liste_programmes",
+      "libelle": "Programmes",
+      "colonnes": ["Nom", "Type", "Durée", "Focus attributs", "Statut"]
+    },
+    {
+      "id": "liste_staff",
+      "libelle": "Staff affecté",
+      "colonnes": ["Nom", "Rôle", "Structure", "Début"]
     }
   ],
   "filtres": ["Type", "Région"],
   "panneauDetail": {
-    "sections": ["Staff affecté", "Cohortes", "Budget"]
+    "sections": ["Staff affecté", "Trainees", "Programmes", "Budget"]
   },
   "actions": [
     {"id": "creer_structure", "libelle": "Créer une structure"},
-    {"id": "ouvrir_cohorte", "libelle": "Ouvrir une cohorte"}
+    {"id": "ouvrir_cohorte", "libelle": "Ouvrir une cohorte"},
+    {"id": "affecter_coach", "libelle": "Affecter coach"},
+    {"id": "changer_budget", "libelle": "Changer budget"},
+    {"id": "graduation", "libelle": "Graduation"}
   ],
   "validations": [
     {"id": "structure.nom", "message": "Le nom de la structure est requis."}
