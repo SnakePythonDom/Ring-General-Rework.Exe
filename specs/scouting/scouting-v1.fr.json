@@ -1,32 +1,33 @@
 {
   "meta": {
     "langue": "fr",
-    "version": "1.0",
-    "sourceDeVerite": "specs"
+    "module": "scouting",
+    "version": "v1"
   },
-  "objectifs": [
-    "Offrir des rapports détaillés pour les free agents.",
-    "Maintenir une shortlist éditable et annotée.",
-    "Suivre des missions de scouting qui progressent chaque semaine."
-  ],
-  "modules": {
+  "entites": {
     "rapports": {
-      "description": "Chaque rapport met en avant forces, faiblesses et recommandation.",
-      "champs": ["Nom", "Région", "Note", "Forces", "Faiblesses", "Recommandation", "Résumé"]
+      "id": "ScoutReport",
+      "description": "Rapport détaillé généré sur les free agents et prospects.",
+      "champs": ["nom", "region", "potentiel", "notes", "semaine", "source"]
     },
     "shortlist": {
-      "description": "Liste priorisée des cibles avec notes internes.",
-      "actions": ["Ajouter", "Retirer", "Mettre à jour les notes"]
+      "id": "Shortlist",
+      "description": "Entrées marquées pour suivi rapide.",
+      "champs": ["nom", "note", "semaine"]
     },
     "missions": {
-      "description": "Missions région par région avec progression hebdo.",
-      "statuts": ["EN_COURS", "TERMINEE"]
+      "id": "ScoutMission",
+      "description": "Missions de scouting hebdomadaires avec progression.",
+      "champs": ["titre", "region", "focus", "progression", "objectif", "statut"]
     }
   },
-  "generationHebdo": {
-    "minimale": true,
-    "source": "free agents",
-    "frequence": "hebdomadaire",
-    "messageInbox": "Nouveau rapport de scouting disponible."
+  "hebdo": {
+    "rapportsAuto": true,
+    "maxRapports": 2,
+    "source": "free_agents"
+  },
+  "ui": {
+    "onglets": ["Rapports", "Shortlist", "Missions"],
+    "actions": ["ajouter_shortlist", "creer_mission", "ouvrir_profil"]
   }
 }

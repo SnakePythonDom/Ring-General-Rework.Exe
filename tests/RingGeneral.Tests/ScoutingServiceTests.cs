@@ -1,4 +1,3 @@
-using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
@@ -11,38 +10,26 @@ namespace RingGeneral.Tests;
 public sealed class ScoutingServiceTests
 {
     [Fact]
-    public void RafraichirSemaine_CreeRapport_EtPersiste()
+    public void CreerRapport_PersisteEtEstVisible()
     {
-        var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-scouting-{Guid.NewGuid():N}.db");
+        var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-{Guid.NewGuid():N}.db");
         try
         {
-            var repository = InitialiserRepository(dbPath);
-            InsererFreeAgent(dbPath, "FA-001", "Louis", "Moreau", "FR");
+            var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
+            var repository = new GameRepository(factory);
+            repository.Initialiser();
 
-            var mission = new ScoutMission("MIS-001", "FR", 1, 1, 0, "EN_COURS", null);
-            repository.AjouterMission(mission);
+            InsererFreeAgent(factory, "FA-TEST-001", "Nina", "Libre", "FR");
 
-            var service = new ScoutingService(new SeededRandomProvider(7));
-            var refresh = service.RafraichirSemaine(
-                repository.ChargerMissions(),
-                repository.ChargerScoutReports(),
-                repository.ChargerCiblesScouting(),
-                2);
-
-            foreach (var missionMaj in refresh.MissionsMaj)
-            {
-                repository.MettreAJourMission(missionMaj);
-            }
-
-            foreach (var rapport in refresh.NouveauxRapports)
-            {
-                repository.AjouterScoutReport(rapport);
-            }
+            var service = new ScoutingService(repository, new SeededRandomProvider(10));
+            var report = service.CreerRapport("FA-TEST-001", 3, "Note test.");
 
             var rapports = repository.ChargerScoutReports();
+            Assert.Contains(rapports, item => item.ReportId == report.ReportId && item.WorkerId == "FA-TEST-001");
 
-            Assert.NotEmpty(rapports);
-            Assert.Contains(rapports, rapport => rapport.WorkerId == "FA-001");
+            var reload = new GameRepository(factory);
+            var rapportsReload = reload.ChargerScoutReports();
+            Assert.Contains(rapportsReload, item => item.ReportId == report.ReportId);
         }
         finally
         {
@@ -54,36 +41,27 @@ public sealed class ScoutingServiceTests
     }
 
     [Fact]
-    public void RafraichirSemaine_FaitProgresserMission_AuFilDesSemaines()
+    public void MissionProgresse_AuFilDesSemaines()
     {
-        var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-scouting-{Guid.NewGuid():N}.db");
+        var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-{Guid.NewGuid():N}.db");
         try
         {
-            var repository = InitialiserRepository(dbPath);
-            var mission = new ScoutMission("MIS-002", "JP", 1, 3, 0, "EN_COURS", null);
+            var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
+            var repository = new GameRepository(factory);
+            repository.Initialiser();
+
+            var mission = new ScoutMission("MS-TEST-001", "Observer les free agents", "FR", "free_agents", 0, 10, "active", 1, 1);
             repository.AjouterMission(mission);
 
-            var service = new ScoutingService(new SeededRandomProvider(11));
+            var service = new ScoutingService(repository, new SeededRandomProvider(5));
+            service.RafraichirHebdo(2);
+            service.RafraichirHebdo(3);
 
-            for (var semaine = 2; semaine <= 4; semaine++)
-            {
-                var refresh = service.RafraichirSemaine(
-                    repository.ChargerMissions(),
-                    repository.ChargerScoutReports(),
-                    Array.Empty<ScoutTargetProfile>(),
-                    semaine);
+            var missions = repository.ChargerScoutMissions();
+            var updated = missions.Single(item => item.MissionId == "MS-TEST-001");
 
-                foreach (var missionMaj in refresh.MissionsMaj)
-                {
-                    repository.MettreAJourMission(missionMaj);
-                }
-            }
-
-            var missionsFinales = repository.ChargerMissions();
-            var missionFinale = Assert.Single(missionsFinales);
-
-            Assert.Equal(3, missionFinale.Progression);
-            Assert.Equal("TERMINEE", missionFinale.Statut);
+            Assert.True(updated.Progression > mission.Progression);
+            Assert.Equal(3, updated.SemaineMaj);
         }
         finally
         {
@@ -94,36 +72,32 @@ public sealed class ScoutingServiceTests
         }
     }
 
-    private static GameRepository InitialiserRepository(string dbPath)
+    private static void InsererFreeAgent(SqliteConnectionFactory factory, string workerId, string prenom, string nom, string region)
     {
-        var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-        var repository = new GameRepository(factory);
-        repository.Initialiser();
-        return repository;
-    }
-
-    private static void InsererFreeAgent(string dbPath, string workerId, string prenom, string nom, string region)
-    {
-        using var connexion = new SqliteConnection($"Data Source={dbPath}");
-        connexion.Open();
+        using var connexion = factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
 
         using var workerCommand = connexion.CreateCommand();
+        workerCommand.Transaction = transaction;
         workerCommand.CommandText = """
             INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, type_worker)
-            VALUES ($workerId, $nom, $prenom, NULL, 72, 64, 58, 51, 0, 'AUCUNE', 3, 'MID', 'FREE_AGENT');
+            VALUES ($workerId, $nom, $prenom, NULL, 62, 58, 61, 45, 0, 'AUCUNE', 0, 'LOWER_MID', 'CATCHEUR');
             """;
         workerCommand.Parameters.AddWithValue("$workerId", workerId);
         workerCommand.Parameters.AddWithValue("$nom", nom);
         workerCommand.Parameters.AddWithValue("$prenom", prenom);
         workerCommand.ExecuteNonQuery();
 
-        using var popularityCommand = connexion.CreateCommand();
-        popularityCommand.CommandText = """
+        using var regionCommand = connexion.CreateCommand();
+        regionCommand.Transaction = transaction;
+        regionCommand.CommandText = """
             INSERT INTO popularity_regionale (entity_type, entity_id, region, valeur)
-            VALUES ('worker', $workerId, $region, 52);
+            VALUES ('worker', $workerId, $region, 45);
             """;
-        popularityCommand.Parameters.AddWithValue("$workerId", workerId);
-        popularityCommand.Parameters.AddWithValue("$region", region);
-        popularityCommand.ExecuteNonQuery();
+        regionCommand.Parameters.AddWithValue("$workerId", workerId);
+        regionCommand.Parameters.AddWithValue("$region", region);
+        regionCommand.ExecuteNonQuery();
+
+        transaction.Commit();
     }
 }

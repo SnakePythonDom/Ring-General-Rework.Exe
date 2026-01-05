@@ -6,7 +6,7 @@ using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class GameRepository : IContractRepository
+public sealed class GameRepository : IScoutingRepository
 {
     private readonly SqliteConnectionFactory _factory;
 
@@ -256,6 +256,39 @@ public sealed class GameRepository : IContractRepository
                 valeur INTEGER NOT NULL,
                 UNIQUE(entity_type, entity_id, region)
             );
+            CREATE TABLE IF NOT EXISTS scout_reports (
+                report_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                region TEXT NOT NULL,
+                potentiel INTEGER NOT NULL,
+                in_ring INTEGER NOT NULL,
+                entertainment INTEGER NOT NULL,
+                story INTEGER NOT NULL,
+                resume TEXT NOT NULL,
+                notes TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                source TEXT NOT NULL,
+                UNIQUE(worker_id, semaine)
+            );
+            CREATE TABLE IF NOT EXISTS shortlists (
+                shortlist_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                note TEXT NOT NULL,
+                semaine INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS scout_missions (
+                mission_id TEXT PRIMARY KEY,
+                titre TEXT NOT NULL,
+                region TEXT NOT NULL,
+                focus TEXT NOT NULL,
+                progression INTEGER NOT NULL,
+                objectif INTEGER NOT NULL,
+                statut TEXT NOT NULL,
+                semaine_debut INTEGER NOT NULL,
+                semaine_maj INTEGER NOT NULL
+            );
             CREATE INDEX IF NOT EXISTS idx_workers_company ON workers(company_id);
             CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
             CREATE INDEX IF NOT EXISTS idx_contracts_enddate ON contracts(fin_semaine);
@@ -273,7 +306,7 @@ public sealed class GameRepository : IContractRepository
             CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
             CREATE INDEX IF NOT EXISTS idx_scout_reports_worker ON scout_reports(worker_id);
             CREATE INDEX IF NOT EXISTS idx_scout_reports_semaine ON scout_reports(semaine);
-            CREATE INDEX IF NOT EXISTS idx_shortlists_note ON shortlists(note);
+            CREATE INDEX IF NOT EXISTS idx_shortlists_worker ON shortlists(worker_id);
             CREATE INDEX IF NOT EXISTS idx_scout_missions_statut ON scout_missions(statut);
             """;
         commande.ExecuteNonQuery();
@@ -792,7 +825,7 @@ public sealed class GameRepository : IContractRepository
         command.ExecuteNonQuery();
     }
 
-    public IReadOnlyList<ScoutTargetProfile> ChargerCiblesScouting(string? region = null)
+    public ScoutingTarget? ChargerCibleScouting(string workerId)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
@@ -804,37 +837,102 @@ public sealed class GameRepository : IContractRepository
                    w.entertainment,
                    w.story,
                    w.popularite,
-                   w.momentum,
-                   COALESCE(pr.region, 'MONDE') AS region
+                   COALESCE(MIN(pr.region), 'INCONNU') AS region
             FROM workers w
             LEFT JOIN popularity_regionale pr
-                ON pr.entity_type = 'worker'
-               AND pr.entity_id = w.worker_id
-            WHERE (w.type_worker = 'FREE_AGENT' OR w.company_id IS NULL)
+                ON pr.entity_type = 'worker' AND pr.entity_id = w.worker_id
+            WHERE w.worker_id = $workerId
+            GROUP BY w.worker_id;
             """;
-        if (!string.IsNullOrWhiteSpace(region))
+        command.Parameters.AddWithValue("$workerId", workerId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
         {
-            command.CommandText += " AND pr.region = $region";
-            command.Parameters.AddWithValue("$region", region);
+            return null;
         }
 
+        return new ScoutingTarget(
+            reader.GetString(0),
+            $"{reader.GetString(1)} {reader.GetString(2)}",
+            reader.GetString(7),
+            reader.GetInt32(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            reader.GetInt32(6));
+    }
+
+    public IReadOnlyList<ScoutingTarget> ChargerCiblesScouting(int limite)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT w.worker_id,
+                   w.prenom,
+                   w.nom,
+                   w.in_ring,
+                   w.entertainment,
+                   w.story,
+                   w.popularite,
+                   COALESCE(MIN(pr.region), 'INCONNU') AS region
+            FROM workers w
+            LEFT JOIN popularity_regionale pr
+                ON pr.entity_type = 'worker' AND pr.entity_id = w.worker_id
+            WHERE w.company_id IS NULL
+            GROUP BY w.worker_id
+            ORDER BY w.popularite DESC
+            LIMIT $limit;
+            """;
+        command.Parameters.AddWithValue("$limit", limite);
         using var reader = command.ExecuteReader();
-        var targets = new List<ScoutTargetProfile>();
+        var cibles = new List<ScoutingTarget>();
         while (reader.Read())
         {
-            var nomComplet = $"{reader.GetString(1)} {reader.GetString(2)}".Trim();
-            targets.Add(new ScoutTargetProfile(
+            cibles.Add(new ScoutingTarget(
                 reader.GetString(0),
-                nomComplet,
-                reader.GetString(8),
+                $"{reader.GetString(1)} {reader.GetString(2)}",
+                reader.GetString(7),
                 reader.GetInt32(3),
                 reader.GetInt32(4),
                 reader.GetInt32(5),
-                reader.GetInt32(6),
-                reader.GetInt32(7)));
+                reader.GetInt32(6)));
         }
 
-        return targets;
+        return cibles;
+    }
+
+    public bool RapportExiste(string workerId, int semaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT COUNT(1) FROM scout_reports WHERE worker_id = $workerId AND semaine = $semaine;";
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.Parameters.AddWithValue("$semaine", semaine);
+        return Convert.ToInt32(command.ExecuteScalar()) > 0;
+    }
+
+    public void AjouterScoutReport(ScoutReport report)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT OR IGNORE INTO scout_reports
+                (report_id, worker_id, nom, region, potentiel, in_ring, entertainment, story, resume, notes, semaine, source)
+            VALUES
+                ($reportId, $workerId, $nom, $region, $potentiel, $inRing, $entertainment, $story, $resume, $notes, $semaine, $source);
+            """;
+        command.Parameters.AddWithValue("$reportId", report.ReportId);
+        command.Parameters.AddWithValue("$workerId", report.WorkerId);
+        command.Parameters.AddWithValue("$nom", report.Nom);
+        command.Parameters.AddWithValue("$region", report.Region);
+        command.Parameters.AddWithValue("$potentiel", report.Potentiel);
+        command.Parameters.AddWithValue("$inRing", report.InRing);
+        command.Parameters.AddWithValue("$entertainment", report.Entertainment);
+        command.Parameters.AddWithValue("$story", report.Story);
+        command.Parameters.AddWithValue("$resume", report.Resume);
+        command.Parameters.AddWithValue("$notes", report.Notes);
+        command.Parameters.AddWithValue("$semaine", report.Semaine);
+        command.Parameters.AddWithValue("$source", report.Source);
+        command.ExecuteNonQuery();
     }
 
     public IReadOnlyList<ScoutReport> ChargerScoutReports()
@@ -842,7 +940,18 @@ public sealed class GameRepository : IContractRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT report_id, worker_id, worker_nom, region, semaine, note, forces, faiblesses, recommandation, resume
+            SELECT report_id,
+                   worker_id,
+                   nom,
+                   region,
+                   potentiel,
+                   in_ring,
+                   entertainment,
+                   story,
+                   resume,
+                   notes,
+                   semaine,
+                   source
             FROM scout_reports
             ORDER BY semaine DESC;
             """;
@@ -857,91 +966,123 @@ public sealed class GameRepository : IContractRepository
                 reader.GetString(3),
                 reader.GetInt32(4),
                 reader.GetInt32(5),
-                reader.GetString(6),
-                reader.GetString(7),
+                reader.GetInt32(6),
+                reader.GetInt32(7),
                 reader.GetString(8),
-                reader.GetString(9)));
+                reader.GetString(9),
+                reader.GetInt32(10),
+                reader.GetString(11)));
         }
 
         return rapports;
     }
 
-    public void AjouterScoutReport(ScoutReport report)
+    public void AjouterShortlist(ShortlistEntry entry)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO scout_reports (report_id, worker_id, worker_nom, region, semaine, note, forces, faiblesses, recommandation, resume)
-            VALUES ($reportId, $workerId, $workerNom, $region, $semaine, $note, $forces, $faiblesses, $recommandation, $resume);
+            INSERT INTO shortlists (shortlist_id, worker_id, nom, note, semaine)
+            VALUES ($shortlistId, $workerId, $nom, $note, $semaine);
             """;
-        command.Parameters.AddWithValue("$reportId", report.ReportId);
-        command.Parameters.AddWithValue("$workerId", report.WorkerId);
-        command.Parameters.AddWithValue("$workerNom", report.WorkerNom);
-        command.Parameters.AddWithValue("$region", report.Region);
-        command.Parameters.AddWithValue("$semaine", report.Semaine);
-        command.Parameters.AddWithValue("$note", report.Note);
-        command.Parameters.AddWithValue("$forces", report.Forces);
-        command.Parameters.AddWithValue("$faiblesses", report.Faiblesses);
-        command.Parameters.AddWithValue("$recommandation", report.Recommendation);
-        command.Parameters.AddWithValue("$resume", report.Resume);
+        command.Parameters.AddWithValue("$shortlistId", entry.ShortlistId);
+        command.Parameters.AddWithValue("$workerId", entry.WorkerId);
+        command.Parameters.AddWithValue("$nom", entry.Nom);
+        command.Parameters.AddWithValue("$note", entry.Note);
+        command.Parameters.AddWithValue("$semaine", entry.Semaine);
         command.ExecuteNonQuery();
     }
 
-    public IReadOnlyList<ScoutShortlistEntry> ChargerShortlist()
+    public IReadOnlyList<ShortlistEntry> ChargerShortlist()
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT worker_id, worker_nom, note, notes, semaine_ajout, rapport_id
+            SELECT shortlist_id, worker_id, nom, note, semaine
             FROM shortlists
-            ORDER BY note DESC, semaine_ajout DESC;
+            ORDER BY semaine DESC;
             """;
         using var reader = command.ExecuteReader();
-        var entries = new List<ScoutShortlistEntry>();
+        var entries = new List<ShortlistEntry>();
         while (reader.Read())
         {
-            entries.Add(new ScoutShortlistEntry(
+            entries.Add(new ShortlistEntry(
                 reader.GetString(0),
                 reader.GetString(1),
-                reader.GetInt32(2),
+                reader.GetString(2),
                 reader.GetString(3),
-                reader.GetInt32(4),
-                reader.IsDBNull(5) ? null : reader.GetString(5)));
+                reader.GetInt32(4)));
         }
 
         return entries;
     }
 
-    public void AjouterShortlistEntry(ScoutShortlistEntry entry)
+    public void AjouterMission(ScoutMission mission)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO shortlists (worker_id, worker_nom, note, notes, semaine_ajout, rapport_id)
-            VALUES ($workerId, $workerNom, $note, $notes, $semaineAjout, $rapportId)
-            ON CONFLICT(worker_id) DO UPDATE SET
-                worker_nom = excluded.worker_nom,
-                note = excluded.note,
-                notes = excluded.notes,
-                semaine_ajout = excluded.semaine_ajout,
-                rapport_id = excluded.rapport_id;
+            INSERT INTO scout_missions
+                (mission_id, titre, region, focus, progression, objectif, statut, semaine_debut, semaine_maj)
+            VALUES
+                ($missionId, $titre, $region, $focus, $progression, $objectif, $statut, $semaineDebut, $semaineMaj);
             """;
-        command.Parameters.AddWithValue("$workerId", entry.WorkerId);
-        command.Parameters.AddWithValue("$workerNom", entry.WorkerNom);
-        command.Parameters.AddWithValue("$note", entry.Note);
-        command.Parameters.AddWithValue("$notes", entry.Notes);
-        command.Parameters.AddWithValue("$semaineAjout", entry.SemaineAjout);
-        command.Parameters.AddWithValue("$rapportId", entry.RapportId ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("$missionId", mission.MissionId);
+        command.Parameters.AddWithValue("$titre", mission.Titre);
+        command.Parameters.AddWithValue("$region", mission.Region);
+        command.Parameters.AddWithValue("$focus", mission.Focus);
+        command.Parameters.AddWithValue("$progression", mission.Progression);
+        command.Parameters.AddWithValue("$objectif", mission.Objectif);
+        command.Parameters.AddWithValue("$statut", mission.Statut);
+        command.Parameters.AddWithValue("$semaineDebut", mission.SemaineDebut);
+        command.Parameters.AddWithValue("$semaineMaj", mission.SemaineMaj);
         command.ExecuteNonQuery();
     }
 
-    public IReadOnlyList<ScoutMission> ChargerMissions()
+    public IReadOnlyList<ScoutMission> ChargerMissionsActives()
+    {
+        return ChargerMissions("WHERE statut = 'active'");
+    }
+
+    public IReadOnlyList<ScoutMission> ChargerScoutMissions()
+    {
+        return ChargerMissions(string.Empty);
+    }
+
+    public void MettreAJourMissionProgress(string missionId, int progression, string statut, int semaineMaj)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT mission_id, region, semaine_debut, duree_semaines, progression, statut, rapport_id
+            UPDATE scout_missions
+            SET progression = $progression,
+                statut = $statut,
+                semaine_maj = $semaineMaj
+            WHERE mission_id = $missionId;
+            """;
+        command.Parameters.AddWithValue("$progression", progression);
+        command.Parameters.AddWithValue("$statut", statut);
+        command.Parameters.AddWithValue("$semaineMaj", semaineMaj);
+        command.Parameters.AddWithValue("$missionId", missionId);
+        command.ExecuteNonQuery();
+    }
+
+    private IReadOnlyList<ScoutMission> ChargerMissions(string clause)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"""
+            SELECT mission_id,
+                   titre,
+                   region,
+                   focus,
+                   progression,
+                   objectif,
+                   statut,
+                   semaine_debut,
+                   semaine_maj
             FROM scout_missions
+            {clause}
             ORDER BY semaine_debut DESC;
             """;
         using var reader = command.ExecuteReader();
@@ -951,50 +1092,16 @@ public sealed class GameRepository : IContractRepository
             missions.Add(new ScoutMission(
                 reader.GetString(0),
                 reader.GetString(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
+                reader.GetString(2),
+                reader.GetString(3),
                 reader.GetInt32(4),
-                reader.GetString(5),
-                reader.IsDBNull(6) ? null : reader.GetString(6)));
+                reader.GetInt32(5),
+                reader.GetString(6),
+                reader.GetInt32(7),
+                reader.GetInt32(8)));
         }
 
         return missions;
-    }
-
-    public void AjouterMission(ScoutMission mission)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            INSERT INTO scout_missions (mission_id, region, semaine_debut, duree_semaines, progression, statut, rapport_id)
-            VALUES ($missionId, $region, $semaineDebut, $duree, $progression, $statut, $rapportId);
-            """;
-        command.Parameters.AddWithValue("$missionId", mission.MissionId);
-        command.Parameters.AddWithValue("$region", mission.Region);
-        command.Parameters.AddWithValue("$semaineDebut", mission.SemaineDebut);
-        command.Parameters.AddWithValue("$duree", mission.DureeSemaines);
-        command.Parameters.AddWithValue("$progression", mission.Progression);
-        command.Parameters.AddWithValue("$statut", mission.Statut);
-        command.Parameters.AddWithValue("$rapportId", mission.RapportId ?? (object)DBNull.Value);
-        command.ExecuteNonQuery();
-    }
-
-    public void MettreAJourMission(ScoutMission mission)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            UPDATE scout_missions
-            SET progression = $progression,
-                statut = $statut,
-                rapport_id = $rapportId
-            WHERE mission_id = $missionId;
-            """;
-        command.Parameters.AddWithValue("$progression", mission.Progression);
-        command.Parameters.AddWithValue("$statut", mission.Statut);
-        command.Parameters.AddWithValue("$rapportId", mission.RapportId ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("$missionId", mission.MissionId);
-        command.ExecuteNonQuery();
     }
 
     public int IncrementerSemaine(string showId)

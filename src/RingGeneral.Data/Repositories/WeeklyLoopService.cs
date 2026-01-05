@@ -36,7 +36,11 @@ public sealed class WeeklyLoopService
         inboxItems.AddRange(VerifierContrats(semaine));
         inboxItems.AddRange(VerifierOffresExpirantes(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
-        inboxItems.AddRange(GenererScouting(semaine));
+        var scouting = GenererScoutingHebdo(semaine);
+        if (scouting is not null)
+        {
+            inboxItems.Add(scouting);
+        }
 
         foreach (var item in inboxItems)
         {
@@ -81,14 +85,12 @@ public sealed class WeeklyLoopService
         }
     }
 
-    private IReadOnlyList<InboxItem> GenererScouting(int semaine)
+    private InboxItem? GenererScoutingHebdo(int semaine)
     {
-        var missions = _repository.ChargerMissions();
-        var rapportsExistants = _repository.ChargerScoutReports();
-        var cibles = _repository.ChargerCiblesScouting();
-        var refresh = _scoutingService.RafraichirSemaine(missions, rapportsExistants, cibles, semaine);
+        var service = new ScoutingService(_repository, new SeededRandomProvider(semaine));
+        var refresh = service.RafraichirHebdo(semaine);
 
-        foreach (var mission in refresh.MissionsMaj)
+        if (refresh.RapportsCrees == 0 && refresh.MissionsAvancees == 0)
         {
             if (missions.Any(m => m.MissionId == mission.MissionId))
             {
@@ -96,27 +98,13 @@ public sealed class WeeklyLoopService
             }
         }
 
-        foreach (var rapport in refresh.NouveauxRapports)
+        var contenu = $"Scouting: {refresh.RapportsCrees} rapport(s) créé(s), {refresh.MissionsAvancees} mission(s) avancée(s).";
+        if (refresh.MissionsTerminees > 0)
         {
-            _repository.AjouterScoutReport(rapport);
+            contenu += $" {refresh.MissionsTerminees} mission(s) terminée(s).";
         }
 
-        var items = new List<InboxItem>();
-        foreach (var rapport in refresh.NouveauxRapports)
-        {
-            var contenu = $"{rapport.WorkerNom} ({rapport.Region}) - Note {rapport.Note}. {rapport.Resume}";
-            items.Add(new InboxItem("scouting", "Rapport de scouting", contenu, semaine));
-        }
-
-        foreach (var mission in refresh.MissionsTerminees)
-        {
-            var message = string.IsNullOrWhiteSpace(mission.RapportId)
-                ? $"Mission {mission.Region} terminée. Aucun rapport exploitable cette semaine."
-                : $"Mission {mission.Region} terminée. Nouveau rapport disponible.";
-            items.Add(new InboxItem("scouting", "Mission de scouting", message, semaine));
-        }
-
-        return items;
+        return new InboxItem("scouting", "Scouting hebdo", contenu, semaine);
     }
 
     private IEnumerable<InboxItem> SimulerMonde(int semaine, string showId)

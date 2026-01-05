@@ -9,22 +9,22 @@
     {
       "id": "liste_rapports",
       "libelle": "Rapports",
-      "colonnes": ["Nom", "Région", "Note", "Statut", "Semaine"]
+      "colonnes": ["Nom", "Potentiel", "Note", "Région", "Semaine"]
     },
     {
       "id": "liste_shortlist",
       "libelle": "Shortlist",
-      "colonnes": ["Nom", "Note", "Dernier rapport", "Statut"]
+      "colonnes": ["Nom", "Note", "Région", "Ajouté"]
     },
     {
       "id": "liste_missions",
       "libelle": "Missions",
-      "colonnes": ["Mission", "Région", "Progression", "Statut"]
+      "colonnes": ["Mission", "Région", "Focus", "Progression", "Statut"]
     }
   ],
-  "filtres": ["Recherche", "Région", "Note", "Statut"],
+  "filtres": ["Recherche", "Région", "Potentiel", "Statut", "Note"],
   "panneauDetail": {
-    "sections": ["Profil", "Rapport détaillé", "Notes internes"]
+    "sections": ["Profil", "Rapport", "Mission"]
   },
   "actions": [
     {"id": "ajouter_shortlist", "libelle": "Ajouter shortlist"},
