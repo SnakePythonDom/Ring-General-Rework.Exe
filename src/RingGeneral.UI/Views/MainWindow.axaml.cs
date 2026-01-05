@@ -81,6 +81,30 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnOuvrirFicheWorker(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.OuvrirFicheWorker();
+        }
+    }
+
+    private void OnVoirImpacts(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.VoirImpacts();
+        }
+    }
+
+    private void OnVoirFinance(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.VoirFinances();
+        }
+    }
+
     private void OnOuvrirArticle(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string articleId)

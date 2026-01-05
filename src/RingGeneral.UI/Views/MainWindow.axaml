@@ -370,8 +370,8 @@
                   <TextBlock Grid.Column="3" Text="Breakdown" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.breakdown']}" />
                   <TextBlock Grid.Column="4" Text="Impacts" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.impacts']}" />
                 </Grid>
-                <ItemsControl ItemsSource="{Binding Session.Resultats}">
-                  <ItemsControl.ItemTemplate>
+                <ListBox ItemsSource="{Binding Session.Resultats}" SelectedItem="{Binding Session.ResultatSelectionne, Mode=TwoWay}">
+                  <ListBox.ItemTemplate>
                     <DataTemplate>
                       <Grid ColumnDefinitions="120,80,80,*,*">
                         <TextBlock Text="{Binding TypeSegment}" Foreground="White" />
@@ -381,10 +381,15 @@
                         <TextBlock Grid.Column="4" Text="{Binding Impacts}" Foreground="#D1D5DB" TextWrapping="Wrap" />
                       </Grid>
                     </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                  </ListBox.ItemTemplate>
+                </ListBox>
               </StackPanel>
             </Border>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Ouvrir fiche worker" Click="OnOuvrirFicheWorker" />
+              <Button Content="Voir impacts" Click="OnVoirImpacts" />
+              <Button Content="Voir finance" Click="OnVoirFinance" />
+            </StackPanel>
             <StackPanel Spacing="6">
               <TextBlock Text="Pourquoi cette note ?" Foreground="#F9FAFB" FontWeight="SemiBold" />
               <ItemsControl ItemsSource="{Binding Session.PourquoiNote}">
@@ -401,6 +406,25 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <TextBlock Text="{Binding .}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Text="Historique du show" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <ItemsControl ItemsSource="{Binding Session.HistoriqueShows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Foreground="#CBD5F5" TextWrapping="Wrap">
+                      <TextBlock.Text>
+                        <MultiBinding StringFormat="Semaine {0} • Note {1} • Audience {2} • {3}">
+                          <Binding Path="Week" />
+                          <Binding Path="Note" />
+                          <Binding Path="Audience" />
+                          <Binding Path="Summary" />
+                        </MultiBinding>
+                      </TextBlock.Text>
+                    </TextBlock>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
