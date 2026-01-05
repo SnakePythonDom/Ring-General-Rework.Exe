@@ -400,6 +400,133 @@ public sealed class GameRepository
         transaction.Commit();
     }
 
+    public IReadOnlyList<StorylineInfo> ChargerStorylines()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        return ChargerStorylines(connexion);
+    }
+
+    public void CreerStoryline(string compagnieId, StorylineInfo storyline)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO Storylines (StorylineId, CompanyId, Name, Phase, Heat, Status, Summary, SimLevel, IsActive)
+            VALUES ($storylineId, $companyId, $name, $phase, $heat, $status, $summary, 0, 1);
+            """;
+        command.Parameters.AddWithValue("$storylineId", storyline.StorylineId);
+        command.Parameters.AddWithValue("$companyId", compagnieId);
+        command.Parameters.AddWithValue("$name", storyline.Nom);
+        command.Parameters.AddWithValue("$phase", storyline.Phase);
+        command.Parameters.AddWithValue("$heat", storyline.Heat);
+        command.Parameters.AddWithValue("$status", storyline.Statut);
+        command.Parameters.AddWithValue("$summary", (object?)storyline.Resume ?? DBNull.Value);
+        command.ExecuteNonQuery();
+
+        MettreAJourStorylineParticipants(connexion, transaction, storyline.StorylineId, storyline.Participants);
+
+        transaction.Commit();
+    }
+
+    public void MettreAJourStoryline(StorylineInfo storyline)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            UPDATE Storylines
+            SET Name = $name,
+                Phase = $phase,
+                Heat = $heat,
+                Status = $status,
+                Summary = $summary
+            WHERE StorylineId = $storylineId;
+            """;
+        command.Parameters.AddWithValue("$storylineId", storyline.StorylineId);
+        command.Parameters.AddWithValue("$name", storyline.Nom);
+        command.Parameters.AddWithValue("$phase", storyline.Phase);
+        command.Parameters.AddWithValue("$heat", storyline.Heat);
+        command.Parameters.AddWithValue("$status", storyline.Statut);
+        command.Parameters.AddWithValue("$summary", (object?)storyline.Resume ?? DBNull.Value);
+        command.ExecuteNonQuery();
+
+        MettreAJourStorylineParticipants(connexion, transaction, storyline.StorylineId, storyline.Participants);
+
+        transaction.Commit();
+    }
+
+    public void SupprimerStoryline(string storylineId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        using var participantCommand = connexion.CreateCommand();
+        participantCommand.Transaction = transaction;
+        participantCommand.CommandText = "DELETE FROM StorylineParticipants WHERE StorylineId = $storylineId;";
+        participantCommand.Parameters.AddWithValue("$storylineId", storylineId);
+        participantCommand.ExecuteNonQuery();
+
+        using var eventCommand = connexion.CreateCommand();
+        eventCommand.Transaction = transaction;
+        eventCommand.CommandText = "DELETE FROM StorylineEvents WHERE StorylineId = $storylineId;";
+        eventCommand.Parameters.AddWithValue("$storylineId", storylineId);
+        eventCommand.ExecuteNonQuery();
+
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "DELETE FROM Storylines WHERE StorylineId = $storylineId;";
+        command.Parameters.AddWithValue("$storylineId", storylineId);
+        command.ExecuteNonQuery();
+
+        transaction.Commit();
+    }
+
+    public void AjouterStorylineEvent(string storylineId, string typeEvenement, int? semaine, string? details)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO StorylineEvents (StorylineId, EventType, EventWeek, Details)
+            VALUES ($storylineId, $type, $week, $details);
+            """;
+        command.Parameters.AddWithValue("$storylineId", storylineId);
+        command.Parameters.AddWithValue("$type", typeEvenement);
+        command.Parameters.AddWithValue("$week", (object?)semaine ?? DBNull.Value);
+        command.Parameters.AddWithValue("$details", (object?)details ?? DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public IReadOnlyList<StorylineEvent> ChargerStorylineEvents(string storylineId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT StorylineEventId, StorylineId, EventType, EventWeek, Details
+            FROM StorylineEvents
+            WHERE StorylineId = $storylineId
+            ORDER BY StorylineEventId DESC;
+            """;
+        command.Parameters.AddWithValue("$storylineId", storylineId);
+        using var reader = command.ExecuteReader();
+        var events = new List<StorylineEvent>();
+        while (reader.Read())
+        {
+            events.Add(new StorylineEvent(
+                reader.GetInt64(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                reader.IsDBNull(4) ? null : reader.GetString(4)));
+        }
+
+        return events;
+    }
+
     public void EnregistrerRapport(ShowReport rapport)
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -1199,7 +1326,7 @@ public sealed class GameRepository
     private static List<StorylineInfo> ChargerStorylines(SqliteConnection connexion)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT StorylineId, Name, Heat FROM Storylines;";
+        command.CommandText = "SELECT StorylineId, Name, Phase, Heat, Status, Summary FROM Storylines;";
         using var reader = command.ExecuteReader();
         var storylines = new List<StorylineInfo>();
         while (reader.Read())
@@ -1208,23 +1335,55 @@ public sealed class GameRepository
             storylines.Add(new StorylineInfo(
                 storylineId,
                 reader.GetString(1),
-                reader.GetInt32(2),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.GetString(4),
+                reader.IsDBNull(5) ? null : reader.GetString(5),
                 ChargerStorylineParticipants(connexion, storylineId)));
         }
 
         return storylines;
     }
 
-    private static List<string> ChargerStorylineParticipants(SqliteConnection connexion, string storylineId)
+    private static void MettreAJourStorylineParticipants(
+        SqliteConnection connexion,
+        SqliteTransaction transaction,
+        string storylineId,
+        IReadOnlyList<StorylineParticipant> participants)
+    {
+        using var deleteCommand = connexion.CreateCommand();
+        deleteCommand.Transaction = transaction;
+        deleteCommand.CommandText = "DELETE FROM StorylineParticipants WHERE StorylineId = $storylineId;";
+        deleteCommand.Parameters.AddWithValue("$storylineId", storylineId);
+        deleteCommand.ExecuteNonQuery();
+
+        foreach (var participant in participants)
+        {
+            using var insertCommand = connexion.CreateCommand();
+            insertCommand.Transaction = transaction;
+            insertCommand.CommandText = """
+                INSERT INTO StorylineParticipants (StorylineId, WorkerId, Role)
+                VALUES ($storylineId, $workerId, $role);
+                """;
+            insertCommand.Parameters.AddWithValue("$storylineId", storylineId);
+            insertCommand.Parameters.AddWithValue("$workerId", participant.WorkerId);
+            insertCommand.Parameters.AddWithValue("$role", participant.Role);
+            insertCommand.ExecuteNonQuery();
+        }
+    }
+
+    private static List<StorylineParticipant> ChargerStorylineParticipants(SqliteConnection connexion, string storylineId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId FROM StorylineParticipants WHERE StorylineId = $storylineId;";
+        command.CommandText = "SELECT WorkerId, Role FROM StorylineParticipants WHERE StorylineId = $storylineId;";
         command.Parameters.AddWithValue("$storylineId", storylineId);
         using var reader = command.ExecuteReader();
-        var participants = new List<string>();
+        var participants = new List<StorylineParticipant>();
         while (reader.Read())
         {
-            participants.Add(reader.GetString(0));
+            participants.Add(new StorylineParticipant(
+                reader.GetString(0),
+                reader.IsDBNull(1) ? "principal" : reader.GetString(1)));
         }
 
         return participants;

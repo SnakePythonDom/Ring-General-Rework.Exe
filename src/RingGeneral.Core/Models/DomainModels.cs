@@ -42,11 +42,18 @@ public sealed record TitleInfo(
     int Prestige,
     string? DetenteurId);
 
+public sealed record StorylineParticipant(
+    string WorkerId,
+    string Role);
+
 public sealed record StorylineInfo(
     string StorylineId,
     string Nom,
+    string Phase,
     int Heat,
-    IReadOnlyList<string> Participants);
+    string Statut,
+    string? Resume,
+    IReadOnlyList<StorylineParticipant> Participants);
 
 public sealed record SegmentDefinition(
     string SegmentId,
@@ -89,3 +96,10 @@ public sealed record GameStateDelta(
     IReadOnlyDictionary<string, int> StorylineHeatDelta,
     IReadOnlyDictionary<string, int> TitrePrestigeDelta,
     IReadOnlyList<FinanceTransaction> Finances);
+
+public sealed record StorylineEvent(
+    long StorylineEventId,
+    string StorylineId,
+    string TypeEvenement,
+    int? Semaine,
+    string? Details);

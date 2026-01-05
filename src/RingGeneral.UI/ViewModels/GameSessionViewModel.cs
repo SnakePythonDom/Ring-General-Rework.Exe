@@ -4,6 +4,7 @@ using ReactiveUI;
 using System.Reactive;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
+using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Database;
@@ -24,6 +25,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _helpPages;
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _impactPages;
     private readonly TooltipHelper _tooltipHelper;
+    private readonly StorylineService _storylineService = new();
     private ShowContext? _context;
     private readonly List<GlobalSearchResultViewModel> _rechercheGlobaleIndex = new();
 
@@ -55,6 +57,9 @@ public sealed class GameSessionViewModel : ViewModelBase
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
+        Storylines = new ObservableCollection<StorylineListItemViewModel>();
+        StorylineOptions = new ObservableCollection<StorylineOptionViewModel>();
+        StorylineParticipantsEdition = new ObservableCollection<StorylineParticipantViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
         YouthGenerationModes = new[]
@@ -67,6 +72,18 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             new WorldGenerationOptionViewModel("Désactivée", WorldGenerationMode.Desactivee),
             new WorldGenerationOptionViewModel("Faible", WorldGenerationMode.Faible)
+        };
+        StorylinePhases = new[]
+        {
+            new StorylinePhaseOptionViewModel("BUILD", "Build"),
+            new StorylinePhaseOptionViewModel("PEAK", "Peak"),
+            new StorylinePhaseOptionViewModel("BLOWOFF", "Blowoff")
+        };
+        StorylineStatuts = new[]
+        {
+            new StorylineStatusOptionViewModel("ACTIVE", "Active"),
+            new StorylineStatusOptionViewModel("SUSPENDUE", "Suspendue"),
+            new StorylineStatusOptionViewModel("TERMINEE", "Terminée")
         };
 
         InitialiserSegmentTypes();
@@ -90,6 +107,9 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
+    public ObservableCollection<StorylineListItemViewModel> Storylines { get; }
+    public ObservableCollection<StorylineOptionViewModel> StorylineOptions { get; }
+    public ObservableCollection<StorylineParticipantViewModel> StorylineParticipantsEdition { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
@@ -104,6 +124,8 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public IReadOnlyList<YouthGenerationOptionViewModel> YouthGenerationModes { get; }
     public IReadOnlyList<WorldGenerationOptionViewModel> WorldGenerationModes { get; }
+    public IReadOnlyList<StorylinePhaseOptionViewModel> StorylinePhases { get; }
+    public IReadOnlyList<StorylineStatusOptionViewModel> StorylineStatuts { get; }
 
     public YouthGenerationOptionViewModel? YouthGenerationSelection
     {
@@ -211,6 +233,59 @@ public sealed class GameSessionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _nouveauSegmentParticipantId, value);
     }
     private string? _nouveauSegmentParticipantId;
+
+    public string? NouveauSegmentStorylineId
+    {
+        get => _nouveauSegmentStorylineId;
+        set => this.RaiseAndSetIfChanged(ref _nouveauSegmentStorylineId, value);
+    }
+    private string? _nouveauSegmentStorylineId;
+
+    public StorylineListItemViewModel? StorylineSelectionnee
+    {
+        get => _storylineSelectionnee;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _storylineSelectionnee, value);
+            ChargerStorylineSelection();
+        }
+    }
+    private StorylineListItemViewModel? _storylineSelectionnee;
+
+    public string? StorylineNom
+    {
+        get => _storylineNom;
+        set => this.RaiseAndSetIfChanged(ref _storylineNom, value);
+    }
+    private string? _storylineNom;
+
+    public string? StorylineResume
+    {
+        get => _storylineResume;
+        set => this.RaiseAndSetIfChanged(ref _storylineResume, value);
+    }
+    private string? _storylineResume;
+
+    public StorylinePhaseOptionViewModel? StorylinePhaseSelection
+    {
+        get => _storylinePhaseSelection;
+        set => this.RaiseAndSetIfChanged(ref _storylinePhaseSelection, value);
+    }
+    private StorylinePhaseOptionViewModel? _storylinePhaseSelection;
+
+    public StorylineStatusOptionViewModel? StorylineStatutSelection
+    {
+        get => _storylineStatutSelection;
+        set => this.RaiseAndSetIfChanged(ref _storylineStatutSelection, value);
+    }
+    private StorylineStatusOptionViewModel? _storylineStatutSelection;
+
+    public string? StorylineParticipantSelectionId
+    {
+        get => _storylineParticipantSelectionId;
+        set => this.RaiseAndSetIfChanged(ref _storylineParticipantSelectionId, value);
+    }
+    private string? _storylineParticipantSelectionId;
 
     public string? ResumeShow
     {
@@ -423,7 +498,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             participants,
             Math.Max(1, NouveauSegmentDuree),
             NouveauSegmentMainEvent,
-            null,
+            string.IsNullOrWhiteSpace(NouveauSegmentStorylineId) ? null : NouveauSegmentStorylineId,
             null,
             60,
             null,
@@ -435,6 +510,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauSegmentDuree = 8;
         NouveauSegmentMainEvent = false;
         NouveauSegmentParticipantId = null;
+        NouveauSegmentStorylineId = null;
         ChargerShow();
     }
 
@@ -451,7 +527,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             segment.Participants.Select(p => p.WorkerId).ToList(),
             Math.Max(1, segment.DureeMinutes),
             segment.EstMainEvent,
-            segment.StorylineId,
+            string.IsNullOrWhiteSpace(segment.StorylineId) ? null : segment.StorylineId,
             segment.TitreId,
             segment.Intensite,
             segment.VainqueurId,
@@ -482,6 +558,114 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         _repository.AjouterSegment(_context.Show.ShowId, copie, Segments.Count + 1);
         ChargerShow();
+    }
+
+    public void CreerStoryline()
+    {
+        if (_context is null || _repository is null)
+        {
+            return;
+        }
+
+        var nom = string.IsNullOrWhiteSpace(StorylineNom) ? "Nouvelle storyline" : StorylineNom.Trim();
+        var phase = StorylinePhaseSelection?.Id ?? "BUILD";
+        var statut = StorylineStatutSelection?.Id ?? "ACTIVE";
+        var participants = StorylineParticipantsEdition
+            .Select(participant => new StorylineParticipant(participant.WorkerId, participant.Role))
+            .ToList();
+
+        var storylineId = $"ST-{Guid.NewGuid():N}".ToUpperInvariant();
+        var storyline = _storylineService.Creer(storylineId, nom, participants);
+        storyline = _storylineService.MettreAJour(storyline, phase: phase, statut: statut, resume: StorylineResume);
+
+        _repository.CreerStoryline(_context.Show.CompagnieId, storyline);
+        _repository.AjouterStorylineEvent(storyline.StorylineId, "CREATED", _context.Show.Semaine, "Création storyline");
+        ReinitialiserStorylineEdition();
+        ChargerShow();
+    }
+
+    public void MettreAJourStoryline()
+    {
+        if (_context is null || _repository is null || StorylineSelectionnee is null)
+        {
+            return;
+        }
+
+        var selection = _context.Storylines.FirstOrDefault(storyline => storyline.StorylineId == StorylineSelectionnee.StorylineId);
+        if (selection is null)
+        {
+            return;
+        }
+
+        var nom = string.IsNullOrWhiteSpace(StorylineNom) ? selection.Nom : StorylineNom.Trim();
+        var phase = StorylinePhaseSelection?.Id ?? selection.Phase;
+        var statut = StorylineStatutSelection?.Id ?? selection.Statut;
+        var participants = StorylineParticipantsEdition
+            .Select(participant => new StorylineParticipant(participant.WorkerId, participant.Role))
+            .ToList();
+
+        var updated = _storylineService.MettreAJour(selection, nom, phase, statut, StorylineResume, participants);
+        _repository.MettreAJourStoryline(updated);
+        _repository.AjouterStorylineEvent(updated.StorylineId, "UPDATED", _context.Show.Semaine, "Mise à jour storyline");
+        ChargerShow();
+    }
+
+    public void AvancerStoryline()
+    {
+        if (_context is null || _repository is null || StorylineSelectionnee is null)
+        {
+            return;
+        }
+
+        var selection = _context.Storylines.FirstOrDefault(storyline => storyline.StorylineId == StorylineSelectionnee.StorylineId);
+        if (selection is null)
+        {
+            return;
+        }
+
+        var updated = _storylineService.Avancer(selection);
+        _repository.MettreAJourStoryline(updated);
+        _repository.AjouterStorylineEvent(updated.StorylineId, "ADVANCED", _context.Show.Semaine, $"Phase {updated.Phase}");
+        ChargerShow();
+    }
+
+    public void SupprimerStoryline()
+    {
+        if (_repository is null || StorylineSelectionnee is null)
+        {
+            return;
+        }
+
+        _repository.SupprimerStoryline(StorylineSelectionnee.StorylineId);
+        ReinitialiserStorylineEdition();
+        ChargerShow();
+    }
+
+    public void AjouterParticipantStoryline()
+    {
+        if (StorylineParticipantSelectionId is null || _context is null)
+        {
+            return;
+        }
+
+        if (StorylineParticipantsEdition.Any(p => p.WorkerId == StorylineParticipantSelectionId))
+        {
+            return;
+        }
+
+        var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == StorylineParticipantSelectionId);
+        if (worker is null)
+        {
+            return;
+        }
+
+        StorylineParticipantsEdition.Add(new StorylineParticipantViewModel(worker.WorkerId, worker.NomComplet, "principal", worker.Momentum));
+        StorylineParticipantSelectionId = null;
+    }
+
+    public void RetirerParticipantStoryline(StorylineParticipantViewModel participant)
+    {
+        StorylineParticipantsEdition.Remove(participant);
     }
 
     public void DeplacerSegment(SegmentViewModel segment, int delta)
@@ -616,6 +800,17 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerShow()
     {
+        if (_repository is null)
+        {
+            return;
+        }
+
+        _context = _repository.ChargerShowContext(ShowId);
+        if (_context is null)
+        {
+            return;
+        }
+
         Segments.Clear();
         WorkersDisponibles.Clear();
 
@@ -643,10 +838,102 @@ public sealed class GameSessionViewModel : ViewModelBase
                 segment.PerdantId));
         }
 
+        ChargerStorylinesView();
         MettreAJourAttributs();
         ChargerCalendrier();
         MettreAJourAvertissements();
         InitialiserNouveauShow();
+    }
+
+    private void ChargerStorylinesView()
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var selectionId = StorylineSelectionnee?.StorylineId;
+
+        Storylines.Clear();
+        StorylineOptions.Clear();
+        StorylineOptions.Add(new StorylineOptionViewModel(null, "Aucune"));
+
+        foreach (var storyline in _context.Storylines)
+        {
+            StorylineOptions.Add(new StorylineOptionViewModel(storyline.StorylineId, storyline.Nom));
+
+            var participants = storyline.Participants.Select(participant =>
+            {
+                var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == participant.WorkerId);
+                var nom = worker?.NomComplet ?? participant.WorkerId;
+                var momentum = worker?.Momentum ?? 0;
+                return new StorylineParticipantViewModel(participant.WorkerId, nom, participant.Role, momentum);
+            }).ToList();
+
+            Storylines.Add(new StorylineListItemViewModel(
+                storyline.StorylineId,
+                storyline.Nom,
+                storyline.Phase,
+                storyline.Heat,
+                storyline.Statut,
+                storyline.Resume ?? string.Empty,
+                participants));
+        }
+
+        StorylineSelectionnee = selectionId is null
+            ? null
+            : Storylines.FirstOrDefault(storyline => storyline.StorylineId == selectionId);
+
+        if (StorylineSelectionnee is null)
+        {
+            ChargerStorylineSelection();
+        }
+    }
+
+    private void ChargerStorylineSelection()
+    {
+        StorylineParticipantsEdition.Clear();
+
+        if (_context is null || StorylineSelectionnee is null)
+        {
+            StorylineNom = null;
+            StorylineResume = null;
+            StorylinePhaseSelection = StorylinePhases.FirstOrDefault();
+            StorylineStatutSelection = StorylineStatuts.FirstOrDefault();
+            StorylineParticipantSelectionId = null;
+            return;
+        }
+
+        var selection = _context.Storylines.FirstOrDefault(storyline => storyline.StorylineId == StorylineSelectionnee.StorylineId);
+        if (selection is null)
+        {
+            return;
+        }
+
+        StorylineNom = selection.Nom;
+        StorylineResume = selection.Resume;
+        StorylinePhaseSelection = StorylinePhases.FirstOrDefault(phase => phase.Id == selection.Phase) ?? StorylinePhases.FirstOrDefault();
+        StorylineStatutSelection = StorylineStatuts.FirstOrDefault(statut => statut.Id == selection.Statut) ?? StorylineStatuts.FirstOrDefault();
+        StorylineParticipantSelectionId = null;
+
+        foreach (var participant in selection.Participants)
+        {
+            var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == participant.WorkerId);
+            var nom = worker?.NomComplet ?? participant.WorkerId;
+            var momentum = worker?.Momentum ?? 0;
+            StorylineParticipantsEdition.Add(new StorylineParticipantViewModel(participant.WorkerId, nom, participant.Role, momentum));
+        }
+    }
+
+    private void ReinitialiserStorylineEdition()
+    {
+        StorylineSelectionnee = null;
+        StorylineNom = null;
+        StorylineResume = null;
+        StorylinePhaseSelection = StorylinePhases.FirstOrDefault();
+        StorylineStatutSelection = StorylineStatuts.FirstOrDefault();
+        StorylineParticipantsEdition.Clear();
+        StorylineParticipantSelectionId = null;
     }
 
     private void ChargerInbox()
@@ -793,7 +1080,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         foreach (var storyline in _context.Storylines)
         {
             var participants = _context.Workers
-                .Where(worker => storyline.Participants.Contains(worker.WorkerId))
+                .Where(worker => storyline.Participants.Any(participant => participant.WorkerId == worker.WorkerId))
                 .Select(worker => worker.NomComplet)
                 .Take(3);
             _rechercheGlobaleIndex.Add(new GlobalSearchResultViewModel(
@@ -1009,6 +1296,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauShowLieu = _context.Show.Lieu;
         NouveauShowDiffusion = _context.Show.Diffusion;
         NouveauSegmentTypeId = SegmentTypes.FirstOrDefault()?.Id;
+        NouveauSegmentStorylineId = StorylineOptions.FirstOrDefault()?.Id;
     }
 
     private void ChargerCalendrier()

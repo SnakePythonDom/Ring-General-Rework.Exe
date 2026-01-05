@@ -68,6 +68,35 @@ public sealed class SimulationEngineTests
     }
 
     [Fact]
+    public void Storyline_heat_baisse_si_ignoree()
+    {
+        var context = ConstruireContexte(segments: new[]
+        {
+            new SegmentDefinition("SEG-1", "promo", new[] { "W-1" }, 6, false, null, null, 40, null, null)
+        });
+
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(21));
+        var result = engine.Simuler(context);
+
+        Assert.True(result.Delta.StorylineHeatDelta["S-1"] < 0);
+    }
+
+    [Fact]
+    public void Storyline_heat_monte_si_segments_lies_et_bien_notes()
+    {
+        var context = ConstruireContexte(segments: new[]
+        {
+            new SegmentDefinition("SEG-1", "match", new[] { "W-1", "W-2" }, 10, true, "S-1", null, 70, "W-1", "W-2"),
+            new SegmentDefinition("SEG-2", "promo", new[] { "W-1" }, 6, false, "S-1", null, 60, null, null)
+        });
+
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(33));
+        var result = engine.Simuler(context);
+
+        Assert.True(result.Delta.StorylineHeatDelta["S-1"] > 0);
+    }
+
+    [Fact]
     public void Title_prestige_varie_sur_match_de_titre()
     {
         var context = ConstruireContexte(segments: new[]
@@ -91,7 +120,10 @@ public sealed class SimulationEngineTests
             new("W-2", "Beta", 65, 65, 58, 48, 12, "AUCUNE", 1, "MID")
         };
         var titles = new List<TitleInfo> { new("T-1", "Titre Test", 60, "W-1") };
-        var storylines = new List<StorylineInfo> { new("S-1", "Storyline Test", 45, new[] { "W-1" }) };
+        var storylines = new List<StorylineInfo>
+        {
+            new("S-1", "Storyline Test", "BUILD", 45, "ACTIVE", null, new[] { new StorylineParticipant("W-1", "principal") })
+        };
         var segmentsList = segments ?? new List<SegmentDefinition>
         {
             new("SEG-1", "match", new[] { "W-1", "W-2" }, 12, true, "S-1", "T-1", 70, "W-1", "W-2")

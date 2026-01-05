@@ -256,6 +256,59 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnCreerStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.CreerStoryline();
+        }
+    }
+
+    private void OnMettreAJourStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.MettreAJourStoryline();
+        }
+    }
+
+    private void OnAvancerStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AvancerStoryline();
+        }
+    }
+
+    private void OnSupprimerStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.SupprimerStoryline();
+        }
+    }
+
+    private void OnAjouterParticipantStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterParticipantStoryline();
+        }
+    }
+
+    private void OnRetirerParticipantStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell || sender is not Control control)
+        {
+            return;
+        }
+
+        if (control.DataContext is StorylineParticipantViewModel participant)
+        {
+            shell.Session.RetirerParticipantStoryline(participant);
+        }
+    }
+
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);

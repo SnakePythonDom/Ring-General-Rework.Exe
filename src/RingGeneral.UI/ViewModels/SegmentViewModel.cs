@@ -26,7 +26,7 @@ public sealed class SegmentViewModel : ReactiveObject
         _typeSegmentLibelle = ObtenirLibelle(typeSegment);
         _dureeMinutes = dureeMinutes;
         _estMainEvent = estMainEvent;
-        StorylineId = storylineId;
+        _storylineId = storylineId;
         TitreId = titreId;
         Intensite = intensite;
         VainqueurId = vainqueurId;
@@ -83,7 +83,16 @@ public sealed class SegmentViewModel : ReactiveObject
     private string? _avertissements;
 
     public ObservableCollection<ParticipantViewModel> Participants { get; }
-    public string? StorylineId { get; }
+    public string? StorylineId
+    {
+        get => _storylineId;
+        set
+        {
+            var normalisee = string.IsNullOrWhiteSpace(value) ? null : value;
+            this.RaiseAndSetIfChanged(ref _storylineId, normalisee);
+        }
+    }
+    private string? _storylineId;
     public string? TitreId { get; }
     public int Intensite { get; }
     public string? VainqueurId { get; }

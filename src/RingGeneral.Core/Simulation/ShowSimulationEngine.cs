@@ -14,6 +14,7 @@ public sealed class ShowSimulationEngine
 
     public ShowSimulationResult Simuler(ShowContext context)
     {
+        var heatModel = new HeatModel();
         var fatigueDelta = new Dictionary<string, int>();
         var blessures = new Dictionary<string, string>();
         var momentumDelta = new Dictionary<string, int>();
@@ -24,6 +25,7 @@ public sealed class ShowSimulationEngine
         var finances = new List<FinanceTransaction>();
         var segmentsReports = new List<SegmentReport>();
         var storylinesUtilisees = new HashSet<string>();
+        var storylineSegmentsCount = new Dictionary<string, int>();
 
         var crowdHeat = Math.Clamp((context.Compagnie.Prestige + context.Compagnie.AudienceMoyenne) / 2, 0, 100);
         var promoStreak = 0;
@@ -45,6 +47,9 @@ public sealed class ShowSimulationEngine
             if (!string.IsNullOrWhiteSpace(segment.StorylineId))
             {
                 storylinesUtilisees.Add(segment.StorylineId);
+                storylineSegmentsCount[segment.StorylineId] = storylineSegmentsCount.TryGetValue(segment.StorylineId, out var count)
+                    ? count + 1
+                    : 1;
                 story += 6;
             }
 
@@ -96,7 +101,7 @@ public sealed class ShowSimulationEngine
             var blessuresSegment = DeterminerBlessures(segment, participants, fatigueImpact, blessures, events);
             var momentumImpact = AppliquerMomentum(segment, note, momentumDelta);
             var populariteImpact = AppliquerPopularite(participants, segment, note, populariteWorkers);
-            var storylineImpact = AppliquerStorylineHeat(segment, storylineHeat);
+            var storylineImpact = AppliquerStorylineHeat(segment, note, storylineHeat, storylineSegmentsCount, heatModel);
             var titreImpact = AppliquerTitrePrestige(segment, note, titrePrestige);
 
             var facteurs = new List<SegmentBreakdownItem>
@@ -138,7 +143,10 @@ public sealed class ShowSimulationEngine
         {
             if (!storylinesUtilisees.Contains(storyline.StorylineId))
             {
-                storylineHeat[storyline.StorylineId] = storylineHeat.TryGetValue(storyline.StorylineId, out var delta) ? delta - 1 : -1;
+                var delta = heatModel.CalculerDeltaInactif();
+                storylineHeat[storyline.StorylineId] = storylineHeat.TryGetValue(storyline.StorylineId, out var total)
+                    ? total + delta
+                    : delta;
             }
         }
 
@@ -322,7 +330,10 @@ public sealed class ShowSimulationEngine
 
     private static Dictionary<string, int> AppliquerStorylineHeat(
         SegmentDefinition segment,
-        IDictionary<string, int> storylineHeatDelta)
+        int noteSegment,
+        IDictionary<string, int> storylineHeatDelta,
+        IReadOnlyDictionary<string, int> storylineSegmentsCount,
+        HeatModel heatModel)
     {
         var deltaLocal = new Dictionary<string, int>();
         if (segment.StorylineId is null)
@@ -330,10 +341,15 @@ public sealed class ShowSimulationEngine
             return deltaLocal;
         }
 
+        var segmentsPrecedents = storylineSegmentsCount.TryGetValue(segment.StorylineId, out var count)
+            ? Math.Max(0, count - 1)
+            : 0;
+        var delta = heatModel.CalculerDeltaSegment(noteSegment, segmentsPrecedents);
+
         storylineHeatDelta[segment.StorylineId] = storylineHeatDelta.TryGetValue(segment.StorylineId, out var total)
-            ? total + 3
-            : 3;
-        deltaLocal[segment.StorylineId] = 3;
+            ? total + delta
+            : delta;
+        deltaLocal[segment.StorylineId] = delta;
         return deltaLocal;
     }
 
