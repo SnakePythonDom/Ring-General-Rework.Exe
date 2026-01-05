@@ -81,6 +81,14 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnOuvrirFicheWorker(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control)
+        {
+            shell.Session.OuvrirFicheWorker(control.Tag as string);
+        }
+    }
+
     private void OnOuvrirArticle(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string articleId)

@@ -91,6 +91,15 @@ public sealed class ShowSimulationEngine
                     note = Math.Max(0, note - 6);
                 }
             }
+            else if (segment.TypeSegment is "promo" or "angle_backstage" or "interview")
+            {
+                var incidentChance = Math.Clamp(0.04 + (segment.Intensite / 180.0) - (entertainment / 220.0), 0.02, 0.15);
+                if (_random.NextDouble() < incidentChance)
+                {
+                    events.Add("Incident backstage");
+                    note = Math.Max(0, note - 4);
+                }
+            }
 
             var fatigueImpact = AppliquerFatigue(segment, participants, fatigueDelta);
             var blessuresSegment = DeterminerBlessures(segment, participants, fatigueImpact, blessures, events);
@@ -157,10 +166,12 @@ public sealed class ShowSimulationEngine
             finances.Add(new FinanceTransaction("tv", tv, "Droits TV"));
         }
 
+        var totalFinances = billetterie + merch + tv;
         var pointsCles = new List<string>
         {
             $"Note globale : {noteShow}",
             $"Audience estimée : {audience}",
+            $"Finances : {totalFinances:0}",
             $"Impact popularité : {populariteDeltaCompagnie:+#;-#;0}"
         };
 

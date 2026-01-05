@@ -54,6 +54,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         WorkersDisponibles = new ObservableCollection<ParticipantViewModel>();
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
+        HistoriqueShow = new ObservableCollection<ShowHistoryViewModel>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
@@ -89,6 +90,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<ParticipantViewModel> WorkersDisponibles { get; }
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
+    public ObservableCollection<ShowHistoryViewModel> HistoriqueShow { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
@@ -319,6 +321,13 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
     private ImpactPageViewModel? _impactSelectionnee;
 
+    public SegmentResultViewModel? ResultatSelectionne
+    {
+        get => _resultatSelectionne;
+        set => this.RaiseAndSetIfChanged(ref _resultatSelectionne, value);
+    }
+    private SegmentResultViewModel? _resultatSelectionne;
+
     public void OuvrirRechercheGlobale()
     {
         RechercheGlobaleVisible = true;
@@ -352,11 +361,13 @@ public sealed class GameSessionViewModel : ViewModelBase
         var engine = new ShowSimulationEngine(new SeededRandomProvider(seed));
         var resultat = engine.Simuler(_context);
         Resultats.Clear();
+        var workerNames = ConstruireNomsWorkers();
         foreach (var segment in resultat.RapportShow.Segments)
         {
             var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
-            Resultats.Add(new SegmentResultViewModel(segment, libelle));
+            Resultats.Add(new SegmentResultViewModel(segment, workerNames, libelle));
         }
+        ResultatSelectionne = Resultats.FirstOrDefault();
 
         ResumeShow = $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} • Billetterie {resultat.RapportShow.Billetterie:C}";
         MettreAJourAnalyseShow(resultat);
@@ -376,6 +387,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         impactApplier.AppliquerImpacts(impactContext);
 
         ChargerShow();
+        ChargerHistoriqueShow();
     }
 
     public void CreerShow()
@@ -614,8 +626,36 @@ public sealed class GameSessionViewModel : ViewModelBase
             page.Id.Equals(pageId, StringComparison.OrdinalIgnoreCase));
     }
 
+    public void OuvrirFicheWorker(string? workerId)
+    {
+        if (string.IsNullOrWhiteSpace(workerId) || _context is null)
+        {
+            return;
+        }
+
+        var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == workerId);
+        if (worker is null)
+        {
+            return;
+        }
+
+        OuvrirRechercheGlobale();
+        RechercheGlobaleQuery = worker.NomComplet;
+    }
+
     private void ChargerShow()
     {
+        if (_repository is null)
+        {
+            return;
+        }
+
+        _context = _repository.ChargerShowContext(ShowId);
+        if (_context is null)
+        {
+            return;
+        }
+
         Segments.Clear();
         WorkersDisponibles.Clear();
 
@@ -644,9 +684,25 @@ public sealed class GameSessionViewModel : ViewModelBase
         }
 
         MettreAJourAttributs();
+        MettreAJourIndexRechercheGlobale();
         ChargerCalendrier();
+        ChargerHistoriqueShow();
         MettreAJourAvertissements();
         InitialiserNouveauShow();
+    }
+
+    private void ChargerHistoriqueShow()
+    {
+        HistoriqueShow.Clear();
+        if (_repository is null || _context is null)
+        {
+            return;
+        }
+
+        foreach (var entry in _repository.ChargerHistoriqueShow(_context.Show.ShowId))
+        {
+            HistoriqueShow.Add(new ShowHistoryViewModel(entry));
+        }
     }
 
     private void ChargerInbox()
@@ -880,20 +936,20 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         AjouterDeltas("impacts.popularite",
             delta.PopulariteCompagnieDelta.Select(kv => $"Compagnie {kv.Value:+#;-#;0}"),
-            delta.PopulariteWorkersDelta.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
+            delta.PopulariteWorkersDelta.Select(kv => $"{NommerWorker(kv.Key)} {kv.Value:+#;-#;0}"));
 
         AjouterDeltas("impacts.finances",
             delta.Finances.Select(tx => $"{tx.Libelle} {tx.Montant:+#;-#;0}"));
 
         AjouterDeltas("impacts.fatigue",
-            delta.FatigueDelta.Select(kv => $"{kv.Key} +{kv.Value}"),
-            delta.Blessures.Select(kv => $"{kv.Key} : {kv.Value}"));
+            delta.FatigueDelta.Select(kv => $"{NommerWorker(kv.Key)} +{kv.Value}"),
+            delta.Blessures.Select(kv => $"{NommerWorker(kv.Key)} : {kv.Value}"));
 
         AjouterDeltas("impacts.storylines",
-            delta.StorylineHeatDelta.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
+            delta.StorylineHeatDelta.Select(kv => $"{NommerStoryline(kv.Key)} {kv.Value:+#;-#;0}"));
 
         AjouterDeltas("impacts.titres",
-            delta.TitrePrestigeDelta.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
+            delta.TitrePrestigeDelta.Select(kv => $"{NommerTitre(kv.Key)} {kv.Value:+#;-#;0}"));
 
         foreach (var page in ImpactPages)
         {
@@ -1081,13 +1137,69 @@ public sealed class GameSessionViewModel : ViewModelBase
     private void MettreAJourRecapFm(ShowSimulationResult resultat)
     {
         RecapFm.Clear();
-        foreach (var segment in resultat.RapportShow.Segments)
+        var rapport = resultat.RapportShow;
+        var delta = resultat.Delta;
+        var totalFinances = rapport.Billetterie + rapport.Merch + rapport.Tv;
+        var workerNames = ConstruireNomsWorkers();
+
+        RecapFm.Add($"Note show {rapport.NoteGlobale} • Audience {rapport.Audience}");
+        RecapFm.Add($"Finances • Billetterie {rapport.Billetterie:C} • Merch {rapport.Merch:C} • TV {rapport.Tv:C} • Total {totalFinances:C}");
+
+        if (delta is not null)
+        {
+            var popCompagnie = delta.PopulariteCompagnieDelta.Values.Sum();
+            RecapFm.Add($"Δ Popularité • Compagnie {popCompagnie:+#;-#;0} • Workers {FormatterDelta(delta.PopulariteWorkersDelta, NommerWorker)}");
+            RecapFm.Add($"Δ Momentum • {FormatterDelta(delta.MomentumDelta, NommerWorker)}");
+            RecapFm.Add($"Δ Heat • {FormatterDelta(delta.StorylineHeatDelta, NommerStoryline)}");
+            RecapFm.Add($"Δ Fatigue • {FormatterDelta(delta.FatigueDelta, NommerWorker)}");
+        }
+
+        foreach (var segment in rapport.Segments)
         {
             var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
             var breakdown = string.Join(" | ", segment.Facteurs.Select(facteur => $"{facteur.Libelle} {facteur.Impact:+#;-#;0}"));
-            var impacts = new SegmentResultViewModel(segment, libelle).Impacts;
+            var impacts = new SegmentResultViewModel(segment, workerNames, libelle).Impacts;
             RecapFm.Add($"{libelle} • Note {segment.Note} • {breakdown} • {impacts}");
         }
+    }
+
+    private IReadOnlyDictionary<string, string> ConstruireNomsWorkers()
+    {
+        if (_context is null)
+        {
+            return new Dictionary<string, string>();
+        }
+
+        return _context.Workers.ToDictionary(worker => worker.WorkerId, worker => worker.NomComplet);
+    }
+
+    private string NommerWorker(string workerId)
+    {
+        return _context?.Workers.FirstOrDefault(worker => worker.WorkerId == workerId)?.NomComplet ?? workerId;
+    }
+
+    private string NommerStoryline(string storylineId)
+    {
+        return _context?.Storylines.FirstOrDefault(storyline => storyline.StorylineId == storylineId)?.Nom ?? storylineId;
+    }
+
+    private string NommerTitre(string titreId)
+    {
+        return _context?.Titres.FirstOrDefault(titre => titre.TitreId == titreId)?.Nom ?? titreId;
+    }
+
+    private static string FormatterDelta(
+        IReadOnlyDictionary<string, int> deltas,
+        Func<string, string> nommer,
+        Func<int, string>? formatter = null)
+    {
+        if (deltas.Count == 0)
+        {
+            return "Aucun";
+        }
+
+        formatter ??= value => value.ToString("+#;-#;0");
+        return string.Join(", ", deltas.Select(kv => $"{nommer(kv.Key)} {formatter(kv.Value)}"));
     }
 
     private static IReadOnlyDictionary<string, string> ChargerSegmentTypes()

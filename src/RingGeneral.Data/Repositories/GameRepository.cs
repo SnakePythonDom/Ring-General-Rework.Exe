@@ -417,6 +417,21 @@ public sealed class GameRepository
         showCommand.Parameters.AddWithValue("$resume", string.Join(" | ", rapport.PointsCles));
         showCommand.ExecuteNonQuery();
 
+        using var showResultCommand = connexion.CreateCommand();
+        showResultCommand.Transaction = transaction;
+        showResultCommand.CommandText = """
+            INSERT INTO ShowResults (ShowId, Week, Note, Audience, Billetterie, Merch, Tv, Summary)
+            VALUES ($showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $note, $audience, $billetterie, $merch, $tv, $resume);
+            """;
+        showResultCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
+        showResultCommand.Parameters.AddWithValue("$note", rapport.NoteGlobale);
+        showResultCommand.Parameters.AddWithValue("$audience", rapport.Audience);
+        showResultCommand.Parameters.AddWithValue("$billetterie", rapport.Billetterie);
+        showResultCommand.Parameters.AddWithValue("$merch", rapport.Merch);
+        showResultCommand.Parameters.AddWithValue("$tv", rapport.Tv);
+        showResultCommand.Parameters.AddWithValue("$resume", string.Join(" | ", rapport.PointsCles));
+        showResultCommand.ExecuteNonQuery();
+
         foreach (var segment in rapport.Segments)
         {
             var details = string.Join(", ",
@@ -444,6 +459,7 @@ public sealed class GameRepository
         using var connexion = _factory.OuvrirConnexion();
         using var transaction = connexion.BeginTransaction();
         var regionId = ChargerRegionShow(connexion, showId);
+        var semaineShow = ChargerSemaineShow(connexion, showId);
 
         foreach (var (workerId, fatigueDelta) in delta.FatigueDelta)
         {
@@ -467,6 +483,22 @@ public sealed class GameRepository
             command.Parameters.AddWithValue("$blessure", blessure);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
+
+            if (!string.Equals(blessure, "AUCUNE", StringComparison.OrdinalIgnoreCase))
+            {
+                using var injuryCommand = connexion.CreateCommand();
+                injuryCommand.Transaction = transaction;
+                injuryCommand.CommandText = """
+                    INSERT INTO Injuries (WorkerId, Type, Severity, StartDate, IsActive, Notes)
+                    VALUES ($workerId, $type, $severity, $startDate, 1, $notes);
+                    """;
+                injuryCommand.Parameters.AddWithValue("$workerId", workerId);
+                injuryCommand.Parameters.AddWithValue("$type", blessure);
+                injuryCommand.Parameters.AddWithValue("$severity", DeterminerSeveriteBlessure(blessure));
+                injuryCommand.Parameters.AddWithValue("$startDate", semaineShow);
+                injuryCommand.Parameters.AddWithValue("$notes", $"Blessure lors du show {showId}");
+                injuryCommand.ExecuteNonQuery();
+            }
         }
 
         foreach (var (workerId, momentum) in delta.MomentumDelta)
@@ -565,6 +597,26 @@ public sealed class GameRepository
         return Convert.ToString(command.ExecuteScalar()) ?? "";
     }
 
+    private static int ChargerSemaineShow(SqliteConnection connexion, string showId)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT Week FROM Shows WHERE ShowId = $showId;";
+        command.Parameters.AddWithValue("$showId", showId);
+        var resultat = command.ExecuteScalar();
+        return resultat is null or DBNull ? 0 : Convert.ToInt32(resultat);
+    }
+
+    private static int DeterminerSeveriteBlessure(string blessure)
+    {
+        return blessure.ToUpperInvariant() switch
+        {
+            "LEGERE" => 1,
+            "MOYENNE" => 2,
+            "GRAVE" => 3,
+            _ => 1
+        };
+    }
+
     public IReadOnlyList<InboxItem> ChargerInbox()
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -591,6 +643,33 @@ public sealed class GameRepository
         command.CommandText = "SELECT CompanyId FROM Shows WHERE ShowId = $showId;";
         command.Parameters.AddWithValue("$showId", showId);
         return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
+    }
+
+    public IReadOnlyList<ShowHistoryEntry> ChargerHistoriqueShow(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ShowId, Week, Note, Audience, Summary, CreatedAt
+            FROM ShowHistory
+            WHERE ShowId = $showId
+            ORDER BY Week DESC, CreatedAt DESC;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        using var reader = command.ExecuteReader();
+        var historique = new List<ShowHistoryEntry>();
+        while (reader.Read())
+        {
+            historique.Add(new ShowHistoryEntry(
+                reader.GetString(0),
+                reader.GetInt32(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetString(4),
+                reader.IsDBNull(5) ? null : reader.GetString(5)));
+        }
+
+        return historique;
     }
 
     public IReadOnlyList<CompanyState> ChargerCompagnies()
