@@ -26,6 +26,8 @@ public sealed class DbValidator : IDbValidator
             ["SegmentParticipants"] = new[] { "ShowSegmentId", "WorkerId" },
             ["SegmentResults"] = new[] { "SegmentResultId", "ShowSegmentId" },
             ["Injuries"] = new[] { "InjuryId", "WorkerId" },
+            ["MedicalNotes"] = new[] { "MedicalNoteId", "WorkerId", "Note" },
+            ["RecoveryPlans"] = new[] { "RecoveryPlanId", "InjuryId", "WorkerId", "TargetDate", "Status" },
             ["Fatigue"] = new[] { "WorkerId", "Value" },
             ["FinanceTransactions"] = new[] { "FinanceTransactionId", "CompanyId", "Date", "Amount" },
             ["TVDeals"] = new[] { "TvDealId", "CompanyId" },

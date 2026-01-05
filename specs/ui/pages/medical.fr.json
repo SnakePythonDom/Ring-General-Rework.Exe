@@ -9,7 +9,7 @@
     {
       "id": "liste_blessures",
       "libelle": "Blessures",
-      "colonnes": ["Nom", "Type", "Gravité", "Durée", "Statut"]
+      "colonnes": ["Nom", "Type", "Gravité", "Durée", "Statut", "Actions"]
     }
   ],
   "filtres": ["Gravité", "Statut", "Rôle"],
@@ -17,7 +17,9 @@
     "sections": ["Diagnostic", "Planning de retour", "Restrictions"]
   },
   "actions": [
-    {"id": "planifier_retour", "libelle": "Planifier un retour"}
+    {"id": "planifier_retour", "libelle": "Planifier un retour"},
+    {"id": "ajouter_note", "libelle": "Ajouter une note médicale"},
+    {"id": "marquer_retour", "libelle": "Marquer le retour"}
   ],
   "validations": [
     {"id": "retour.date", "message": "La date de retour est requise."}
