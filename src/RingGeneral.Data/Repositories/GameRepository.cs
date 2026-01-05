@@ -667,6 +667,36 @@ public sealed class GameRepository : IContractRepository
         return items;
     }
 
+    public IReadOnlyList<ShowHistoryEntry> ChargerHistoriqueShow(string showId, int limite = 12)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ShowId, Week, Note, Audience, Summary, CreatedAt
+            FROM ShowHistory
+            WHERE ShowId = $showId
+            ORDER BY Week DESC, ShowHistoryId DESC
+            LIMIT $limite;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        command.Parameters.AddWithValue("$limite", limite);
+        using var reader = command.ExecuteReader();
+        var entries = new List<ShowHistoryEntry>();
+        while (reader.Read())
+        {
+            var createdAt = reader.IsDBNull(5) ? DateTime.MinValue : DateTime.Parse(reader.GetString(5));
+            entries.Add(new ShowHistoryEntry(
+                reader.GetString(0),
+                reader.GetInt32(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetString(4),
+                createdAt));
+        }
+
+        return entries;
+    }
+
     public string ChargerCompagnieIdPourShow(string showId)
     {
         using var connexion = _factory.OuvrirConnexion();
