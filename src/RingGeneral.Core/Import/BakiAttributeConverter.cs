@@ -113,10 +113,10 @@ public sealed class BakiAttributeConverter
             _ => BakiAttributeMappingMath.MapLinear(value, scale, targetScale)
         };
 
-        mapped = BakiAttributeMappingMath.ApplyRounding(mapped, mapping.Rounding);
+        var rounded = BakiAttributeMappingMath.ApplyRounding(mapped, mapping.Rounding);
         var clampMin = mapping.ClampMin ?? targetScale.Min;
         var clampMax = mapping.ClampMax ?? targetScale.Max;
-        return BakiAttributeMappingMath.Clamp(mapped, clampMin, clampMax);
+        return BakiAttributeMappingMath.Clamp(rounded, clampMin, clampMax);
     }
 
     private BakiAttributeScale ResolveScale(string attributeId)

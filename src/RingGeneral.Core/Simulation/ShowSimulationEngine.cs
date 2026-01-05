@@ -164,10 +164,10 @@ public sealed class ShowSimulationEngine
         {
             if (!storylinesUtilisees.Contains(storyline.StorylineId))
             {
-                var delta = heatModel.CalculerDeltaInactif();
+                var inactiveDelta = heatModel.CalculerDeltaInactif();
                 storylineHeat[storyline.StorylineId] = storylineHeat.TryGetValue(storyline.StorylineId, out var total)
-                    ? total + delta
-                    : delta;
+                    ? total + inactiveDelta
+                    : inactiveDelta;
             }
         }
 
@@ -181,8 +181,8 @@ public sealed class ShowSimulationEngine
         var audienceDetails = _audienceModel.Evaluer(new AudienceInputs(reach, noteShow, stars, saturation));
         var audience = audienceDetails.Audience;
 
-        var billetterie = Math.Round(1500 + audience * 75 + reach * 20, 2);
-        var merch = Math.Round(300 + audience * 20, 2);
+        var billetterie = Math.Round(1500.0 + audience * 75 + reach * 20, 2);
+        var merch = Math.Round(300.0 + audience * 20, 2);
         var tv = 0.0;
         if (context.DealTv is not null)
         {
@@ -191,7 +191,7 @@ public sealed class ShowSimulationEngine
         }
         else if (context.Show.DealTvId is not null)
         {
-            tv = Math.Round(5000 + audience * 40, 2);
+            tv = Math.Round(5000.0 + audience * 40, 2);
         }
         finances.Add(new FinanceTransaction("billetterie", billetterie, "Billetterie"));
         finances.Add(new FinanceTransaction("merch", merch, "Merchandising"));
