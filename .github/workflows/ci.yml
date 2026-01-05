@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      publish_artifact:
+        description: 'Publier un exe Windows en artifact'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore RingGeneral.sln
+
+      - name: Build
+        run: dotnet build RingGeneral.sln -c Release --no-restore
+
+      - name: Publish win-x64
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_artifact == 'true'
+        run: |
+          dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj \
+            -c Release \
+            -r win-x64 \
+            --self-contained true \
+            /p:PublishSingleFile=true \
+            -o artifacts/win-x64
+
+      - name: Upload artifact
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_artifact == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: RingGeneral-win-x64
+          path: artifacts/win-x64
+          if-no-files-found: error
