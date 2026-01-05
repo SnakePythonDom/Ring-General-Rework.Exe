@@ -1,0 +1,39 @@
+name: Build Windows (win-x64)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore RingGeneral.sln
+
+      - name: Publish win-x64
+        run: |
+          dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj \
+            -c Release \
+            -r win-x64 \
+            --self-contained true \
+            /p:PublishSingleFile=true \
+            -o artifacts/win-x64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RingGeneral-win-x64
+          path: artifacts/win-x64
+          if-no-files-found: error
