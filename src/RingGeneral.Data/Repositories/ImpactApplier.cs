@@ -32,6 +32,11 @@ public sealed class ImpactApplier : IImpactApplier
                 changements.Add($"Fatigue {workerId}: {fatigue:+#;-#;0}");
             }
 
+            foreach (var (workerId, blessure) in context.Delta.Blessures)
+            {
+                changements.Add($"Blessure {workerId}: {blessure}");
+            }
+
             foreach (var (workerId, momentum) in context.Delta.MomentumDelta)
             {
                 changements.Add($"Momentum {workerId}: {momentum:+#;-#;0}");
@@ -42,6 +47,11 @@ public sealed class ImpactApplier : IImpactApplier
                 changements.Add($"Popularité {workerId}: {popularite:+#;-#;0}");
             }
 
+            foreach (var (companyId, popularite) in context.Delta.PopulariteCompagnieDelta)
+            {
+                changements.Add($"Prestige {companyId}: {popularite:+#;-#;0}");
+            }
+
             foreach (var (storylineId, heat) in context.Delta.StorylineHeatDelta)
             {
                 changements.Add($"Storyline {storylineId}: {heat:+#;-#;0}");
@@ -50,6 +60,11 @@ public sealed class ImpactApplier : IImpactApplier
             foreach (var (titreId, prestige) in context.Delta.TitrePrestigeDelta)
             {
                 changements.Add($"Prestige {titreId}: {prestige:+#;-#;0}");
+            }
+
+            foreach (var finance in context.Delta.Finances)
+            {
+                changements.Add($"{finance.Libelle}: {finance.Montant:+#;-#;0}");
             }
         }
 

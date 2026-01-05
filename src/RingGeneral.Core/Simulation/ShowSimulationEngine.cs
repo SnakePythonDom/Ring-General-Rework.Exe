@@ -6,10 +6,12 @@ namespace RingGeneral.Core.Simulation;
 public sealed class ShowSimulationEngine
 {
     private readonly IRandomProvider _random;
+    private readonly HeatModel _heatModel;
 
-    public ShowSimulationEngine(IRandomProvider random)
+    public ShowSimulationEngine(IRandomProvider random, HeatModel? heatModel = null)
     {
         _random = random;
+        _heatModel = heatModel ?? new HeatModel();
     }
 
     public ShowSimulationResult Simuler(ShowContext context)
@@ -94,6 +96,21 @@ public sealed class ShowSimulationEngine
                 {
                     events.Add("Botch");
                     note = Math.Max(0, note - 6);
+                }
+            }
+            else
+            {
+                var incidentChance = Math.Clamp(0.04 + (segment.Intensite / 200.0), 0.02, 0.18);
+                if (_random.NextDouble() < incidentChance)
+                {
+                    var incident = segment.TypeSegment switch
+                    {
+                        "video" => "Panne technique",
+                        "angle_backstage" or "run_in" or "brawl" => "Incident backstage",
+                        _ => "Micro coupé"
+                    };
+                    events.Add(incident);
+                    note = Math.Max(0, note - 4);
                 }
             }
 

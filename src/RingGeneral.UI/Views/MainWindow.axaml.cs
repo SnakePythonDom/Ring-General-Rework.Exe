@@ -81,11 +81,59 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnOuvrirFicheWorker(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.OuvrirFicheWorker();
+        }
+    }
+
+    private void OnVoirImpacts(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.VoirImpacts();
+        }
+    }
+
+    private void OnVoirFinance(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.VoirFinances();
+        }
+    }
+
     private void OnOuvrirArticle(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string articleId)
         {
             shell.Session.Codex.OuvrirArticle(articleId);
+        }
+    }
+
+    private void OnChangerBudgetYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.ChangerBudgetYouth();
+        }
+    }
+
+    private void OnAffecterCoachYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AffecterCoachYouth();
+        }
+    }
+
+    private void OnGraduationYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string workerId)
+        {
+            shell.Session.DiplomerTrainee(workerId);
         }
     }
 

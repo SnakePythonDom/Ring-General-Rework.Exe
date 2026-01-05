@@ -110,11 +110,13 @@ public sealed class SimulationEngineTests
         Assert.True(result.Delta.TitrePrestigeDelta["T-1"] != 0);
     }
 
-    private static ShowContext ConstruireContexte(IReadOnlyList<SegmentDefinition>? segments = null)
+    private static ShowContext ConstruireContexte(
+        IReadOnlyList<SegmentDefinition>? segments = null,
+        IReadOnlyList<WorkerSnapshot>? workers = null)
     {
         var show = new ShowDefinition("SHOW-TEST", "Test Show", 1, "FR", 90, "COMP-1", "TV-1");
         var company = new CompanyState("COMP-1", "Compagnie Test", "FR", 55, 10000, 50, 4);
-        var workers = new List<WorkerSnapshot>
+        var workersList = workers?.ToList() ?? new List<WorkerSnapshot>
         {
             new("W-1", "Alpha", 70, 60, 55, 50, 10, "AUCUNE", 2, "MAIN_EVENT"),
             new("W-2", "Beta", 65, 65, 58, 48, 12, "AUCUNE", 1, "MID")
@@ -130,6 +132,6 @@ public sealed class SimulationEngineTests
         };
         var chimies = new Dictionary<string, int> { ["W-1|W-2"] = 5 };
 
-        return new ShowContext(show, company, workers, titles, storylines, segmentsList, chimies);
+        return new ShowContext(show, company, workersList, titles, storylines, segmentsList, chimies);
     }
 }

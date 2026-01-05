@@ -1,10 +1,12 @@
+using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class GameRepository
+public sealed class GameRepository : IScoutingRepository
 {
     private readonly SqliteConnectionFactory _factory;
 
@@ -117,10 +119,85 @@ public sealed class GameRepository
                 contenu TEXT NOT NULL,
                 semaine INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS scout_reports (
+                report_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                worker_nom TEXT NOT NULL,
+                region TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                note INTEGER NOT NULL,
+                forces TEXT NOT NULL,
+                faiblesses TEXT NOT NULL,
+                recommandation TEXT NOT NULL,
+                resume TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS shortlists (
+                worker_id TEXT PRIMARY KEY,
+                worker_nom TEXT NOT NULL,
+                note INTEGER NOT NULL,
+                notes TEXT NOT NULL,
+                semaine_ajout INTEGER NOT NULL,
+                rapport_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS scout_missions (
+                mission_id TEXT PRIMARY KEY,
+                region TEXT NOT NULL,
+                semaine_debut INTEGER NOT NULL,
+                duree_semaines INTEGER NOT NULL,
+                progression INTEGER NOT NULL,
+                statut TEXT NOT NULL,
+                rapport_id TEXT
+            );
             CREATE TABLE IF NOT EXISTS contracts (
+                contract_id TEXT,
                 worker_id TEXT NOT NULL,
                 company_id TEXT NOT NULL,
-                fin_semaine INTEGER NOT NULL
+                type TEXT NOT NULL DEFAULT 'exclusif',
+                debut_semaine INTEGER NOT NULL DEFAULT 1,
+                fin_semaine INTEGER NOT NULL,
+                salaire REAL NOT NULL DEFAULT 0,
+                bonus_show REAL NOT NULL DEFAULT 0,
+                buyout REAL NOT NULL DEFAULT 0,
+                non_compete_weeks INTEGER NOT NULL DEFAULT 0,
+                auto_renew INTEGER NOT NULL DEFAULT 0,
+                exclusif INTEGER NOT NULL DEFAULT 1,
+                statut TEXT NOT NULL DEFAULT 'actif',
+                created_week INTEGER NOT NULL DEFAULT 1
+            );
+            CREATE TABLE IF NOT EXISTS contract_offers (
+                offer_id TEXT PRIMARY KEY,
+                negotiation_id TEXT NOT NULL,
+                worker_id TEXT NOT NULL,
+                company_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                debut_semaine INTEGER NOT NULL,
+                fin_semaine INTEGER NOT NULL,
+                salaire REAL NOT NULL,
+                bonus_show REAL NOT NULL,
+                buyout REAL NOT NULL,
+                non_compete_weeks INTEGER NOT NULL,
+                auto_renew INTEGER NOT NULL,
+                exclusif INTEGER NOT NULL,
+                statut TEXT NOT NULL,
+                created_week INTEGER NOT NULL,
+                expiration_week INTEGER NOT NULL,
+                parent_offer_id TEXT,
+                est_ia INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS contract_clauses (
+                clause_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                contract_id TEXT,
+                offer_id TEXT,
+                type TEXT NOT NULL,
+                valeur TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS negotiation_state (
+                negotiation_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                company_id TEXT NOT NULL,
+                statut TEXT NOT NULL,
+                last_offer_id TEXT,
+                updated_week INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS youth_structures (
                 youth_id TEXT PRIMARY KEY,
@@ -138,7 +215,24 @@ public sealed class GameRepository
             CREATE TABLE IF NOT EXISTS youth_trainees (
                 worker_id TEXT NOT NULL,
                 youth_id TEXT NOT NULL,
-                statut TEXT NOT NULL
+                statut TEXT NOT NULL,
+                semaine_inscription INTEGER,
+                semaine_graduation INTEGER,
+                PRIMARY KEY (worker_id, youth_id)
+            );
+            CREATE TABLE IF NOT EXISTS youth_programs (
+                program_id TEXT PRIMARY KEY,
+                youth_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                duree_semaines INTEGER NOT NULL,
+                focus TEXT
+            );
+            CREATE TABLE IF NOT EXISTS youth_staff_assignments (
+                assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                youth_id TEXT NOT NULL,
+                worker_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                semaine_debut INTEGER
             );
             CREATE TABLE IF NOT EXISTS youth_generation_state (
                 youth_id TEXT PRIMARY KEY,
@@ -179,16 +273,60 @@ public sealed class GameRepository
                 valeur INTEGER NOT NULL,
                 UNIQUE(entity_type, entity_id, region)
             );
+            CREATE TABLE IF NOT EXISTS scout_reports (
+                report_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                region TEXT NOT NULL,
+                potentiel INTEGER NOT NULL,
+                in_ring INTEGER NOT NULL,
+                entertainment INTEGER NOT NULL,
+                story INTEGER NOT NULL,
+                resume TEXT NOT NULL,
+                notes TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                source TEXT NOT NULL,
+                UNIQUE(worker_id, semaine)
+            );
+            CREATE TABLE IF NOT EXISTS shortlists (
+                shortlist_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                note TEXT NOT NULL,
+                semaine INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS scout_missions (
+                mission_id TEXT PRIMARY KEY,
+                titre TEXT NOT NULL,
+                region TEXT NOT NULL,
+                focus TEXT NOT NULL,
+                progression INTEGER NOT NULL,
+                objectif INTEGER NOT NULL,
+                statut TEXT NOT NULL,
+                semaine_debut INTEGER NOT NULL,
+                semaine_maj INTEGER NOT NULL
+            );
             CREATE INDEX IF NOT EXISTS idx_workers_company ON workers(company_id);
             CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
             CREATE INDEX IF NOT EXISTS idx_contracts_enddate ON contracts(fin_semaine);
             CREATE INDEX IF NOT EXISTS idx_contracts_company ON contracts(company_id);
+            CREATE INDEX IF NOT EXISTS idx_contracts_worker ON contracts(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_contracts_company_end ON contracts(company_id, fin_semaine);
+            CREATE INDEX IF NOT EXISTS idx_contract_offers_company ON contract_offers(company_id);
+            CREATE INDEX IF NOT EXISTS idx_contract_offers_worker ON contract_offers(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_contract_offers_expiration ON contract_offers(expiration_week);
             CREATE INDEX IF NOT EXISTS idx_titles_company ON titles(company_id);
             CREATE INDEX IF NOT EXISTS idx_youth_company ON youth_structures(company_id);
             CREATE INDEX IF NOT EXISTS idx_youth_region ON youth_structures(region);
             CREATE INDEX IF NOT EXISTS idx_youth_trainees_youth ON youth_trainees(youth_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_programs_youth ON youth_programs(youth_id);
+            CREATE INDEX IF NOT EXISTS idx_youth_staff_youth ON youth_staff_assignments(youth_id);
             CREATE INDEX IF NOT EXISTS idx_worker_attributes_worker ON worker_attributes(worker_id);
             CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
+            CREATE INDEX IF NOT EXISTS idx_scout_reports_worker ON scout_reports(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_scout_reports_semaine ON scout_reports(semaine);
+            CREATE INDEX IF NOT EXISTS idx_shortlists_worker ON shortlists(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_scout_missions_statut ON scout_missions(statut);
             """;
         commande.ExecuteNonQuery();
 
@@ -205,19 +343,11 @@ public sealed class GameRepository
 
     public ShowContext? ChargerShowContext(string showId)
     {
-        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
-        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
-    }
+        using var connexion = _factory.OuvrirConnexion();
+        AssurerColonnesSupplementaires(connexion);
 
-    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"PRAGMA table_info({table});";
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
+        var show = ChargerShow(connexion, showId);
+        if (show is null)
         {
             return null;
         }
@@ -236,6 +366,35 @@ public sealed class GameRepository
         var chimies = ChargerChimies(connexion);
 
         return new ShowContext(show, compagnie, workers, titres, storylines, segments, chimies);
+    }
+
+    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
+    {
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
+        AjouterColonneSiAbsente(connexion, "youth_trainees", "semaine_inscription", "INTEGER");
+        AjouterColonneSiAbsente(connexion, "youth_trainees", "semaine_graduation", "INTEGER");
+    }
+
+    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        using var alter = connexion.CreateCommand();
+        alter.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
+        alter.ExecuteNonQuery();
     }
 
     public BookingPlan ChargerBookingPlan(ShowContext context)
@@ -711,6 +870,36 @@ public sealed class GameRepository
         return items;
     }
 
+    public IReadOnlyList<ShowHistoryEntry> ChargerHistoriqueShow(string showId, int limite = 12)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ShowId, Week, Note, Audience, Summary, CreatedAt
+            FROM ShowHistory
+            WHERE ShowId = $showId
+            ORDER BY Week DESC, ShowHistoryId DESC
+            LIMIT $limite;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        command.Parameters.AddWithValue("$limite", limite);
+        using var reader = command.ExecuteReader();
+        var entries = new List<ShowHistoryEntry>();
+        while (reader.Read())
+        {
+            var createdAt = reader.IsDBNull(5) ? DateTime.MinValue : DateTime.Parse(reader.GetString(5));
+            entries.Add(new ShowHistoryEntry(
+                reader.GetString(0),
+                reader.GetInt32(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetString(4),
+                createdAt));
+        }
+
+        return entries;
+    }
+
     public string ChargerCompagnieIdPourShow(string showId)
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -773,6 +962,285 @@ public sealed class GameRepository
         command.ExecuteNonQuery();
     }
 
+    public ScoutingTarget? ChargerCibleScouting(string workerId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT w.worker_id,
+                   w.prenom,
+                   w.nom,
+                   w.in_ring,
+                   w.entertainment,
+                   w.story,
+                   w.popularite,
+                   COALESCE(MIN(pr.region), 'INCONNU') AS region
+            FROM workers w
+            LEFT JOIN popularity_regionale pr
+                ON pr.entity_type = 'worker' AND pr.entity_id = w.worker_id
+            WHERE w.worker_id = $workerId
+            GROUP BY w.worker_id;
+            """;
+        command.Parameters.AddWithValue("$workerId", workerId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ScoutingTarget(
+            reader.GetString(0),
+            $"{reader.GetString(1)} {reader.GetString(2)}",
+            reader.GetString(7),
+            reader.GetInt32(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            reader.GetInt32(6));
+    }
+
+    public IReadOnlyList<ScoutingTarget> ChargerCiblesScouting(int limite)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT w.worker_id,
+                   w.prenom,
+                   w.nom,
+                   w.in_ring,
+                   w.entertainment,
+                   w.story,
+                   w.popularite,
+                   COALESCE(MIN(pr.region), 'INCONNU') AS region
+            FROM workers w
+            LEFT JOIN popularity_regionale pr
+                ON pr.entity_type = 'worker' AND pr.entity_id = w.worker_id
+            WHERE w.company_id IS NULL
+            GROUP BY w.worker_id
+            ORDER BY w.popularite DESC
+            LIMIT $limit;
+            """;
+        command.Parameters.AddWithValue("$limit", limite);
+        using var reader = command.ExecuteReader();
+        var cibles = new List<ScoutingTarget>();
+        while (reader.Read())
+        {
+            cibles.Add(new ScoutingTarget(
+                reader.GetString(0),
+                $"{reader.GetString(1)} {reader.GetString(2)}",
+                reader.GetString(7),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6)));
+        }
+
+        return cibles;
+    }
+
+    public bool RapportExiste(string workerId, int semaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT COUNT(1) FROM scout_reports WHERE worker_id = $workerId AND semaine = $semaine;";
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.Parameters.AddWithValue("$semaine", semaine);
+        return Convert.ToInt32(command.ExecuteScalar()) > 0;
+    }
+
+    public void AjouterScoutReport(ScoutReport report)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT OR IGNORE INTO scout_reports
+                (report_id, worker_id, nom, region, potentiel, in_ring, entertainment, story, resume, notes, semaine, source)
+            VALUES
+                ($reportId, $workerId, $nom, $region, $potentiel, $inRing, $entertainment, $story, $resume, $notes, $semaine, $source);
+            """;
+        command.Parameters.AddWithValue("$reportId", report.ReportId);
+        command.Parameters.AddWithValue("$workerId", report.WorkerId);
+        command.Parameters.AddWithValue("$nom", report.Nom);
+        command.Parameters.AddWithValue("$region", report.Region);
+        command.Parameters.AddWithValue("$potentiel", report.Potentiel);
+        command.Parameters.AddWithValue("$inRing", report.InRing);
+        command.Parameters.AddWithValue("$entertainment", report.Entertainment);
+        command.Parameters.AddWithValue("$story", report.Story);
+        command.Parameters.AddWithValue("$resume", report.Resume);
+        command.Parameters.AddWithValue("$notes", report.Notes);
+        command.Parameters.AddWithValue("$semaine", report.Semaine);
+        command.Parameters.AddWithValue("$source", report.Source);
+        command.ExecuteNonQuery();
+    }
+
+    public IReadOnlyList<ScoutReport> ChargerScoutReports()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT report_id,
+                   worker_id,
+                   nom,
+                   region,
+                   potentiel,
+                   in_ring,
+                   entertainment,
+                   story,
+                   resume,
+                   notes,
+                   semaine,
+                   source
+            FROM scout_reports
+            ORDER BY semaine DESC;
+            """;
+        using var reader = command.ExecuteReader();
+        var rapports = new List<ScoutReport>();
+        while (reader.Read())
+        {
+            rapports.Add(new ScoutReport(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                reader.GetInt32(7),
+                reader.GetString(8),
+                reader.GetString(9),
+                reader.GetInt32(10),
+                reader.GetString(11)));
+        }
+
+        return rapports;
+    }
+
+    public void AjouterShortlist(ShortlistEntry entry)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO shortlists (shortlist_id, worker_id, nom, note, semaine)
+            VALUES ($shortlistId, $workerId, $nom, $note, $semaine);
+            """;
+        command.Parameters.AddWithValue("$shortlistId", entry.ShortlistId);
+        command.Parameters.AddWithValue("$workerId", entry.WorkerId);
+        command.Parameters.AddWithValue("$nom", entry.Nom);
+        command.Parameters.AddWithValue("$note", entry.Note);
+        command.Parameters.AddWithValue("$semaine", entry.Semaine);
+        command.ExecuteNonQuery();
+    }
+
+    public IReadOnlyList<ShortlistEntry> ChargerShortlist()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT shortlist_id, worker_id, nom, note, semaine
+            FROM shortlists
+            ORDER BY semaine DESC;
+            """;
+        using var reader = command.ExecuteReader();
+        var entries = new List<ShortlistEntry>();
+        while (reader.Read())
+        {
+            entries.Add(new ShortlistEntry(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetInt32(4)));
+        }
+
+        return entries;
+    }
+
+    public void AjouterMission(ScoutMission mission)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO scout_missions
+                (mission_id, titre, region, focus, progression, objectif, statut, semaine_debut, semaine_maj)
+            VALUES
+                ($missionId, $titre, $region, $focus, $progression, $objectif, $statut, $semaineDebut, $semaineMaj);
+            """;
+        command.Parameters.AddWithValue("$missionId", mission.MissionId);
+        command.Parameters.AddWithValue("$titre", mission.Titre);
+        command.Parameters.AddWithValue("$region", mission.Region);
+        command.Parameters.AddWithValue("$focus", mission.Focus);
+        command.Parameters.AddWithValue("$progression", mission.Progression);
+        command.Parameters.AddWithValue("$objectif", mission.Objectif);
+        command.Parameters.AddWithValue("$statut", mission.Statut);
+        command.Parameters.AddWithValue("$semaineDebut", mission.SemaineDebut);
+        command.Parameters.AddWithValue("$semaineMaj", mission.SemaineMaj);
+        command.ExecuteNonQuery();
+    }
+
+    public IReadOnlyList<ScoutMission> ChargerMissionsActives()
+    {
+        return ChargerMissions("WHERE statut = 'active'");
+    }
+
+    public IReadOnlyList<ScoutMission> ChargerScoutMissions()
+    {
+        return ChargerMissions(string.Empty);
+    }
+
+    public void MettreAJourMissionProgress(string missionId, int progression, string statut, int semaineMaj)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE scout_missions
+            SET progression = $progression,
+                statut = $statut,
+                semaine_maj = $semaineMaj
+            WHERE mission_id = $missionId;
+            """;
+        command.Parameters.AddWithValue("$progression", progression);
+        command.Parameters.AddWithValue("$statut", statut);
+        command.Parameters.AddWithValue("$semaineMaj", semaineMaj);
+        command.Parameters.AddWithValue("$missionId", missionId);
+        command.ExecuteNonQuery();
+    }
+
+    private IReadOnlyList<ScoutMission> ChargerMissions(string clause)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"""
+            SELECT mission_id,
+                   titre,
+                   region,
+                   focus,
+                   progression,
+                   objectif,
+                   statut,
+                   semaine_debut,
+                   semaine_maj
+            FROM scout_missions
+            {clause}
+            ORDER BY semaine_debut DESC;
+            """;
+        using var reader = command.ExecuteReader();
+        var missions = new List<ScoutMission>();
+        while (reader.Read())
+        {
+            missions.Add(new ScoutMission(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetString(6),
+                reader.GetInt32(7),
+                reader.GetInt32(8)));
+        }
+
+        return missions;
+    }
+
     public int IncrementerSemaine(string showId)
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -791,7 +1259,7 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, EndDate FROM Contracts;";
+        command.CommandText = "SELECT WorkerId, COALESCE(EndDate, fin_semaine) FROM Contracts;";
         using var reader = command.ExecuteReader();
         var contracts = new List<(string, int)>();
         while (reader.Read())
@@ -823,6 +1291,431 @@ public sealed class GameRepository
         using var command = connexion.CreateCommand();
         command.CommandText = "UPDATE Workers SET Fatigue = MAX(0, Fatigue - 12);";
         command.ExecuteNonQuery();
+    }
+
+    public void AjouterOffre(ContractOffer offre, IReadOnlyList<ContractClause> clauses)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO contract_offers (
+                offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                created_week, expiration_week, parent_offer_id, est_ia
+            )
+            VALUES (
+                $offerId, $negotiationId, $workerId, $companyId, $type, $debutSemaine, $finSemaine,
+                $salaire, $bonusShow, $buyout, $nonCompete, $autoRenew, $exclusif, $statut,
+                $createdWeek, $expirationWeek, $parentOfferId, $estIa
+            );
+            """;
+        command.Parameters.AddWithValue("$offerId", offre.OfferId);
+        command.Parameters.AddWithValue("$negotiationId", offre.NegociationId);
+        command.Parameters.AddWithValue("$workerId", offre.WorkerId);
+        command.Parameters.AddWithValue("$companyId", offre.CompanyId);
+        command.Parameters.AddWithValue("$type", offre.TypeContrat);
+        command.Parameters.AddWithValue("$debutSemaine", offre.StartWeek);
+        command.Parameters.AddWithValue("$finSemaine", offre.EndWeek);
+        command.Parameters.AddWithValue("$salaire", offre.SalaireHebdo);
+        command.Parameters.AddWithValue("$bonusShow", offre.BonusShow);
+        command.Parameters.AddWithValue("$buyout", offre.Buyout);
+        command.Parameters.AddWithValue("$nonCompete", offre.NonCompeteWeeks);
+        command.Parameters.AddWithValue("$autoRenew", offre.RenouvellementAuto ? 1 : 0);
+        command.Parameters.AddWithValue("$exclusif", offre.EstExclusif ? 1 : 0);
+        command.Parameters.AddWithValue("$statut", offre.Statut);
+        command.Parameters.AddWithValue("$createdWeek", offre.CreatedWeek);
+        command.Parameters.AddWithValue("$expirationWeek", offre.ExpirationWeek);
+        command.Parameters.AddWithValue("$parentOfferId", (object?)offre.ParentOfferId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$estIa", offre.EstIa ? 1 : 0);
+        command.ExecuteNonQuery();
+
+        InsererClauses(transaction, clauses, null, offre.OfferId);
+        transaction.Commit();
+    }
+
+    public ContractOffer? ChargerOffre(string offerId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                   salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                   created_week, expiration_week, parent_offer_id, est_ia
+            FROM contract_offers
+            WHERE offer_id = $offerId;
+            """;
+        command.Parameters.AddWithValue("$offerId", offerId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ContractOffer(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.GetString(4),
+            reader.GetInt32(5),
+            reader.GetInt32(6),
+            LireDecimal(reader, 7),
+            LireDecimal(reader, 8),
+            LireDecimal(reader, 9),
+            reader.GetInt32(10),
+            reader.GetInt32(11) == 1,
+            reader.GetInt32(12) == 1,
+            reader.GetString(13),
+            reader.GetInt32(14),
+            reader.GetInt32(15),
+            reader.IsDBNull(16) ? null : reader.GetString(16),
+            reader.GetInt32(17) == 1);
+    }
+
+    public IReadOnlyList<ContractOffer> ChargerOffres(string companyId, int offset, int limit)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                   salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                   created_week, expiration_week, parent_offer_id, est_ia
+            FROM contract_offers
+            WHERE company_id = $companyId
+            ORDER BY created_week DESC
+            LIMIT $limit OFFSET $offset;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        command.Parameters.AddWithValue("$limit", limit);
+        command.Parameters.AddWithValue("$offset", offset);
+        using var reader = command.ExecuteReader();
+        var offres = new List<ContractOffer>();
+        while (reader.Read())
+        {
+            offres.Add(new ContractOffer(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                LireDecimal(reader, 7),
+                LireDecimal(reader, 8),
+                LireDecimal(reader, 9),
+                reader.GetInt32(10),
+                reader.GetInt32(11) == 1,
+                reader.GetInt32(12) == 1,
+                reader.GetString(13),
+                reader.GetInt32(14),
+                reader.GetInt32(15),
+                reader.IsDBNull(16) ? null : reader.GetString(16),
+                reader.GetInt32(17) == 1));
+        }
+
+        return offres;
+    }
+
+    public IReadOnlyList<ContractOffer> ChargerOffresExpirant(int semaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                   salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                   created_week, expiration_week, parent_offer_id, est_ia
+            FROM contract_offers
+            WHERE expiration_week <= $semaine
+              AND statut IN ('proposee', 'contre');
+            """;
+        command.Parameters.AddWithValue("$semaine", semaine);
+        using var reader = command.ExecuteReader();
+        var offres = new List<ContractOffer>();
+        while (reader.Read())
+        {
+            offres.Add(new ContractOffer(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                LireDecimal(reader, 7),
+                LireDecimal(reader, 8),
+                LireDecimal(reader, 9),
+                reader.GetInt32(10),
+                reader.GetInt32(11) == 1,
+                reader.GetInt32(12) == 1,
+                reader.GetString(13),
+                reader.GetInt32(14),
+                reader.GetInt32(15),
+                reader.IsDBNull(16) ? null : reader.GetString(16),
+                reader.GetInt32(17) == 1));
+        }
+
+        return offres;
+    }
+
+    public IReadOnlyList<ContractClause> ChargerClausesPourOffre(string offerId)
+    {
+        return ChargerClauses("offer_id", offerId);
+    }
+
+    public void MettreAJourStatutOffre(string offerId, string statut)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "UPDATE contract_offers SET statut = $statut WHERE offer_id = $offerId;";
+        command.Parameters.AddWithValue("$statut", statut);
+        command.Parameters.AddWithValue("$offerId", offerId);
+        command.ExecuteNonQuery();
+    }
+
+    public void AjouterContratActif(ActiveContract contrat, IReadOnlyList<ContractClause> clauses)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO contracts (
+                contract_id, worker_id, company_id, type, debut_semaine, fin_semaine, salaire, bonus_show,
+                buyout, non_compete_weeks, auto_renew, exclusif, statut, created_week
+            )
+            VALUES (
+                $contractId, $workerId, $companyId, $type, $debutSemaine, $finSemaine, $salaire, $bonusShow,
+                $buyout, $nonCompete, $autoRenew, $exclusif, $statut, $createdWeek
+            );
+            """;
+        command.Parameters.AddWithValue("$contractId", contrat.ContractId);
+        command.Parameters.AddWithValue("$workerId", contrat.WorkerId);
+        command.Parameters.AddWithValue("$companyId", contrat.CompanyId);
+        command.Parameters.AddWithValue("$type", contrat.TypeContrat);
+        command.Parameters.AddWithValue("$debutSemaine", contrat.StartWeek);
+        command.Parameters.AddWithValue("$finSemaine", contrat.EndWeek);
+        command.Parameters.AddWithValue("$salaire", contrat.SalaireHebdo);
+        command.Parameters.AddWithValue("$bonusShow", contrat.BonusShow);
+        command.Parameters.AddWithValue("$buyout", contrat.Buyout);
+        command.Parameters.AddWithValue("$nonCompete", contrat.NonCompeteWeeks);
+        command.Parameters.AddWithValue("$autoRenew", contrat.RenouvellementAuto ? 1 : 0);
+        command.Parameters.AddWithValue("$exclusif", contrat.EstExclusif ? 1 : 0);
+        command.Parameters.AddWithValue("$statut", contrat.Statut);
+        command.Parameters.AddWithValue("$createdWeek", contrat.CreatedWeek);
+        command.ExecuteNonQuery();
+
+        InsererClauses(transaction, clauses, contrat.ContractId, null);
+        transaction.Commit();
+    }
+
+    public ActiveContract? ChargerContratActif(string contractId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT contract_id, worker_id, company_id, type, debut_semaine, fin_semaine, salaire, bonus_show,
+                   buyout, non_compete_weeks, auto_renew, exclusif, statut, created_week
+            FROM contracts
+            WHERE contract_id = $contractId;
+            """;
+        command.Parameters.AddWithValue("$contractId", contractId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ActiveContract(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            LireDecimal(reader, 6),
+            LireDecimal(reader, 7),
+            LireDecimal(reader, 8),
+            reader.GetInt32(9),
+            reader.GetInt32(10) == 1,
+            reader.GetInt32(11) == 1,
+            reader.GetString(12),
+            reader.GetInt32(13));
+    }
+
+    public ActiveContract? ChargerContratActif(string workerId, string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT contract_id, worker_id, company_id, type, debut_semaine, fin_semaine, salaire, bonus_show,
+                   buyout, non_compete_weeks, auto_renew, exclusif, statut, created_week
+            FROM contracts
+            WHERE worker_id = $workerId
+              AND company_id = $companyId
+              AND statut = 'actif'
+            ORDER BY fin_semaine DESC
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ActiveContract(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            LireDecimal(reader, 6),
+            LireDecimal(reader, 7),
+            LireDecimal(reader, 8),
+            reader.GetInt32(9),
+            reader.GetInt32(10) == 1,
+            reader.GetInt32(11) == 1,
+            reader.GetString(12),
+            reader.GetInt32(13));
+    }
+
+    public IReadOnlyList<ContractClause> ChargerClausesPourContrat(string contractId)
+    {
+        return ChargerClauses("contract_id", contractId);
+    }
+
+    public void ResilierContrat(string contractId, int finSemaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE contracts
+            SET fin_semaine = $finSemaine,
+                statut = 'libere'
+            WHERE contract_id = $contractId;
+            """;
+        command.Parameters.AddWithValue("$finSemaine", finSemaine);
+        command.Parameters.AddWithValue("$contractId", contractId);
+        command.ExecuteNonQuery();
+    }
+
+    public void EnregistrerNegociation(ContractNegotiationState negociation)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO negotiation_state (negotiation_id, worker_id, company_id, statut, last_offer_id, updated_week)
+            VALUES ($negociationId, $workerId, $companyId, $statut, $lastOfferId, $updatedWeek)
+            ON CONFLICT(negotiation_id) DO UPDATE SET
+                worker_id = excluded.worker_id,
+                company_id = excluded.company_id,
+                statut = excluded.statut,
+                last_offer_id = excluded.last_offer_id,
+                updated_week = excluded.updated_week;
+            """;
+        command.Parameters.AddWithValue("$negociationId", negociation.NegociationId);
+        command.Parameters.AddWithValue("$workerId", negociation.WorkerId);
+        command.Parameters.AddWithValue("$companyId", negociation.CompanyId);
+        command.Parameters.AddWithValue("$statut", negociation.Statut);
+        command.Parameters.AddWithValue("$lastOfferId", (object?)negociation.DerniereOffreId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$updatedWeek", negociation.DerniereMiseAJourSemaine);
+        command.ExecuteNonQuery();
+    }
+
+    public ContractNegotiationState? ChargerNegociation(string negociationId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT negotiation_id, worker_id, company_id, statut, last_offer_id, updated_week
+            FROM negotiation_state
+            WHERE negotiation_id = $negociationId;
+            """;
+        command.Parameters.AddWithValue("$negociationId", negociationId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ContractNegotiationState(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.IsDBNull(4) ? null : reader.GetString(4),
+            reader.GetInt32(5));
+    }
+
+    public ContractNegotiationState? ChargerNegociationPourWorker(string workerId, string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT negotiation_id, worker_id, company_id, statut, last_offer_id, updated_week
+            FROM negotiation_state
+            WHERE worker_id = $workerId AND company_id = $companyId
+            ORDER BY updated_week DESC
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ContractNegotiationState(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.IsDBNull(4) ? null : reader.GetString(4),
+            reader.GetInt32(5));
+    }
+
+    private IReadOnlyList<ContractClause> ChargerClauses(string colonne, string id)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"SELECT type, valeur FROM contract_clauses WHERE {colonne} = $id;";
+        command.Parameters.AddWithValue("$id", id);
+        using var reader = command.ExecuteReader();
+        var clauses = new List<ContractClause>();
+        while (reader.Read())
+        {
+            clauses.Add(new ContractClause(reader.GetString(0), reader.GetString(1)));
+        }
+
+        return clauses;
+    }
+
+    private static void InsererClauses(SqliteTransaction transaction, IReadOnlyList<ContractClause> clauses, string? contractId, string? offerId)
+    {
+        foreach (var clause in clauses)
+        {
+            using var command = transaction.Connection!.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO contract_clauses (contract_id, offer_id, type, valeur)
+                VALUES ($contractId, $offerId, $type, $valeur);
+                """;
+            command.Parameters.AddWithValue("$contractId", (object?)contractId ?? DBNull.Value);
+            command.Parameters.AddWithValue("$offerId", (object?)offerId ?? DBNull.Value);
+            command.Parameters.AddWithValue("$type", clause.Type);
+            command.Parameters.AddWithValue("$valeur", clause.Valeur);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static decimal LireDecimal(SqliteDataReader reader, int index)
+    {
+        return reader.IsDBNull(index) ? 0m : Convert.ToDecimal(reader.GetDouble(index));
     }
 
     public ShowDefinition ChargerShowDefinition(string showId)
@@ -918,6 +1811,316 @@ public sealed class GameRepository
         }
 
         return structures;
+    }
+
+    public IReadOnlyList<YouthStructureState> ChargerYouthStructures()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ys.youth_id,
+                   ys.nom,
+                   ys.company_id,
+                   ys.region,
+                   ys.type,
+                   ys.budget_annuel,
+                   ys.capacite_max,
+                   ys.niveau_equipements,
+                   ys.qualite_coaching,
+                   ys.philosophie,
+                   ys.actif,
+                   COALESCE(state.derniere_generation_semaine, NULL),
+                   COALESCE(counts.nb_trainees, 0)
+            FROM youth_structures ys
+            LEFT JOIN youth_generation_state state ON state.youth_id = ys.youth_id
+            LEFT JOIN (
+                SELECT youth_id, COUNT(1) AS nb_trainees
+                FROM youth_trainees
+                GROUP BY youth_id
+            ) counts ON counts.youth_id = ys.youth_id;
+            """;
+        using var reader = command.ExecuteReader();
+        var structures = new List<YouthStructureState>();
+        while (reader.Read())
+        {
+            structures.Add(new YouthStructureState(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                reader.GetInt32(7),
+                reader.GetInt32(8),
+                reader.GetString(9),
+                reader.GetInt32(10) == 1,
+                reader.IsDBNull(11) ? null : reader.GetInt32(11),
+                reader.GetInt32(12)));
+        }
+
+        return structures;
+    }
+
+    public IReadOnlyList<YouthTraineeInfo> ChargerYouthTrainees(string youthId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT t.worker_id,
+                   w.prenom,
+                   w.nom,
+                   t.youth_id,
+                   w.in_ring,
+                   w.entertainment,
+                   w.story,
+                   t.statut
+            FROM youth_trainees t
+            JOIN workers w ON w.worker_id = t.worker_id
+            WHERE t.youth_id = $youthId
+            ORDER BY w.nom;
+            """;
+        command.Parameters.AddWithValue("$youthId", youthId);
+        using var reader = command.ExecuteReader();
+        var trainees = new List<YouthTraineeInfo>();
+        while (reader.Read())
+        {
+            var prenom = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+            var nom = reader.GetString(2);
+            var nomComplet = string.IsNullOrWhiteSpace(prenom) ? nom : $"{prenom} {nom}";
+            trainees.Add(new YouthTraineeInfo(
+                reader.GetString(0),
+                nomComplet,
+                reader.GetString(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                reader.GetString(7)));
+        }
+
+        return trainees;
+    }
+
+    public IReadOnlyList<YouthProgramInfo> ChargerYouthPrograms(string youthId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT program_id, youth_id, nom, duree_semaines, focus
+            FROM youth_programs
+            WHERE youth_id = $youthId
+            ORDER BY nom;
+            """;
+        command.Parameters.AddWithValue("$youthId", youthId);
+        using var reader = command.ExecuteReader();
+        var programmes = new List<YouthProgramInfo>();
+        while (reader.Read())
+        {
+            programmes.Add(new YouthProgramInfo(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.IsDBNull(4) ? null : reader.GetString(4)));
+        }
+
+        return programmes;
+    }
+
+    public IReadOnlyList<YouthStaffAssignmentInfo> ChargerYouthStaffAssignments(string youthId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT a.assignment_id,
+                   a.youth_id,
+                   a.worker_id,
+                   w.prenom,
+                   w.nom,
+                   a.role,
+                   a.semaine_debut
+            FROM youth_staff_assignments a
+            JOIN workers w ON w.worker_id = a.worker_id
+            WHERE a.youth_id = $youthId
+            ORDER BY a.role;
+            """;
+        command.Parameters.AddWithValue("$youthId", youthId);
+        using var reader = command.ExecuteReader();
+        var staff = new List<YouthStaffAssignmentInfo>();
+        while (reader.Read())
+        {
+            var prenom = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+            var nom = reader.GetString(4);
+            var nomComplet = string.IsNullOrWhiteSpace(prenom) ? nom : $"{prenom} {nom}";
+            staff.Add(new YouthStaffAssignmentInfo(
+                reader.GetInt32(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                nomComplet,
+                reader.GetString(5),
+                reader.IsDBNull(6) ? null : reader.GetInt32(6)));
+        }
+
+        return staff;
+    }
+
+    public void ChangerBudgetYouth(string youthId, int nouveauBudget)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "UPDATE youth_structures SET budget_annuel = $budget WHERE youth_id = $youthId;";
+        command.Parameters.AddWithValue("$budget", nouveauBudget);
+        command.Parameters.AddWithValue("$youthId", youthId);
+        command.ExecuteNonQuery();
+    }
+
+    public void AffecterCoachYouth(string youthId, string workerId, string role, int semaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO youth_staff_assignments (youth_id, worker_id, role, semaine_debut)
+            VALUES ($youthId, $workerId, $role, $semaine);
+            """;
+        command.Parameters.AddWithValue("$youthId", youthId);
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$semaine", semaine);
+        command.ExecuteNonQuery();
+    }
+
+    public void DiplomerTrainee(string workerId, int semaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        using var traineeCommand = connexion.CreateCommand();
+        traineeCommand.Transaction = transaction;
+        traineeCommand.CommandText = """
+            UPDATE youth_trainees
+            SET statut = 'GRADUE',
+                semaine_graduation = $semaine
+            WHERE worker_id = $workerId;
+            """;
+        traineeCommand.Parameters.AddWithValue("$semaine", semaine);
+        traineeCommand.Parameters.AddWithValue("$workerId", workerId);
+        traineeCommand.ExecuteNonQuery();
+
+        using var workerCommand = connexion.CreateCommand();
+        workerCommand.Transaction = transaction;
+        workerCommand.CommandText = """
+            UPDATE workers
+            SET type_worker = 'CATCHEUR'
+            WHERE worker_id = $workerId;
+            """;
+        workerCommand.Parameters.AddWithValue("$workerId", workerId);
+        workerCommand.ExecuteNonQuery();
+
+        transaction.Commit();
+    }
+
+    public IReadOnlyList<YouthTraineeProgressionState> ChargerYouthTraineesPourProgression()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT t.worker_id,
+                   w.prenom,
+                   w.nom,
+                   t.youth_id,
+                   ys.philosophie,
+                   ys.niveau_equipements,
+                   ys.budget_annuel,
+                   ys.qualite_coaching,
+                   t.statut,
+                   COALESCE(t.semaine_inscription, 1),
+                   w.in_ring,
+                   w.entertainment,
+                   w.story
+            FROM youth_trainees t
+            JOIN workers w ON w.worker_id = t.worker_id
+            JOIN youth_structures ys ON ys.youth_id = t.youth_id
+            WHERE t.statut = 'EN_FORMATION';
+            """;
+        using var reader = command.ExecuteReader();
+        var trainees = new List<YouthTraineeProgressionState>();
+        while (reader.Read())
+        {
+            var prenom = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+            var nom = reader.GetString(2);
+            var nomComplet = string.IsNullOrWhiteSpace(prenom) ? nom : $"{prenom} {nom}";
+            trainees.Add(new YouthTraineeProgressionState(
+                reader.GetString(0),
+                nomComplet,
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                reader.GetInt32(7),
+                reader.GetString(8),
+                reader.GetInt32(9),
+                reader.GetInt32(10),
+                reader.GetInt32(11),
+                reader.GetInt32(12)));
+        }
+
+        return trainees;
+    }
+
+    public void EnregistrerProgressionTrainees(YouthProgressionReport report)
+    {
+        if (report.Resultats.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        foreach (var resultat in report.Resultats)
+        {
+            using var workerCommand = connexion.CreateCommand();
+            workerCommand.Transaction = transaction;
+            workerCommand.CommandText = """
+                UPDATE workers
+                SET in_ring = $inRing,
+                    entertainment = $entertainment,
+                    story = $story
+                WHERE worker_id = $workerId;
+                """;
+            workerCommand.Parameters.AddWithValue("$inRing", resultat.InRing);
+            workerCommand.Parameters.AddWithValue("$entertainment", resultat.Entertainment);
+            workerCommand.Parameters.AddWithValue("$story", resultat.Story);
+            workerCommand.Parameters.AddWithValue("$workerId", resultat.WorkerId);
+            workerCommand.ExecuteNonQuery();
+
+            if (resultat.Diplome)
+            {
+                using var graduateCommand = connexion.CreateCommand();
+                graduateCommand.Transaction = transaction;
+                graduateCommand.CommandText = """
+                    UPDATE youth_trainees
+                    SET statut = 'GRADUE',
+                        semaine_graduation = $semaine
+                    WHERE worker_id = $workerId;
+                    """;
+                graduateCommand.Parameters.AddWithValue("$semaine", report.Semaine);
+                graduateCommand.Parameters.AddWithValue("$workerId", resultat.WorkerId);
+                graduateCommand.ExecuteNonQuery();
+
+                using var roleCommand = connexion.CreateCommand();
+                roleCommand.Transaction = transaction;
+                roleCommand.CommandText = """
+                    UPDATE workers
+                    SET type_worker = 'CATCHEUR'
+                    WHERE worker_id = $workerId;
+                    """;
+                roleCommand.Parameters.AddWithValue("$workerId", resultat.WorkerId);
+                roleCommand.ExecuteNonQuery();
+            }
+        }
+
+        transaction.Commit();
     }
 
     public GenerationCounters ChargerGenerationCounters(int annee)
@@ -1033,11 +2236,12 @@ public sealed class GameRepository
                 using var youthCommand = connexion.CreateCommand();
                 youthCommand.Transaction = transaction;
                 youthCommand.CommandText = """
-                    INSERT INTO youth_trainees (worker_id, youth_id, statut)
-                    VALUES ($workerId, $youthId, 'EN_FORMATION');
+                    INSERT INTO youth_trainees (worker_id, youth_id, statut, semaine_inscription)
+                    VALUES ($workerId, $youthId, 'EN_FORMATION', $semaineInscription);
                     """;
                 youthCommand.Parameters.AddWithValue("$workerId", worker.WorkerId);
                 youthCommand.Parameters.AddWithValue("$youthId", worker.YouthId);
+                youthCommand.Parameters.AddWithValue("$semaineInscription", report.Semaine);
                 youthCommand.ExecuteNonQuery();
             }
 
@@ -1058,6 +2262,91 @@ public sealed class GameRepository
 
         MettreAJourCounters(transaction, report);
         MettreAJourGenerationState(transaction, report);
+
+        transaction.Commit();
+    }
+
+    public IReadOnlyList<YouthTraineeProgressionState> ChargerTraineesPourProgression()
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT yt.worker_id,
+                   yt.youth_id,
+                   w.in_ring,
+                   w.entertainment,
+                   w.story,
+                   yt.statut
+            FROM youth_trainees yt
+            INNER JOIN workers w ON w.worker_id = yt.worker_id
+            WHERE yt.statut = 'EN_FORMATION';
+            """;
+        using var reader = command.ExecuteReader();
+        var trainees = new List<YouthTraineeProgressionState>();
+        while (reader.Read())
+        {
+            trainees.Add(new YouthTraineeProgressionState(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetString(5)));
+        }
+
+        return trainees;
+    }
+
+    public void AppliquerProgressionYouth(YouthProgressionReport report)
+    {
+        if (report.Updates.Count == 0)
+        {
+            return;
+        }
+
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        foreach (var update in report.Updates)
+        {
+            using var workerCommand = connexion.CreateCommand();
+            workerCommand.Transaction = transaction;
+            workerCommand.CommandText = """
+                UPDATE workers
+                SET in_ring = $inRing,
+                    entertainment = $entertainment,
+                    story = $story,
+                    type_worker = CASE WHEN $gradue = 1 THEN 'CATCHEUR' ELSE type_worker END
+                WHERE worker_id = $workerId;
+                """;
+            workerCommand.Parameters.AddWithValue("$inRing", update.NouveauInRing);
+            workerCommand.Parameters.AddWithValue("$entertainment", update.NouveauEntertainment);
+            workerCommand.Parameters.AddWithValue("$story", update.NouveauStory);
+            workerCommand.Parameters.AddWithValue("$gradue", update.EstGradue ? 1 : 0);
+            workerCommand.Parameters.AddWithValue("$workerId", update.WorkerId);
+            workerCommand.ExecuteNonQuery();
+
+            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "in_ring", update.NouveauInRing);
+            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "entertainment", update.NouveauEntertainment);
+            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "story", update.NouveauStory);
+
+            if (update.EstGradue)
+            {
+                using var gradCommand = connexion.CreateCommand();
+                gradCommand.Transaction = transaction;
+                gradCommand.CommandText = """
+                    UPDATE youth_trainees
+                    SET statut = 'GRADUE',
+                        fin_semaine = $semaine
+                    WHERE worker_id = $workerId
+                      AND youth_id = $youthId;
+                    """;
+                gradCommand.Parameters.AddWithValue("$semaine", report.Semaine);
+                gradCommand.Parameters.AddWithValue("$workerId", update.WorkerId);
+                gradCommand.Parameters.AddWithValue("$youthId", update.YouthId);
+                gradCommand.ExecuteNonQuery();
+            }
+        }
 
         transaction.Commit();
     }
@@ -1137,6 +2426,31 @@ public sealed class GameRepository
         command.Parameters.AddWithValue("$workerType", workerType);
         command.Parameters.AddWithValue("$delta", delta);
         command.ExecuteNonQuery();
+    }
+
+    private static void UpsertWorkerAttribute(SqliteConnection connexion, SqliteTransaction transaction, string workerId, string attributId, int valeur)
+    {
+        using var deleteCommand = connexion.CreateCommand();
+        deleteCommand.Transaction = transaction;
+        deleteCommand.CommandText = """
+            DELETE FROM worker_attributes
+            WHERE worker_id = $workerId
+              AND attribut_id = $attributId;
+            """;
+        deleteCommand.Parameters.AddWithValue("$workerId", workerId);
+        deleteCommand.Parameters.AddWithValue("$attributId", attributId);
+        deleteCommand.ExecuteNonQuery();
+
+        using var insertCommand = connexion.CreateCommand();
+        insertCommand.Transaction = transaction;
+        insertCommand.CommandText = """
+            INSERT INTO worker_attributes (worker_id, attribut_id, valeur)
+            VALUES ($workerId, $attributId, $valeur);
+            """;
+        insertCommand.Parameters.AddWithValue("$workerId", workerId);
+        insertCommand.Parameters.AddWithValue("$attributId", attributId);
+        insertCommand.Parameters.AddWithValue("$valeur", valeur);
+        insertCommand.ExecuteNonQuery();
     }
 
     private static ShowDefinition ChargerShow(SqliteConnection connexion, string showId)
@@ -1423,6 +2737,14 @@ public sealed class GameRepository
             """;
         youthCommand.ExecuteNonQuery();
 
+        using var youthProgrammeCommand = connexion.CreateCommand();
+        youthProgrammeCommand.Transaction = transaction;
+        youthProgrammeCommand.CommandText = """
+            INSERT INTO youth_programs (programme_id, youth_id, nom, type, duree_semaines, focus_attributs, actif)
+            VALUES ('PROG-001', 'YOUTH-001', 'Fondamentaux', 'fundamentaux', 12, '["in_ring","story"]', 1);
+            """;
+        youthProgrammeCommand.ExecuteNonQuery();
+
         using var workersCommand = connexion.CreateCommand();
         workersCommand.Transaction = transaction;
         workersCommand.CommandText = """
@@ -1434,6 +2756,22 @@ public sealed class GameRepository
             ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID', 'CATCHEUR');
             """;
         workersCommand.ExecuteNonQuery();
+
+        using var youthProgramCommand = connexion.CreateCommand();
+        youthProgramCommand.Transaction = transaction;
+        youthProgramCommand.CommandText = """
+            INSERT INTO youth_programs (program_id, youth_id, nom, duree_semaines, focus)
+            VALUES ('YP-001', 'YOUTH-001', 'Fondamentaux', 12, 'in_ring');
+            """;
+        youthProgramCommand.ExecuteNonQuery();
+
+        using var youthStaffCommand = connexion.CreateCommand();
+        youthStaffCommand.Transaction = transaction;
+        youthStaffCommand.CommandText = """
+            INSERT INTO youth_staff_assignments (youth_id, worker_id, role, semaine_debut)
+            VALUES ('YOUTH-001', 'W-004', 'Coach technique', 1);
+            """;
+        youthStaffCommand.ExecuteNonQuery();
 
         using var titleCommand = connexion.CreateCommand();
         titleCommand.Transaction = transaction;

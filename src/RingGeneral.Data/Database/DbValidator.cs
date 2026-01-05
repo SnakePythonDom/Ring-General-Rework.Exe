@@ -17,6 +17,9 @@ public sealed class DbValidator : IDbValidator
             ["WorkerAttributes"] = new[] { "WorkerId" },
             ["WorkerPopularityByRegion"] = new[] { "WorkerId", "RegionId", "Popularity" },
             ["Contracts"] = new[] { "ContractId", "WorkerId", "CompanyId", "EndDate" },
+            ["ContractOffers"] = new[] { "OfferId", "NegotiationId", "WorkerId", "CompanyId", "EndWeek" },
+            ["ContractClauses"] = new[] { "ContractClauseId", "ClauseType", "ClauseValue" },
+            ["NegotiationState"] = new[] { "NegotiationId", "WorkerId", "CompanyId", "Status" },
             ["Titles"] = new[] { "TitleId", "CompanyId", "Name" },
             ["TitleReigns"] = new[] { "TitleReignId", "TitleId", "WorkerId" },
             ["Storylines"] = new[] { "StorylineId", "CompanyId", "Name", "Phase", "Heat", "Status" },
@@ -32,6 +35,8 @@ public sealed class DbValidator : IDbValidator
             ["TVDeals"] = new[] { "TvDealId", "CompanyId" },
             ["YouthStructures"] = new[] { "YouthStructureId", "CompanyId" },
             ["YouthTrainees"] = new[] { "YouthTraineeId", "YouthStructureId", "WorkerId" },
+            ["YouthPrograms"] = new[] { "ProgramId", "YouthStructureId", "Name" },
+            ["YouthStaffAssignments"] = new[] { "YouthStaffAssignmentId", "YouthStructureId", "WorkerId" },
             ["Calendars"] = new[] { "CalendarId", "CompanyId", "Date" },
             ["Venues"] = new[] { "VenueId", "Name" }
         };
