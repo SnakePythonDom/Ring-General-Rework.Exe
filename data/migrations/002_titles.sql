@@ -23,10 +23,9 @@ CREATE TABLE IF NOT EXISTS ContenderRankings (
     TitleId TEXT NOT NULL,
     WorkerId TEXT NOT NULL,
     Rank INTEGER NOT NULL,
-    Score REAL NOT NULL,
-    Reason TEXT,
-    UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (TitleId, WorkerId),
+    Score INTEGER NOT NULL DEFAULT 0,
+    Week INTEGER NOT NULL,
+    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (TitleId) REFERENCES Titles(TitleId),
     FOREIGN KEY (WorkerId) REFERENCES Workers(WorkerId)
 );
