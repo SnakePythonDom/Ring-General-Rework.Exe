@@ -184,34 +184,36 @@ public sealed class GameRepository : IScoutingRepository
                 contenu TEXT NOT NULL,
                 semaine INTEGER NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS scout_reports (
-                report_id TEXT PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS injuries (
+                injury_id TEXT PRIMARY KEY,
                 worker_id TEXT NOT NULL,
-                worker_nom TEXT NOT NULL,
-                region TEXT NOT NULL,
-                semaine INTEGER NOT NULL,
-                note INTEGER NOT NULL,
-                forces TEXT NOT NULL,
-                faiblesses TEXT NOT NULL,
-                recommandation TEXT NOT NULL,
-                resume TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS shortlists (
-                worker_id TEXT PRIMARY KEY,
-                worker_nom TEXT NOT NULL,
-                note INTEGER NOT NULL,
-                notes TEXT NOT NULL,
-                semaine_ajout INTEGER NOT NULL,
-                rapport_id TEXT
-            );
-            CREATE TABLE IF NOT EXISTS scout_missions (
-                mission_id TEXT PRIMARY KEY,
-                region TEXT NOT NULL,
-                semaine_debut INTEGER NOT NULL,
-                duree_semaines INTEGER NOT NULL,
-                progression INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                severite TEXT NOT NULL,
                 statut TEXT NOT NULL,
-                rapport_id TEXT
+                semaine_debut INTEGER NOT NULL,
+                semaine_fin INTEGER,
+                duree_semaines INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS medical_notes (
+                note_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                injury_id TEXT,
+                type_note TEXT NOT NULL,
+                contenu TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                auteur TEXT
+            );
+            CREATE TABLE IF NOT EXISTS recovery_plans (
+                plan_id TEXT PRIMARY KEY,
+                injury_id TEXT NOT NULL,
+                worker_id TEXT NOT NULL,
+                statut TEXT NOT NULL,
+                semaine_debut INTEGER NOT NULL,
+                semaine_fin INTEGER,
+                duree_semaines INTEGER NOT NULL,
+                repos_conseille INTEGER NOT NULL,
+                restrictions TEXT,
+                notes TEXT
             );
             CREATE TABLE IF NOT EXISTS contracts (
                 contract_id TEXT,
@@ -388,7 +390,10 @@ public sealed class GameRepository : IScoutingRepository
             CREATE INDEX IF NOT EXISTS idx_youth_staff_youth ON youth_staff_assignments(youth_id);
             CREATE INDEX IF NOT EXISTS idx_worker_attributes_worker ON worker_attributes(worker_id);
             CREATE INDEX IF NOT EXISTS idx_generation_events_semaine ON worker_generation_events(semaine);
-            CREATE INDEX IF NOT EXISTS idx_show_segments_order ON ShowSegments(ShowId, OrderIndex);
+            CREATE INDEX IF NOT EXISTS idx_injuries_worker ON injuries(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_injuries_statut ON injuries(statut);
+            CREATE INDEX IF NOT EXISTS idx_medical_notes_worker ON medical_notes(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_recovery_plans_worker ON recovery_plans(worker_id);
             """;
         commande.ExecuteNonQuery();
 
