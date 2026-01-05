@@ -1961,10 +1961,11 @@ public sealed class GameSessionViewModel : ViewModelBase
         var templates = _repository.ChargerSegmentTemplates().ToList();
         if (templates.Count == 0)
         {
-            templates = ChargerSegmentTemplatesSpec().ToList();
-            if (templates.Count > 0)
+            var templateDefinitions = ChargerSegmentTemplatesSpec().ToList();
+            if (templateDefinitions.Count > 0)
             {
-                _repository.EnregistrerSegmentTemplates(templates);
+                _repository.EnregistrerSegmentTemplates(templateDefinitions);
+                templates = _repository.ChargerSegmentTemplates().ToList();
             }
         }
 

@@ -84,6 +84,8 @@ public sealed partial class MainWindow : Window
         {
             return;
         }
+
+        shell.Session.TableItemsView.Refresh();
     }
 
     private void OnSimulerShow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
