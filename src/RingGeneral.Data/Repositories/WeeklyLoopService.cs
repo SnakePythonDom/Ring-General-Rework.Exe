@@ -34,6 +34,7 @@ public sealed class WeeklyLoopService
         }
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
+        inboxItems.AddRange(VerifierOffresExpirantes(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
         inboxItems.AddRange(GenererScouting(semaine));
 
