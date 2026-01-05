@@ -1,33 +1,58 @@
 {
   "meta": {
     "langue": "fr",
-    "modele": "broadcast-v1"
+    "spec": "broadcast-v1",
+    "domaine": "diffusion"
   },
-  "tvDeals": {
-    "champs": ["diffuseur", "reach", "contraintes", "revenus", "audienceCap"],
+  "dealsTv": {
+    "champs": [
+      {"id": "tvDealId", "libelle": "ID deal"},
+      {"id": "diffuseur", "libelle": "Diffuseur"},
+      {"id": "type", "libelle": "Type", "enum": ["TV", "STREAMING"]},
+      {"id": "reachBonus", "libelle": "Bonus reach", "echelle": "0-100"},
+      {"id": "audienceMin", "libelle": "Audience minimale", "echelle": "0-100"},
+      {"id": "audienceCap", "libelle": "Plafond audience", "echelle": "0-100"},
+      {"id": "revenuFixe", "libelle": "Revenu fixe", "format": "monetaire"},
+      {"id": "revenuParPoint", "libelle": "Revenu par point", "format": "monetaire"},
+      {"id": "penalite", "libelle": "Pénalité", "format": "monetaire"},
+      {"id": "contraintes", "libelle": "Contraintes"}
+    ],
     "contraintes": [
-      "Prime time",
-      "Exclusivité régionale",
-      "Format 90-120 minutes",
-      "Diffusion en direct"
+      "Minimum d'audience hebdomadaire.",
+      "Exclusivité de diffusion.",
+      "Horaires imposés pour les shows premium."
     ],
     "revenus": {
-      "type": "mixte",
-      "description": "Base fixe + variable selon l'audience réelle."
+      "description": "Revenu fixe + bonus par point d'audience, pénalité si audience minimale non atteinte.",
+      "formule": "revenu = fixe + audience_utile * revenuParPoint - penalite"
     }
   },
   "audience": {
-    "formule": "reach + showScore + stars - saturation",
-    "facteurs": {
-      "reach": "Couverture TV + présence locale",
-      "showScore": "Note globale du show",
-      "stars": "Popularité des têtes d'affiche",
-      "saturation": "Écart avec l'audience moyenne"
+    "modele": {
+      "facteurs": [
+        {"id": "reach", "libelle": "Reach"},
+        {"id": "showScore", "libelle": "Note du show"},
+        {"id": "stars", "libelle": "Star power"},
+        {"id": "saturation", "libelle": "Saturation"}
+      ],
+      "sorties": ["audienceFinale", "breakdown"]
+    },
+    "historique": {
+      "champs": [
+        {"id": "semaine", "libelle": "Semaine"},
+        {"id": "audience", "libelle": "Audience"},
+        {"id": "evolution", "libelle": "Évolution"}
+      ]
     }
   },
-  "audienceHistory": {
-    "champs": ["semaine", "audience", "reach", "showScore", "stars", "saturation"],
-    "granularite": "hebdomadaire",
-    "utilisation": "Affichage de l'évolution et comparaison saisonnière"
+  "ui": {
+    "pageDiffusion": {
+      "sections": ["deals", "reachMap", "contraintes"],
+      "etatVide": "Aucun deal TV disponible."
+    },
+    "resultatsShow": {
+      "sections": ["audience", "evolution"],
+      "etatVide": "Aucun historique d'audience disponible."
+    }
   }
 }

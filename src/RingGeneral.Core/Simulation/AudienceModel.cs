@@ -4,33 +4,27 @@ namespace RingGeneral.Core.Simulation;
 
 public sealed class AudienceModel
 {
-    public AudienceResult Calculer(CompanyState compagnie, int showScore, int stars, int reachBonus, int audienceCap)
+    public AudienceDetails Evaluer(AudienceInputs inputs)
     {
-        var reachScore = Math.Clamp(compagnie.Reach * 10 + reachBonus, 0, 100);
-        var saturationImpact = Math.Clamp((compagnie.AudienceMoyenne - showScore) / 4, -8, 8);
+        var reachContribution = (int)Math.Round(inputs.Reach * 0.45);
+        var showContribution = (int)Math.Round(inputs.ShowScore * 0.35);
+        var starsContribution = (int)Math.Round(inputs.Stars * 0.25);
+        var saturationPenalty = (int)Math.Round(inputs.Saturation * 0.3);
 
-        var audienceBrute = (reachScore * 0.35) + (showScore * 0.45) + (stars * 0.20) - saturationImpact;
-        var audience = (int)Math.Round(Math.Clamp(audienceBrute, 0, 100));
-        if (audienceCap > 0)
-        {
-            audience = Math.Min(audience, audienceCap);
-        }
+        var audience = Math.Clamp(
+            reachContribution + showContribution + starsContribution - saturationPenalty,
+            0,
+            100);
 
-        return new AudienceResult(audience, reachScore, showScore, stars, saturationImpact, audienceCap);
-    }
-
-    public int CalculerStars(IReadOnlyList<WorkerSnapshot> participants)
-    {
-        if (participants.Count == 0)
-        {
-            return 0;
-        }
-
-        var top = participants
-            .OrderByDescending(worker => worker.Popularite)
-            .Take(3)
-            .ToList();
-
-        return (int)Math.Round(top.Average(worker => worker.Popularite));
+        return new AudienceDetails(
+            audience,
+            inputs.Reach,
+            inputs.ShowScore,
+            inputs.Stars,
+            inputs.Saturation,
+            reachContribution,
+            showContribution,
+            starsContribution,
+            saturationPenalty);
     }
 }

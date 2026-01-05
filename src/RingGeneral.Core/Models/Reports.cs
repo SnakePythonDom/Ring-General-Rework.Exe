@@ -31,7 +31,7 @@ public sealed record ShowReport(
     string ShowId,
     int NoteGlobale,
     int Audience,
-    AudienceResult AudienceDetails,
+    AudienceDetails AudienceDetails,
     double Billetterie,
     double Merch,
     double Tv,

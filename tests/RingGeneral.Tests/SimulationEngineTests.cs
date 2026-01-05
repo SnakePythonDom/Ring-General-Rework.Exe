@@ -111,39 +111,33 @@ public sealed class SimulationEngineTests
     }
 
     [Fact]
-    public void Deal_influence_audience_et_revenus()
+    public void Deal_tv_ameliore_audience_et_revenus()
     {
-        var deals = new Dictionary<string, TvDealDefinition>
-        {
-            ["TV-1"] = new(
-                "TV-1",
-                "COMP-1",
-                "Canal Ring",
-                20,
-                95,
-                4000,
-                30,
-                new[] { "Prime time", "Exclusivité" })
-        };
-        var engine = new ShowSimulationEngine(
-            new SeededRandomProvider(9),
-            new AudienceModel(),
-            new DealRevenueModel(deals));
+        var deal = new TvDeal(
+            "TV-BOOST",
+            "COMP-1",
+            "NetPlus",
+            15,
+            90,
+            45,
+            4000,
+            60,
+            1200,
+            "Prime time obligatoire");
+        var contextSansDeal = ConstruireContexte();
+        var contextAvecDeal = ConstruireContexte(deal: deal);
 
-        var contextAvecDeal = ConstruireContexte(dealTvId: "TV-1");
-        var contextSansDeal = ConstruireContexte(dealTvId: null);
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(99));
+        var resultatSansDeal = engine.Simuler(contextSansDeal);
+        var resultatAvecDeal = engine.Simuler(contextAvecDeal);
 
-        var resultAvec = engine.Simuler(contextAvecDeal);
-        var resultSans = engine.Simuler(contextSansDeal);
-
-        Assert.True(resultAvec.RapportShow.Audience > resultSans.RapportShow.Audience);
-        Assert.True(resultAvec.RapportShow.Tv > 0);
-        Assert.Equal(0, resultSans.RapportShow.Tv);
+        Assert.True(resultatAvecDeal.RapportShow.Audience > resultatSansDeal.RapportShow.Audience);
+        Assert.True(resultatAvecDeal.RapportShow.Tv > resultatSansDeal.RapportShow.Tv);
     }
 
     private static ShowContext ConstruireContexte(
         IReadOnlyList<SegmentDefinition>? segments = null,
-        string? dealTvId = "TV-1")
+        TvDeal? deal = null)
     {
         var show = new ShowDefinition("SHOW-TEST", "Test Show", 1, "FR", 90, "COMP-1", dealTvId, "Paris", "Canal Ring");
         var company = new CompanyState("COMP-1", "Compagnie Test", "FR", 55, 10000, 50, 4);
@@ -163,6 +157,6 @@ public sealed class SimulationEngineTests
         };
         var chimies = new Dictionary<string, int> { ["W-1|W-2"] = 5 };
 
-        return new ShowContext(show, company, workersList, titles, storylines, segmentsList, chimies);
+        return new ShowContext(show, company, workers, titles, storylines, segmentsList, chimies, deal);
     }
 }

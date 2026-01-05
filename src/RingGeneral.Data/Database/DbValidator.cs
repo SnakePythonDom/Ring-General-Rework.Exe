@@ -33,8 +33,19 @@ public sealed class DbValidator : IDbValidator
             ["Injuries"] = new[] { "InjuryId", "WorkerId" },
             ["Fatigue"] = new[] { "WorkerId", "Value" },
             ["FinanceTransactions"] = new[] { "FinanceTransactionId", "CompanyId", "Date", "Amount" },
-            ["TVDeals"] = new[] { "TvDealId", "CompanyId", "Reach", "ConstraintsJson", "RevenuePerPoint" },
-            ["AudienceHistory"] = new[] { "AudienceHistoryId", "ShowId", "Week", "Audience" },
+            ["TVDeals"] = new[]
+            {
+                "TvDealId",
+                "CompanyId",
+                "NetworkName",
+                "ReachBonus",
+                "AudienceCap",
+                "MinimumAudience",
+                "BaseRevenue",
+                "RevenuePerPoint",
+                "Penalty"
+            },
+            ["AudienceHistory"] = new[] { "AudienceHistoryId", "ShowId", "Week", "Audience", "Reach", "ShowScore", "Stars", "Saturation" },
             ["YouthStructures"] = new[] { "YouthStructureId", "CompanyId" },
             ["YouthTrainees"] = new[] { "YouthTraineeId", "YouthStructureId", "WorkerId" },
             ["YouthPrograms"] = new[] { "ProgramId", "YouthStructureId", "Name" },

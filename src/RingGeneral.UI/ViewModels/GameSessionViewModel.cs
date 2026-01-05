@@ -62,9 +62,10 @@ public sealed class GameSessionViewModel : ViewModelBase
         RecapFm = new ObservableCollection<string>();
         HistoriqueShow = new ObservableCollection<ShowHistoryViewModel>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
-        Storylines = new ObservableCollection<StorylineListItemViewModel>();
-        StorylineOptions = new ObservableCollection<StorylineOptionViewModel>();
-        StorylineParticipantsEdition = new ObservableCollection<StorylineParticipantViewModel>();
+        DealsTv = new ObservableCollection<TvDealViewModel>();
+        ReachMap = new ObservableCollection<ReachMapItemViewModel>();
+        ContraintesDiffusion = new ObservableCollection<string>();
+        AudienceHistorique = new ObservableCollection<AudienceHistoryItemViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
         TableItems = new ObservableCollection<TableViewItemViewModel>();
@@ -123,6 +124,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         InitialiserSegmentTypes();
         InitialiserConsignesBooking();
+        _context = _repository.ChargerShowContext(ShowId);
         ChargerShow();
         ChargerInbox();
         ChargerHistoriqueShow();
@@ -148,9 +150,10 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<string> RecapFm { get; }
     public ObservableCollection<ShowHistoryViewModel> HistoriqueShow { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
-    public ObservableCollection<StorylineListItemViewModel> Storylines { get; }
-    public ObservableCollection<StorylineOptionViewModel> StorylineOptions { get; }
-    public ObservableCollection<StorylineParticipantViewModel> StorylineParticipantsEdition { get; }
+    public ObservableCollection<TvDealViewModel> DealsTv { get; }
+    public ObservableCollection<ReachMapItemViewModel> ReachMap { get; }
+    public ObservableCollection<string> ContraintesDiffusion { get; }
+    public ObservableCollection<AudienceHistoryItemViewModel> AudienceHistorique { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
@@ -381,12 +384,12 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
     private string? _resumeShow;
 
-    public SegmentResultViewModel? ResultatSelectionne
+    public string? AudienceResume
     {
-        get => _resultatSelectionne;
-        set => this.RaiseAndSetIfChanged(ref _resultatSelectionne, value);
+        get => _audienceResume;
+        private set => this.RaiseAndSetIfChanged(ref _audienceResume, value);
     }
-    private SegmentResultViewModel? _resultatSelectionne;
+    private string? _audienceResume;
 
     public string? DetailsSimulation
     {
@@ -536,10 +539,9 @@ public sealed class GameSessionViewModel : ViewModelBase
         }
         ResultatSelectionne = Resultats.FirstOrDefault();
 
-        ResultatSelectionne = Resultats.FirstOrDefault();
-        ResumeShow =
-            $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} " +
-            $"• Billetterie {resultat.RapportShow.Billetterie:C} • Merch {resultat.RapportShow.Merch:C} • TV {resultat.RapportShow.Tv:C}";
+        ResumeShow = $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} • Billetterie {resultat.RapportShow.Billetterie:C} • TV {resultat.RapportShow.Tv:C}";
+        AudienceResume =
+            $"Audience {resultat.RapportShow.Audience} • Reach {resultat.RapportShow.AudienceDetails.Reach} • Stars {resultat.RapportShow.AudienceDetails.Stars} • Saturation {resultat.RapportShow.AudienceDetails.Saturation}";
         MettreAJourAnalyseShow(resultat);
         MettreAJourImpacts(resultat);
         MettreAJourRecapFm(resultat);
@@ -890,8 +892,11 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerShow()
     {
-        var selectionId = SegmentSelectionne?.SegmentId;
-        _context = _repository?.ChargerShowContext(ShowId);
+        if (_repository is not null)
+        {
+            _context = _repository.ChargerShowContext(ShowId);
+        }
+
         if (_context is null)
         {
             return;
@@ -949,6 +954,61 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerHistoriqueShow();
         MettreAJourAvertissements();
         InitialiserNouveauShow();
+        ChargerDiffusion();
+        MettreAJourAudienceHistorique();
+    }
+
+    private void ChargerDiffusion()
+    {
+        DealsTv.Clear();
+        ReachMap.Clear();
+        ContraintesDiffusion.Clear();
+
+        if (_repository is null || _context is null)
+        {
+            return;
+        }
+
+        var deals = _repository.ChargerTvDeals(_context.Show.CompagnieId);
+        foreach (var deal in deals)
+        {
+            DealsTv.Add(new TvDealViewModel(deal));
+            if (!string.IsNullOrWhiteSpace(deal.Constraints))
+            {
+                ContraintesDiffusion.Add(deal.Constraints);
+            }
+        }
+
+        ReachMap.Add(new ReachMapItemViewModel(_context.Compagnie.Region, _context.Compagnie.Reach, "Base locale"));
+        if (deals.Count > 0)
+        {
+            var totalReach = Math.Clamp(
+                _context.Compagnie.Reach + deals.Sum(deal => deal.ReachBonus),
+                0,
+                100);
+            ReachMap.Add(new ReachMapItemViewModel("Couverture totale", totalReach, "Avec bonus deals TV"));
+        }
+    }
+
+    private void MettreAJourAudienceHistorique()
+    {
+        AudienceHistorique.Clear();
+        if (_repository is null || _context is null)
+        {
+            return;
+        }
+
+        var historique = _repository.ChargerAudienceHistorique(_context.Show.ShowId)
+            .OrderByDescending(entry => entry.Week)
+            .ToList();
+
+        AudienceHistoryEntry? precedent = null;
+        foreach (var entree in historique)
+        {
+            var item = new AudienceHistoryItemViewModel(entree, precedent?.Audience);
+            AudienceHistorique.Add(item);
+            precedent = entree;
+        }
     }
 
     private void SelectionnerSegment(string? segmentId)

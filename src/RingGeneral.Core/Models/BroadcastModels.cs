@@ -1,27 +1,45 @@
 namespace RingGeneral.Core.Models;
 
-public sealed record TvDealDefinition(
+public sealed record TvDeal(
     string TvDealId,
-    string CompagnieId,
-    string Nom,
-    int Reach,
+    string CompanyId,
+    string NetworkName,
+    int ReachBonus,
     int AudienceCap,
-    double RevenueBase,
-    double RevenueParPoint,
-    IReadOnlyList<string> Contraintes);
+    int MinimumAudience,
+    double BaseRevenue,
+    double RevenuePerPoint,
+    double Penalty,
+    string Constraints);
 
-public sealed record AudienceResult(
-    int Audience,
-    int ReachScore,
+public sealed record AudienceInputs(
+    int Reach,
     int ShowScore,
     int Stars,
-    int SaturationImpact,
-    int AudienceCap);
+    int Saturation);
+
+public sealed record AudienceDetails(
+    int Audience,
+    int Reach,
+    int ShowScore,
+    int Stars,
+    int Saturation,
+    int ReachContribution,
+    int ShowScoreContribution,
+    int StarsContribution,
+    int SaturationPenalty);
 
 public sealed record DealRevenueResult(
-    double RevenueBase,
-    double RevenueVariable,
-    double RevenueTotale,
-    int AudienceEffective,
-    int AudienceCap,
-    IReadOnlyList<string> Contraintes);
+    double Revenue,
+    double BaseRevenue,
+    double Penalty,
+    int AudienceUsed);
+
+public sealed record AudienceHistoryEntry(
+    string ShowId,
+    int Week,
+    int Audience,
+    int Reach,
+    int ShowScore,
+    int Stars,
+    int Saturation);

@@ -75,7 +75,8 @@ public sealed record ShowContext(
     IReadOnlyList<TitleInfo> Titres,
     IReadOnlyList<StorylineInfo> Storylines,
     IReadOnlyList<SegmentDefinition> Segments,
-    IReadOnlyDictionary<string, int> Chimies);
+    IReadOnlyDictionary<string, int> Chimies,
+    TvDeal? DealTv = null);
 
 public sealed record FinanceTransaction(
     string Type,

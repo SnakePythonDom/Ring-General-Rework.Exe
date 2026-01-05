@@ -9,7 +9,10 @@ public sealed class ShowSimulationEngine
     private readonly AudienceModel _audienceModel;
     private readonly DealRevenueModel _dealRevenueModel;
 
-    public ShowSimulationEngine(IRandomProvider random, AudienceModel? audienceModel = null, DealRevenueModel? dealRevenueModel = null)
+    public ShowSimulationEngine(
+        IRandomProvider random,
+        AudienceModel? audienceModel = null,
+        DealRevenueModel? dealRevenueModel = null)
     {
         _random = random;
         _audienceModel = audienceModel ?? new AudienceModel();
@@ -167,21 +170,23 @@ public sealed class ShowSimulationEngine
         var populariteDeltaCompagnie = (noteShow - 50) / 5;
         populariteCompagnie[context.Compagnie.CompagnieId] = populariteDeltaCompagnie;
 
-        var participantsIds = context.Segments.SelectMany(segment => segment.Participants).Distinct().ToList();
-        var participants = context.Workers.Where(worker => participantsIds.Contains(worker.WorkerId)).ToList();
-        var stars = _audienceModel.CalculerStars(participants);
-        var deal = _dealRevenueModel.TrouverDeal(context.Show.DealTvId);
-        var reachBonus = deal?.Reach ?? 0;
-        var audienceCap = deal?.AudienceCap ?? 0;
-        var audienceDetails = _audienceModel.Calculer(context.Compagnie, noteShow, stars, reachBonus, audienceCap);
+        var stars = CalculerStarPower(context);
+        var saturation = CalculerSaturation(context, segmentsReports.Count);
+        var reach = Math.Clamp(context.Compagnie.Reach + (context.DealTv?.ReachBonus ?? 0), 0, 100);
+        var audienceDetails = _audienceModel.Evaluer(new AudienceInputs(reach, noteShow, stars, saturation));
         var audience = audienceDetails.Audience;
-        var billetterie = Math.Round(1500 + audience * 75 + context.Compagnie.Reach * 20, 2);
+
+        var billetterie = Math.Round(1500 + audience * 75 + reach * 20, 2);
         var merch = Math.Round(300 + audience * 20, 2);
         var tv = 0.0;
-        if (deal is not null)
+        if (context.DealTv is not null)
         {
-            var revenus = _dealRevenueModel.Calculer(deal, audience);
-            tv = Math.Round(revenus.RevenueTotale, 2);
+            var revenue = _dealRevenueModel.Calculer(context.DealTv, audienceDetails);
+            tv = Math.Round(revenue.Revenue, 2);
+        }
+        else if (context.Show.DealTvId is not null)
+        {
+            tv = Math.Round(5000 + audience * 40, 2);
         }
         finances.Add(new FinanceTransaction("billetterie", billetterie, "Billetterie"));
         finances.Add(new FinanceTransaction("merch", merch, "Merchandising"));
@@ -195,8 +200,8 @@ public sealed class ShowSimulationEngine
         {
             $"Note globale : {noteShow}",
             $"Audience estimée : {audience}",
-            $"Impact popularité : {populariteDeltaCompagnie:+#;-#;0}",
-            $"Coûts de production : {-financeResult.CoutProduction:#,0}"
+            $"Star power : {stars} • Saturation {saturation}",
+            $"Impact popularité : {populariteDeltaCompagnie:+#;-#;0}"
         };
 
         var rapportShow = new ShowReport(
@@ -222,6 +227,28 @@ public sealed class ShowSimulationEngine
             finances);
 
         return new ShowSimulationResult(rapportShow, delta);
+    }
+
+    private static int CalculerStarPower(ShowContext context)
+    {
+        if (context.Workers.Count == 0)
+        {
+            return context.Compagnie.Prestige;
+        }
+
+        return (int)Math.Round(
+            context.Workers
+                .OrderByDescending(worker => worker.Popularite)
+                .Take(3)
+                .Average(worker => worker.Popularite));
+    }
+
+    private static int CalculerSaturation(ShowContext context, int segmentsCount)
+    {
+        var baseSaturation = (int)Math.Round(context.Compagnie.AudienceMoyenne * 0.6);
+        var dureeImpact = (int)Math.Round(context.Show.DureeMinutes / 4.0);
+        var segmentsImpact = segmentsCount * 2;
+        return Math.Clamp(baseSaturation + dureeImpact + segmentsImpact, 0, 100);
     }
 
     private static int CalculerChimie(ShowContext context, IReadOnlyList<string> participants)
