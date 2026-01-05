@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "langue": "fr",
+    "specId": "titles.v1",
+    "titre": "Titres complets"
+  },
+  "modules": [
+    {
+      "id": "crud",
+      "libelle": "Gestion des titres",
+      "fonctionnalites": [
+        "Création, édition et suppression des titres",
+        "Mise à jour du prestige et du statut",
+        "Gestion des champions actuels"
+      ]
+    },
+    {
+      "id": "regnes",
+      "libelle": "Règnes & historique",
+      "fonctionnalites": [
+        "Enregistrement des changements de champion",
+        "Historique des règnes et dates clés",
+        "Historique des matchs de titre"
+      ]
+    },
+    {
+      "id": "contenders",
+      "libelle": "Contenders v1",
+      "fonctionnalites": [
+        "Classement automatique basique",
+        "Exclusion du champion actuel",
+        "Top 5 mis à jour après chaque show"
+      ]
+    },
+    {
+      "id": "prestige",
+      "libelle": "Prestige dynamique",
+      "fonctionnalites": [
+        "Prestige augmente sur défense réussie",
+        "Prestige baisse lors d'un changement de champion"
+      ]
+    }
+  ],
+  "testsAttendus": [
+    "Un changement de champion crée un nouveau règne avec fin du règne précédent.",
+    "Le prestige varie selon les défenses de titre."
+  ]
+}
