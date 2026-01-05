@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "langue": "fr",
+    "version": "1.0",
+    "type": "rapport"
+  },
+  "format": {
+    "sections": ["Synthèse", "Forces", "Faiblesses", "Recommandation"],
+    "notes": {
+      "min": 35,
+      "max": 95,
+      "label": "Note globale"
+    }
+  },
+  "guidelines": [
+    "Mettre en avant un point fort et un point faible.",
+    "Inclure une recommandation claire pour la décision.",
+    "Relier la note au profil in-ring, entertainment et momentum."
+  ],
+  "etats": [
+    {"id": "draft", "libelle": "Brouillon"},
+    {"id": "final", "libelle": "Finalisé"}
+  ]
+}
