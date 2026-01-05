@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "langue": "fr",
+    "version": "v1",
+    "module": "medical",
+    "sourceDeVerite": "specs"
+  },
+  "objectifs": [
+    "Suivre les blessures et la fatigue des catcheurs.",
+    "Recommander du repos et évaluer le risque de rechute.",
+    "Structurer le retour à l'écran avec des plans de récupération.",
+    "Notifier la direction via la boîte de réception."
+  ],
+  "blessures": {
+    "champs": [
+      "workerId",
+      "type",
+      "gravite",
+      "debutSemaine",
+      "finSemaine",
+      "statut",
+      "risque",
+      "notes"
+    ],
+    "statuts": ["ACTIVE", "EN_SUIVI", "RECUPEREE"]
+  },
+  "plansRecuperation": {
+    "champs": [
+      "injuryId",
+      "workerId",
+      "debutSemaine",
+      "retourEstime",
+      "statut",
+      "restrictions"
+    ],
+    "statuts": ["EN_COURS", "RETARD", "TERMINE"]
+  },
+  "notesMedicales": {
+    "champs": ["workerId", "injuryId", "semaine", "contenu"],
+    "types": ["diagnostic", "suivi", "retour"]
+  },
+  "recommandations": {
+    "repos": {
+      "seuilsFatigue": [30, 60, 80],
+      "seuilsGravite": [25, 50, 75],
+      "maxSemaines": 8
+    },
+    "risque": {
+      "sources": ["fatigue", "gravite", "retourAnticipe"],
+      "niveaux": ["faible", "modere", "eleve", "critique"]
+    }
+  },
+  "inbox": {
+    "alertes": [
+      "Blessure grave détectée",
+      "Retour anticipé à valider",
+      "Risque de rechute élevé"
+    ]
+  },
+  "actions": [
+    "appliquer_blessure",
+    "planifier_repos",
+    "valider_retour",
+    "ajouter_note_medicale"
+  ]
+}
