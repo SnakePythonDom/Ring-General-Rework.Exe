@@ -16,9 +16,19 @@
     <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#1F2937" Padding="16,12">
       <DockPanel>
         <TextBlock Text="Ring General" Foreground="White" FontWeight="Bold" DockPanel.Dock="Left" />
-        <Button Content="Recherche (Ctrl+K)" DockPanel.Dock="Left" Margin="12,0,0,0"
-                Command="{Binding Session.OuvrirRechercheGlobaleCommand}"
-                ToolTip.Tip="Ouvrir la recherche globale (Ctrl+K)" />
+        <ItemsControl ItemsSource="{Binding TopbarActions}" DockPanel.Dock="Left" Margin="12,0,0,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Content="{Binding Libelle}" Tag="{Binding Id}" Margin="4,0,0,0"
+                      ToolTip.Tip="{Binding Tooltip}" Click="OnTopbarAction" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <ItemsControl ItemsSource="{Binding TopbarIndicators}" DockPanel.Dock="Right">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
@@ -46,12 +56,16 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Spacing="4">
-                  <TextBlock Text="{Binding Libelle}" Foreground="White" FontWeight="SemiBold" />
+                  <Button Content="{Binding Libelle}" Tag="{Binding Route}" Click="OnOuvrirPage"
+                          Foreground="White" FontWeight="SemiBold" Background="Transparent"
+                          HorizontalContentAlignment="Left" />
                   <ItemsControl ItemsSource="{Binding SousSections}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <Border Background="#1F2937" Padding="8,6" CornerRadius="6">
-                          <TextBlock Text="{Binding Libelle}" Foreground="#E5E7EB" />
+                          <Button Content="{Binding Libelle}" Tag="{Binding Route}" Click="OnOuvrirPage"
+                                  Foreground="#E5E7EB" Background="Transparent"
+                                  HorizontalContentAlignment="Left" />
                         </Border>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -93,6 +107,105 @@
               </ItemsControl>
             </StackPanel>
           </Border>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Page sélectionnée" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <TextBlock Grid.Column="1" Text="{Binding PageSelectionnee.Meta.PageId}" Foreground="#9CA3AF" />
+            </Grid>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="8">
+                <TextBlock Text="{Binding PageSelectionnee.Meta.Titre}" Foreground="White" FontWeight="SemiBold" />
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Onglets" Foreground="#9CA3AF" />
+                  <ItemsControl ItemsSource="{Binding PageSelectionnee.Onglets}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#1F2937" Padding="6,2" CornerRadius="6" Margin="0,0,6,0">
+                          <TextBlock Text="{Binding Libelle}" Foreground="#E5E7EB" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Filtres" Foreground="#9CA3AF" />
+                  <ItemsControl ItemsSource="{Binding PageSelectionnee.Filtres}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding .}" Foreground="#CBD5F5" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Tables" Foreground="#9CA3AF" />
+                  <ItemsControl ItemsSource="{Binding PageSelectionnee.Tables}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Spacing="2" Margin="0,4,0,0">
+                          <TextBlock Text="{Binding Libelle}" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                          <ItemsControl ItemsSource="{Binding Colonnes}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding .}" Foreground="#9CA3AF" />
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Actions" Foreground="#9CA3AF" />
+                  <ItemsControl ItemsSource="{Binding PageSelectionnee.Actions}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#1F2937" Padding="6,2" CornerRadius="6" Margin="0,0,6,0">
+                          <TextBlock Text="{Binding Libelle}" Foreground="#E5E7EB" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Avertissements" Foreground="#9CA3AF" />
+                  <ItemsControl ItemsSource="{Binding PageSelectionnee.Warnings}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding .}" Foreground="#FBBF24" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="État vide" Foreground="#9CA3AF" />
+                  <TextBlock Text="{Binding PageSelectionnee.EtatVide}" Foreground="#CBD5F5" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Messages d'erreur" Foreground="#9CA3AF" />
+                  <ItemsControl ItemsSource="{Binding PageSelectionnee.MessagesErreur}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding .}" Foreground="#F87171" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
 
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">

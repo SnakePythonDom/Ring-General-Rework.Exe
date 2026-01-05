@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -27,6 +28,32 @@ public sealed partial class MainWindow : Window
         if (DataContext is ShellViewModel shell)
         {
             shell.Session.PasserSemaineSuivante();
+        }
+    }
+
+    private void OnOuvrirPage(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string route)
+        {
+            shell.OuvrirPage(route);
+        }
+    }
+
+    private void OnTopbarAction(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell || sender is not Control control || control.Tag is not string actionId)
+        {
+            return;
+        }
+
+        switch (actionId)
+        {
+            case "topbar.recherche":
+                shell.Session.OuvrirRechercheGlobaleCommand.Execute().Subscribe();
+                break;
+            case "topbar.parametres":
+                shell.OuvrirPage("/parametres");
+                break;
         }
     }
 
