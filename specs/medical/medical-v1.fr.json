@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "langue": "fr",
+    "spec": "medical-v1"
+  },
+  "blessures": {
+    "severites": ["AUCUNE", "LEGERE", "MOYENNE", "GRAVE"],
+    "types": ["ENTORSE", "COMMOTION", "LACERATION", "FRACTURE", "SURMENAGE"],
+    "statuts": ["ACTIVE", "REPOS", "RETOUR_EN_COURS", "RETABLI"],
+    "champs": [
+      {"id": "type", "libelle": "Type"},
+      {"id": "severite", "libelle": "Gravité"},
+      {"id": "debut", "libelle": "Début"},
+      {"id": "fin", "libelle": "Fin prévue"},
+      {"id": "statut", "libelle": "Statut"}
+    ]
+  },
+  "fatigue": {
+    "seuils": {
+      "moderee": 50,
+      "elevee": 70,
+      "critique": 85
+    },
+    "effets": [
+      "Au-delà de 70, le risque de blessure augmente.",
+      "Au-delà de 85, le repos devient obligatoire avant un retour."
+    ]
+  },
+  "repos": {
+    "recommandations": [
+      {"severite": "LEGERE", "reposSemaines": 1, "message": "Repos léger conseillé."},
+      {"severite": "MOYENNE", "reposSemaines": 3, "message": "Repos complet et suivi médical."},
+      {"severite": "GRAVE", "reposSemaines": 6, "message": "Repos prolongé et réévaluation obligatoire."}
+    ]
+  },
+  "risques": {
+    "niveaux": ["FAIBLE", "MODERE", "ELEVE"],
+    "regles": [
+      "Fatigue >= 70 et blessure active -> risque ÉLEVÉ.",
+      "Fatigue entre 50-69 -> risque MODÉRÉ.",
+      "Blessure grave même en récupération -> risque ÉLEVÉ."
+    ]
+  },
+  "retour": {
+    "conditions": [
+      "Blessure doit être en statut RETOUR_EN_COURS ou RETABLI.",
+      "Fatigue <= 60 recommandée avant retour complet.",
+      "Validation médicale requise pour blessures graves."
+    ],
+    "alertes": [
+      "Risque de rechute si retour anticipé.",
+      "Plan de retour en retard par rapport au repos conseillé."
+    ]
+  },
+  "inbox": {
+    "types": [
+      {"id": "medical", "libelle": "Médical"}
+    ],
+    "messages": [
+      "Un nouveau rapport médical est disponible.",
+      "Un catcheur est apte au retour sous conditions.",
+      "Risque élevé détecté : ajustez la charge de travail."
+    ]
+  },
+  "ui": {
+    "page": "medical",
+    "actions": [
+      "Planifier repos",
+      "Valider retour",
+      "Ouvrir profil"
+    ]
+  }
+}

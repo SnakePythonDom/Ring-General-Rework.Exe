@@ -9,7 +9,7 @@
     {
       "id": "liste_blessures",
       "libelle": "Blessures",
-      "colonnes": ["Nom", "Type", "Gravité", "Durée", "Statut"]
+      "colonnes": ["Nom", "Type", "Gravité", "Durée", "Repos conseillé", "Risque", "Statut", "Actions"]
     }
   ],
   "filtres": ["Gravité", "Statut", "Rôle"],
@@ -17,13 +17,15 @@
     "sections": ["Diagnostic", "Planning de retour", "Restrictions"]
   },
   "actions": [
-    {"id": "planifier_retour", "libelle": "Planifier un retour"}
+    {"id": "planifier_retour", "libelle": "Planifier un retour"},
+    {"id": "planifier_repos", "libelle": "Planifier un repos"},
+    {"id": "ouvrir_profil", "libelle": "Ouvrir le profil"}
   ],
   "validations": [
     {"id": "retour.date", "message": "La date de retour est requise."}
   ],
   "warnings": ["Risque élevé de rechute pour certains catcheurs."],
-  "etatVide": "Aucune blessure enregistrée.",
+  "etatVide": "Aucune blessure ou fatigue critique enregistrée.",
   "tooltips": [
     {"id": "gravite", "libelle": "Gravité", "texte": "Impact sur la disponibilité et la performance."}
   ],
