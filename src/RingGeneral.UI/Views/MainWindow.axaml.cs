@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -13,6 +15,93 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new ShellViewModel();
+        InitialiserTableView();
+    }
+
+    private DataGrid? _tableViewGrid;
+    private GameSessionViewModel? _sessionTableView;
+
+    private void InitialiserTableView()
+    {
+        _tableViewGrid = this.FindControl<DataGrid>("TableViewGrid");
+        if (_tableViewGrid is null || DataContext is not ShellViewModel shell)
+        {
+            return;
+        }
+
+        shell.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(ShellViewModel.Session))
+            {
+                AttacherSession(shell.Session);
+            }
+        };
+
+        AttacherSession(shell.Session);
+    }
+
+    private void AttacherSession(GameSessionViewModel session)
+    {
+        if (_sessionTableView is not null)
+        {
+            _sessionTableView.TableColumns.CollectionChanged -= OnTableColumnsChanged;
+        }
+
+        _sessionTableView = session;
+        _sessionTableView.TableColumns.CollectionChanged += OnTableColumnsChanged;
+        AppliquerOrdreColonnes();
+        AppliquerTriColonnes();
+    }
+
+    private void OnTableColumnsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        AppliquerOrdreColonnes();
+    }
+
+    private void AppliquerOrdreColonnes()
+    {
+        if (_tableViewGrid is null || DataContext is not ShellViewModel shell)
+        {
+            return;
+        }
+
+        var colonnesParId = _tableViewGrid.Columns
+            .Where(colonne => colonne.Tag is string)
+            .ToDictionary(colonne => (string)colonne.Tag!, StringComparer.OrdinalIgnoreCase);
+        for (var index = 0; index < shell.Session.TableColumns.Count; index++)
+        {
+            var colonneId = shell.Session.TableColumns[index].Id;
+            if (colonnesParId.TryGetValue(colonneId, out var colonne))
+            {
+                colonne.DisplayIndex = index;
+            }
+        }
+    }
+
+    private void AppliquerTriColonnes()
+    {
+        if (_tableViewGrid is null || DataContext is not ShellViewModel shell)
+        {
+            return;
+        }
+
+        foreach (var colonne in _tableViewGrid.Columns)
+        {
+            colonne.SortDirection = null;
+        }
+
+        var colonnesParId = _tableViewGrid.Columns
+            .Where(colonne => colonne.Tag is string)
+            .ToDictionary(colonne => (string)colonne.Tag!, StringComparer.OrdinalIgnoreCase);
+        foreach (var tri in shell.Session.TableSortSettings)
+        {
+            if (colonnesParId.TryGetValue(tri.ColumnId, out var colonne))
+            {
+                colonne.SortDirection = tri.Direction == RingGeneral.Data.Models.TableSortDirection.Ascending
+                    ? System.ComponentModel.ListSortDirection.Ascending
+                    : System.ComponentModel.ListSortDirection.Descending;
+            }
+        }
     }
 
     private void OnSimulerShow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -171,6 +260,57 @@ public sealed partial class MainWindow : Window
                 shell.Saves.SignalerErreur("Sélectionnez une sauvegarde à charger.");
             }
         }
+    }
+
+    private void OnTableSorting(object? sender, DataGridSortingEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell || e.Column is null)
+        {
+            return;
+        }
+
+        var colonneId = e.Column.SortMemberPath ?? e.Column.Tag?.ToString();
+        if (string.IsNullOrWhiteSpace(colonneId))
+        {
+            return;
+        }
+
+        shell.Session.MettreAJourTriTable(colonneId);
+        AppliquerTriColonnes();
+        e.Handled = true;
+    }
+
+    private void OnTableColumnUp(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell || sender is not Control control || control.Tag is not TableColumnOrderViewModel colonne)
+        {
+            return;
+        }
+
+        shell.Session.MonterColonne(colonne);
+        AppliquerOrdreColonnes();
+    }
+
+    private void OnTableColumnDown(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell || sender is not Control control || control.Tag is not TableColumnOrderViewModel colonne)
+        {
+            return;
+        }
+
+        shell.Session.DescendreColonne(colonne);
+        AppliquerOrdreColonnes();
+    }
+
+    private void OnReinitialiserTriTable(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell)
+        {
+            return;
+        }
+
+        shell.Session.ReinitialiserTriTable();
+        AppliquerTriColonnes();
     }
 
     private async void OnImporterDb(object? sender, RoutedEventArgs e)

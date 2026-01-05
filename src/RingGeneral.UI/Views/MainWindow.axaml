@@ -794,6 +794,11 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="12">
+                  <TextBlock Text="{Binding Session.TableTriResume}" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                  <Button Content="Réinitialiser tri" Click="OnReinitialiserTriTable" ToolTip.Tip="Effacer tous les tris multi-colonnes." />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
                   <TextBlock Text="Colonnes" Foreground="#9CA3AF" VerticalAlignment="Center" />
                   <CheckBox Content="Type" IsChecked="{Binding Session.TableConfiguration.AfficherType}" ToolTip.Tip="Afficher la colonne Type." />
                   <CheckBox Content="Compagnie" IsChecked="{Binding Session.TableConfiguration.AfficherCompagnie}" ToolTip.Tip="Afficher la colonne Compagnie." />
@@ -805,38 +810,65 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="12">
+                  <TextBlock Text="Ordre" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                  <ItemsControl ItemsSource="{Binding Session.TableColumns}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#0F172A" Padding="6,2" CornerRadius="6" Margin="2">
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding Libelle}" Foreground="#E5E7EB" />
+                            <Button Content="↑" Tag="{Binding .}" Click="OnTableColumnUp" Padding="4,0" MinWidth="20" />
+                            <Button Content="↓" Tag="{Binding .}" Click="OnTableColumnDown" Padding="4,0" MinWidth="20" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
                   <TextBlock Text="Actions rapides" Foreground="#9CA3AF" VerticalAlignment="Center" />
-                  <Button Content="Assigner" ToolTip.Tip="Assigner la fiche sélectionnée à un segment." />
-                  <Button Content="Mettre en avant" ToolTip.Tip="Mettre en avant la fiche dans le show." />
-                  <Button Content="Planifier" ToolTip.Tip="Planifier une action rapide." />
-                  <Button Content="Favori" ToolTip.Tip="Ajouter aux favoris." />
+                  <TextBlock Text="{Binding Session.TableSelectionContexte}" Foreground="#E5E7EB" VerticalAlignment="Center" />
+                  <Button Content="Assigner" IsEnabled="{Binding Session.TableSelectionDisponible}" ToolTip.Tip="Assigner la fiche sélectionnée à un segment." />
+                  <Button Content="Mettre en avant" IsEnabled="{Binding Session.TableSelectionDisponible}" ToolTip.Tip="Mettre en avant la fiche dans le show." />
+                  <Button Content="Planifier" IsEnabled="{Binding Session.TableSelectionDisponible}" ToolTip.Tip="Planifier une action rapide." />
+                  <Button Content="Favori" IsEnabled="{Binding Session.TableSelectionDisponible}" ToolTip.Tip="Ajouter aux favoris." />
                 </StackPanel>
 
                 <Grid ColumnDefinitions="2*,*" RowDefinitions="Auto">
-                  <controls:DataGrid ItemsSource="{Binding Session.TableItemsView}" SelectedItem="{Binding Session.TableSelection, Mode=TwoWay}"
+                  <controls:DataGrid x:Name="TableViewGrid"
+                            ItemsSource="{Binding Session.TableItemsView}" SelectedItem="{Binding Session.TableSelection, Mode=TwoWay}"
                             Height="320"
                             AutoGenerateColumns="False"
                             CanUserSortColumns="True"
+                            CanUserReorderColumns="True"
                             GridLinesVisibility="All"
                             HeadersVisibility="All"
                             IsReadOnly="True"
+                            EnableColumnVirtualization="True"
                             EnableRowVirtualization="True"
+                            Sorting="OnTableSorting"
                             ToolTip.Tip="Table virtualisée avec tri, filtres et recherche.">
                     <controls:DataGrid.Columns>
-                      <controls:DataGridTextColumn Header="Nom" Binding="{Binding Nom}" Width="2*" SortMemberPath="Nom" />
-                      <controls:DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="*" SortMemberPath="Type"
+                      <controls:DataGridTextColumn Header="Nom" Tag="Nom" Binding="{Binding Nom}" Width="2*" SortMemberPath="Nom" />
+                      <controls:DataGridTextColumn Header="Type" Tag="Type" Binding="{Binding Type}" Width="*" SortMemberPath="Type"
                                           IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherType, RelativeSource={RelativeSource AncestorType=Window}}" />
-                      <controls:DataGridTextColumn Header="Compagnie" Binding="{Binding Compagnie}" Width="*" SortMemberPath="Compagnie"
+                      <controls:DataGridTextColumn Header="Compagnie" Tag="Compagnie" Binding="{Binding Compagnie}" Width="*" SortMemberPath="Compagnie"
                                           IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherCompagnie, RelativeSource={RelativeSource AncestorType=Window}}" />
-                      <controls:DataGridTextColumn Header="Rôle/Participants" Binding="{Binding Role}" Width="2*" SortMemberPath="Role"
+                      <controls:DataGridTextColumn Header="Rôle/Participants" Tag="Role" Binding="{Binding Role}" Width="2*" SortMemberPath="Role"
                                           IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherRole, RelativeSource={RelativeSource AncestorType=Window}}" />
-                      <controls:DataGridTextColumn Header="Statut" Binding="{Binding Statut}" Width="*" SortMemberPath="Statut"
+                      <controls:DataGridTextColumn Header="Statut" Tag="Statut" Binding="{Binding Statut}" Width="*" SortMemberPath="Statut"
                                           IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherStatut, RelativeSource={RelativeSource AncestorType=Window}}" />
-                      <controls:DataGridTextColumn Header="Popularité" Binding="{Binding Popularite}" Width="*" SortMemberPath="Popularite"
+                      <controls:DataGridTextColumn Header="Popularité" Tag="Popularite" Binding="{Binding Popularite}" Width="*" SortMemberPath="Popularite"
                                           IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherPopularite, RelativeSource={RelativeSource AncestorType=Window}}" />
-                      <controls:DataGridTextColumn Header="Momentum" Binding="{Binding Momentum}" Width="*" SortMemberPath="Momentum"
+                      <controls:DataGridTextColumn Header="Momentum" Tag="Momentum" Binding="{Binding Momentum}" Width="*" SortMemberPath="Momentum"
                                           IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherMomentum, RelativeSource={RelativeSource AncestorType=Window}}" />
-                      <controls:DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="*" SortMemberPath="Note"
+                      <controls:DataGridTextColumn Header="Note" Tag="Note" Binding="{Binding Note}" Width="*" SortMemberPath="Note"
                                           IsVisible="{Binding DataContext.Session.TableConfiguration.AfficherNote, RelativeSource={RelativeSource AncestorType=Window}}" />
                     </controls:DataGrid.Columns>
                   </controls:DataGrid>

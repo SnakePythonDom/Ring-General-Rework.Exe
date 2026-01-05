@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Avalonia.Collections;
 using ReactiveUI;
 using System.Reactive;
@@ -9,6 +10,7 @@ using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Database;
+using RingGeneral.Data.Models;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Specs.Models;
 using RingGeneral.Specs.Services;
@@ -33,6 +35,8 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly StorylineService _storylineService = new();
     private ShowContext? _context;
     private readonly List<GlobalSearchResultViewModel> _rechercheGlobaleIndex = new();
+    private readonly List<TableSortSetting> _tableSortSettings = new();
+    private bool _suspendTablePreferences;
 
     public GameSessionViewModel(string? cheminDb = null)
     {
@@ -78,6 +82,17 @@ public sealed class GameSessionViewModel : ViewModelBase
             Filter = FiltrerTableItems
         };
         TableConfiguration = new TableViewConfigurationViewModel();
+        TableColumns = new ObservableCollection<TableColumnOrderViewModel>
+        {
+            new("Nom", "Nom"),
+            new("Type", "Type"),
+            new("Compagnie", "Compagnie"),
+            new("Role", "Rôle"),
+            new("Statut", "Statut"),
+            new("Popularite", "Popularité"),
+            new("Momentum", "Momentum"),
+            new("Note", "Note")
+        };
         TableTypeFilters = new ObservableCollection<TableFilterOptionViewModel>
         {
             new("tous", "Tous"),
@@ -99,6 +114,9 @@ public sealed class GameSessionViewModel : ViewModelBase
         };
         TableSelectedTypeFilter = TableTypeFilters[0];
         TableSelectedStatusFilter = TableStatusFilters[0];
+        ChargerPreferencesTable();
+        TableConfiguration.PropertyChanged += (_, _) => SauvegarderPreferencesTable();
+        TableColumns.CollectionChanged += (_, _) => SauvegarderPreferencesTable();
         RechercheGlobaleResultats = new ObservableCollection<GlobalSearchResultViewModel>();
         OuvrirRechercheGlobaleCommand = ReactiveCommand.Create(OuvrirRechercheGlobale);
         FermerRechercheGlobaleCommand = ReactiveCommand.Create(FermerRechercheGlobale);
@@ -162,6 +180,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
     public DataGridCollectionView TableItemsView { get; }
     public TableViewConfigurationViewModel TableConfiguration { get; }
+    public ObservableCollection<TableColumnOrderViewModel> TableColumns { get; }
     public ObservableCollection<TableFilterOptionViewModel> TableTypeFilters { get; }
     public ObservableCollection<TableFilterOptionViewModel> TableStatusFilters { get; }
     public ObservableCollection<GlobalSearchResultViewModel> RechercheGlobaleResultats { get; }
@@ -369,6 +388,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _tableRecherche, value);
             AppliquerFiltreTable();
+            SauvegarderPreferencesTable();
         }
     }
     private string? _tableRecherche;
@@ -380,6 +400,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _tableSelectedTypeFilter, value);
             AppliquerFiltreTable();
+            SauvegarderPreferencesTable();
         }
     }
     private TableFilterOptionViewModel _tableSelectedTypeFilter;
@@ -391,6 +412,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _tableSelectedStatusFilter, value);
             AppliquerFiltreTable();
+            SauvegarderPreferencesTable();
         }
     }
     private TableFilterOptionViewModel _tableSelectedStatusFilter;
@@ -402,12 +424,32 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
     private string? _tableResultatsResume;
 
+    public string? TableTriResume
+    {
+        get => _tableTriResume;
+        private set => this.RaiseAndSetIfChanged(ref _tableTriResume, value);
+    }
+    private string? _tableTriResume;
+
+    public IReadOnlyList<TableSortSetting> TableSortSettings => _tableSortSettings;
+
     public TableViewItemViewModel? TableSelection
     {
         get => _tableSelection;
-        set => this.RaiseAndSetIfChanged(ref _tableSelection, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _tableSelection, value);
+            this.RaisePropertyChanged(nameof(TableSelectionDisponible));
+            this.RaisePropertyChanged(nameof(TableSelectionContexte));
+        }
     }
     private TableViewItemViewModel? _tableSelection;
+
+    public bool TableSelectionDisponible => TableSelection is not null;
+
+    public string TableSelectionContexte => TableSelection is null
+        ? "Aucune fiche sélectionnée"
+        : $"{TableSelection.Nom} · {TableSelection.Type}";
 
     public bool RechercheGlobaleVisible
     {
@@ -1302,6 +1344,199 @@ public sealed class GameSessionViewModel : ViewModelBase
     private void MettreAJourResumeTable()
     {
         TableResultatsResume = $"Résultats : {TableItemsView.Count} / {TableItems.Count}";
+    }
+
+    public void MonterColonne(TableColumnOrderViewModel colonne)
+    {
+        var index = TableColumns.IndexOf(colonne);
+        if (index <= 0)
+        {
+            return;
+        }
+
+        TableColumns.Move(index, index - 1);
+        SauvegarderPreferencesTable();
+    }
+
+    public void DescendreColonne(TableColumnOrderViewModel colonne)
+    {
+        var index = TableColumns.IndexOf(colonne);
+        if (index < 0 || index >= TableColumns.Count - 1)
+        {
+            return;
+        }
+
+        TableColumns.Move(index, index + 1);
+        SauvegarderPreferencesTable();
+    }
+
+    public void MettreAJourTriTable(string colonneId)
+    {
+        var existant = _tableSortSettings.FirstOrDefault(sort => sort.ColumnId.Equals(colonneId, StringComparison.OrdinalIgnoreCase));
+        if (existant is null)
+        {
+            _tableSortSettings.Add(new TableSortSetting(colonneId, TableSortDirection.Ascending));
+        }
+        else if (existant.Direction == TableSortDirection.Ascending)
+        {
+            _tableSortSettings[_tableSortSettings.IndexOf(existant)] = existant with { Direction = TableSortDirection.Descending };
+        }
+        else
+        {
+            _tableSortSettings.Remove(existant);
+        }
+
+        AppliquerTriTable();
+        SauvegarderPreferencesTable();
+    }
+
+    public void ReinitialiserTriTable()
+    {
+        if (_tableSortSettings.Count == 0)
+        {
+            return;
+        }
+
+        _tableSortSettings.Clear();
+        AppliquerTriTable();
+        SauvegarderPreferencesTable();
+    }
+
+    private void AppliquerTriTable()
+    {
+        TableItemsView.SortDescriptions.Clear();
+        foreach (var tri in _tableSortSettings)
+        {
+            var direction = tri.Direction == TableSortDirection.Ascending
+                ? ListSortDirection.Ascending
+                : ListSortDirection.Descending;
+            TableItemsView.SortDescriptions.Add(new SortDescription(tri.ColumnId, direction));
+        }
+
+        TableTriResume = _tableSortSettings.Count == 0
+            ? "Tri : aucun"
+            : $"Tri : {string.Join(" · ", _tableSortSettings.Select(tri => $"{tri.ColumnId} {(tri.Direction == TableSortDirection.Ascending ? "↑" : "↓")}"))}";
+    }
+
+    private void ChargerPreferencesTable()
+    {
+        if (_repository is null)
+        {
+            return;
+        }
+
+        _suspendTablePreferences = true;
+        var settings = _repository.ChargerTableUiSettings();
+        TableRecherche = settings.Recherche;
+        TableSelectedTypeFilter = TableTypeFilters.FirstOrDefault(filter => filter.Id.Equals(settings.FiltreType, StringComparison.OrdinalIgnoreCase))
+            ?? TableTypeFilters[0];
+        TableSelectedStatusFilter = TableStatusFilters.FirstOrDefault(filter => filter.Id.Equals(settings.FiltreStatut, StringComparison.OrdinalIgnoreCase))
+            ?? TableStatusFilters[0];
+
+        AppliquerColonnesVisibles(settings.ColonnesVisibles);
+        AppliquerOrdreColonnes(settings.ColonnesOrdre);
+        _tableSortSettings.Clear();
+        _tableSortSettings.AddRange(settings.Tris);
+        AppliquerTriTable();
+        _suspendTablePreferences = false;
+    }
+
+    private void AppliquerColonnesVisibles(IReadOnlyDictionary<string, bool> colonnesVisibles)
+    {
+        if (colonnesVisibles.Count == 0)
+        {
+            return;
+        }
+
+        if (colonnesVisibles.TryGetValue("Type", out var afficherType))
+        {
+            TableConfiguration.AfficherType = afficherType;
+        }
+
+        if (colonnesVisibles.TryGetValue("Compagnie", out var afficherCompagnie))
+        {
+            TableConfiguration.AfficherCompagnie = afficherCompagnie;
+        }
+
+        if (colonnesVisibles.TryGetValue("Role", out var afficherRole))
+        {
+            TableConfiguration.AfficherRole = afficherRole;
+        }
+
+        if (colonnesVisibles.TryGetValue("Statut", out var afficherStatut))
+        {
+            TableConfiguration.AfficherStatut = afficherStatut;
+        }
+
+        if (colonnesVisibles.TryGetValue("Popularite", out var afficherPopularite))
+        {
+            TableConfiguration.AfficherPopularite = afficherPopularite;
+        }
+
+        if (colonnesVisibles.TryGetValue("Momentum", out var afficherMomentum))
+        {
+            TableConfiguration.AfficherMomentum = afficherMomentum;
+        }
+
+        if (colonnesVisibles.TryGetValue("Note", out var afficherNote))
+        {
+            TableConfiguration.AfficherNote = afficherNote;
+        }
+    }
+
+    private void AppliquerOrdreColonnes(IReadOnlyList<string> ordre)
+    {
+        if (ordre.Count == 0)
+        {
+            return;
+        }
+
+        var mapping = TableColumns.ToDictionary(colonne => colonne.Id, StringComparer.OrdinalIgnoreCase);
+        var nouvelOrdre = ordre
+            .Select(id => mapping.TryGetValue(id, out var item) ? item : null)
+            .Where(item => item is not null)
+            .Cast<TableColumnOrderViewModel>()
+            .ToList();
+        foreach (var colonne in TableColumns)
+        {
+            if (!nouvelOrdre.Contains(colonne))
+            {
+                nouvelOrdre.Add(colonne);
+            }
+        }
+
+        TableColumns.Clear();
+        foreach (var colonne in nouvelOrdre)
+        {
+            TableColumns.Add(colonne);
+        }
+    }
+
+    private void SauvegarderPreferencesTable()
+    {
+        if (_suspendTablePreferences || _repository is null)
+        {
+            return;
+        }
+
+        var colonnesVisibles = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Type"] = TableConfiguration.AfficherType,
+            ["Compagnie"] = TableConfiguration.AfficherCompagnie,
+            ["Role"] = TableConfiguration.AfficherRole,
+            ["Statut"] = TableConfiguration.AfficherStatut,
+            ["Popularite"] = TableConfiguration.AfficherPopularite,
+            ["Momentum"] = TableConfiguration.AfficherMomentum,
+            ["Note"] = TableConfiguration.AfficherNote
+        };
+        var settings = new TableUiSettings(
+            TableRecherche,
+            TableSelectedTypeFilter.Id,
+            TableSelectedStatusFilter.Id,
+            colonnesVisibles,
+            TableColumns.Select(colonne => colonne.Id).ToList(),
+            _tableSortSettings.ToList());
+        _repository.SauvegarderTableUiSettings(settings);
     }
 
     private void MettreAJourIndexRechercheGlobale()
