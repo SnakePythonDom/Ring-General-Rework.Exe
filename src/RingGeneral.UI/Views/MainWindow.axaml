@@ -397,6 +397,7 @@
                     </StackPanel>
                   </StackPanel>
                 </Border>
+                </Grid>
                 <Border Background="#1F2937" Padding="8" CornerRadius="6">
                   <StackPanel Spacing="6">
                     <TextBlock Text="Ajouter depuis bibliothèque" Foreground="#F9FAFB" FontWeight="SemiBold" />
