@@ -2320,7 +2320,7 @@ public sealed class GameRepository : IScoutingRepository
             var worldMode = Enum.TryParse<WorldGenerationMode>(reader.GetString(1), out var wm)
                 ? wm
                 : WorldGenerationMode.Desactivee;
-            var pivot = reader.IsDBNull(2) ? null : reader.GetInt32(2);
+            int? pivot = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2);
             return new WorkerGenerationOptions(youthMode, worldMode, pivot);
         }
 
