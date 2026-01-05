@@ -9,7 +9,7 @@
       "libelle": "Match",
       "champsRequis": ["participants", "duree", "agent", "production"],
       "validations": ["minParticipants:2", "dureeMin:3"],
-      "consignes": ["intensite", "storyHeavy", "finish", "risqueBotch"]
+      "consignes": ["typeMatch", "intensite", "storyHeavy", "finish", "risqueBotch"]
     },
     {
       "id": "promo",
@@ -75,6 +75,7 @@
     "Un participant ne peut pas être dans deux segments simultanés."
   ],
   "consignes": {
+    "typeMatch": ["Singles", "Tag", "Triple Threat", "Hardcore", "Cage"],
     "intensite": ["FAIBLE", "MOYENNE", "FORTE"],
     "storyHeavy": ["NON", "OUI"],
     "finish": ["PROPRE", "CONTROVERSE", "DQ", "COUNT_OUT"],
