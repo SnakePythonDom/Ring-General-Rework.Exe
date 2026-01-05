@@ -4,9 +4,9 @@ namespace RingGeneral.Core.Interfaces;
 
 public interface IMedicalRepository
 {
-    int AjouterBlessure(Injury injury);
-    Injury? ChargerBlessure(int injuryId);
-    void MettreAJourBlessure(Injury injury);
+    int AjouterBlessure(InjuryRecord injury);
+    InjuryRecord? ChargerBlessure(int injuryId);
+    void MettreAJourBlessure(InjuryRecord injury);
     int AjouterPlan(RecoveryPlan plan);
     RecoveryPlan? ChargerPlanPourBlessure(int injuryId);
     void MettreAJourPlanStatut(int injuryId, string statut, int? completedWeek);

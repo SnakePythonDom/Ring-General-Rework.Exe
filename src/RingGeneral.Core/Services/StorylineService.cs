@@ -14,15 +14,12 @@ public sealed class StorylineService
 
     public StorylineInfo Creer(string storylineId, string nom, IReadOnlyList<StorylineParticipant> participants)
     {
-        var phase = "BUILD";
-        var statut = "ACTIVE";
-
         return new StorylineInfo(
             storylineId,
             nom,
-            phase,
+            StorylinePhase.Setup,
             0,
-            statut,
+            StorylineStatus.Active,
             null,
             participants);
     }
@@ -30,8 +27,8 @@ public sealed class StorylineService
     public StorylineInfo MettreAJour(
         StorylineInfo storyline,
         string? nom = null,
-        string? phase = null,
-        string? statut = null,
+        StorylinePhase? phase = null,
+        StorylineStatus? statut = null,
         string? resume = null,
         IReadOnlyList<StorylineParticipant>? participants = null)
     {
@@ -39,7 +36,7 @@ public sealed class StorylineService
         {
             Nom = nom ?? storyline.Nom,
             Phase = phase ?? storyline.Phase,
-            Statut = statut ?? storyline.Statut,
+            Status = statut ?? storyline.Status,
             Resume = resume ?? storyline.Resume,
             Participants = participants ?? storyline.Participants
         };
@@ -49,18 +46,19 @@ public sealed class StorylineService
     {
         var phaseSuivante = storyline.Phase switch
         {
-            "BUILD" => "PEAK",
-            "PEAK" => "BLOWOFF",
+            StorylinePhase.Setup => StorylinePhase.Rising,
+            StorylinePhase.Rising => StorylinePhase.Climax,
+            StorylinePhase.Climax => StorylinePhase.Fallout,
             _ => storyline.Phase
         };
 
-        var statut = storyline.Statut;
-        if (phaseSuivante == "BLOWOFF" && storyline.Heat >= 80)
+        var statut = storyline.Status;
+        if (phaseSuivante == StorylinePhase.Fallout && storyline.Heat >= 80)
         {
-            statut = "TERMINEE";
+            statut = StorylineStatus.Completed;
         }
 
-        return storyline with { Phase = phaseSuivante, Statut = statut };
+        return storyline with { Phase = phaseSuivante, Status = statut };
     }
 
     public int EvaluerDeltaHeatSegment(int noteSegment, int segmentsPrecedents)
