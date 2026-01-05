@@ -388,9 +388,6 @@
                                 Click="OnEnregistrerSegment"
                                 Tag="{Binding .}" />
                       </StackPanel>
-                      <CheckBox Grid.Column="3" IsChecked="{Binding Session.NouveauSegmentMainEvent, Mode=TwoWay}" />
-                      <Button Grid.Column="4" Content="Ajouter" Click="OnAjouterSegment" />
-                    </Grid>
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <ComboBox Width="220"
                                 ItemsSource="{Binding Session.SegmentTemplates}"
