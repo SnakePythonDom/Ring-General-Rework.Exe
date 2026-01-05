@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "broadcast-v1"
+  },
+  "tvDeals": {
+    "champs": ["diffuseur", "reach", "contraintes", "revenus", "audienceCap"],
+    "contraintes": [
+      "Prime time",
+      "Exclusivité régionale",
+      "Format 90-120 minutes",
+      "Diffusion en direct"
+    ],
+    "revenus": {
+      "type": "mixte",
+      "description": "Base fixe + variable selon l'audience réelle."
+    }
+  },
+  "audience": {
+    "formule": "reach + showScore + stars - saturation",
+    "facteurs": {
+      "reach": "Couverture TV + présence locale",
+      "showScore": "Note globale du show",
+      "stars": "Popularité des têtes d'affiche",
+      "saturation": "Écart avec l'audience moyenne"
+    }
+  },
+  "audienceHistory": {
+    "champs": ["semaine", "audience", "reach", "showScore", "stars", "saturation"],
+    "granularite": "hebdomadaire",
+    "utilisation": "Affichage de l'évolution et comparaison saisonnière"
+  }
+}

@@ -6,10 +6,14 @@ namespace RingGeneral.Core.Simulation;
 public sealed class ShowSimulationEngine
 {
     private readonly IRandomProvider _random;
+    private readonly AudienceModel _audienceModel;
+    private readonly DealRevenueModel _dealRevenueModel;
 
-    public ShowSimulationEngine(IRandomProvider random)
+    public ShowSimulationEngine(IRandomProvider random, AudienceModel? audienceModel = null, DealRevenueModel? dealRevenueModel = null)
     {
         _random = random;
+        _audienceModel = audienceModel ?? new AudienceModel();
+        _dealRevenueModel = dealRevenueModel ?? new DealRevenueModel();
     }
 
     public ShowSimulationResult Simuler(ShowContext context)
@@ -146,10 +150,22 @@ public sealed class ShowSimulationEngine
         var populariteDeltaCompagnie = (noteShow - 50) / 5;
         populariteCompagnie[context.Compagnie.CompagnieId] = populariteDeltaCompagnie;
 
-        var audience = Math.Clamp((context.Compagnie.AudienceMoyenne + noteShow + context.Compagnie.Prestige) / 3, 0, 100);
+        var participantsIds = context.Segments.SelectMany(segment => segment.Participants).Distinct().ToList();
+        var participants = context.Workers.Where(worker => participantsIds.Contains(worker.WorkerId)).ToList();
+        var stars = _audienceModel.CalculerStars(participants);
+        var deal = _dealRevenueModel.TrouverDeal(context.Show.DealTvId);
+        var reachBonus = deal?.Reach ?? 0;
+        var audienceCap = deal?.AudienceCap ?? 0;
+        var audienceDetails = _audienceModel.Calculer(context.Compagnie, noteShow, stars, reachBonus, audienceCap);
+        var audience = audienceDetails.Audience;
         var billetterie = Math.Round(1500 + audience * 75 + context.Compagnie.Reach * 20, 2);
         var merch = Math.Round(300 + audience * 20, 2);
-        var tv = context.Show.DealTvId is null ? 0 : Math.Round(5000 + audience * 40, 2);
+        var tv = 0.0;
+        if (deal is not null)
+        {
+            var revenus = _dealRevenueModel.Calculer(deal, audience);
+            tv = Math.Round(revenus.RevenueTotale, 2);
+        }
         finances.Add(new FinanceTransaction("billetterie", billetterie, "Billetterie"));
         finances.Add(new FinanceTransaction("merch", merch, "Merchandising"));
         if (tv > 0)
@@ -168,6 +184,7 @@ public sealed class ShowSimulationEngine
             context.Show.ShowId,
             noteShow,
             audience,
+            audienceDetails,
             billetterie,
             merch,
             tv,
