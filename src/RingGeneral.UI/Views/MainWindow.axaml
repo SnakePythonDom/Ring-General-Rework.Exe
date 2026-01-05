@@ -292,9 +292,8 @@
                         <TextBlock Text="Ajouter un segment" Foreground="#F9FAFB" FontWeight="SemiBold" />
                         <Grid ColumnDefinitions="160,80,*,90,120">
                           <ComboBox ItemsSource="{Binding Session.SegmentTypes}"
-                                    SelectedValuePath="Id"
                                     DisplayMemberPath="Label"
-                                    SelectedValue="{Binding Session.NouveauSegmentTypeId, Mode=TwoWay}" />
+                                    SelectedItem="{Binding Session.NouveauSegmentTypeId, Mode=TwoWay}" />
                           <TextBox Grid.Column="1" Text="{Binding Session.NouveauSegmentDuree, Mode=TwoWay}" />
                           <StackPanel Grid.Column="2" Spacing="4">
                             <ItemsControl ItemsSource="{Binding Session.NouveauSegmentParticipants}">
@@ -310,9 +309,8 @@
                             <StackPanel Orientation="Horizontal" Spacing="6">
                               <ComboBox Width="180"
                                         ItemsSource="{Binding Session.WorkersDisponibles}"
-                                        SelectedValuePath="WorkerId"
                                         DisplayMemberPath="Nom"
-                                        SelectedValue="{Binding Session.NouveauSegmentParticipantId, Mode=TwoWay}" />
+                                        SelectedItem="{Binding Session.NouveauSegmentParticipantId, Mode=TwoWay}" />
                               <Button Content="Ajouter" Click="OnAjouterParticipantNouveauSegment" />
                             </StackPanel>
                           </StackPanel>
@@ -330,9 +328,8 @@
                           <TextBlock Text="Type" Foreground="#CBD5F5" />
                           <ComboBox Grid.Column="1"
                                     ItemsSource="{Binding DataContext.Session.SegmentTypes, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    SelectedValuePath="Id"
                                     DisplayMemberPath="Label"
-                                    SelectedValue="{Binding TypeSegment, Mode=TwoWay}" />
+                                    SelectedItem="{Binding TypeSegment, Mode=TwoWay}" />
                           <TextBlock Grid.Row="1" Text="Durée" Foreground="#CBD5F5" />
                           <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DureeMinutes, Mode=TwoWay}" />
                           <TextBlock Grid.Row="2" Text="Main event" Foreground="#CBD5F5" />
@@ -340,15 +337,13 @@
                           <TextBlock Grid.Row="3" Text="Storyline" Foreground="#CBD5F5" />
                           <ComboBox Grid.Row="3" Grid.Column="1"
                                     ItemsSource="{Binding DataContext.Session.StorylinesDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    SelectedValuePath="StorylineId"
                                     DisplayMemberPath="Nom"
-                                    SelectedValue="{Binding StorylineId, Mode=TwoWay}" />
+                                    SelectedItem="{Binding StorylineId, Mode=TwoWay}" />
                           <TextBlock Grid.Row="4" Text="Titre" Foreground="#CBD5F5" />
                           <ComboBox Grid.Row="4" Grid.Column="1"
                                     ItemsSource="{Binding DataContext.Session.TitresDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    SelectedValuePath="TitreId"
                                     DisplayMemberPath="Nom"
-                                    SelectedValue="{Binding TitreId, Mode=TwoWay}" />
+                                    SelectedItem="{Binding TitreId, Mode=TwoWay}" />
                         </Grid>
                         <TextBlock Text="Participants" Foreground="#F9FAFB" FontWeight="SemiBold" />
                         <ItemsControl ItemsSource="{Binding Participants}">
@@ -366,9 +361,8 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                           <ComboBox Width="200"
                                     ItemsSource="{Binding DataContext.Session.WorkersDisponibles, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    SelectedValuePath="WorkerId"
                                     DisplayMemberPath="Nom"
-                                    SelectedValue="{Binding ParticipantSelectionneeId, Mode=TwoWay}" />
+                                    SelectedItem="{Binding ParticipantSelectionneeId, Mode=TwoWay}" />
                           <Button Content="Ajouter" Click="OnAjouterParticipant" />
                         </StackPanel>
                         <TextBlock Text="Consignes" Foreground="#F9FAFB" FontWeight="SemiBold" />
@@ -498,9 +492,8 @@
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <ComboBox Width="180"
                                   ItemsSource="{Binding Session.WorkersDisponibles}"
-                                  SelectedValuePath="WorkerId"
                                   DisplayMemberPath="Nom"
-                                  SelectedValue="{Binding Session.StorylineParticipantSelectionId, Mode=TwoWay}" />
+                                  SelectedItem="{Binding Session.StorylineParticipantSelectionId, Mode=TwoWay}" />
                         <Button Content="Ajouter" Click="OnAjouterParticipantStoryline" />
                       </StackPanel>
                     </StackPanel>
