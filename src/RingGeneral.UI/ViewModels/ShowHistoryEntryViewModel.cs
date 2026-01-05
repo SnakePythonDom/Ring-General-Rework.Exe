@@ -19,5 +19,5 @@ public sealed class ShowHistoryEntryViewModel
     public int Note { get; }
     public int Audience { get; }
     public string Summary { get; }
-    public DateTime CreatedAt { get; }
+    public string? CreatedAt { get; }
 }

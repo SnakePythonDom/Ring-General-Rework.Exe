@@ -4,11 +4,11 @@ namespace RingGeneral.Core.Random;
 
 public sealed class SeededRandomProvider : IRandomProvider
 {
-    private Random _random;
+    private System.Random _random;
 
     public SeededRandomProvider(int seed)
     {
-        _random = new Random(seed);
+        _random = new System.Random(seed);
     }
 
     public int Next(int minInclusive, int maxExclusive) => _random.Next(minInclusive, maxExclusive);
@@ -17,6 +17,6 @@ public sealed class SeededRandomProvider : IRandomProvider
 
     public void Reseed(int seed)
     {
-        _random = new Random(seed);
+        _random = new System.Random(seed);
     }
 }
