@@ -84,24 +84,6 @@ public sealed partial class MainWindow : Window
         {
             return;
         }
-
-        foreach (var colonne in _tableViewGrid.Columns)
-        {
-            colonne.SortDirection = null;
-        }
-
-        var colonnesParId = _tableViewGrid.Columns
-            .Where(colonne => colonne.Tag is string)
-            .ToDictionary(colonne => (string)colonne.Tag!, StringComparer.OrdinalIgnoreCase);
-        foreach (var tri in shell.Session.TableSortSettings)
-        {
-            if (colonnesParId.TryGetValue(tri.ColumnId, out var colonne))
-            {
-                colonne.SortDirection = tri.Direction == RingGeneral.Data.Models.TableSortDirection.Ascending
-                    ? System.ComponentModel.ListSortDirection.Ascending
-                    : System.ComponentModel.ListSortDirection.Descending;
-            }
-        }
     }
 
     private void OnSimulerShow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -269,7 +251,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var colonne = grid.Columns.FirstOrDefault(c => c.IsSortColumn);
+        var colonne = grid.CurrentColumn;
         if (colonne is null)
         {
             return;

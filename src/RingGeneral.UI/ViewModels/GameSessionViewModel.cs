@@ -27,6 +27,8 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly BookingValidator _validator = new();
     private readonly IReadOnlyDictionary<string, string> _segmentLabels;
     private readonly TemplateService _templateService = new();
+    private readonly SegmentTypeCatalog _segmentCatalog;
+    private readonly BookingBuilderService _bookingBuilder = new();
     private readonly HelpContentProvider _helpProvider = new();
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _helpPages;
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _impactPages;
@@ -73,6 +75,10 @@ public sealed class GameSessionViewModel : ViewModelBase
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
+        YouthStructures = new ObservableCollection<YouthStructureViewModel>();
+        YouthTrainees = new ObservableCollection<YouthTraineeViewModel>();
+        YouthPrograms = new ObservableCollection<YouthProgramViewModel>();
+        YouthStaffAssignments = new ObservableCollection<YouthStaffAssignmentViewModel>();
         TableItems = new ObservableCollection<TableViewItemViewModel>();
         TableItemsView = new DataGridCollectionView(TableItems)
         {
@@ -172,6 +178,10 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
+    public ObservableCollection<YouthStructureViewModel> YouthStructures { get; }
+    public ObservableCollection<YouthTraineeViewModel> YouthTrainees { get; }
+    public ObservableCollection<YouthProgramViewModel> YouthPrograms { get; }
+    public ObservableCollection<YouthStaffAssignmentViewModel> YouthStaffAssignments { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
     public DataGridCollectionView TableItemsView { get; }
     public TableViewConfigurationViewModel TableConfiguration { get; }
@@ -674,6 +684,44 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerShow();
     }
 
+    public void DupliquerMatch(SegmentViewModel segment)
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        var copieSegment = new SegmentDefinition(
+            segment.SegmentId,
+            segment.TypeSegment,
+            segment.Participants.Select(p => p.WorkerId).ToList(),
+            segment.DureeMinutes,
+            segment.EstMainEvent,
+            string.IsNullOrWhiteSpace(segment.StorylineId) ? null : segment.StorylineId,
+            string.IsNullOrWhiteSpace(segment.TitreId) ? null : segment.TitreId,
+            segment.Intensite,
+            segment.VainqueurId,
+            segment.PerdantId,
+            segment.ConstruireSettings());
+
+        var copie = _bookingBuilder.DupliquerMatch(copieSegment);
+
+        _repository.AjouterSegment(_context.Show.ShowId, copie, Segments.Count + 1);
+        ChargerShow();
+    }
+
+    public void SupprimerSegment(SegmentViewModel segment)
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        Segments.Remove(segment);
+        _repository.MettreAJourOrdreSegments(_context.Show.ShowId, Segments.Select(s => s.SegmentId).ToList());
+        ChargerShow();
+    }
+
     public void AppliquerTemplateSelectionnee()
     {
         if (TemplateSelectionnee is null)
@@ -1125,12 +1173,140 @@ public sealed class GameSessionViewModel : ViewModelBase
         }
     }
 
+    private void ChargerHistoriqueShow()
+    {
+        HistoriqueShow.Clear();
+        if (_repository is null || _context is null)
+        {
+            return;
+        }
+
+        foreach (var entry in _repository.ChargerHistoriqueShow(_context.Show.ShowId))
+        {
+            HistoriqueShow.Add(new ShowHistoryViewModel(entry));
+        }
+    }
+
     private void ChargerParametresGeneration()
     {
         var options = _repository.ChargerParametresGeneration();
         YouthGenerationSelection = YouthGenerationModes.FirstOrDefault(mode => mode.Mode == options.YouthMode);
         WorldGenerationSelection = WorldGenerationModes.FirstOrDefault(mode => mode.Mode == options.WorldMode);
         SemainePivotAnnuelle = options.SemainePivotAnnuelle ?? 1;
+    }
+
+    private void ChargerYouth()
+    {
+        YouthStructures.Clear();
+        if (_repository is null)
+        {
+            return;
+        }
+
+        foreach (var structure in _repository.ChargerYouthStructures())
+        {
+            YouthStructures.Add(new YouthStructureViewModel(
+                structure.YouthId,
+                structure.Nom,
+                structure.Region,
+                structure.Type,
+                structure.BudgetAnnuel,
+                structure.CapaciteMax,
+                structure.NiveauEquipements,
+                structure.QualiteCoaching,
+                structure.Philosophie,
+                structure.Actif,
+                structure.TraineesActifs));
+        }
+
+        YouthStructureSelection ??= YouthStructures.FirstOrDefault();
+        ChargerYouthDetails();
+    }
+
+    private void ChargerYouthDetails()
+    {
+        YouthTrainees.Clear();
+        YouthPrograms.Clear();
+        YouthStaffAssignments.Clear();
+
+        if (_repository is null || YouthStructureSelection is null)
+        {
+            return;
+        }
+
+        foreach (var trainee in _repository.ChargerYouthTrainees(YouthStructureSelection.YouthId))
+        {
+            YouthTrainees.Add(new YouthTraineeViewModel(
+                trainee.WorkerId,
+                trainee.Nom,
+                trainee.InRing,
+                trainee.Entertainment,
+                trainee.Story,
+                trainee.Statut));
+        }
+
+        foreach (var programme in _repository.ChargerYouthPrograms(YouthStructureSelection.YouthId))
+        {
+            YouthPrograms.Add(new YouthProgramViewModel(
+                programme.ProgramId,
+                programme.Nom,
+                programme.DureeSemaines,
+                programme.Focus));
+        }
+
+        foreach (var staff in _repository.ChargerYouthStaffAssignments(YouthStructureSelection.YouthId))
+        {
+            YouthStaffAssignments.Add(new YouthStaffAssignmentViewModel(
+                staff.AssignmentId,
+                staff.WorkerId,
+                staff.Nom,
+                staff.Role,
+                staff.SemaineDebut));
+        }
+    }
+
+    public void ChangerBudgetYouth()
+    {
+        if (_repository is null || YouthStructureSelection is null)
+        {
+            return;
+        }
+
+        _repository.ChangerBudgetYouth(YouthStructureSelection.YouthId, YouthBudgetNouveau);
+        YouthStructureSelection.BudgetAnnuel = YouthBudgetNouveau;
+        YouthActionMessage = "Budget mis à jour.";
+        ChargerYouth();
+    }
+
+    public void AffecterCoachYouth()
+    {
+        if (_repository is null || YouthStructureSelection is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(YouthCoachWorkerId) || string.IsNullOrWhiteSpace(YouthCoachRole))
+        {
+            return;
+        }
+
+        _repository.AffecterCoachYouth(YouthStructureSelection.YouthId, YouthCoachWorkerId, YouthCoachRole, _context?.Show.Semaine ?? 1);
+        YouthCoachWorkerId = null;
+        YouthCoachRole = null;
+        YouthActionMessage = "Coach affecté.";
+        ChargerYouthDetails();
+    }
+
+    public void DiplomerTrainee(string? workerId)
+    {
+        if (_repository is null || string.IsNullOrWhiteSpace(workerId))
+        {
+            return;
+        }
+
+        _repository.DiplomerTrainee(workerId, _context?.Show.Semaine ?? 1);
+        YouthActionMessage = "Trainee diplômé.";
+        ChargerYouthDetails();
     }
 
     private void MettreAJourAttributs()
