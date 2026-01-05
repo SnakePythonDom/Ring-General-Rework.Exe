@@ -22,9 +22,9 @@ public sealed class BakiWorkerContext
         return raw switch
         {
             double doubleValue => TryAssign(doubleValue, out value),
-            float floatValue => TryAssign(floatValue, out value),
-            int intValue => TryAssign(intValue, out value),
-            long longValue => TryAssign(longValue, out value),
+            float floatValue => TryAssign((double)floatValue, out value),
+            int intValue => TryAssign((double)intValue, out value),
+            long longValue => TryAssign((double)longValue, out value),
             decimal decimalValue => TryAssign(decimalValue, out value),
             string textValue when double.TryParse(textValue, out var parsed) => TryAssign(parsed, out value),
             _ => false
