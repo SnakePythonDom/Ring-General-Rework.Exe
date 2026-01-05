@@ -41,7 +41,8 @@ public sealed class GameRepository : IScoutingRepository
                 fatigue INTEGER NOT NULL,
                 blessure TEXT NOT NULL,
                 momentum INTEGER NOT NULL,
-                role_tv TEXT NOT NULL
+                role_tv TEXT NOT NULL,
+                morale INTEGER NOT NULL DEFAULT 60
             );
             CREATE TABLE IF NOT EXISTS titles (
                 title_id TEXT PRIMARY KEY,
@@ -184,36 +185,37 @@ public sealed class GameRepository : IScoutingRepository
                 contenu TEXT NOT NULL,
                 semaine INTEGER NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS injuries (
-                injury_id TEXT PRIMARY KEY,
-                worker_id TEXT NOT NULL,
-                type TEXT NOT NULL,
-                severite TEXT NOT NULL,
-                statut TEXT NOT NULL,
-                semaine_debut INTEGER NOT NULL,
-                semaine_fin INTEGER,
-                duree_semaines INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS medical_notes (
-                note_id TEXT PRIMARY KEY,
-                worker_id TEXT NOT NULL,
-                injury_id TEXT,
-                type_note TEXT NOT NULL,
-                contenu TEXT NOT NULL,
+            CREATE TABLE IF NOT EXISTS backstage_incidents (
+                incident_id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
                 semaine INTEGER NOT NULL,
-                auteur TEXT
+                type_id TEXT NOT NULL,
+                titre TEXT NOT NULL,
+                description TEXT NOT NULL,
+                gravite INTEGER NOT NULL,
+                workers_json TEXT NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS recovery_plans (
-                plan_id TEXT PRIMARY KEY,
-                injury_id TEXT NOT NULL,
+            CREATE TABLE IF NOT EXISTS disciplinary_actions (
+                action_id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
                 worker_id TEXT NOT NULL,
-                statut TEXT NOT NULL,
-                semaine_debut INTEGER NOT NULL,
-                semaine_fin INTEGER,
-                duree_semaines INTEGER NOT NULL,
-                repos_conseille INTEGER NOT NULL,
-                restrictions TEXT,
-                notes TEXT
+                semaine INTEGER NOT NULL,
+                type_id TEXT NOT NULL,
+                gravite INTEGER NOT NULL,
+                morale_delta INTEGER NOT NULL,
+                notes TEXT NOT NULL,
+                incident_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS morale_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                worker_id TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                morale_avant INTEGER NOT NULL,
+                morale_apres INTEGER NOT NULL,
+                delta INTEGER NOT NULL,
+                raison TEXT NOT NULL,
+                incident_id TEXT,
+                action_id TEXT
             );
             CREATE TABLE IF NOT EXISTS contracts (
                 contract_id TEXT,
@@ -996,34 +998,142 @@ public sealed class GameRepository : IScoutingRepository
         return items;
     }
 
-    public IReadOnlyList<ShowHistoryEntry> ChargerHistoriqueShow(string showId, int limite = 12)
+    public IReadOnlyList<BackstageWorker> ChargerBackstageRoster(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT WorkerId, Name FROM Workers WHERE CompanyId = $companyId;";
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        var roster = new List<BackstageWorker>();
+        while (reader.Read())
+        {
+            roster.Add(new BackstageWorker(reader.GetString(0), reader.GetString(1)));
+        }
+
+        return roster;
+    }
+
+    public IReadOnlyDictionary<string, int> ChargerMorales(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT WorkerId, Morale FROM Workers WHERE CompanyId = $companyId;";
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        var morales = new Dictionary<string, int>();
+        while (reader.Read())
+        {
+            morales[reader.GetString(0)] = reader.GetInt32(1);
+        }
+
+        return morales;
+    }
+
+    public int ChargerMorale(string workerId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT Morale FROM Workers WHERE WorkerId = $workerId;";
+        command.Parameters.AddWithValue("$workerId", workerId);
+        return Convert.ToInt32(command.ExecuteScalar());
+    }
+
+    public void EnregistrerBackstageIncident(BackstageIncident incident)
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            SELECT ShowId, Week, Note, Audience, Summary, CreatedAt
-            FROM ShowHistory
-            WHERE ShowId = $showId
-            ORDER BY Week DESC, ShowHistoryId DESC
-            LIMIT $limite;
+            INSERT INTO BackstageIncidents (BackstageIncidentId, CompanyId, Week, TypeId, Title, Description, Severity, WorkersJson)
+            VALUES ($id, $companyId, $week, $typeId, $title, $description, $severity, $workersJson);
             """;
-        command.Parameters.AddWithValue("$showId", showId);
-        command.Parameters.AddWithValue("$limite", limite);
-        using var reader = command.ExecuteReader();
-        var entries = new List<ShowHistoryEntry>();
-        while (reader.Read())
+        command.Parameters.AddWithValue("$id", incident.IncidentId);
+        command.Parameters.AddWithValue("$companyId", incident.CompanyId);
+        command.Parameters.AddWithValue("$week", incident.Week);
+        command.Parameters.AddWithValue("$typeId", incident.TypeId);
+        command.Parameters.AddWithValue("$title", incident.Titre);
+        command.Parameters.AddWithValue("$description", incident.Description);
+        command.Parameters.AddWithValue("$severity", incident.Gravite);
+        command.Parameters.AddWithValue("$workersJson", JsonSerializer.Serialize(incident.Workers));
+        command.ExecuteNonQuery();
+    }
+
+    public void EnregistrerDisciplinaryAction(DisciplinaryAction action)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO DisciplinaryActions (DisciplinaryActionId, CompanyId, WorkerId, Week, TypeId, Severity, MoraleDelta, Notes, IncidentId)
+            VALUES ($id, $companyId, $workerId, $week, $typeId, $severity, $moraleDelta, $notes, $incidentId);
+            """;
+        command.Parameters.AddWithValue("$id", action.ActionId);
+        command.Parameters.AddWithValue("$companyId", action.CompanyId);
+        command.Parameters.AddWithValue("$workerId", action.WorkerId);
+        command.Parameters.AddWithValue("$week", action.Week);
+        command.Parameters.AddWithValue("$typeId", action.TypeId);
+        command.Parameters.AddWithValue("$severity", action.Gravite);
+        command.Parameters.AddWithValue("$moraleDelta", action.MoraleDelta);
+        command.Parameters.AddWithValue("$notes", action.Notes);
+        command.Parameters.AddWithValue("$incidentId", (object?)action.IncidentId ?? DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public IReadOnlyList<MoraleHistoryEntry> AppliquerMoraleImpacts(IReadOnlyList<BackstageMoraleImpact> impacts, int week)
+    {
+        if (impacts.Count == 0)
         {
-            var createdAt = reader.IsDBNull(5) ? DateTime.MinValue : DateTime.Parse(reader.GetString(5));
-            entries.Add(new ShowHistoryEntry(
-                reader.GetString(0),
-                reader.GetInt32(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
-                reader.GetString(4),
-                createdAt));
+            return Array.Empty<MoraleHistoryEntry>();
         }
 
-        return entries;
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        var historiques = new List<MoraleHistoryEntry>();
+
+        foreach (var impact in impacts)
+        {
+            using var selectCommand = connexion.CreateCommand();
+            selectCommand.Transaction = transaction;
+            selectCommand.CommandText = "SELECT Morale FROM Workers WHERE WorkerId = $workerId;";
+            selectCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
+            var moraleAvant = Convert.ToInt32(selectCommand.ExecuteScalar());
+            var moraleApres = Math.Clamp(moraleAvant + impact.Delta, 0, 100);
+
+            using var updateCommand = connexion.CreateCommand();
+            updateCommand.Transaction = transaction;
+            updateCommand.CommandText = "UPDATE Workers SET Morale = $morale WHERE WorkerId = $workerId;";
+            updateCommand.Parameters.AddWithValue("$morale", moraleApres);
+            updateCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
+            updateCommand.ExecuteNonQuery();
+
+            using var historyCommand = connexion.CreateCommand();
+            historyCommand.Transaction = transaction;
+            historyCommand.CommandText = """
+                INSERT INTO MoraleHistory (WorkerId, Week, MoraleBefore, MoraleAfter, Delta, Reason, IncidentId, ActionId)
+                VALUES ($workerId, $week, $moraleAvant, $moraleApres, $delta, $reason, $incidentId, $actionId);
+                """;
+            historyCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
+            historyCommand.Parameters.AddWithValue("$week", week);
+            historyCommand.Parameters.AddWithValue("$moraleAvant", moraleAvant);
+            historyCommand.Parameters.AddWithValue("$moraleApres", moraleApres);
+            historyCommand.Parameters.AddWithValue("$delta", impact.Delta);
+            historyCommand.Parameters.AddWithValue("$reason", impact.Raison);
+            historyCommand.Parameters.AddWithValue("$incidentId", (object?)impact.IncidentId ?? DBNull.Value);
+            historyCommand.Parameters.AddWithValue("$actionId", (object?)impact.ActionId ?? DBNull.Value);
+            historyCommand.ExecuteNonQuery();
+
+            historiques.Add(new MoraleHistoryEntry(
+                impact.WorkerId,
+                week,
+                moraleAvant,
+                moraleApres,
+                impact.Delta,
+                impact.Raison,
+                impact.IncidentId,
+                impact.ActionId));
+        }
+
+        transaction.Commit();
+        return historiques;
     }
 
     public string ChargerCompagnieIdPourShow(string showId)
@@ -3070,9 +3180,9 @@ public sealed class GameRepository : IScoutingRepository
         using var command = connexion.CreateCommand();
         var placeholders = workerIds.Select((id, index) => $"$id{index}").ToList();
         command.CommandText = $"""
-            SELECT worker_id, nom, prenom, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv
-            FROM workers
-            WHERE worker_id IN ({string.Join(", ", placeholders)});
+            SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv, Morale
+            FROM Workers
+            WHERE WorkerId IN ({string.Join(", ", placeholders)});
             """;
         for (var i = 0; i < workerIds.Count; i++)
         {
@@ -3091,10 +3201,10 @@ public sealed class GameRepository : IScoutingRepository
                 reader.GetInt32(4),
                 reader.GetInt32(5),
                 reader.GetInt32(6),
-                reader.GetInt32(7),
-                reader.GetString(8),
-                reader.GetInt32(9),
-                reader.GetString(10)));
+                reader.GetString(7),
+                reader.GetInt32(8),
+                reader.GetString(9),
+                reader.GetInt32(10)));
         }
 
         return workers;
@@ -3446,12 +3556,12 @@ public sealed class GameRepository : IScoutingRepository
         using var workersCommand = connexion.CreateCommand();
         workersCommand.Transaction = transaction;
         workersCommand.CommandText = """
-            INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, type_worker)
+            INSERT INTO workers (worker_id, nom, prenom, company_id, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, type_worker, morale)
             VALUES
-            ('W-001', 'Dubois', 'Alex', 'COMP-001', 70, 62, 58, 55, 12, 'AUCUNE', 4, 'MAIN_EVENT', 'CATCHEUR'),
-            ('W-002', 'Martin', 'Leo', 'COMP-001', 64, 70, 65, 52, 18, 'AUCUNE', 2, 'UPPER_MID', 'CATCHEUR'),
-            ('W-003', 'Petit', 'Sarah', 'COMP-001', 68, 60, 72, 49, 20, 'AUCUNE', 1, 'MID', 'CATCHEUR'),
-            ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID', 'CATCHEUR');
+            ('W-001', 'Dubois', 'Alex', 'COMP-001', 70, 62, 58, 55, 12, 'AUCUNE', 4, 'MAIN_EVENT', 'CATCHEUR', 62),
+            ('W-002', 'Martin', 'Leo', 'COMP-001', 64, 70, 65, 52, 18, 'AUCUNE', 2, 'UPPER_MID', 'CATCHEUR', 58),
+            ('W-003', 'Petit', 'Sarah', 'COMP-001', 68, 60, 72, 49, 20, 'AUCUNE', 1, 'MID', 'CATCHEUR', 55),
+            ('W-004', 'Roche', 'Maya', 'COMP-001', 58, 74, 66, 46, 15, 'AUCUNE', 0, 'MID', 'CATCHEUR', 60);
             """;
         workersCommand.ExecuteNonQuery();
 

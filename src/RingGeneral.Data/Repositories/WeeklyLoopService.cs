@@ -3,6 +3,8 @@ using System.Text.Json;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
+using RingGeneral.Specs.Models;
+using RingGeneral.Specs.Services;
 
 namespace RingGeneral.Data.Repositories;
 
@@ -10,7 +12,7 @@ public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
     private readonly SeededRandomProvider _random = new(42);
-    private readonly WeeklyFinanceTick _financeTick = new(new FinanceEngine(FinanceSettings.V1()));
+    private readonly SpecsReader _specsReader = new();
 
     public WeeklyLoopService(GameRepository repository)
     {
@@ -33,7 +35,7 @@ public sealed class WeeklyLoopService
                 inboxItems.Add(new InboxItem(notice.Type, notice.Titre, notice.Contenu, semaine));
             }
         }
-        inboxItems.AddRange(GenererProgressionYouth(semaine));
+        inboxItems.AddRange(SimulerBackstage(semaine, showId));
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
         inboxItems.AddRange(VerifierOffresExpirantes(semaine));
@@ -52,31 +54,47 @@ public sealed class WeeklyLoopService
         return inboxItems;
     }
 
-    private void AppliquerFinancesHebdo(string showId, int semaine)
+    private IEnumerable<InboxItem> SimulerBackstage(int semaine, string showId)
     {
         var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
         if (string.IsNullOrWhiteSpace(compagnieId))
         {
-            return;
+            return Array.Empty<InboxItem>();
         }
 
-        var semaineCible = Math.Max(1, semaine - 1);
-        var compagnie = _repository.ChargerEtatCompagnie(compagnieId);
-        if (compagnie is null)
+        var roster = _repository.ChargerBackstageRoster(compagnieId);
+        if (roster.Count == 0)
         {
-            return;
+            return Array.Empty<InboxItem>();
         }
 
-        var contrats = _repository.ChargerPaieContrats(compagnieId);
-        var context = new WeeklyFinanceContext(compagnieId, semaineCible, compagnie.Tresorerie, contrats);
-        var resultat = _financeTick.Executer(context);
+        var incidentsSpec = ChargerIncidentsSpec();
+        var definitions = incidentsSpec.Incidents
+            .Select(incident => new BackstageIncidentDefinition(
+                incident.Id,
+                incident.Titre,
+                incident.Description,
+                incident.Chance,
+                incident.ParticipantsMin,
+                incident.ParticipantsMax,
+                incident.GraviteMin,
+                incident.GraviteMax,
+                incident.MoraleImpactMin,
+                incident.MoraleImpactMax))
+            .ToList();
 
-        if (resultat.Transactions.Count > 0)
+        var morales = _repository.ChargerMorales(compagnieId);
+        var service = new BackstageService(_random);
+        var resultat = service.LancerIncidents(semaine, compagnieId, roster, morales, definitions);
+
+        foreach (var incident in resultat.Incidents)
         {
-            _repository.AppliquerTransactionsFinancieres(compagnieId, semaineCible, resultat.Transactions);
+            _repository.EnregistrerBackstageIncident(incident);
         }
 
-        _repository.EnregistrerSnapshotFinance(compagnieId, semaineCible);
+        _repository.AppliquerMoraleImpacts(resultat.MoraleImpacts, semaine);
+
+        return resultat.InboxItems;
     }
 
     private IEnumerable<InboxItem> GenererNews(int semaine)
@@ -247,6 +265,23 @@ public sealed class WeeklyLoopService
         var json = File.ReadAllText(chemin);
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         return JsonSerializer.Deserialize<WorldSimSettings>(json, options) ?? WorldSimSettings.ParDefaut;
+    }
+
+    private IncidentLoreSpec ChargerIncidentsSpec()
+    {
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "lore", "incidents.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "lore", "incidents.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            return IncidentLoreSpec.ParDefaut;
+        }
+
+        return _specsReader.Charger<IncidentLoreSpec>(chemin);
     }
 
     private WorkerGenerationReport? GenererWorkers(int semaine, string showId)
