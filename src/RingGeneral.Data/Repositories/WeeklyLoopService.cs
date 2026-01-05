@@ -33,7 +33,7 @@ public sealed class WeeklyLoopService
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
-        var scouting = GenererScouting(semaine);
+        var scouting = GenererScoutingHebdo(semaine);
         if (scouting is not null)
         {
             inboxItems.Add(scouting);
@@ -82,21 +82,23 @@ public sealed class WeeklyLoopService
         }
     }
 
-    private InboxItem? GenererScouting(int semaine)
+    private InboxItem? GenererScoutingHebdo(int semaine)
     {
-        if (_random.NextDouble() > 0.35)
+        var service = new ScoutingService(_repository, new SeededRandomProvider(semaine));
+        var refresh = service.RafraichirHebdo(semaine);
+
+        if (refresh.RapportsCrees == 0 && refresh.MissionsAvancees == 0)
         {
             return null;
         }
 
-        var rapports = new[]
+        var contenu = $"Scouting: {refresh.RapportsCrees} rapport(s) créé(s), {refresh.MissionsAvancees} mission(s) avancée(s).";
+        if (refresh.MissionsTerminees > 0)
         {
-            "Le scouting recommande de surveiller un talent high-fly de la scène indie.",
-            "Un ancien champion pourrait être intéressé par un retour ponctuel.",
-            "Un jeune espoir impressionne en entraînement, potentiel futur midcard."
-        };
+            contenu += $" {refresh.MissionsTerminees} mission(s) terminée(s).";
+        }
 
-        return new InboxItem("scouting", "Rapport de scouting", rapports[_random.Next(0, rapports.Length)], semaine);
+        return new InboxItem("scouting", "Scouting hebdo", contenu, semaine);
     }
 
     private IEnumerable<InboxItem> SimulerMonde(int semaine, string showId)
