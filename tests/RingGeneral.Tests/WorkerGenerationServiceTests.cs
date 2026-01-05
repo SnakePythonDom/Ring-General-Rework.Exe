@@ -84,6 +84,64 @@ public sealed class WorkerGenerationServiceTests
     }
 
     [Fact]
+    public void GenerateWeekly_DeclencheGenerationAnnuelle()
+    {
+        var spec = ChargerSpec();
+        var options = new WorkerGenerationOptions(YouthGenerationMode.Realiste, WorldGenerationMode.Desactivee, 1);
+        var youth = new YouthStructureState(
+            "YOUTH-001",
+            "Performance Center",
+            "COMP-001",
+            "FR",
+            "PERFORMANCE_CENTER",
+            200000,
+            40,
+            5,
+            15,
+            "HYBRIDE",
+            true,
+            null,
+            0);
+        var counters = new GenerationCounters(1, 0, new Dictionary<string, int>(), new Dictionary<string, int>(), 0, new Dictionary<string, int>());
+        var state = new GameState(1, "COMP-001", "FR", options, new[] { youth }, counters);
+
+        var service = new WorkerGenerationService(new SeededRandomProvider(9), spec);
+        var report = service.GenerateWeekly(state, 9);
+
+        Assert.NotEmpty(report.Workers);
+        Assert.Contains(report.ResultatsStructures, result => result.NombreGeneres > 0);
+    }
+
+    [Fact]
+    public void GenerateWeekly_RespecteCapStructure()
+    {
+        var spec = ChargerSpec();
+        var options = new WorkerGenerationOptions(YouthGenerationMode.Realiste, WorldGenerationMode.Desactivee, 1);
+        var youth = new YouthStructureState(
+            "YOUTH-001",
+            "Academy",
+            "COMP-001",
+            "FR",
+            "ACADEMY",
+            80000,
+            24,
+            3,
+            12,
+            "HYBRIDE",
+            true,
+            null,
+            spec.Caps.Trainees.ParStructure.MaxActifs);
+        var counters = new GenerationCounters(1, 0, new Dictionary<string, int>(), new Dictionary<string, int>(), 0, new Dictionary<string, int>());
+        var state = new GameState(1, "COMP-001", "FR", options, new[] { youth }, counters);
+
+        var service = new WorkerGenerationService(new SeededRandomProvider(7), spec);
+        var report = service.GenerateWeekly(state, 7);
+
+        Assert.Empty(report.Workers);
+        Assert.Contains(report.ResultatsStructures, result => result.Raison == "Capacité maximale atteinte.");
+    }
+
+    [Fact]
     public void EnregistrerGeneration_CreeWorkersEtLiens()
     {
         var spec = ChargerSpec();

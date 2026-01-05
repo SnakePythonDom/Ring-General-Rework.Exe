@@ -89,6 +89,30 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnChangerBudgetYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.ChangerBudgetYouth();
+        }
+    }
+
+    private void OnAffecterCoachYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AffecterCoachYouth();
+        }
+    }
+
+    private void OnGraduationYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string workerId)
+        {
+            shell.Session.DiplomerTrainee(workerId);
+        }
+    }
+
     private void OnToggleDetailsSimulation(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)

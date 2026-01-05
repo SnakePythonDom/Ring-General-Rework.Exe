@@ -550,6 +550,97 @@
           </StackPanel>
 
           <StackPanel Spacing="8">
+            <TextBlock Text="Youth" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="10">
+                <ComboBox ItemsSource="{Binding Session.YouthStructures}"
+                          SelectedItem="{Binding Session.YouthStructureSelection}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Nom}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                  <TextBlock Text="Type" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="1" Text="{Binding Session.YouthStructureSelection.Type}" Foreground="#E5E7EB" />
+                  <TextBlock Grid.Row="1" Text="Région" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.Region}" Foreground="#E5E7EB" />
+                  <TextBlock Grid.Row="2" Text="Budget" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.BudgetAnnuel}" Foreground="#FCD34D" />
+                  <TextBlock Grid.Row="3" Text="Capacité" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.TraineesActifs}" Foreground="#E5E7EB" />
+                </Grid>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Trainees" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <ItemsControl ItemsSource="{Binding Session.YouthTrainees}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                          <StackPanel>
+                            <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                            <TextBlock Text="{Binding InRing, StringFormat=In-Ring: {0}}"
+                                       Foreground="#9CA3AF" />
+                            <TextBlock Text="{Binding Entertainment, StringFormat=Entertainment: {0}}"
+                                       Foreground="#9CA3AF" />
+                            <TextBlock Text="{Binding Story, StringFormat=Story: {0}}"
+                                       Foreground="#9CA3AF" />
+                          </StackPanel>
+                          <Button Grid.Column="1"
+                                  Content="Graduation"
+                                  Tag="{Binding WorkerId}"
+                                  Click="OnGraduationYouth" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Programmes" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <ItemsControl ItemsSource="{Binding Session.YouthPrograms}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Staff" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <ItemsControl ItemsSource="{Binding Session.YouthStaffAssignments}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Actions" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <NumericUpDown Width="140"
+                                   Minimum="0"
+                                   Maximum="500000"
+                                   Value="{Binding Session.YouthBudgetNouveau}" />
+                    <Button Content="Changer budget" Click="OnChangerBudgetYouth" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBox Width="140" Watermark="Worker ID" Text="{Binding Session.YouthCoachWorkerId}" />
+                    <TextBox Width="160" Watermark="Rôle" Text="{Binding Session.YouthCoachRole}" />
+                    <Button Content="Affecter coach" Click="OnAffecterCoachYouth" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Session.YouthActionMessage}" Foreground="#34D399" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
             <TextBlock Text="Génération automatique" FontSize="20" FontWeight="Bold" Foreground="White" />
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="8">

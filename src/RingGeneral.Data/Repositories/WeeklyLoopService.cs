@@ -30,6 +30,7 @@ public sealed class WeeklyLoopService
                 inboxItems.Add(new InboxItem(notice.Type, notice.Titre, notice.Contenu, semaine));
             }
         }
+        inboxItems.AddRange(GenererProgressionYouth(semaine));
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
@@ -235,6 +236,51 @@ public sealed class WeeklyLoopService
         }
 
         return report;
+    }
+
+    private IEnumerable<InboxItem> GenererProgressionYouth(int semaine)
+    {
+        var spec = ChargerYouthSpec();
+        var trainees = _repository.ChargerYouthTraineesPourProgression();
+        if (trainees.Count == 0)
+        {
+            yield break;
+        }
+
+        var seed = HashCode.Combine(semaine, trainees.Count);
+        _random.Reseed(seed);
+        var service = new YouthProgressionService(_random, spec);
+        var report = service.AppliquerProgression(semaine, trainees);
+        _repository.EnregistrerProgressionTrainees(report);
+
+        foreach (var resultat in report.Resultats.Where(item => item.Diplome))
+        {
+            yield return new InboxItem(
+                "youth",
+                "Graduation Youth",
+                $"{resultat.Nom} est diplômé de la structure Youth.",
+                semaine);
+        }
+    }
+
+    private static YouthSpec ChargerYouthSpec()
+    {
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "youth", "youth-v1.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "youth", "youth-v1.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            throw new FileNotFoundException("Impossible de trouver la spec Youth v1.");
+        }
+
+        var json = File.ReadAllText(chemin);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<YouthSpec>(json, options)
+               ?? throw new InvalidOperationException("Spec Youth v1 invalide.");
     }
 
     private static WorkerGenerationSpec ChargerWorkerGenerationSpec()
