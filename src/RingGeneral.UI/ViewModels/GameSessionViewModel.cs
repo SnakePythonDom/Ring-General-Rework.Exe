@@ -104,6 +104,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         InitialiserConsignesBooking();
         ChargerShow();
         ChargerInbox();
+        ChargerHistoriqueShow();
         ChargerImpactsInitial();
         InitialiserNouveauShow();
     }
@@ -258,6 +259,13 @@ public sealed class GameSessionViewModel : ViewModelBase
     }
     private string? _resumeShow;
 
+    public SegmentResultViewModel? ResultatSelectionne
+    {
+        get => _resultatSelectionne;
+        set => this.RaiseAndSetIfChanged(ref _resultatSelectionne, value);
+    }
+    private SegmentResultViewModel? _resultatSelectionne;
+
     public string? DetailsSimulation
     {
         get => _detailsSimulation;
@@ -390,14 +398,18 @@ public sealed class GameSessionViewModel : ViewModelBase
         var seed = HashCode.Combine(_context.Show.ShowId, _context.Show.Semaine);
         var engine = new ShowSimulationEngine(new SeededRandomProvider(seed));
         var resultat = engine.Simuler(_context);
+        var participantsNoms = _context.Workers.ToDictionary(worker => worker.WorkerId, worker => worker.NomComplet);
         Resultats.Clear();
         foreach (var segment in resultat.RapportShow.Segments)
         {
             var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;
-            Resultats.Add(new SegmentResultViewModel(segment, libelle));
+            Resultats.Add(new SegmentResultViewModel(segment, libelle, participantsNoms));
         }
 
-        ResumeShow = $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} • Billetterie {resultat.RapportShow.Billetterie:C}";
+        ResultatSelectionne = Resultats.FirstOrDefault();
+        ResumeShow =
+            $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} " +
+            $"• Billetterie {resultat.RapportShow.Billetterie:C} • Merch {resultat.RapportShow.Merch:C} • TV {resultat.RapportShow.Tv:C}";
         MettreAJourAnalyseShow(resultat);
         MettreAJourImpacts(resultat);
         MettreAJourRecapFm(resultat);
@@ -415,6 +427,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         impactApplier.AppliquerImpacts(impactContext);
 
         ChargerShow();
+        ChargerHistoriqueShow();
     }
 
     public void CreerShow()
@@ -654,6 +667,39 @@ public sealed class GameSessionViewModel : ViewModelBase
             page.Id.Equals(pageId, StringComparison.OrdinalIgnoreCase));
     }
 
+    public void OuvrirFicheWorker()
+    {
+        if (ResultatSelectionne is null || _context is null)
+        {
+            return;
+        }
+
+        var workerId = ResultatSelectionne.ParticipantIds.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(workerId))
+        {
+            return;
+        }
+
+        var worker = _context.Workers.FirstOrDefault(w => w.WorkerId == workerId);
+        if (worker is null)
+        {
+            return;
+        }
+
+        RechercheGlobaleVisible = true;
+        RechercheGlobaleQuery = worker.NomComplet;
+    }
+
+    public void VoirImpacts()
+    {
+        SelectionnerImpact("impacts.popularite");
+    }
+
+    public void VoirFinances()
+    {
+        SelectionnerImpact("impacts.finances");
+    }
+
     private void ChargerShow()
     {
         if (_repository is null)
@@ -715,6 +761,20 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerCalendrier();
         MettreAJourAvertissements();
         InitialiserNouveauShow();
+    }
+
+    private void ChargerHistoriqueShow()
+    {
+        HistoriqueShows.Clear();
+        if (_repository is null)
+        {
+            return;
+        }
+
+        foreach (var entry in _repository.ChargerHistoriqueShow(ShowId))
+        {
+            HistoriqueShows.Add(new ShowHistoryEntryViewModel(entry));
+        }
     }
 
     private void ChargerInbox()
@@ -1257,6 +1317,13 @@ public sealed class GameSessionViewModel : ViewModelBase
     private void MettreAJourRecapFm(ShowSimulationResult resultat)
     {
         RecapFm.Clear();
+        RecapFm.Add($"Note show : {resultat.RapportShow.NoteGlobale}");
+        RecapFm.Add($"Audience : {resultat.RapportShow.Audience}");
+        RecapFm.Add($"Finances : Billetterie {resultat.RapportShow.Billetterie:C} • Merch {resultat.RapportShow.Merch:C} • TV {resultat.RapportShow.Tv:C}");
+        RecapFm.Add($"Pop compagnie : {resultat.RapportShow.PopulariteCompagnieDelta:+#;-#;0}");
+        RecapFm.Add($"Momentum total : {resultat.Delta.MomentumDelta.Values.Sum():+#;-#;0}");
+        RecapFm.Add($"Heat storylines : {resultat.Delta.StorylineHeatDelta.Values.Sum():+#;-#;0}");
+        RecapFm.Add($"Fatigue cumulée : {resultat.Delta.FatigueDelta.Values.Sum():+#;-#;0}");
         foreach (var segment in resultat.RapportShow.Segments)
         {
             var libelle = _segmentLabels.TryGetValue(segment.TypeSegment, out var label) ? label : segment.TypeSegment;

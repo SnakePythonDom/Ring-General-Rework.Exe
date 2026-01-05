@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "world-company-lifecycle",
+    "version": "2.0",
+    "optionnel": true,
+    "compatibiliteSaves": "v1.x"
+  },
+  "objectif": "Simuler l'évolution long terme des compagnies via des phases, promotions et transitions contrôlées.",
+  "phases": [
+    {
+      "id": "startup",
+      "libelle": "Lancement",
+      "dureeMois": [6, 24],
+      "priorites": ["croissance_roster", "branding", "decouverte_marche"],
+      "modificateurs": {
+        "budget": 0.7,
+        "risque": 1.2,
+        "agressiviteRecrutement": 1.1
+      }
+    },
+    {
+      "id": "stabilisation",
+      "libelle": "Stabilisation",
+      "dureeMois": [12, 48],
+      "priorites": ["equilibre_financier", "fidelisation_talents", "constance_shows"],
+      "modificateurs": {
+        "budget": 1.0,
+        "risque": 1.0,
+        "agressiviteRecrutement": 0.9
+      }
+    },
+    {
+      "id": "expansion",
+      "libelle": "Expansion",
+      "dureeMois": [18, 60],
+      "priorites": ["nouveaux_marches", "talents_star", "diffusion"],
+      "modificateurs": {
+        "budget": 1.2,
+        "risque": 1.1,
+        "agressiviteRecrutement": 1.2
+      }
+    },
+    {
+      "id": "consolidation",
+      "libelle": "Consolidation",
+      "dureeMois": [24, 72],
+      "priorites": ["optimisation_couts", "stabilite_roster", "storylines_longues"],
+      "modificateurs": {
+        "budget": 1.1,
+        "risque": 0.9,
+        "agressiviteRecrutement": 0.8
+      }
+    },
+    {
+      "id": "declin",
+      "libelle": "Déclin",
+      "dureeMois": [6, 36],
+      "priorites": ["survie", "reductions", "relance"],
+      "modificateurs": {
+        "budget": 0.6,
+        "risque": 1.4,
+        "agressiviteRecrutement": 0.6
+      }
+    }
+  ],
+  "promotions": {
+    "niveaux": ["local", "regional", "national", "global"],
+    "criteres": {
+      "popularite": [20, 40, 60, 80],
+      "revenusMensuels": [5000, 20000, 75000, 200000],
+      "audienceMoyenne": [200, 1000, 5000, 20000]
+    },
+    "cooldownMois": 6
+  },
+  "transitions": {
+    "conditions": [
+      {
+        "from": "startup",
+        "to": "stabilisation",
+        "regles": ["tresorerie_positive", "show_mensuel", "roster_minimum"]
+      },
+      {
+        "from": "stabilisation",
+        "to": "expansion",
+        "regles": ["popularite_regionale>=40", "benefice_positif_3_mois"]
+      },
+      {
+        "from": "expansion",
+        "to": "consolidation",
+        "regles": ["audience_stable", "taux_rotation_roster<15%"]
+      },
+      {
+        "from": "consolidation",
+        "to": "declin",
+        "regles": ["pertes_3_mois", "chute_popularite>=15"]
+      },
+      {
+        "from": "declin",
+        "to": "stabilisation",
+        "regles": ["plan_relance", "tresorerie_positive_2_mois"]
+      }
+    ],
+    "randomEvents": {
+      "actif": true,
+      "types": ["investisseur", "scandale", "deal_tv", "crise_locale"],
+      "impactMax": 0.15
+    }
+  },
+  "gardeFous": {
+    "optionnel": true,
+    "neCassePasSaves": true,
+    "donneesManquantes": "fallback_phase_stabilisation"
+  }
+}

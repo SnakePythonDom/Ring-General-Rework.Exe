@@ -10,10 +10,12 @@ public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
     private readonly SeededRandomProvider _random = new(42);
+    private readonly ScoutingService _scoutingService;
 
     public WeeklyLoopService(GameRepository repository)
     {
         _repository = repository;
+        _scoutingService = new ScoutingService(_random);
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -30,10 +32,22 @@ public sealed class WeeklyLoopService
                 inboxItems.Add(new InboxItem(notice.Type, notice.Titre, notice.Contenu, semaine));
             }
         }
+
+        var progression = SimulerProgressionYouth(semaine, showId);
+        if (progression is not null)
+        {
+            foreach (var graduation in progression.Graduations)
+            {
+                var contenu = $"Un trainee de {graduation.YouthId} est prêt à rejoindre le roster.";
+                inboxItems.Add(new InboxItem("youth", "Graduation Youth", contenu, semaine));
+            }
+        }
+
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
+        inboxItems.AddRange(VerifierOffresExpirantes(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
-        var scouting = GenererScouting(semaine);
+        var scouting = GenererScoutingHebdo(semaine);
         if (scouting is not null)
         {
             inboxItems.Add(scouting);
@@ -82,21 +96,26 @@ public sealed class WeeklyLoopService
         }
     }
 
-    private InboxItem? GenererScouting(int semaine)
+    private InboxItem? GenererScoutingHebdo(int semaine)
     {
-        if (_random.NextDouble() > 0.35)
+        var service = new ScoutingService(_repository, new SeededRandomProvider(semaine));
+        var refresh = service.RafraichirHebdo(semaine);
+
+        if (refresh.RapportsCrees == 0 && refresh.MissionsAvancees == 0)
         {
-            return null;
+            if (missions.Any(m => m.MissionId == mission.MissionId))
+            {
+                _repository.MettreAJourMission(mission);
+            }
         }
 
-        var rapports = new[]
+        var contenu = $"Scouting: {refresh.RapportsCrees} rapport(s) créé(s), {refresh.MissionsAvancees} mission(s) avancée(s).";
+        if (refresh.MissionsTerminees > 0)
         {
-            "Le scouting recommande de surveiller un talent high-fly de la scène indie.",
-            "Un ancien champion pourrait être intéressé par un retour ponctuel.",
-            "Un jeune espoir impressionne en entraînement, potentiel futur midcard."
-        };
+            contenu += $" {refresh.MissionsTerminees} mission(s) terminée(s).";
+        }
 
-        return new InboxItem("scouting", "Rapport de scouting", rapports[_random.Next(0, rapports.Length)], semaine);
+        return new InboxItem("scouting", "Scouting hebdo", contenu, semaine);
     }
 
     private IEnumerable<InboxItem> SimulerMonde(int semaine, string showId)
@@ -237,6 +256,28 @@ public sealed class WeeklyLoopService
         return report;
     }
 
+    private YouthProgressionReport? SimulerProgressionYouth(int semaine, string showId)
+    {
+        var spec = ChargerYouthSpec();
+        var structures = _repository.ChargerYouthStructuresPourGeneration();
+        if (structures.Count == 0)
+        {
+            return null;
+        }
+
+        var trainees = _repository.ChargerTraineesPourProgression();
+        if (trainees.Count == 0)
+        {
+            return null;
+        }
+
+        var seed = HashCode.Combine(showId, semaine, "youth-progression");
+        var service = new YouthProgressionService(new SeededRandomProvider(seed), spec);
+        var report = service.SimulerSemaine(semaine, structures, trainees, seed);
+        _repository.AppliquerProgressionYouth(report);
+        return report;
+    }
+
     private static WorkerGenerationSpec ChargerWorkerGenerationSpec()
     {
         var chemins = new[]
@@ -255,5 +296,25 @@ public sealed class WeeklyLoopService
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         return JsonSerializer.Deserialize<WorkerGenerationSpec>(json, options)
                ?? throw new InvalidOperationException("Spec de génération de workers invalide.");
+    }
+
+    private static YouthSpec ChargerYouthSpec()
+    {
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "youth", "youth-v1.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "youth", "youth-v1.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            throw new FileNotFoundException("Impossible de trouver la spec Youth.");
+        }
+
+        var json = File.ReadAllText(chemin);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<YouthSpec>(json, options)
+               ?? throw new InvalidOperationException("Spec Youth invalide.");
     }
 }

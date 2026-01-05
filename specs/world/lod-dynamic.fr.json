@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "world-lod-dynamique",
+    "version": "2.0",
+    "optionnel": true,
+    "compatibiliteSaves": "v1.x"
+  },
+  "objectif": "Dégrader automatiquement la précision de la simulation mondiale selon la distance, l'impact et la charge CPU.",
+  "principes": [
+    "Le LOD ne modifie jamais les données sources, seulement le niveau d'agrégation.",
+    "Le joueur conserve une simulation complète pour sa compagnie et ses shows.",
+    "Les entités hors focus utilisent des ticks espacés et des estimations.",
+    "Les transitions de LOD sont lissées pour éviter les sauts de résultats."
+  ],
+  "niveaux": [
+    {
+      "id": "LOD0",
+      "libelle": "Complet",
+      "usage": "Compagnie du joueur + cibles prioritaires",
+      "tick": "hebdomadaire",
+      "precision": "detaillee",
+      "mecanismesActifs": ["contrats", "storylines", "blessures", "moral", "finances"]
+    },
+    {
+      "id": "LOD1",
+      "libelle": "Résumé",
+      "usage": "Compagnies concurrentes majeures",
+      "tick": "bi-hebdomadaire",
+      "precision": "resume",
+      "mecanismesActifs": ["contrats", "storylines_simplifiees", "finances_simplifiees"]
+    },
+    {
+      "id": "LOD2",
+      "libelle": "Macro",
+      "usage": "Compagnies secondaires",
+      "tick": "mensuel",
+      "precision": "macro",
+      "mecanismesActifs": ["effectifs", "finances_macro"]
+    },
+    {
+      "id": "LOD3",
+      "libelle": "Dormant",
+      "usage": "Compagnies éloignées ou inactives",
+      "tick": "trimestriel",
+      "precision": "estimations",
+      "mecanismesActifs": ["effectifs_estimes"]
+    }
+  ],
+  "seuils": {
+    "distanceRegionale": [
+      {"lod": "LOD0", "max": 0},
+      {"lod": "LOD1", "max": 2},
+      {"lod": "LOD2", "max": 4},
+      {"lod": "LOD3", "max": 999}
+    ],
+    "importance": {
+      "topCompagnies": 5,
+      "topWorkers": 200
+    },
+    "chargeCPU": {
+      "mode": "adaptatif",
+      "budgetMsParTick": 12,
+      "degradationMax": 1
+    }
+  },
+  "smoothing": {
+    "fenetreTicks": 2,
+    "actions": [
+      "interpolation_finances",
+      "lissage_popularite",
+      "compensation_storylines"
+    ]
+  },
+  "telemetrie": {
+    "metriques": ["tempsTickMs", "nbEntites", "lodMoyen", "degradations"],
+    "niveauLog": "info"
+  },
+  "erreurs": {
+    "budgetDepasse": "Budget CPU dépassé, LOD abaissé automatiquement.",
+    "metriquesManquantes": "Télémetrie indisponible, retour au LOD par distance."
+  }
+}
