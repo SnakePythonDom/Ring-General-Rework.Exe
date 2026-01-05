@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "langue": "fr",
+    "version": "1.0",
+    "sourceDeVerite": "specs"
+  },
+  "objectifs": [
+    "Offrir des rapports détaillés pour les free agents.",
+    "Maintenir une shortlist éditable et annotée.",
+    "Suivre des missions de scouting qui progressent chaque semaine."
+  ],
+  "modules": {
+    "rapports": {
+      "description": "Chaque rapport met en avant forces, faiblesses et recommandation.",
+      "champs": ["Nom", "Région", "Note", "Forces", "Faiblesses", "Recommandation", "Résumé"]
+    },
+    "shortlist": {
+      "description": "Liste priorisée des cibles avec notes internes.",
+      "actions": ["Ajouter", "Retirer", "Mettre à jour les notes"]
+    },
+    "missions": {
+      "description": "Missions région par région avec progression hebdo.",
+      "statuts": ["EN_COURS", "TERMINEE"]
+    }
+  },
+  "generationHebdo": {
+    "minimale": true,
+    "source": "free agents",
+    "frequence": "hebdomadaire",
+    "messageInbox": "Nouveau rapport de scouting disponible."
+  }
+}

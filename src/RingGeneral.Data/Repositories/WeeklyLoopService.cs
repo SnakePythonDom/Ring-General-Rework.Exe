@@ -10,10 +10,12 @@ public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
     private readonly SeededRandomProvider _random = new(42);
+    private readonly ScoutingService _scoutingService;
 
     public WeeklyLoopService(GameRepository repository)
     {
         _repository = repository;
+        _scoutingService = new ScoutingService(_random);
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -34,11 +36,7 @@ public sealed class WeeklyLoopService
         inboxItems.AddRange(VerifierContrats(semaine));
         inboxItems.AddRange(VerifierOffresExpirantes(semaine));
         inboxItems.AddRange(SimulerMonde(semaine, showId));
-        var scouting = GenererScouting(semaine);
-        if (scouting is not null)
-        {
-            inboxItems.Add(scouting);
-        }
+        inboxItems.AddRange(GenererScouting(semaine));
 
         foreach (var item in inboxItems)
         {
@@ -83,39 +81,42 @@ public sealed class WeeklyLoopService
         }
     }
 
-    private IEnumerable<InboxItem> VerifierOffresExpirantes(int semaine)
+    private IReadOnlyList<InboxItem> GenererScouting(int semaine)
     {
-        var offres = _repository.ChargerOffresExpirant(semaine);
-        if (offres.Count == 0)
+        var missions = _repository.ChargerMissions();
+        var rapportsExistants = _repository.ChargerScoutReports();
+        var cibles = _repository.ChargerCiblesScouting();
+        var refresh = _scoutingService.RafraichirSemaine(missions, rapportsExistants, cibles, semaine);
+
+        foreach (var mission in refresh.MissionsMaj)
         {
-            yield break;
+            if (missions.Any(m => m.MissionId == mission.MissionId))
+            {
+                _repository.MettreAJourMission(mission);
+            }
         }
 
-        var noms = _repository.ChargerNomsWorkers();
-        foreach (var offre in offres)
+        foreach (var rapport in refresh.NouveauxRapports)
         {
-            _repository.MettreAJourStatutOffre(offre.OfferId, "expiree");
-            var nom = noms.TryGetValue(offre.WorkerId, out var workerNom) ? workerNom : offre.WorkerId;
-            var contenu = $"L'offre pour {nom} a expiré (semaine {offre.ExpirationWeek}).";
-            yield return new InboxItem("contrat", "Offre expirée", contenu, semaine);
-        }
-    }
-
-    private InboxItem? GenererScouting(int semaine)
-    {
-        if (_random.NextDouble() > 0.35)
-        {
-            return null;
+            _repository.AjouterScoutReport(rapport);
         }
 
-        var rapports = new[]
+        var items = new List<InboxItem>();
+        foreach (var rapport in refresh.NouveauxRapports)
         {
-            "Le scouting recommande de surveiller un talent high-fly de la scène indie.",
-            "Un ancien champion pourrait être intéressé par un retour ponctuel.",
-            "Un jeune espoir impressionne en entraînement, potentiel futur midcard."
-        };
+            var contenu = $"{rapport.WorkerNom} ({rapport.Region}) - Note {rapport.Note}. {rapport.Resume}";
+            items.Add(new InboxItem("scouting", "Rapport de scouting", contenu, semaine));
+        }
 
-        return new InboxItem("scouting", "Rapport de scouting", rapports[_random.Next(0, rapports.Length)], semaine);
+        foreach (var mission in refresh.MissionsTerminees)
+        {
+            var message = string.IsNullOrWhiteSpace(mission.RapportId)
+                ? $"Mission {mission.Region} terminée. Aucun rapport exploitable cette semaine."
+                : $"Mission {mission.Region} terminée. Nouveau rapport disponible.";
+            items.Add(new InboxItem("scouting", "Mission de scouting", message, semaine));
+        }
+
+        return items;
     }
 
     private IEnumerable<InboxItem> SimulerMonde(int semaine, string showId)
