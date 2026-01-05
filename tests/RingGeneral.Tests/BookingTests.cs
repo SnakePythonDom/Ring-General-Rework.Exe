@@ -2,6 +2,7 @@ using RingGeneral.Core.Models;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
+using Xunit;
 
 namespace RingGeneral.Tests;
 

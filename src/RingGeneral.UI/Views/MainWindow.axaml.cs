@@ -85,23 +85,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        foreach (var colonne in _tableViewGrid.Columns)
-        {
-            colonne.SortDirection = null;
-        }
-
-        var colonnesParId = _tableViewGrid.Columns
-            .Where(colonne => colonne.Tag is string)
-            .ToDictionary(colonne => (string)colonne.Tag!, StringComparer.OrdinalIgnoreCase);
-        foreach (var tri in shell.Session.TableSortSettings)
-        {
-            if (colonnesParId.TryGetValue(tri.ColumnId, out var colonne))
-            {
-                colonne.SortDirection = tri.Direction == RingGeneral.Data.Models.TableSortDirection.Ascending
-                    ? System.ComponentModel.ListSortDirection.Ascending
-                    : System.ComponentModel.ListSortDirection.Descending;
-            }
-        }
+        shell.Session.TableItemsView.Refresh();
     }
 
     private void OnSimulerShow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -262,14 +246,20 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnTableSorting(object? sender, DataGridSortingEventArgs e)
+    private void OnTableSorting(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not ShellViewModel shell || e.Column is null)
+        if (DataContext is not ShellViewModel shell || sender is not DataGrid grid)
         {
             return;
         }
 
-        var colonneId = e.Column.SortMemberPath ?? e.Column.Tag?.ToString();
+        var colonne = grid.CurrentColumn;
+        if (colonne is null)
+        {
+            return;
+        }
+
+        var colonneId = colonne.SortMemberPath ?? colonne.Tag?.ToString();
         if (string.IsNullOrWhiteSpace(colonneId))
         {
             return;
@@ -277,7 +267,6 @@ public sealed partial class MainWindow : Window
 
         shell.Session.MettreAJourTriTable(colonneId);
         AppliquerTriColonnes();
-        e.Handled = true;
     }
 
     private void OnTableColumnUp(object? sender, RoutedEventArgs e)
@@ -538,83 +527,6 @@ public sealed partial class MainWindow : Window
         if (slot is not null)
         {
             shell.ChargerSauvegarde(slot);
-        }
-    }
-
-    private void OnAjouterSegment(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.AjouterSegment();
-        }
-    }
-
-    private void OnAjouterParticipant(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
-        {
-            shell.Session.AjouterParticipant(segment);
-        }
-    }
-
-    private void OnRetirerParticipant(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is not ShellViewModel shell || sender is not Control control)
-        {
-            return;
-        }
-
-        if (control.DataContext is ParticipantViewModel participant && control.Tag is SegmentViewModel segment)
-        {
-            shell.Session.RetirerParticipant(segment, participant);
-        }
-    }
-
-    private void OnAjouterParticipantNouveauSegment(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell)
-        {
-            shell.Session.AjouterParticipantNouveauSegment();
-        }
-    }
-
-    private void OnRetirerParticipantNouveauSegment(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is ParticipantViewModel participant)
-        {
-            shell.Session.RetirerParticipantNouveauSegment(participant);
-        }
-    }
-
-    private void OnEnregistrerSegment(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
-        {
-            shell.Session.EnregistrerSegment(segment);
-        }
-    }
-
-    private void OnCopierSegment(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
-        {
-            shell.Session.CopierSegment(segment);
-        }
-    }
-
-    private void OnDeplacerSegmentHaut(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
-        {
-            shell.Session.DeplacerSegment(segment, -1);
-        }
-    }
-
-    private void OnDeplacerSegmentBas(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is ShellViewModel shell && sender is Control control && control.DataContext is SegmentViewModel segment)
-        {
-            shell.Session.DeplacerSegment(segment, 1);
         }
     }
 

@@ -18,7 +18,10 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore
-        run: dotnet restore RingGeneral.sln
+        run: dotnet restore
 
-      - name: Build
-        run: dotnet build RingGeneral.sln -c Release --no-restore
+      - name: Build UI
+        run: dotnet build src/RingGeneral.UI/RingGeneral.UI.csproj -c Release --no-restore
+
+      - name: Build Data
+        run: dotnet build src/RingGeneral.Data/RingGeneral.Data.csproj -c Release --no-restore

@@ -464,6 +464,72 @@ public sealed class GameRepository : IScoutingRepository
         return new ShowContext(show, compagnie, workers, titres, storylines, segments, chimies, deal);
     }
 
+    public IReadOnlyList<TvDeal> ChargerTvDeals(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min,
+                   base_revenue, revenue_per_point, penalty, constraints
+            FROM tv_deals
+            WHERE company_id = $companyId
+            ORDER BY network_name;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        var deals = new List<TvDeal>();
+        while (reader.Read())
+        {
+            deals.Add(new TvDeal(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetDouble(6),
+                reader.GetDouble(7),
+                reader.GetDouble(8),
+                reader.GetString(9)));
+        }
+
+        return deals;
+    }
+
+    private static TvDeal? ChargerTvDeal(SqliteConnection connexion, string? dealId)
+    {
+        if (string.IsNullOrWhiteSpace(dealId))
+        {
+            return null;
+        }
+
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min,
+                   base_revenue, revenue_per_point, penalty, constraints
+            FROM tv_deals
+            WHERE tv_deal_id = $dealId;
+            """;
+        command.Parameters.AddWithValue("$dealId", dealId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new TvDeal(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetInt32(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            reader.GetDouble(6),
+            reader.GetDouble(7),
+            reader.GetDouble(8),
+            reader.GetString(9));
+    }
+
     private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
     {
         using var command = connexion.CreateCommand();
@@ -741,7 +807,7 @@ public sealed class GameRepository : IScoutingRepository
         using var connexion = _factory.OuvrirConnexion();
         using var transaction = connexion.BeginTransaction();
 
-        var semaine = ChargerSemaineShow(connexion, rapport.ShowId) ?? 0;
+        var semaine = ChargerSemaineShow(connexion, rapport.ShowId);
         var resume = string.Join(" | ", rapport.PointsCles);
 
         if (TableExiste(connexion, "show_history"))
@@ -868,6 +934,71 @@ public sealed class GameRepository : IScoutingRepository
         }
 
         transaction.Commit();
+    }
+
+    public IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistorique(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        if (TableExiste(connexion, "audience_history"))
+        {
+            return ChargerAudienceHistoriqueLower(connexion, showId);
+        }
+
+        return ChargerAudienceHistoriqueUpper(connexion, showId);
+    }
+
+    private static IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistoriqueLower(SqliteConnection connexion, string showId)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT show_id, semaine, audience, reach, show_score, stars, saturation
+            FROM audience_history
+            WHERE show_id = $showId
+            ORDER BY semaine DESC;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        using var reader = command.ExecuteReader();
+        var entries = new List<AudienceHistoryEntry>();
+        while (reader.Read())
+        {
+            entries.Add(new AudienceHistoryEntry(
+                reader.GetString(0),
+                reader.GetInt32(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6)));
+        }
+
+        return entries;
+    }
+
+    private static IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistoriqueUpper(SqliteConnection connexion, string showId)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ShowId, Week, Audience, Reach, ShowScore, Stars, Saturation
+            FROM AudienceHistory
+            WHERE ShowId = $showId
+            ORDER BY Week DESC;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        using var reader = command.ExecuteReader();
+        var entries = new List<AudienceHistoryEntry>();
+        while (reader.Read())
+        {
+            entries.Add(new AudienceHistoryEntry(
+                reader.GetString(0),
+                reader.GetInt32(1),
+                reader.GetInt32(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6)));
+        }
+
+        return entries;
     }
 
     public void AppliquerDelta(string showId, GameStateDelta delta)
@@ -1098,17 +1229,17 @@ public sealed class GameRepository : IScoutingRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO BackstageIncidents (BackstageIncidentId, CompanyId, Week, TypeId, Title, Description, Severity, WorkersJson)
+            INSERT INTO backstage_incidents (incident_id, company_id, semaine, type_id, titre, description, gravite, workers_json)
             VALUES ($id, $companyId, $week, $typeId, $title, $description, $severity, $workersJson);
             """;
         command.Parameters.AddWithValue("$id", incident.IncidentId);
-        command.Parameters.AddWithValue("$companyId", incident.CompanyId);
+        command.Parameters.AddWithValue("$companyId", ChargerCompanyIdPourWorker(connexion, incident.WorkerId));
         command.Parameters.AddWithValue("$week", incident.Week);
-        command.Parameters.AddWithValue("$typeId", incident.TypeId);
-        command.Parameters.AddWithValue("$title", incident.Titre);
+        command.Parameters.AddWithValue("$typeId", incident.IncidentType);
+        command.Parameters.AddWithValue("$title", incident.IncidentType);
         command.Parameters.AddWithValue("$description", incident.Description);
-        command.Parameters.AddWithValue("$severity", incident.Gravite);
-        command.Parameters.AddWithValue("$workersJson", JsonSerializer.Serialize(incident.Workers));
+        command.Parameters.AddWithValue("$severity", incident.Severity);
+        command.Parameters.AddWithValue("$workersJson", JsonSerializer.Serialize(new[] { incident.WorkerId }));
         command.ExecuteNonQuery();
     }
 
@@ -1117,15 +1248,15 @@ public sealed class GameRepository : IScoutingRepository
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO DisciplinaryActions (DisciplinaryActionId, CompanyId, WorkerId, Week, TypeId, Severity, MoraleDelta, Notes, IncidentId)
+            INSERT INTO disciplinary_actions (action_id, company_id, worker_id, semaine, type_id, gravite, morale_delta, notes, incident_id)
             VALUES ($id, $companyId, $workerId, $week, $typeId, $severity, $moraleDelta, $notes, $incidentId);
             """;
         command.Parameters.AddWithValue("$id", action.ActionId);
-        command.Parameters.AddWithValue("$companyId", action.CompanyId);
+        command.Parameters.AddWithValue("$companyId", ChargerCompanyIdPourWorker(connexion, action.WorkerId));
         command.Parameters.AddWithValue("$workerId", action.WorkerId);
         command.Parameters.AddWithValue("$week", action.Week);
-        command.Parameters.AddWithValue("$typeId", action.TypeId);
-        command.Parameters.AddWithValue("$severity", action.Gravite);
+        command.Parameters.AddWithValue("$typeId", action.ActionType);
+        command.Parameters.AddWithValue("$severity", MapperGraviteDiscipline(action.ActionType));
         command.Parameters.AddWithValue("$moraleDelta", action.MoraleDelta);
         command.Parameters.AddWithValue("$notes", action.Notes);
         command.Parameters.AddWithValue("$incidentId", (object?)action.IncidentId ?? DBNull.Value);
@@ -1162,7 +1293,7 @@ public sealed class GameRepository : IScoutingRepository
             using var historyCommand = connexion.CreateCommand();
             historyCommand.Transaction = transaction;
             historyCommand.CommandText = """
-                INSERT INTO MoraleHistory (WorkerId, Week, MoraleBefore, MoraleAfter, Delta, Reason, IncidentId, ActionId)
+                INSERT INTO morale_history (worker_id, semaine, morale_avant, morale_apres, delta, raison, incident_id, action_id)
                 VALUES ($workerId, $week, $moraleAvant, $moraleApres, $delta, $reason, $incidentId, $actionId);
                 """;
             historyCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
@@ -1178,16 +1309,33 @@ public sealed class GameRepository : IScoutingRepository
             historiques.Add(new MoraleHistoryEntry(
                 impact.WorkerId,
                 week,
-                moraleAvant,
-                moraleApres,
                 impact.Delta,
+                moraleApres,
                 impact.Raison,
-                impact.IncidentId,
-                impact.ActionId));
+                impact.IncidentId));
         }
 
         transaction.Commit();
         return historiques;
+    }
+
+    private static string ChargerCompanyIdPourWorker(SqliteConnection connexion, string workerId)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT CompanyId FROM Workers WHERE WorkerId = $workerId;";
+        command.Parameters.AddWithValue("$workerId", workerId);
+        return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
+    }
+
+    private static int MapperGraviteDiscipline(string actionType)
+    {
+        return actionType switch
+        {
+            "SUSPENSION" => 3,
+            "AMENDE" => 2,
+            "AVERTISSEMENT" => 1,
+            _ => 0
+        };
     }
 
     public string ChargerCompagnieIdPourShow(string showId)
@@ -2237,7 +2385,7 @@ public sealed class GameRepository : IScoutingRepository
             var worldMode = Enum.TryParse<WorldGenerationMode>(reader.GetString(1), out var wm)
                 ? wm
                 : WorldGenerationMode.Desactivee;
-            var pivot = reader.IsDBNull(2) ? null : reader.GetInt32(2);
+            int? pivot = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2);
             return new WorkerGenerationOptions(youthMode, worldMode, pivot);
         }
 
@@ -2258,7 +2406,7 @@ public sealed class GameRepository : IScoutingRepository
             """;
         command.Parameters.AddWithValue("$youthMode", options.YouthMode.ToString());
         command.Parameters.AddWithValue("$worldMode", options.WorldMode.ToString());
-        command.Parameters.AddWithValue("$pivot", options.SemainePivotAnnuelle.HasValue ? options.SemainePivotAnnuelle.Value : DBNull.Value);
+        command.Parameters.AddWithValue("$pivot", (object?)options.SemainePivotAnnuelle ?? DBNull.Value);
         command.ExecuteNonQuery();
     }
 
@@ -2824,91 +2972,6 @@ public sealed class GameRepository : IScoutingRepository
         transaction.Commit();
     }
 
-    public IReadOnlyList<YouthTraineeProgressionState> ChargerTraineesPourProgression()
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            SELECT yt.worker_id,
-                   yt.youth_id,
-                   w.in_ring,
-                   w.entertainment,
-                   w.story,
-                   yt.statut
-            FROM youth_trainees yt
-            INNER JOIN workers w ON w.worker_id = yt.worker_id
-            WHERE yt.statut = 'EN_FORMATION';
-            """;
-        using var reader = command.ExecuteReader();
-        var trainees = new List<YouthTraineeProgressionState>();
-        while (reader.Read())
-        {
-            trainees.Add(new YouthTraineeProgressionState(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetString(5)));
-        }
-
-        return trainees;
-    }
-
-    public void AppliquerProgressionYouth(YouthProgressionReport report)
-    {
-        if (report.Updates.Count == 0)
-        {
-            return;
-        }
-
-        using var connexion = _factory.OuvrirConnexion();
-        using var transaction = connexion.BeginTransaction();
-
-        foreach (var update in report.Updates)
-        {
-            using var workerCommand = connexion.CreateCommand();
-            workerCommand.Transaction = transaction;
-            workerCommand.CommandText = """
-                UPDATE workers
-                SET in_ring = $inRing,
-                    entertainment = $entertainment,
-                    story = $story,
-                    type_worker = CASE WHEN $gradue = 1 THEN 'CATCHEUR' ELSE type_worker END
-                WHERE worker_id = $workerId;
-                """;
-            workerCommand.Parameters.AddWithValue("$inRing", update.NouveauInRing);
-            workerCommand.Parameters.AddWithValue("$entertainment", update.NouveauEntertainment);
-            workerCommand.Parameters.AddWithValue("$story", update.NouveauStory);
-            workerCommand.Parameters.AddWithValue("$gradue", update.EstGradue ? 1 : 0);
-            workerCommand.Parameters.AddWithValue("$workerId", update.WorkerId);
-            workerCommand.ExecuteNonQuery();
-
-            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "in_ring", update.NouveauInRing);
-            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "entertainment", update.NouveauEntertainment);
-            UpsertWorkerAttribute(connexion, transaction, update.WorkerId, "story", update.NouveauStory);
-
-            if (update.EstGradue)
-            {
-                using var gradCommand = connexion.CreateCommand();
-                gradCommand.Transaction = transaction;
-                gradCommand.CommandText = """
-                    UPDATE youth_trainees
-                    SET statut = 'GRADUE',
-                        fin_semaine = $semaine
-                    WHERE worker_id = $workerId
-                      AND youth_id = $youthId;
-                    """;
-                gradCommand.Parameters.AddWithValue("$semaine", report.Semaine);
-                gradCommand.Parameters.AddWithValue("$workerId", update.WorkerId);
-                gradCommand.Parameters.AddWithValue("$youthId", update.YouthId);
-                gradCommand.ExecuteNonQuery();
-            }
-        }
-
-        transaction.Commit();
-    }
-
     private void MettreAJourCounters(SqliteTransaction transaction, WorkerGenerationReport report)
     {
         var annee = ((report.Semaine - 1) / 52) + 1;
@@ -3346,10 +3409,11 @@ public sealed class GameRepository : IScoutingRepository
         var workers = new List<WorkerSnapshot>();
         while (reader.Read())
         {
-            var nomComplet = $"{reader.GetString(2)} {reader.GetString(1)}".Trim();
+            var nomComplet = reader.GetString(1);
             workers.Add(new WorkerSnapshot(
                 reader.GetString(0),
                 nomComplet,
+                reader.GetInt32(2),
                 reader.GetInt32(3),
                 reader.GetInt32(4),
                 reader.GetInt32(5),
@@ -3687,13 +3751,13 @@ public sealed class GameRepository : IScoutingRepository
             """;
         popularityCommand.ExecuteNonQuery();
 
-        using var settingsCommand = connexion.CreateCommand();
-        settingsCommand.Transaction = transaction;
-        settingsCommand.CommandText = """
+        using var gameSettingsCommand = connexion.CreateCommand();
+        gameSettingsCommand.Transaction = transaction;
+        gameSettingsCommand.CommandText = """
             INSERT INTO game_settings (id, youth_generation_mode, world_generation_mode, semaine_pivot_annuelle)
             VALUES (1, 'Realiste', 'Desactivee', 1);
             """;
-        settingsCommand.ExecuteNonQuery();
+        gameSettingsCommand.ExecuteNonQuery();
 
         transaction.Commit();
     }
