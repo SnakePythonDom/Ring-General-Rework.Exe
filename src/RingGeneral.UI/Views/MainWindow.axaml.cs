@@ -490,6 +490,57 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnAjouterParticipantStoryline(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement storyline participant management
+    }
+
+    private void OnRetirerParticipantStoryline(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement storyline participant management
+    }
+
+    private void OnCreerStoryline(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement storyline creation
+    }
+
+    private void OnMettreAJourStoryline(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement storyline update
+    }
+
+    private void OnAvancerStoryline(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement storyline advancement
+    }
+
+    private void OnSupprimerStoryline(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement storyline deletion
+    }
+
+    private void OnEnregistrerGeneration(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement generation settings save
+    }
+
+    private void OnVoirImpacts(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.SelectionnerImpact("impacts.popularite");
+        }
+    }
+
+    private void OnVoirFinance(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.SelectionnerImpact("impacts.finances");
+        }
+    }
+
     private void OnCorrigerIssue(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is BookingIssueViewModel issue)
