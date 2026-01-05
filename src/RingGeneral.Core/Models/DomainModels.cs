@@ -42,10 +42,17 @@ public sealed record TitleInfo(
     int Prestige,
     string? DetenteurId);
 
+public sealed record StorylineParticipant(
+    string WorkerId,
+    string Role);
+
 public sealed record StorylineInfo(
     string StorylineId,
     string Nom,
+    string Phase,
     int Heat,
+    StorylinePhase Phase,
+    StorylineStatus Status,
     IReadOnlyList<string> Participants);
 
 public sealed record SegmentDefinition(
@@ -88,6 +95,45 @@ public sealed record InboxItem(
     string Contenu,
     int Semaine);
 
+public sealed record ScoutTargetProfile(
+    string WorkerId,
+    string NomComplet,
+    string Region,
+    int InRing,
+    int Entertainment,
+    int Story,
+    int Popularite,
+    int Momentum);
+
+public sealed record ScoutReport(
+    string ReportId,
+    string WorkerId,
+    string WorkerNom,
+    string Region,
+    int Semaine,
+    int Note,
+    string Forces,
+    string Faiblesses,
+    string Recommendation,
+    string Resume);
+
+public sealed record ScoutShortlistEntry(
+    string WorkerId,
+    string WorkerNom,
+    int Note,
+    string Notes,
+    int SemaineAjout,
+    string? RapportId);
+
+public sealed record ScoutMission(
+    string MissionId,
+    string Region,
+    int SemaineDebut,
+    int DureeSemaines,
+    int Progression,
+    string Statut,
+    string? RapportId);
+
 public sealed record GameStateDelta(
     IReadOnlyDictionary<string, int> FatigueDelta,
     IReadOnlyDictionary<string, string> Blessures,
@@ -97,3 +143,10 @@ public sealed record GameStateDelta(
     IReadOnlyDictionary<string, int> StorylineHeatDelta,
     IReadOnlyDictionary<string, int> TitrePrestigeDelta,
     IReadOnlyList<FinanceTransaction> Finances);
+
+public sealed record StorylineEvent(
+    long StorylineEventId,
+    string StorylineId,
+    string TypeEvenement,
+    int? Semaine,
+    string? Details);

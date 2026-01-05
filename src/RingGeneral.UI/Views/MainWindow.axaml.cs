@@ -97,6 +97,30 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void OnChangerBudgetYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.ChangerBudgetYouth();
+        }
+    }
+
+    private void OnAffecterCoachYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AffecterCoachYouth();
+        }
+    }
+
+    private void OnGraduationYouth(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell && sender is Control control && control.Tag is string workerId)
+        {
+            shell.Session.DiplomerTrainee(workerId);
+        }
+    }
+
     private void OnToggleDetailsSimulation(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ShellViewModel shell)
@@ -261,6 +285,59 @@ public sealed partial class MainWindow : Window
         if (slot is not null)
         {
             shell.ChargerSauvegarde(slot);
+        }
+    }
+
+    private void OnCreerStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.CreerStoryline();
+        }
+    }
+
+    private void OnMettreAJourStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.MettreAJourStoryline();
+        }
+    }
+
+    private void OnAvancerStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AvancerStoryline();
+        }
+    }
+
+    private void OnSupprimerStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.SupprimerStoryline();
+        }
+    }
+
+    private void OnAjouterParticipantStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ShellViewModel shell)
+        {
+            shell.Session.AjouterParticipantStoryline();
+        }
+    }
+
+    private void OnRetirerParticipantStoryline(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell || sender is not Control control)
+        {
+            return;
+        }
+
+        if (control.DataContext is StorylineParticipantViewModel participant)
+        {
+            shell.Session.RetirerParticipantStoryline(participant);
         }
     }
 
