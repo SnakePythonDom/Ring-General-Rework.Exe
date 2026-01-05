@@ -8,7 +8,7 @@ using MatchType = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class GameRepository : IScoutingRepository
+public sealed class GameRepository : IScoutingRepository, IContractRepository
 {
     private readonly SqliteConnectionFactory _factory;
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -725,6 +725,23 @@ public sealed class GameRepository : IScoutingRepository
         SauvegarderParticipants(connexion, transaction, segment.SegmentId, segment.Participants);
         SupprimerSettings(connexion, transaction, segment.SegmentId);
         SauvegarderSettings(connexion, transaction, segment.SegmentId, segment.Settings);
+
+        transaction.Commit();
+    }
+
+    public void SupprimerSegment(string segmentId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        SupprimerParticipants(connexion, transaction, segmentId);
+        SupprimerSettings(connexion, transaction, segmentId);
+
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "DELETE FROM ShowSegments WHERE ShowSegmentId = $segmentId;";
+        command.Parameters.AddWithValue("$segmentId", segmentId);
+        command.ExecuteNonQuery();
 
         transaction.Commit();
     }

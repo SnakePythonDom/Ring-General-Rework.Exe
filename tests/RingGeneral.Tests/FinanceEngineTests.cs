@@ -14,10 +14,10 @@ public sealed class FinanceEngineTests
         var compagnie = new CompanyState("COMP-1", "Compagnie", "FR", 55, 10000, 50, 5);
         var context = new ShowFinanceContext(
             compagnie,
-            audience: 62,
-            dureeMinutes: 120,
-            popularitesWorkers: new[] { 75, 68, 60 },
-            diffuseTv: true);
+            Audience: 62,
+            DureeMinutes: 120,
+            PopularitesWorkers: new[] { 75, 68, 60 },
+            DiffuseTv: true);
 
         var result = engine.CalculerFinancesShow(context);
 

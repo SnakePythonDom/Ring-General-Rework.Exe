@@ -841,8 +841,6 @@
                             GridLinesVisibility="All"
                             HeadersVisibility="All"
                             IsReadOnly="True"
-                            EnableColumnVirtualization="True"
-                            EnableRowVirtualization="True"
                             Sorting="OnTableSorting"
                             ToolTip.Tip="Table virtualisée avec tri, filtres et recherche.">
                     <controls:DataGrid.Columns>
