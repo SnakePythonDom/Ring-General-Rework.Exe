@@ -257,7 +257,7 @@
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <Grid ColumnDefinitions="2*,3*" ColumnSpacing="12">
+                <Grid ColumnDefinitions="2*,12,3*">
                   <StackPanel Grid.Column="0" Spacing="6">
                     <TextBlock Text="Timeline" Foreground="#F9FAFB" FontWeight="SemiBold" />
                     <ListBox ItemsSource="{Binding Session.Segments}"
@@ -546,7 +546,7 @@
               <Button Grid.Column="1" Content="?" Tag="page.segments" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips[ui.help]}" />
             </Grid>
             <Border Background="#111827" Padding="12" CornerRadius="8">
-              <Grid ColumnDefinitions="2*,*" ColumnSpacing="12">
+              <Grid ColumnDefinitions="2*,12,*">
                 <StackPanel Spacing="6">
                   <TextBlock Text="Templates de segments" Foreground="#F9FAFB" FontWeight="SemiBold" />
                   <ListBox ItemsSource="{Binding Session.SegmentTemplates}"
@@ -937,7 +937,7 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
 
-                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                <Grid ColumnDefinitions="160,12,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6">
                   <TextBlock Text="Type" Foreground="#9CA3AF" />
                   <TextBlock Grid.Column="1" Text="{Binding Session.YouthStructureSelection.Type}" Foreground="#E5E7EB" />
                   <TextBlock Grid.Row="1" Text="Région" Foreground="#9CA3AF" />
@@ -1019,7 +1019,7 @@
             <TextBlock Text="Génération automatique" FontSize="20" FontWeight="Bold" Foreground="White" />
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="8">
-                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                <Grid ColumnDefinitions="160,12,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                   <TextBlock Text="Youth" Foreground="#9CA3AF" />
                   <ComboBox Grid.Column="1"
                             ItemsSource="{Binding Session.YouthGenerationModes}"
