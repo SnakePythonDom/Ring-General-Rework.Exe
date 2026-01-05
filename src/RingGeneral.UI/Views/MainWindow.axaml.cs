@@ -262,14 +262,20 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnTableSorting(object? sender, Avalonia.Controls.DataGrid.DataGridSortingEventArgs e)
+    private void OnTableSorting(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not ShellViewModel shell || e.Column is null)
+        if (DataContext is not ShellViewModel shell || sender is not DataGrid grid)
         {
             return;
         }
 
-        var colonneId = e.Column.SortMemberPath ?? e.Column.Tag?.ToString();
+        var colonne = grid.Columns.FirstOrDefault(c => c.IsSortColumn);
+        if (colonne is null)
+        {
+            return;
+        }
+
+        var colonneId = colonne.SortMemberPath ?? colonne.Tag?.ToString();
         if (string.IsNullOrWhiteSpace(colonneId))
         {
             return;
@@ -277,7 +283,6 @@ public sealed partial class MainWindow : Window
 
         shell.Session.MettreAJourTriTable(colonneId);
         AppliquerTriColonnes();
-        e.Handled = true;
     }
 
     private void OnTableColumnUp(object? sender, RoutedEventArgs e)

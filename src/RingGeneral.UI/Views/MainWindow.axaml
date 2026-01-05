@@ -413,8 +413,8 @@
               </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="12">
-              <Button Content="Simuler le show" Click="OnSimulerShow" ToolTip.Tip="{Binding Session.Tooltips['booking.simuler']}" />
-              <Button Content="Semaine suivante" Click="OnSemaineSuivante" ToolTip.Tip="{Binding Session.Tooltips['booking.semaine']}" />
+              <Button Content="Simuler le show" Click="OnSimulerShow" ToolTip.Tip="{Binding Session.Tooltips[booking.simuler]}" />
+              <Button Content="Semaine suivante" Click="OnSemaineSuivante" ToolTip.Tip="{Binding Session.Tooltips[booking.semaine]}" />
             </StackPanel>
             <Border Background="#111827" Padding="10" CornerRadius="8">
               <StackPanel Spacing="6">
