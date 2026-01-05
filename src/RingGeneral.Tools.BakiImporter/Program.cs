@@ -6,29 +6,26 @@ using RingGeneral.Specs.Models.Import;
 using RingGeneral.Specs.Services;
 using RingGeneral.Tools.BakiImporter;
 
-static int Main(string[] args)
+if (args.Length == 0)
 {
-    if (args.Length == 0)
-    {
-        return AfficherAide();
-    }
+    return AfficherAide();
+}
 
-    var commande = args[0].ToLowerInvariant();
-    var options = args.Skip(1).ToArray();
+var commande = args[0].ToLowerInvariant();
+var options = args.Skip(1).ToArray();
 
-    try
+try
+{
+    return commande switch
     {
-        return commande switch
-        {
-            "attr-report" => ExecuterAttrReport(options),
-            _ => AfficherAide()
-        };
-    }
-    catch (Exception ex)
-    {
-        Console.Error.WriteLine($"Erreur : {ex.Message}");
-        return 1;
-    }
+        "attr-report" => ExecuterAttrReport(options),
+        _ => AfficherAide()
+    };
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Erreur : {ex.Message}");
+    return 1;
 }
 
 static int ExecuterAttrReport(string[] options)
