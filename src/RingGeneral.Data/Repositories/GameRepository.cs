@@ -21,6 +21,25 @@ public sealed class GameRepository : IScoutingRepository
         _factory = factory;
     }
 
+    /// <summary>
+    /// Initialise la base de données avec les tables nécessaires.
+    /// </summary>
+    /// <remarks>
+    /// TODO: DETTE TECHNIQUE - DUPLICATION DE SCHÉMA
+    ///
+    /// Il existe actuellement deux systèmes de création de tables:
+    /// 1. Cette méthode (GameRepository.Initialiser) - crée des tables snake_case (workers, companies, etc.)
+    /// 2. DbInitializer.ApplyMigrations() - crée des tables PascalCase (Workers, Companies, etc.)
+    ///
+    /// Les deux ensembles coexistent, ce qui peut causer confusion et bugs silencieux.
+    ///
+    /// SOLUTION RECOMMANDÉE (Phase 1):
+    /// 1. Supprimer ces CREATE TABLE et utiliser uniquement DbInitializer
+    /// 2. Mettre à jour toutes les requêtes SQL pour utiliser les noms PascalCase
+    /// 3. Ajouter une migration de transition pour les anciennes bases
+    ///
+    /// Voir: docs/PLAN_ACTION_FR.md - Tâche 0.3
+    /// </remarks>
     public void Initialiser()
     {
         using var connexion = _factory.OuvrirConnexion();

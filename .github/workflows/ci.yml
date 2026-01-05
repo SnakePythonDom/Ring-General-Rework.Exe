@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,10 +18,18 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore RingGeneral.sln
 
-      - name: Build UI
-        run: dotnet build src/RingGeneral.UI/RingGeneral.UI.csproj -c Release --no-restore
+      - name: Build Solution
+        run: dotnet build RingGeneral.sln -c Release --no-restore
 
-      - name: Build Data
-        run: dotnet build src/RingGeneral.Data/RingGeneral.Data.csproj -c Release --no-restore
+      - name: Run Tests
+        run: dotnet test RingGeneral.sln -c Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: "**/TestResults/*.trx"
+          retention-days: 7
