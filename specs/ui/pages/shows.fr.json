@@ -14,7 +14,7 @@
   ],
   "filtres": ["Type", "Série", "Statut"],
   "panneauDetail": {
-    "sections": ["Carte", "Résultats", "Finances", "Notes"]
+    "sections": ["Paramètres", "Statut", "Carte", "Résultats", "Finances", "Notes"]
   },
   "actions": [
     {"id": "creer_show", "libelle": "Créer un show"},

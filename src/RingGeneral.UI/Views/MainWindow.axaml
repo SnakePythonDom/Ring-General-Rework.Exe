@@ -423,34 +423,125 @@
 
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Storylines" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="page.storylines" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+            </Grid>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <Grid ColumnDefinitions="2*,*">
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="2*,*,80,2*,*">
+                    <TextBlock Text="Titre" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="1" Text="Phase" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="2" Text="Heat" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="3" Text="Participants" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="4" Text="Statut" Foreground="#9CA3AF" />
+                  </Grid>
+                  <ListBox ItemsSource="{Binding Session.Storylines}" SelectedItem="{Binding Session.StorylineSelectionnee, Mode=TwoWay}" MaxHeight="240">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#0F172A" Padding="8" CornerRadius="6" Margin="0,4,0,4">
+                          <Grid ColumnDefinitions="2*,*,80,2*,*">
+                            <TextBlock Text="{Binding Nom}" Foreground="White" />
+                            <TextBlock Grid.Column="1" Text="{Binding Phase}" Foreground="#CBD5F5" />
+                            <TextBlock Grid.Column="2" Text="{Binding Heat}" Foreground="#FCD34D" />
+                            <TextBlock Grid.Column="3" Text="{Binding ParticipantsResume}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                            <TextBlock Grid.Column="4" Text="{Binding Statut}" Foreground="#93C5FD" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </StackPanel>
+
+                <Border Grid.Column="1" Background="#0F172A" Padding="12" CornerRadius="8" Margin="12,0,0,0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="Détails storyline" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                    <TextBox Watermark="Nom" Text="{Binding Session.StorylineNom, Mode=TwoWay}" />
+                    <ComboBox ItemsSource="{Binding Session.StorylinePhases}"
+                              SelectedItem="{Binding Session.StorylinePhaseSelection, Mode=TwoWay}"
+                              DisplayMemberPath="Libelle" />
+                    <ComboBox ItemsSource="{Binding Session.StorylineStatuts}"
+                              SelectedItem="{Binding Session.StorylineStatutSelection, Mode=TwoWay}"
+                              DisplayMemberPath="Libelle" />
+                    <TextBox Watermark="Résumé" Text="{Binding Session.StorylineResume, Mode=TwoWay}" AcceptsReturn="True" Height="60" />
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Participants" Foreground="#CBD5F5" />
+                      <ItemsControl ItemsSource="{Binding Session.StorylineParticipantsEdition}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <TextBlock Text="{Binding Resume}" Foreground="#E5E7EB" />
+                              <Button Content="Retirer" Click="OnRetirerParticipantStoryline" />
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ComboBox Width="180"
+                                  ItemsSource="{Binding Session.WorkersDisponibles}"
+                                  SelectedValuePath="WorkerId"
+                                  DisplayMemberPath="Nom"
+                                  SelectedValue="{Binding Session.StorylineParticipantSelectionId, Mode=TwoWay}" />
+                        <Button Content="Ajouter" Click="OnAjouterParticipantStoryline" />
+                      </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Button Content="Créer" Click="OnCreerStoryline" />
+                      <Button Content="Mettre à jour" Click="OnMettreAJourStoryline" />
+                      <Button Content="Avancer" Click="OnAvancerStoryline" />
+                      <Button Content="Supprimer" Click="OnSupprimerStoryline" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </Grid>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Résultats" FontSize="20" FontWeight="Bold" Foreground="White" />
               <Button Grid.Column="1" Content="?" Tag="page.resultats" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
             </Grid>
             <TextBlock Text="{Binding Session.ResumeShow}" Foreground="#CBD5F5" />
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="6">
-                <Grid ColumnDefinitions="120,80,80,*,*">
+                <Grid ColumnDefinitions="140,70,200,70,*,*">
                   <TextBlock Text="Segment" Foreground="#9CA3AF" />
                   <TextBlock Grid.Column="1" Text="Note" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.note']}" />
-                  <TextBlock Grid.Column="2" Text="Icônes" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="3" Text="Breakdown" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.breakdown']}" />
-                  <TextBlock Grid.Column="4" Text="Impacts" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.impacts']}" />
+                  <TextBlock Grid.Column="2" Text="Ratings" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="3" Text="Icônes" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="4" Text="Breakdown" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.breakdown']}" />
+                  <TextBlock Grid.Column="5" Text="Impacts" Foreground="#9CA3AF" ToolTip.Tip="{Binding Session.Tooltips['result.impacts']}" />
                 </Grid>
-                <ItemsControl ItemsSource="{Binding Session.Resultats}">
-                  <ItemsControl.ItemTemplate>
+                <ListBox ItemsSource="{Binding Session.Resultats}" SelectedItem="{Binding Session.ResultatSelectionne, Mode=TwoWay}">
+                  <ListBox.ItemTemplate>
                     <DataTemplate>
-                      <Grid ColumnDefinitions="120,80,80,*,*">
+                      <Grid ColumnDefinitions="140,70,200,70,*,*">
                         <TextBlock Text="{Binding TypeSegment}" Foreground="White" />
                         <TextBlock Grid.Column="1" Text="{Binding Note}" Foreground="#FCD34D" ToolTip.Tip="{Binding DataContext.Session.Tooltips['result.note'], RelativeSource={RelativeSource AncestorType=Window}}" />
-                        <TextBlock Grid.Column="2" Text="{Binding Icons}" Foreground="#FBBF24" />
-                        <TextBlock Grid.Column="3" Text="{Binding Breakdown}" Foreground="#E5E7EB" TextWrapping="Wrap" />
-                        <TextBlock Grid.Column="4" Text="{Binding Impacts}" Foreground="#D1D5DB" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="2" Text="{Binding Ratings}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="3" Text="{Binding Icons}" Foreground="#FBBF24" />
+                        <TextBlock Grid.Column="4" Text="{Binding Breakdown}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="5" Text="{Binding Impacts}" Foreground="#D1D5DB" TextWrapping="Wrap" />
                       </Grid>
                     </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                  </ListBox.ItemTemplate>
+                </ListBox>
               </StackPanel>
             </Border>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Ouvrir fiche worker" Click="OnOuvrirFicheWorker" />
+              <Button Content="Voir impacts" Click="OnVoirImpacts" />
+              <Button Content="Voir finance" Click="OnVoirFinance" />
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Text="Actions rapides" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Ouvrir fiche worker" Tag="{Binding Session.ResultatSelectionne.PremierParticipantId}" Click="OnOuvrirFicheWorker" />
+                <Button Content="Voir impacts" Tag="impacts.popularite" Click="OnOuvrirImpact" />
+                <Button Content="Voir finance" Tag="impacts.finances" Click="OnOuvrirImpact" />
+              </StackPanel>
+            </StackPanel>
             <StackPanel Spacing="6">
               <TextBlock Text="Pourquoi cette note ?" Foreground="#F9FAFB" FontWeight="SemiBold" />
               <ItemsControl ItemsSource="{Binding Session.PourquoiNote}">
@@ -467,6 +558,16 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <TextBlock Text="{Binding .}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Text="Historique du show" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <ItemsControl ItemsSource="{Binding Session.HistoriqueShow}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Ligne}" Foreground="#CBD5F5" TextWrapping="Wrap" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
@@ -613,6 +714,97 @@
               <Button Content="LOD" ToolTip.Tip="{Binding Session.Tooltips['action.lod']}" />
               <Button Content="Diffusion" ToolTip.Tip="{Binding Session.Tooltips['action.diffusion']}" />
             </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Youth" FontSize="20" FontWeight="Bold" Foreground="White" />
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="10">
+                <ComboBox ItemsSource="{Binding Session.YouthStructures}"
+                          SelectedItem="{Binding Session.YouthStructureSelection}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Nom}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                  <TextBlock Text="Type" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Column="1" Text="{Binding Session.YouthStructureSelection.Type}" Foreground="#E5E7EB" />
+                  <TextBlock Grid.Row="1" Text="Région" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.Region}" Foreground="#E5E7EB" />
+                  <TextBlock Grid.Row="2" Text="Budget" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.BudgetAnnuel}" Foreground="#FCD34D" />
+                  <TextBlock Grid.Row="3" Text="Capacité" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.TraineesActifs}" Foreground="#E5E7EB" />
+                </Grid>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Trainees" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <ItemsControl ItemsSource="{Binding Session.YouthTrainees}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                          <StackPanel>
+                            <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                            <TextBlock Text="{Binding InRing, StringFormat=In-Ring: {0}}"
+                                       Foreground="#9CA3AF" />
+                            <TextBlock Text="{Binding Entertainment, StringFormat=Entertainment: {0}}"
+                                       Foreground="#9CA3AF" />
+                            <TextBlock Text="{Binding Story, StringFormat=Story: {0}}"
+                                       Foreground="#9CA3AF" />
+                          </StackPanel>
+                          <Button Grid.Column="1"
+                                  Content="Graduation"
+                                  Tag="{Binding WorkerId}"
+                                  Click="OnGraduationYouth" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Programmes" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <ItemsControl ItemsSource="{Binding Session.YouthPrograms}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Staff" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <ItemsControl ItemsSource="{Binding Session.YouthStaffAssignments}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Nom}" Foreground="#E5E7EB" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Actions" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <NumericUpDown Width="140"
+                                   Minimum="0"
+                                   Maximum="500000"
+                                   Value="{Binding Session.YouthBudgetNouveau}" />
+                    <Button Content="Changer budget" Click="OnChangerBudgetYouth" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBox Width="140" Watermark="Worker ID" Text="{Binding Session.YouthCoachWorkerId}" />
+                    <TextBox Width="160" Watermark="Rôle" Text="{Binding Session.YouthCoachRole}" />
+                    <Button Content="Affecter coach" Click="OnAffecterCoachYouth" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Session.YouthActionMessage}" Foreground="#34D399" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
           </StackPanel>
 
           <StackPanel Spacing="8">
