@@ -1,10 +1,12 @@
+using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class GameRepository
+public sealed class GameRepository : IContractRepository
 {
     private readonly SqliteConnectionFactory _factory;
 
@@ -118,9 +120,55 @@ public sealed class GameRepository
                 semaine INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS contracts (
+                contract_id TEXT,
                 worker_id TEXT NOT NULL,
                 company_id TEXT NOT NULL,
-                fin_semaine INTEGER NOT NULL
+                type TEXT NOT NULL DEFAULT 'exclusif',
+                debut_semaine INTEGER NOT NULL DEFAULT 1,
+                fin_semaine INTEGER NOT NULL,
+                salaire REAL NOT NULL DEFAULT 0,
+                bonus_show REAL NOT NULL DEFAULT 0,
+                buyout REAL NOT NULL DEFAULT 0,
+                non_compete_weeks INTEGER NOT NULL DEFAULT 0,
+                auto_renew INTEGER NOT NULL DEFAULT 0,
+                exclusif INTEGER NOT NULL DEFAULT 1,
+                statut TEXT NOT NULL DEFAULT 'actif',
+                created_week INTEGER NOT NULL DEFAULT 1
+            );
+            CREATE TABLE IF NOT EXISTS contract_offers (
+                offer_id TEXT PRIMARY KEY,
+                negotiation_id TEXT NOT NULL,
+                worker_id TEXT NOT NULL,
+                company_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                debut_semaine INTEGER NOT NULL,
+                fin_semaine INTEGER NOT NULL,
+                salaire REAL NOT NULL,
+                bonus_show REAL NOT NULL,
+                buyout REAL NOT NULL,
+                non_compete_weeks INTEGER NOT NULL,
+                auto_renew INTEGER NOT NULL,
+                exclusif INTEGER NOT NULL,
+                statut TEXT NOT NULL,
+                created_week INTEGER NOT NULL,
+                expiration_week INTEGER NOT NULL,
+                parent_offer_id TEXT,
+                est_ia INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS contract_clauses (
+                clause_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                contract_id TEXT,
+                offer_id TEXT,
+                type TEXT NOT NULL,
+                valeur TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS negotiation_state (
+                negotiation_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                company_id TEXT NOT NULL,
+                statut TEXT NOT NULL,
+                last_offer_id TEXT,
+                updated_week INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS youth_structures (
                 youth_id TEXT PRIMARY KEY,
@@ -183,6 +231,11 @@ public sealed class GameRepository
             CREATE INDEX IF NOT EXISTS idx_workers_popularite ON workers(popularite);
             CREATE INDEX IF NOT EXISTS idx_contracts_enddate ON contracts(fin_semaine);
             CREATE INDEX IF NOT EXISTS idx_contracts_company ON contracts(company_id);
+            CREATE INDEX IF NOT EXISTS idx_contracts_worker ON contracts(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_contracts_company_end ON contracts(company_id, fin_semaine);
+            CREATE INDEX IF NOT EXISTS idx_contract_offers_company ON contract_offers(company_id);
+            CREATE INDEX IF NOT EXISTS idx_contract_offers_worker ON contract_offers(worker_id);
+            CREATE INDEX IF NOT EXISTS idx_contract_offers_expiration ON contract_offers(expiration_week);
             CREATE INDEX IF NOT EXISTS idx_titles_company ON titles(company_id);
             CREATE INDEX IF NOT EXISTS idx_youth_company ON youth_structures(company_id);
             CREATE INDEX IF NOT EXISTS idx_youth_region ON youth_structures(region);
@@ -205,19 +258,11 @@ public sealed class GameRepository
 
     public ShowContext? ChargerShowContext(string showId)
     {
-        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
-        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
-    }
+        using var connexion = _factory.OuvrirConnexion();
+        AssurerColonnesSupplementaires(connexion);
 
-    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"PRAGMA table_info({table});";
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
+        var show = ChargerShow(connexion, showId);
+        if (show is null)
         {
             return null;
         }
@@ -236,6 +281,44 @@ public sealed class GameRepository
         var chimies = ChargerChimies(connexion);
 
         return new ShowContext(show, compagnie, workers, titres, storylines, segments, chimies);
+    }
+
+    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
+    {
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
+        AjouterColonneSiAbsente(connexion, "contracts", "contract_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "contracts", "type", "TEXT NOT NULL DEFAULT 'exclusif'");
+        AjouterColonneSiAbsente(connexion, "contracts", "debut_semaine", "INTEGER NOT NULL DEFAULT 1");
+        AjouterColonneSiAbsente(connexion, "contracts", "salaire", "REAL NOT NULL DEFAULT 0");
+        AjouterColonneSiAbsente(connexion, "contracts", "bonus_show", "REAL NOT NULL DEFAULT 0");
+        AjouterColonneSiAbsente(connexion, "contracts", "buyout", "REAL NOT NULL DEFAULT 0");
+        AjouterColonneSiAbsente(connexion, "contracts", "non_compete_weeks", "INTEGER NOT NULL DEFAULT 0");
+        AjouterColonneSiAbsente(connexion, "contracts", "auto_renew", "INTEGER NOT NULL DEFAULT 0");
+        AjouterColonneSiAbsente(connexion, "contracts", "exclusif", "INTEGER NOT NULL DEFAULT 1");
+        AjouterColonneSiAbsente(connexion, "contracts", "statut", "TEXT NOT NULL DEFAULT 'actif'");
+        AjouterColonneSiAbsente(connexion, "contracts", "created_week", "INTEGER NOT NULL DEFAULT 1");
+    }
+
+    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        using var alterCommand = connexion.CreateCommand();
+        alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
+        alterCommand.ExecuteNonQuery();
     }
 
     public BookingPlan ChargerBookingPlan(ShowContext context)
@@ -664,7 +747,7 @@ public sealed class GameRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, EndDate FROM Contracts;";
+        command.CommandText = "SELECT WorkerId, COALESCE(EndDate, fin_semaine) FROM Contracts;";
         using var reader = command.ExecuteReader();
         var contracts = new List<(string, int)>();
         while (reader.Read())
@@ -696,6 +779,431 @@ public sealed class GameRepository
         using var command = connexion.CreateCommand();
         command.CommandText = "UPDATE Workers SET Fatigue = MAX(0, Fatigue - 12);";
         command.ExecuteNonQuery();
+    }
+
+    public void AjouterOffre(ContractOffer offre, IReadOnlyList<ContractClause> clauses)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO contract_offers (
+                offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                created_week, expiration_week, parent_offer_id, est_ia
+            )
+            VALUES (
+                $offerId, $negotiationId, $workerId, $companyId, $type, $debutSemaine, $finSemaine,
+                $salaire, $bonusShow, $buyout, $nonCompete, $autoRenew, $exclusif, $statut,
+                $createdWeek, $expirationWeek, $parentOfferId, $estIa
+            );
+            """;
+        command.Parameters.AddWithValue("$offerId", offre.OfferId);
+        command.Parameters.AddWithValue("$negotiationId", offre.NegociationId);
+        command.Parameters.AddWithValue("$workerId", offre.WorkerId);
+        command.Parameters.AddWithValue("$companyId", offre.CompanyId);
+        command.Parameters.AddWithValue("$type", offre.TypeContrat);
+        command.Parameters.AddWithValue("$debutSemaine", offre.StartWeek);
+        command.Parameters.AddWithValue("$finSemaine", offre.EndWeek);
+        command.Parameters.AddWithValue("$salaire", offre.SalaireHebdo);
+        command.Parameters.AddWithValue("$bonusShow", offre.BonusShow);
+        command.Parameters.AddWithValue("$buyout", offre.Buyout);
+        command.Parameters.AddWithValue("$nonCompete", offre.NonCompeteWeeks);
+        command.Parameters.AddWithValue("$autoRenew", offre.RenouvellementAuto ? 1 : 0);
+        command.Parameters.AddWithValue("$exclusif", offre.EstExclusif ? 1 : 0);
+        command.Parameters.AddWithValue("$statut", offre.Statut);
+        command.Parameters.AddWithValue("$createdWeek", offre.CreatedWeek);
+        command.Parameters.AddWithValue("$expirationWeek", offre.ExpirationWeek);
+        command.Parameters.AddWithValue("$parentOfferId", (object?)offre.ParentOfferId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$estIa", offre.EstIa ? 1 : 0);
+        command.ExecuteNonQuery();
+
+        InsererClauses(transaction, clauses, null, offre.OfferId);
+        transaction.Commit();
+    }
+
+    public ContractOffer? ChargerOffre(string offerId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                   salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                   created_week, expiration_week, parent_offer_id, est_ia
+            FROM contract_offers
+            WHERE offer_id = $offerId;
+            """;
+        command.Parameters.AddWithValue("$offerId", offerId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ContractOffer(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.GetString(4),
+            reader.GetInt32(5),
+            reader.GetInt32(6),
+            LireDecimal(reader, 7),
+            LireDecimal(reader, 8),
+            LireDecimal(reader, 9),
+            reader.GetInt32(10),
+            reader.GetInt32(11) == 1,
+            reader.GetInt32(12) == 1,
+            reader.GetString(13),
+            reader.GetInt32(14),
+            reader.GetInt32(15),
+            reader.IsDBNull(16) ? null : reader.GetString(16),
+            reader.GetInt32(17) == 1);
+    }
+
+    public IReadOnlyList<ContractOffer> ChargerOffres(string companyId, int offset, int limit)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                   salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                   created_week, expiration_week, parent_offer_id, est_ia
+            FROM contract_offers
+            WHERE company_id = $companyId
+            ORDER BY created_week DESC
+            LIMIT $limit OFFSET $offset;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        command.Parameters.AddWithValue("$limit", limit);
+        command.Parameters.AddWithValue("$offset", offset);
+        using var reader = command.ExecuteReader();
+        var offres = new List<ContractOffer>();
+        while (reader.Read())
+        {
+            offres.Add(new ContractOffer(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                LireDecimal(reader, 7),
+                LireDecimal(reader, 8),
+                LireDecimal(reader, 9),
+                reader.GetInt32(10),
+                reader.GetInt32(11) == 1,
+                reader.GetInt32(12) == 1,
+                reader.GetString(13),
+                reader.GetInt32(14),
+                reader.GetInt32(15),
+                reader.IsDBNull(16) ? null : reader.GetString(16),
+                reader.GetInt32(17) == 1));
+        }
+
+        return offres;
+    }
+
+    public IReadOnlyList<ContractOffer> ChargerOffresExpirant(int semaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT offer_id, negotiation_id, worker_id, company_id, type, debut_semaine, fin_semaine,
+                   salaire, bonus_show, buyout, non_compete_weeks, auto_renew, exclusif, statut,
+                   created_week, expiration_week, parent_offer_id, est_ia
+            FROM contract_offers
+            WHERE expiration_week <= $semaine
+              AND statut IN ('proposee', 'contre');
+            """;
+        command.Parameters.AddWithValue("$semaine", semaine);
+        using var reader = command.ExecuteReader();
+        var offres = new List<ContractOffer>();
+        while (reader.Read())
+        {
+            offres.Add(new ContractOffer(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                LireDecimal(reader, 7),
+                LireDecimal(reader, 8),
+                LireDecimal(reader, 9),
+                reader.GetInt32(10),
+                reader.GetInt32(11) == 1,
+                reader.GetInt32(12) == 1,
+                reader.GetString(13),
+                reader.GetInt32(14),
+                reader.GetInt32(15),
+                reader.IsDBNull(16) ? null : reader.GetString(16),
+                reader.GetInt32(17) == 1));
+        }
+
+        return offres;
+    }
+
+    public IReadOnlyList<ContractClause> ChargerClausesPourOffre(string offerId)
+    {
+        return ChargerClauses("offer_id", offerId);
+    }
+
+    public void MettreAJourStatutOffre(string offerId, string statut)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "UPDATE contract_offers SET statut = $statut WHERE offer_id = $offerId;";
+        command.Parameters.AddWithValue("$statut", statut);
+        command.Parameters.AddWithValue("$offerId", offerId);
+        command.ExecuteNonQuery();
+    }
+
+    public void AjouterContratActif(ActiveContract contrat, IReadOnlyList<ContractClause> clauses)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO contracts (
+                contract_id, worker_id, company_id, type, debut_semaine, fin_semaine, salaire, bonus_show,
+                buyout, non_compete_weeks, auto_renew, exclusif, statut, created_week
+            )
+            VALUES (
+                $contractId, $workerId, $companyId, $type, $debutSemaine, $finSemaine, $salaire, $bonusShow,
+                $buyout, $nonCompete, $autoRenew, $exclusif, $statut, $createdWeek
+            );
+            """;
+        command.Parameters.AddWithValue("$contractId", contrat.ContractId);
+        command.Parameters.AddWithValue("$workerId", contrat.WorkerId);
+        command.Parameters.AddWithValue("$companyId", contrat.CompanyId);
+        command.Parameters.AddWithValue("$type", contrat.TypeContrat);
+        command.Parameters.AddWithValue("$debutSemaine", contrat.StartWeek);
+        command.Parameters.AddWithValue("$finSemaine", contrat.EndWeek);
+        command.Parameters.AddWithValue("$salaire", contrat.SalaireHebdo);
+        command.Parameters.AddWithValue("$bonusShow", contrat.BonusShow);
+        command.Parameters.AddWithValue("$buyout", contrat.Buyout);
+        command.Parameters.AddWithValue("$nonCompete", contrat.NonCompeteWeeks);
+        command.Parameters.AddWithValue("$autoRenew", contrat.RenouvellementAuto ? 1 : 0);
+        command.Parameters.AddWithValue("$exclusif", contrat.EstExclusif ? 1 : 0);
+        command.Parameters.AddWithValue("$statut", contrat.Statut);
+        command.Parameters.AddWithValue("$createdWeek", contrat.CreatedWeek);
+        command.ExecuteNonQuery();
+
+        InsererClauses(transaction, clauses, contrat.ContractId, null);
+        transaction.Commit();
+    }
+
+    public ActiveContract? ChargerContratActif(string contractId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT contract_id, worker_id, company_id, type, debut_semaine, fin_semaine, salaire, bonus_show,
+                   buyout, non_compete_weeks, auto_renew, exclusif, statut, created_week
+            FROM contracts
+            WHERE contract_id = $contractId;
+            """;
+        command.Parameters.AddWithValue("$contractId", contractId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ActiveContract(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            LireDecimal(reader, 6),
+            LireDecimal(reader, 7),
+            LireDecimal(reader, 8),
+            reader.GetInt32(9),
+            reader.GetInt32(10) == 1,
+            reader.GetInt32(11) == 1,
+            reader.GetString(12),
+            reader.GetInt32(13));
+    }
+
+    public ActiveContract? ChargerContratActif(string workerId, string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT contract_id, worker_id, company_id, type, debut_semaine, fin_semaine, salaire, bonus_show,
+                   buyout, non_compete_weeks, auto_renew, exclusif, statut, created_week
+            FROM contracts
+            WHERE worker_id = $workerId
+              AND company_id = $companyId
+              AND statut = 'actif'
+            ORDER BY fin_semaine DESC
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ActiveContract(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            LireDecimal(reader, 6),
+            LireDecimal(reader, 7),
+            LireDecimal(reader, 8),
+            reader.GetInt32(9),
+            reader.GetInt32(10) == 1,
+            reader.GetInt32(11) == 1,
+            reader.GetString(12),
+            reader.GetInt32(13));
+    }
+
+    public IReadOnlyList<ContractClause> ChargerClausesPourContrat(string contractId)
+    {
+        return ChargerClauses("contract_id", contractId);
+    }
+
+    public void ResilierContrat(string contractId, int finSemaine)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE contracts
+            SET fin_semaine = $finSemaine,
+                statut = 'libere'
+            WHERE contract_id = $contractId;
+            """;
+        command.Parameters.AddWithValue("$finSemaine", finSemaine);
+        command.Parameters.AddWithValue("$contractId", contractId);
+        command.ExecuteNonQuery();
+    }
+
+    public void EnregistrerNegociation(ContractNegotiationState negociation)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO negotiation_state (negotiation_id, worker_id, company_id, statut, last_offer_id, updated_week)
+            VALUES ($negociationId, $workerId, $companyId, $statut, $lastOfferId, $updatedWeek)
+            ON CONFLICT(negotiation_id) DO UPDATE SET
+                worker_id = excluded.worker_id,
+                company_id = excluded.company_id,
+                statut = excluded.statut,
+                last_offer_id = excluded.last_offer_id,
+                updated_week = excluded.updated_week;
+            """;
+        command.Parameters.AddWithValue("$negociationId", negociation.NegociationId);
+        command.Parameters.AddWithValue("$workerId", negociation.WorkerId);
+        command.Parameters.AddWithValue("$companyId", negociation.CompanyId);
+        command.Parameters.AddWithValue("$statut", negociation.Statut);
+        command.Parameters.AddWithValue("$lastOfferId", (object?)negociation.DerniereOffreId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$updatedWeek", negociation.DerniereMiseAJourSemaine);
+        command.ExecuteNonQuery();
+    }
+
+    public ContractNegotiationState? ChargerNegociation(string negociationId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT negotiation_id, worker_id, company_id, statut, last_offer_id, updated_week
+            FROM negotiation_state
+            WHERE negotiation_id = $negociationId;
+            """;
+        command.Parameters.AddWithValue("$negociationId", negociationId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ContractNegotiationState(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.IsDBNull(4) ? null : reader.GetString(4),
+            reader.GetInt32(5));
+    }
+
+    public ContractNegotiationState? ChargerNegociationPourWorker(string workerId, string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT negotiation_id, worker_id, company_id, statut, last_offer_id, updated_week
+            FROM negotiation_state
+            WHERE worker_id = $workerId AND company_id = $companyId
+            ORDER BY updated_week DESC
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ContractNegotiationState(
+            reader.GetString(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.IsDBNull(4) ? null : reader.GetString(4),
+            reader.GetInt32(5));
+    }
+
+    private IReadOnlyList<ContractClause> ChargerClauses(string colonne, string id)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"SELECT type, valeur FROM contract_clauses WHERE {colonne} = $id;";
+        command.Parameters.AddWithValue("$id", id);
+        using var reader = command.ExecuteReader();
+        var clauses = new List<ContractClause>();
+        while (reader.Read())
+        {
+            clauses.Add(new ContractClause(reader.GetString(0), reader.GetString(1)));
+        }
+
+        return clauses;
+    }
+
+    private static void InsererClauses(SqliteTransaction transaction, IReadOnlyList<ContractClause> clauses, string? contractId, string? offerId)
+    {
+        foreach (var clause in clauses)
+        {
+            using var command = transaction.Connection!.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO contract_clauses (contract_id, offer_id, type, valeur)
+                VALUES ($contractId, $offerId, $type, $valeur);
+                """;
+            command.Parameters.AddWithValue("$contractId", (object?)contractId ?? DBNull.Value);
+            command.Parameters.AddWithValue("$offerId", (object?)offerId ?? DBNull.Value);
+            command.Parameters.AddWithValue("$type", clause.Type);
+            command.Parameters.AddWithValue("$valeur", clause.Valeur);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static decimal LireDecimal(SqliteDataReader reader, int index)
+    {
+        return reader.IsDBNull(index) ? 0m : Convert.ToDecimal(reader.GetDouble(index));
     }
 
     public ShowDefinition ChargerShowDefinition(string showId)
