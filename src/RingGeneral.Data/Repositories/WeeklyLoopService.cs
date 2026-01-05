@@ -378,23 +378,4 @@ public sealed class WeeklyLoopService
                ?? throw new InvalidOperationException("Spec de génération de workers invalide.");
     }
 
-    private static YouthSpec ChargerYouthSpec()
-    {
-        var chemins = new[]
-        {
-            Path.Combine(AppContext.BaseDirectory, "specs", "youth", "youth-v1.fr.json"),
-            Path.Combine(Directory.GetCurrentDirectory(), "specs", "youth", "youth-v1.fr.json")
-        };
-
-        var chemin = chemins.FirstOrDefault(File.Exists);
-        if (chemin is null)
-        {
-            throw new FileNotFoundException("Impossible de trouver la spec Youth.");
-        }
-
-        var json = File.ReadAllText(chemin);
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        return JsonSerializer.Deserialize<YouthSpec>(json, options)
-               ?? throw new InvalidOperationException("Spec Youth invalide.");
-    }
 }
