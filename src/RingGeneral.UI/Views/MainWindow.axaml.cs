@@ -246,14 +246,14 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnTableSorting(object? sender, RoutedEventArgs e)
+    private void OnTableSorting(object? sender, DataGridColumnEventArgs e)
     {
-        if (DataContext is not ShellViewModel shell || sender is not DataGrid grid)
+        if (DataContext is not ShellViewModel shell)
         {
             return;
         }
 
-        var colonne = grid.CurrentColumn;
+        var colonne = e.Column;
         if (colonne is null)
         {
             return;
