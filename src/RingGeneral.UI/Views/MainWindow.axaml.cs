@@ -157,6 +157,40 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private async void OnExporterDb(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ShellViewModel shell)
+        {
+            return;
+        }
+
+        var slot = shell.Saves.SauvegardeSelectionnee ?? shell.Saves.SauvegardeCourante;
+        if (slot is null)
+        {
+            shell.Saves.SignalerErreur("Sélectionnez une sauvegarde à exporter.");
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Exporter une base de données",
+            InitialFileName = $"{slot.Nom}.db",
+            Filters = new List<FileDialogFilter>
+            {
+                new() { Name = "Base SQLite", Extensions = { "db" } },
+                new() { Name = "Tous les fichiers", Extensions = { "*" } }
+            }
+        };
+
+        var chemin = await dialog.ShowAsync(this);
+        if (string.IsNullOrWhiteSpace(chemin))
+        {
+            return;
+        }
+
+        shell.Saves.ExporterBase(chemin, slot);
+    }
+
     private async void OnExporterPack(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ShellViewModel shell)

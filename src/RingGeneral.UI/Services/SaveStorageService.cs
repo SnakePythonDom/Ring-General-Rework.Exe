@@ -136,6 +136,16 @@ public sealed class SaveStorageService
         writer.Write(JsonSerializer.Serialize(manifest, _jsonOptions));
     }
 
+    public void ExporterBase(SaveInfo sauvegarde, string cheminDestination)
+    {
+        if (File.Exists(cheminDestination))
+        {
+            File.Delete(cheminDestination);
+        }
+
+        File.Copy(sauvegarde.Chemin, cheminDestination);
+    }
+
     public DatabaseValidationResult ValiderBase(string cheminBase)
     {
         if (!File.Exists(cheminBase))
