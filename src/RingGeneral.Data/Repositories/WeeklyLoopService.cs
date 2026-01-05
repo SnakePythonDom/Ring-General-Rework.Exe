@@ -32,17 +32,7 @@ public sealed class WeeklyLoopService
                 inboxItems.Add(new InboxItem(notice.Type, notice.Titre, notice.Contenu, semaine));
             }
         }
-
-        var progression = SimulerProgressionYouth(semaine, showId);
-        if (progression is not null)
-        {
-            foreach (var graduation in progression.Graduations)
-            {
-                var contenu = $"Un trainee de {graduation.YouthId} est prêt à rejoindre le roster.";
-                inboxItems.Add(new InboxItem("youth", "Graduation Youth", contenu, semaine));
-            }
-        }
-
+        inboxItems.AddRange(GenererProgressionYouth(semaine));
         inboxItems.AddRange(GenererNews(semaine));
         inboxItems.AddRange(VerifierContrats(semaine));
         inboxItems.AddRange(VerifierOffresExpirantes(semaine));
@@ -256,26 +246,49 @@ public sealed class WeeklyLoopService
         return report;
     }
 
-    private YouthProgressionReport? SimulerProgressionYouth(int semaine, string showId)
+    private IEnumerable<InboxItem> GenererProgressionYouth(int semaine)
     {
         var spec = ChargerYouthSpec();
-        var structures = _repository.ChargerYouthStructuresPourGeneration();
-        if (structures.Count == 0)
-        {
-            return null;
-        }
-
-        var trainees = _repository.ChargerTraineesPourProgression();
+        var trainees = _repository.ChargerYouthTraineesPourProgression();
         if (trainees.Count == 0)
         {
-            return null;
+            yield break;
         }
 
-        var seed = HashCode.Combine(showId, semaine, "youth-progression");
-        var service = new YouthProgressionService(new SeededRandomProvider(seed), spec);
-        var report = service.SimulerSemaine(semaine, structures, trainees, seed);
-        _repository.AppliquerProgressionYouth(report);
-        return report;
+        var seed = HashCode.Combine(semaine, trainees.Count);
+        _random.Reseed(seed);
+        var service = new YouthProgressionService(_random, spec);
+        var report = service.AppliquerProgression(semaine, trainees);
+        _repository.EnregistrerProgressionTrainees(report);
+
+        foreach (var resultat in report.Resultats.Where(item => item.Diplome))
+        {
+            yield return new InboxItem(
+                "youth",
+                "Graduation Youth",
+                $"{resultat.Nom} est diplômé de la structure Youth.",
+                semaine);
+        }
+    }
+
+    private static YouthSpec ChargerYouthSpec()
+    {
+        var chemins = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "specs", "youth", "youth-v1.fr.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "specs", "youth", "youth-v1.fr.json")
+        };
+
+        var chemin = chemins.FirstOrDefault(File.Exists);
+        if (chemin is null)
+        {
+            throw new FileNotFoundException("Impossible de trouver la spec Youth v1.");
+        }
+
+        var json = File.ReadAllText(chemin);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<YouthSpec>(json, options)
+               ?? throw new InvalidOperationException("Spec Youth v1 invalide.");
     }
 
     private static WorkerGenerationSpec ChargerWorkerGenerationSpec()

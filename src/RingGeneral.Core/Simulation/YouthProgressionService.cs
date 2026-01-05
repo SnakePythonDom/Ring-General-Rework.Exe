@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 
@@ -17,106 +14,112 @@ public sealed class YouthProgressionService
         _spec = spec;
     }
 
-    public YouthProgressionReport SimulerSemaine(int semaine, IReadOnlyList<YouthStructureState> structures, IReadOnlyList<YouthTraineeProgressionState> trainees, int seed)
+    public YouthProgressionReport AppliquerProgression(int semaine, IReadOnlyList<YouthTraineeProgressionState> trainees)
     {
-        _random.Reseed(seed);
-        var structuresMap = structures.ToDictionary(s => s.YouthId, StringComparer.OrdinalIgnoreCase);
-        var updates = new List<YouthProgressionUpdate>();
-
+        var resultats = new List<YouthTraineeProgressionResult>();
         foreach (var trainee in trainees)
         {
-            if (!structuresMap.TryGetValue(trainee.YouthId, out var structure))
-            {
-                continue;
-            }
+            var (deltaInRing, deltaEntertainment, deltaStory) = CalculerGains(trainee);
+            var inRing = Clamp(trainee.InRing + deltaInRing);
+            var entertainment = Clamp(trainee.Entertainment + deltaEntertainment);
+            var story = Clamp(trainee.Story + deltaStory);
+            var diplome = EstDiplome(trainee, semaine, inRing, entertainment, story);
 
-            if (!string.Equals(trainee.Statut, "EN_FORMATION", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var gainTotal = CalculerGainHebdo(structure);
-            var distribution = ConstruireDistribution(structure);
-
-            var deltaInRing = CalculerDelta(gainTotal, distribution.GetValueOrDefault("in_ring", 0));
-            var deltaEntertainment = CalculerDelta(gainTotal, distribution.GetValueOrDefault("entertainment", 0));
-            var deltaStory = CalculerDelta(gainTotal, distribution.GetValueOrDefault("story", 0));
-
-            var nouveauInRing = trainee.InRing + deltaInRing;
-            var nouveauEntertainment = trainee.Entertainment + deltaEntertainment;
-            var nouveauStory = trainee.Story + deltaStory;
-
-            var estGradue = VerifierGraduation(nouveauInRing, nouveauEntertainment, nouveauStory);
-
-            updates.Add(new YouthProgressionUpdate(
+            resultats.Add(new YouthTraineeProgressionResult(
                 trainee.WorkerId,
                 trainee.YouthId,
-                nouveauInRing,
-                nouveauEntertainment,
-                nouveauStory,
-                deltaInRing,
-                deltaEntertainment,
-                deltaStory,
-                estGradue));
+                trainee.Nom,
+                inRing,
+                entertainment,
+                story,
+                inRing - trainee.InRing,
+                entertainment - trainee.Entertainment,
+                story - trainee.Story,
+                diplome));
         }
 
-        return new YouthProgressionReport(semaine, updates);
+        return new YouthProgressionReport(semaine, resultats);
     }
 
-    private double CalculerGainHebdo(YouthStructureState structure)
+    private (int DeltaInRing, int DeltaEntertainment, int DeltaStory) CalculerGains(YouthTraineeProgressionState trainee)
     {
-        var infraBonus = Math.Max(0, structure.NiveauEquipements - 1) * _spec.Progression.BonusInfrastructureParNiveau;
-        var coachingBonus = Math.Max(0, structure.QualiteCoaching - 10) * _spec.Progression.BonusCoachingParPoint;
-        var budgetBonus = _spec.Progression.BonusBudget
-            .FirstOrDefault(tier => structure.BudgetAnnuel >= tier.Min && structure.BudgetAnnuel <= tier.Max)?.Bonus ?? 0;
+        var chance = _spec.Progression.ChanceBase;
+        chance += Math.Max(0, trainee.NiveauEquipements - 1) * _spec.Progression.BonusInfrastructureParNiveau;
+        chance += Math.Max(0, trainee.QualiteCoaching - 10) * _spec.Progression.BonusCoachingParPoint;
 
-        var total = _spec.Progression.GainBase + infraBonus + coachingBonus + budgetBonus;
-        return Math.Clamp(total, 0, _spec.Progression.GainMax);
-    }
-
-    private Dictionary<string, double> ConstruireDistribution(YouthStructureState structure)
-    {
-        var distribution = new Dictionary<string, double>(_spec.Progression.Distribution, StringComparer.OrdinalIgnoreCase);
-        if (_spec.Progression.Philosophie.TryGetValue(structure.Philosophie, out var bonus))
+        var palier = _spec.Structures.Budget.Paliers
+            .FirstOrDefault(item => trainee.BudgetAnnuel >= item.Min && trainee.BudgetAnnuel <= item.Max);
+        if (palier is not null)
         {
-            distribution["in_ring"] = distribution.GetValueOrDefault("in_ring", 0) + bonus.InRing;
-            distribution["entertainment"] = distribution.GetValueOrDefault("entertainment", 0) + bonus.Entertainment;
-            distribution["story"] = distribution.GetValueOrDefault("story", 0) + bonus.Story;
+            chance += palier.BonusChance;
         }
 
-        var total = distribution.Values.Sum();
-        if (total <= 0)
+        chance = Math.Clamp(chance, 0, 1);
+        var focus = _spec.Structures.Philosophie.TryGetValue(trainee.Philosophie, out var philosophie)
+            ? philosophie
+            : new YouthPhilosophyFocus(1, 1, 1);
+
+        var gains = new List<(string Attr, double Weight)>
         {
-            return new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
+            ("inring", focus.InRing),
+            ("entertainment", focus.Entertainment),
+            ("story", focus.Story)
+        };
+
+        var deltas = new Dictionary<string, int>
+        {
+            ["inring"] = 0,
+            ["entertainment"] = 0,
+            ["story"] = 0
+        };
+
+        foreach (var (attr, weight) in gains)
+        {
+            if (_random.NextDouble() <= chance * weight)
             {
-                ["in_ring"] = 1,
-                ["entertainment"] = 1,
-                ["story"] = 1
-            };
+                deltas[attr] = 1;
+            }
         }
 
-        return distribution.ToDictionary(pair => pair.Key, pair => pair.Value / total, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private int CalculerDelta(double gainTotal, double poids)
-    {
-        if (poids <= 0)
+        var totalGains = deltas.Values.Sum();
+        if (totalGains > _spec.Progression.MaxGainParSemaine)
         {
-            return 0;
+            var ordered = gains
+                .OrderByDescending(item => item.Weight)
+                .Select(item => item.Attr)
+                .ToList();
+            var allowed = new HashSet<string>(ordered.Take(_spec.Progression.MaxGainParSemaine));
+            foreach (var key in deltas.Keys.ToList())
+            {
+                if (!allowed.Contains(key))
+                {
+                    deltas[key] = 0;
+                }
+            }
         }
 
-        var gain = gainTotal * poids;
-        var entier = (int)Math.Floor(gain);
-        var fraction = gain - entier;
-        return entier + (_random.NextDouble() < fraction ? 1 : 0);
+        return (deltas["inring"], deltas["entertainment"], deltas["story"]);
     }
 
-    private bool VerifierGraduation(int inRing, int entertainment, int story)
+    private bool EstDiplome(YouthTraineeProgressionState trainee, int semaine, int inRing, int entertainment, int story)
     {
+        if (string.Equals(trainee.Statut, "GRADUE", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var semaines = Math.Max(0, semaine - trainee.SemaineInscription + 1);
+        if (semaines < _spec.Graduation.MinSemaines)
+        {
+            return false;
+        }
+
         var moyenne = (inRing + entertainment + story) / 3.0;
-        return moyenne >= _spec.Graduation.SeuilGlobal
+        return moyenne >= _spec.Graduation.SeuilMoyen
                && inRing >= _spec.Graduation.SeuilInRing
                && entertainment >= _spec.Graduation.SeuilEntertainment
                && story >= _spec.Graduation.SeuilStory;
     }
+
+    private int Clamp(int value) => Math.Clamp(value, 1, _spec.Progression.CapAttribut);
 }
