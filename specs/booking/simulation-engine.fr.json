@@ -9,7 +9,9 @@
     {"id": "evaluationSegment", "libelle": "Évaluation segment par segment", "description": "Calcule InRing, Entertainment, Story."},
     {"id": "modificateurs", "libelle": "Modificateurs", "description": "Applique CrowdHeat, pacing, production."},
     {"id": "incidents", "libelle": "Incidents", "description": "Détermine botch, blessure, incident backstage."},
-    {"id": "scores", "libelle": "Scores finaux", "description": "Calcule score final par segment et show."}
+    {"id": "scores", "libelle": "Scores finaux", "description": "Calcule score final par segment et show."},
+    {"id": "recap", "libelle": "Récap show", "description": "Construit le récap FM (note, audience, finances, deltas)."},
+    {"id": "impacts", "libelle": "Impacts persistés", "description": "Applique popularité, momentum, heat, fatigue, blessures, finances."}
   ],
   "scores": {
     "composantes": ["InRing", "Entertainment", "Story"],
@@ -41,12 +43,18 @@
     "types": [
       {"id": "botch", "libelle": "Botch"},
       {"id": "blessure", "libelle": "Blessure"},
-      {"id": "incidentBackstage", "libelle": "Incident backstage"}
+      {"id": "incidentBackstage", "libelle": "Incident backstage"},
+      {"id": "panneTechnique", "libelle": "Panne technique"}
     ],
     "regles": [
       "Le risque de botch augmente avec l'intensité élevée.",
       "Les blessures sont plus probables si la durabilité est faible."
     ]
+  },
+  "recap": {
+    "sections": ["noteShow", "audience", "finances", "deltas", "segments"],
+    "deltas": ["popularite", "momentum", "storylineHeat", "fatigue", "blessures"],
+    "format": "Résumé FM complet avec breakdown par segment."
   },
   "messagesErreur": {
     "validation": "Validation échouée : segments incohérents.",

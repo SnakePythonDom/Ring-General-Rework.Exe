@@ -5,7 +5,8 @@
     {"id": "critique", "libelle": "Critique"},
     {"id": "medical", "libelle": "Médical"},
     {"id": "contrats", "libelle": "Contrats"},
-    {"id": "scouting", "libelle": "Scouting"}
+    {"id": "scouting", "libelle": "Scouting"},
+    {"id": "medical", "libelle": "Médical"}
   ],
   "tables": [
     {
