@@ -386,6 +386,30 @@
               </StackPanel>
             </Border>
             <StackPanel Spacing="6">
+              <TextBlock Text="Audience" Foreground="#F9FAFB" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Session.AudienceResume}" Foreground="#E5E7EB" />
+              <Border Background="#111827" Padding="8" CornerRadius="6">
+                <StackPanel Spacing="4">
+                  <Grid ColumnDefinitions="80,80,80">
+                    <TextBlock Text="Semaine" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="1" Text="Audience" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="2" Text="Évolution" Foreground="#9CA3AF" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Session.AudienceHistorique}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="80,80,80">
+                          <TextBlock Text="{Binding Semaine}" Foreground="#E5E7EB" />
+                          <TextBlock Grid.Column="1" Text="{Binding Audience}" Foreground="#FCD34D" />
+                          <TextBlock Grid.Column="2" Text="{Binding Evolution}" Foreground="#A7F3D0" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+            <StackPanel Spacing="6">
               <TextBlock Text="Pourquoi cette note ?" Foreground="#F9FAFB" FontWeight="SemiBold" />
               <ItemsControl ItemsSource="{Binding Session.PourquoiNote}">
                 <ItemsControl.ItemTemplate>
@@ -429,6 +453,68 @@
                 <Button Content="Titres" Tag="impacts.titres" Click="OnOuvrirImpact" />
               </StackPanel>
             </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Diffusion" FontSize="20" FontWeight="Bold" Foreground="White" />
+              <Button Grid.Column="1" Content="?" Tag="page.diffusion" Click="OnOuvrirAide" ToolTip.Tip="{Binding Session.Tooltips['ui.help']}" />
+            </Grid>
+            <Border Background="#111827" Padding="12" CornerRadius="8">
+              <StackPanel Spacing="12">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Deals TV" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                  <Grid ColumnDefinitions="160,80,80,100,100,*">
+                    <TextBlock Text="Diffuseur" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="1" Text="Reach" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="2" Text="Cap" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="3" Text="Fixe" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="4" Text="Par point" Foreground="#9CA3AF" />
+                    <TextBlock Grid.Column="5" Text="Contraintes" Foreground="#9CA3AF" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Session.DealsTv}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="160,80,80,100,100,*">
+                          <TextBlock Text="{Binding Diffuseur}" Foreground="#E5E7EB" />
+                          <TextBlock Grid.Column="1" Text="{Binding ReachBonus}" Foreground="#38BDF8" />
+                          <TextBlock Grid.Column="2" Text="{Binding AudienceCap}" Foreground="#FCD34D" />
+                          <TextBlock Grid.Column="3" Text="{Binding RevenuBase}" Foreground="#34D399" />
+                          <TextBlock Grid.Column="4" Text="{Binding RevenuParPoint}" Foreground="#93C5FD" />
+                          <TextBlock Grid.Column="5" Text="{Binding Contraintes}" Foreground="#D1D5DB" TextWrapping="Wrap" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Reach map" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                  <ItemsControl ItemsSource="{Binding Session.ReachMap}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="200,80,*">
+                          <TextBlock Text="{Binding Zone}" Foreground="#E5E7EB" />
+                          <TextBlock Grid.Column="1" Text="{Binding Reach}" Foreground="#FCD34D" />
+                          <TextBlock Grid.Column="2" Text="{Binding Details}" Foreground="#9CA3AF" TextWrapping="Wrap" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Contraintes" Foreground="#F9FAFB" FontWeight="SemiBold" />
+                  <ItemsControl ItemsSource="{Binding Session.ContraintesDiffusion}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding .}" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </StackPanel>
+            </Border>
           </StackPanel>
 
           <StackPanel Spacing="8">

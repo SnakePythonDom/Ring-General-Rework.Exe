@@ -55,6 +55,10 @@ public sealed class GameSessionViewModel : ViewModelBase
         ConsignesBooking = new ObservableCollection<string>();
         RecapFm = new ObservableCollection<string>();
         NouveauSegmentParticipants = new ObservableCollection<ParticipantViewModel>();
+        DealsTv = new ObservableCollection<TvDealViewModel>();
+        ReachMap = new ObservableCollection<ReachMapItemViewModel>();
+        ContraintesDiffusion = new ObservableCollection<string>();
+        AudienceHistorique = new ObservableCollection<AudienceHistoryItemViewModel>();
         AidePanel = new HelpPanelViewModel();
         Codex = ChargerCodex();
         YouthGenerationModes = new[]
@@ -71,6 +75,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         InitialiserSegmentTypes();
         InitialiserConsignesBooking();
+        _context = _repository.ChargerShowContext(ShowId);
         ChargerShow();
         ChargerInbox();
         ChargerImpactsInitial();
@@ -90,6 +95,10 @@ public sealed class GameSessionViewModel : ViewModelBase
     public ObservableCollection<string> ConsignesBooking { get; }
     public ObservableCollection<string> RecapFm { get; }
     public ObservableCollection<ParticipantViewModel> NouveauSegmentParticipants { get; }
+    public ObservableCollection<TvDealViewModel> DealsTv { get; }
+    public ObservableCollection<ReachMapItemViewModel> ReachMap { get; }
+    public ObservableCollection<string> ContraintesDiffusion { get; }
+    public ObservableCollection<AudienceHistoryItemViewModel> AudienceHistorique { get; }
     public HelpPanelViewModel AidePanel { get; }
     public CodexViewModel Codex { get; }
     public ObservableCollection<TableViewItemViewModel> TableItems { get; }
@@ -218,6 +227,13 @@ public sealed class GameSessionViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _resumeShow, value);
     }
     private string? _resumeShow;
+
+    public string? AudienceResume
+    {
+        get => _audienceResume;
+        private set => this.RaiseAndSetIfChanged(ref _audienceResume, value);
+    }
+    private string? _audienceResume;
 
     public string? DetailsSimulation
     {
@@ -358,7 +374,9 @@ public sealed class GameSessionViewModel : ViewModelBase
             Resultats.Add(new SegmentResultViewModel(segment, libelle));
         }
 
-        ResumeShow = $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} • Billetterie {resultat.RapportShow.Billetterie:C}";
+        ResumeShow = $"Note {resultat.RapportShow.NoteGlobale} • Audience {resultat.RapportShow.Audience} • Billetterie {resultat.RapportShow.Billetterie:C} • TV {resultat.RapportShow.Tv:C}";
+        AudienceResume =
+            $"Audience {resultat.RapportShow.Audience} • Reach {resultat.RapportShow.AudienceDetails.Reach} • Stars {resultat.RapportShow.AudienceDetails.Stars} • Saturation {resultat.RapportShow.AudienceDetails.Saturation}";
         MettreAJourAnalyseShow(resultat);
         MettreAJourImpacts(resultat);
         MettreAJourRecapFm(resultat);
@@ -616,6 +634,16 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerShow()
     {
+        if (_repository is not null)
+        {
+            _context = _repository.ChargerShowContext(ShowId);
+        }
+
+        if (_context is null)
+        {
+            return;
+        }
+
         Segments.Clear();
         WorkersDisponibles.Clear();
 
@@ -647,6 +675,61 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerCalendrier();
         MettreAJourAvertissements();
         InitialiserNouveauShow();
+        ChargerDiffusion();
+        MettreAJourAudienceHistorique();
+    }
+
+    private void ChargerDiffusion()
+    {
+        DealsTv.Clear();
+        ReachMap.Clear();
+        ContraintesDiffusion.Clear();
+
+        if (_repository is null || _context is null)
+        {
+            return;
+        }
+
+        var deals = _repository.ChargerTvDeals(_context.Show.CompagnieId);
+        foreach (var deal in deals)
+        {
+            DealsTv.Add(new TvDealViewModel(deal));
+            if (!string.IsNullOrWhiteSpace(deal.Constraints))
+            {
+                ContraintesDiffusion.Add(deal.Constraints);
+            }
+        }
+
+        ReachMap.Add(new ReachMapItemViewModel(_context.Compagnie.Region, _context.Compagnie.Reach, "Base locale"));
+        if (deals.Count > 0)
+        {
+            var totalReach = Math.Clamp(
+                _context.Compagnie.Reach + deals.Sum(deal => deal.ReachBonus),
+                0,
+                100);
+            ReachMap.Add(new ReachMapItemViewModel("Couverture totale", totalReach, "Avec bonus deals TV"));
+        }
+    }
+
+    private void MettreAJourAudienceHistorique()
+    {
+        AudienceHistorique.Clear();
+        if (_repository is null || _context is null)
+        {
+            return;
+        }
+
+        var historique = _repository.ChargerAudienceHistorique(_context.Show.ShowId)
+            .OrderByDescending(entry => entry.Week)
+            .ToList();
+
+        AudienceHistoryEntry? precedent = null;
+        foreach (var entree in historique)
+        {
+            var item = new AudienceHistoryItemViewModel(entree, precedent?.Audience);
+            AudienceHistorique.Add(item);
+            precedent = entree;
+        }
     }
 
     private void ChargerInbox()

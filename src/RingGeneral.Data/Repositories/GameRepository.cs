@@ -68,6 +68,18 @@ public sealed class GameRepository
                 lieu TEXT NOT NULL DEFAULT '',
                 diffusion TEXT NOT NULL DEFAULT ''
             );
+            CREATE TABLE IF NOT EXISTS tv_deals (
+                tv_deal_id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
+                network_name TEXT NOT NULL,
+                reach_bonus INTEGER NOT NULL DEFAULT 0,
+                audience_cap INTEGER NOT NULL DEFAULT 100,
+                audience_min INTEGER NOT NULL DEFAULT 0,
+                base_revenue REAL NOT NULL DEFAULT 0,
+                revenue_per_point REAL NOT NULL DEFAULT 0,
+                penalty REAL NOT NULL DEFAULT 0,
+                constraints TEXT NOT NULL DEFAULT ''
+            );
             CREATE TABLE IF NOT EXISTS segments (
                 segment_id TEXT PRIMARY KEY,
                 show_id TEXT NOT NULL,
@@ -101,6 +113,15 @@ public sealed class GameRepository
                 note INTEGER NOT NULL,
                 audience INTEGER NOT NULL,
                 resume TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS audience_history (
+                show_id TEXT NOT NULL,
+                semaine INTEGER NOT NULL,
+                audience INTEGER NOT NULL,
+                reach INTEGER NOT NULL,
+                show_score INTEGER NOT NULL,
+                stars INTEGER NOT NULL,
+                saturation INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS segment_history (
                 segment_id TEXT NOT NULL,
@@ -205,19 +226,11 @@ public sealed class GameRepository
 
     public ShowContext? ChargerShowContext(string showId)
     {
-        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
-        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
-        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
-    }
+        using var connexion = _factory.OuvrirConnexion();
+        AssurerColonnesSupplementaires(connexion);
 
-    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"PRAGMA table_info({table});";
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
+        var show = ChargerShow(connexion, showId);
+        if (show is null)
         {
             return null;
         }
@@ -234,8 +247,36 @@ public sealed class GameRepository
         var titres = ChargerTitres(connexion);
         var storylines = ChargerStorylines(connexion);
         var chimies = ChargerChimies(connexion);
+        var deal = ChargerTvDeal(connexion, show.DealTvId);
 
-        return new ShowContext(show, compagnie, workers, titres, storylines, segments, chimies);
+        return new ShowContext(show, compagnie, workers, titres, storylines, segments, chimies, deal);
+    }
+
+    private static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (reader.GetString(1).Equals(colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        using var alterCommand = connexion.CreateCommand();
+        alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
+        alterCommand.ExecuteNonQuery();
+    }
+
+    private static void AssurerColonnesSupplementaires(SqliteConnection connexion)
+    {
+        AjouterColonneSiAbsente(connexion, "workers", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "workers", "type_worker", "TEXT");
+        AjouterColonneSiAbsente(connexion, "titles", "company_id", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "lieu", "TEXT");
+        AjouterColonneSiAbsente(connexion, "shows", "diffusion", "TEXT");
     }
 
     public BookingPlan ChargerBookingPlan(ShowContext context)
@@ -405,35 +446,115 @@ public sealed class GameRepository
         using var connexion = _factory.OuvrirConnexion();
         using var transaction = connexion.BeginTransaction();
 
-        using var showCommand = connexion.CreateCommand();
-        showCommand.Transaction = transaction;
-        showCommand.CommandText = """
-            INSERT INTO ShowHistory (ShowId, Week, Note, Audience, Summary)
-            VALUES ($showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $note, $audience, $resume);
-            """;
-        showCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
-        showCommand.Parameters.AddWithValue("$note", rapport.NoteGlobale);
-        showCommand.Parameters.AddWithValue("$audience", rapport.Audience);
-        showCommand.Parameters.AddWithValue("$resume", string.Join(" | ", rapport.PointsCles));
-        showCommand.ExecuteNonQuery();
+        var semaine = ChargerSemaineShow(connexion, rapport.ShowId) ?? 0;
+        var resume = string.Join(" | ", rapport.PointsCles);
+
+        if (TableExiste(connexion, "show_history"))
+        {
+            using var showCommand = connexion.CreateCommand();
+            showCommand.Transaction = transaction;
+            showCommand.CommandText = """
+                INSERT INTO show_history (show_id, semaine, note, audience, resume)
+                VALUES ($showId, $semaine, $note, $audience, $resume);
+                """;
+            showCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
+            showCommand.Parameters.AddWithValue("$semaine", semaine);
+            showCommand.Parameters.AddWithValue("$note", rapport.NoteGlobale);
+            showCommand.Parameters.AddWithValue("$audience", rapport.Audience);
+            showCommand.Parameters.AddWithValue("$resume", resume);
+            showCommand.ExecuteNonQuery();
+        }
+
+        if (TableExiste(connexion, "ShowHistory"))
+        {
+            using var showCommand = connexion.CreateCommand();
+            showCommand.Transaction = transaction;
+            showCommand.CommandText = """
+                INSERT INTO ShowHistory (ShowId, Week, Note, Audience, Summary)
+                VALUES ($showId, $semaine, $note, $audience, $resume);
+                """;
+            showCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
+            showCommand.Parameters.AddWithValue("$semaine", semaine);
+            showCommand.Parameters.AddWithValue("$note", rapport.NoteGlobale);
+            showCommand.Parameters.AddWithValue("$audience", rapport.Audience);
+            showCommand.Parameters.AddWithValue("$resume", resume);
+            showCommand.ExecuteNonQuery();
+        }
+
+        if (TableExiste(connexion, "audience_history"))
+        {
+            using var audienceCommand = connexion.CreateCommand();
+            audienceCommand.Transaction = transaction;
+            audienceCommand.CommandText = """
+                INSERT INTO audience_history (show_id, semaine, audience, reach, show_score, stars, saturation)
+                VALUES ($showId, $semaine, $audience, $reach, $score, $stars, $saturation);
+                """;
+            audienceCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
+            audienceCommand.Parameters.AddWithValue("$semaine", semaine);
+            audienceCommand.Parameters.AddWithValue("$audience", rapport.AudienceDetails.Audience);
+            audienceCommand.Parameters.AddWithValue("$reach", rapport.AudienceDetails.Reach);
+            audienceCommand.Parameters.AddWithValue("$score", rapport.AudienceDetails.ShowScore);
+            audienceCommand.Parameters.AddWithValue("$stars", rapport.AudienceDetails.Stars);
+            audienceCommand.Parameters.AddWithValue("$saturation", rapport.AudienceDetails.Saturation);
+            audienceCommand.ExecuteNonQuery();
+        }
+
+        if (TableExiste(connexion, "AudienceHistory"))
+        {
+            using var audienceCommand = connexion.CreateCommand();
+            audienceCommand.Transaction = transaction;
+            audienceCommand.CommandText = """
+                INSERT INTO AudienceHistory (ShowId, Week, Audience, Reach, ShowScore, Stars, Saturation)
+                VALUES ($showId, $semaine, $audience, $reach, $score, $stars, $saturation);
+                """;
+            audienceCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
+            audienceCommand.Parameters.AddWithValue("$semaine", semaine);
+            audienceCommand.Parameters.AddWithValue("$audience", rapport.AudienceDetails.Audience);
+            audienceCommand.Parameters.AddWithValue("$reach", rapport.AudienceDetails.Reach);
+            audienceCommand.Parameters.AddWithValue("$score", rapport.AudienceDetails.ShowScore);
+            audienceCommand.Parameters.AddWithValue("$stars", rapport.AudienceDetails.Stars);
+            audienceCommand.Parameters.AddWithValue("$saturation", rapport.AudienceDetails.Saturation);
+            audienceCommand.ExecuteNonQuery();
+        }
 
         foreach (var segment in rapport.Segments)
         {
             var details = string.Join(", ",
                 segment.Facteurs.Select(facteur => $"{facteur.Libelle} {facteur.Impact:+#;-#;0}"));
 
-            using var segmentCommand = connexion.CreateCommand();
-            segmentCommand.Transaction = transaction;
-            segmentCommand.CommandText = """
-                INSERT INTO SegmentResults (ShowSegmentId, ShowId, Week, Note, Summary, Details)
-                VALUES ($segmentId, $showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $note, $resume, $details);
-                """;
-            segmentCommand.Parameters.AddWithValue("$segmentId", segment.SegmentId);
-            segmentCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
-            segmentCommand.Parameters.AddWithValue("$note", segment.Note);
-            segmentCommand.Parameters.AddWithValue("$resume", $"Segment {segment.TypeSegment} - Note {segment.Note}");
-            segmentCommand.Parameters.AddWithValue("$details", details);
-            segmentCommand.ExecuteNonQuery();
+            if (TableExiste(connexion, "segment_history"))
+            {
+                using var segmentCommand = connexion.CreateCommand();
+                segmentCommand.Transaction = transaction;
+                segmentCommand.CommandText = """
+                    INSERT INTO segment_history (segment_id, show_id, semaine, note, resume, details_json)
+                    VALUES ($segmentId, $showId, $semaine, $note, $resume, $details);
+                    """;
+                segmentCommand.Parameters.AddWithValue("$segmentId", segment.SegmentId);
+                segmentCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
+                segmentCommand.Parameters.AddWithValue("$semaine", semaine);
+                segmentCommand.Parameters.AddWithValue("$note", segment.Note);
+                segmentCommand.Parameters.AddWithValue("$resume", $"Segment {segment.TypeSegment} - Note {segment.Note}");
+                segmentCommand.Parameters.AddWithValue("$details", details);
+                segmentCommand.ExecuteNonQuery();
+            }
+
+            if (TableExiste(connexion, "SegmentResults"))
+            {
+                using var segmentCommand = connexion.CreateCommand();
+                segmentCommand.Transaction = transaction;
+                segmentCommand.CommandText = """
+                    INSERT INTO SegmentResults (ShowSegmentId, ShowId, Week, Note, Summary, Details)
+                    VALUES ($segmentId, $showId, $semaine, $note, $resume, $details);
+                    """;
+                segmentCommand.Parameters.AddWithValue("$segmentId", segment.SegmentId);
+                segmentCommand.Parameters.AddWithValue("$showId", rapport.ShowId);
+                segmentCommand.Parameters.AddWithValue("$semaine", semaine);
+                segmentCommand.Parameters.AddWithValue("$note", segment.Note);
+                segmentCommand.Parameters.AddWithValue("$resume", $"Segment {segment.TypeSegment} - Note {segment.Note}");
+                segmentCommand.Parameters.AddWithValue("$details", details);
+                segmentCommand.ExecuteNonQuery();
+            }
         }
 
         transaction.Commit();
@@ -1244,6 +1365,223 @@ public sealed class GameRepository
         return chimies;
     }
 
+    public IReadOnlyList<TvDeal> ChargerTvDeals(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        var deals = new List<TvDeal>();
+
+        if (TableExiste(connexion, "tv_deals"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = """
+                SELECT tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min, base_revenue, revenue_per_point, penalty, constraints
+                FROM tv_deals
+                WHERE company_id = $companyId;
+                """;
+            command.Parameters.AddWithValue("$companyId", companyId);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                deals.Add(new TvDeal(
+                    reader.GetString(0),
+                    reader.GetString(1),
+                    reader.GetString(2),
+                    reader.GetInt32(3),
+                    reader.GetInt32(4),
+                    reader.GetInt32(5),
+                    reader.GetDouble(6),
+                    reader.GetDouble(7),
+                    reader.GetDouble(8),
+                    reader.IsDBNull(9) ? string.Empty : reader.GetString(9)));
+            }
+
+            return deals;
+        }
+
+        if (TableExiste(connexion, "TVDeals"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = """
+                SELECT TvDealId, CompanyId, NetworkName, ReachBonus, AudienceCap, MinimumAudience, BaseRevenue, RevenuePerPoint, Penalty, Constraints
+                FROM TVDeals
+                WHERE CompanyId = $companyId;
+                """;
+            command.Parameters.AddWithValue("$companyId", companyId);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                deals.Add(new TvDeal(
+                    reader.GetString(0),
+                    reader.GetString(1),
+                    reader.GetString(2),
+                    reader.GetInt32(3),
+                    reader.GetInt32(4),
+                    reader.GetInt32(5),
+                    reader.GetDouble(6),
+                    reader.GetDouble(7),
+                    reader.GetDouble(8),
+                    reader.IsDBNull(9) ? string.Empty : reader.GetString(9)));
+            }
+        }
+
+        return deals;
+    }
+
+    public IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistorique(string showId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        var historique = new List<AudienceHistoryEntry>();
+
+        if (TableExiste(connexion, "audience_history"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = """
+                SELECT show_id, semaine, audience, reach, show_score, stars, saturation
+                FROM audience_history
+                WHERE show_id = $showId
+                ORDER BY semaine DESC;
+                """;
+            command.Parameters.AddWithValue("$showId", showId);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                historique.Add(new AudienceHistoryEntry(
+                    reader.GetString(0),
+                    reader.GetInt32(1),
+                    reader.GetInt32(2),
+                    reader.GetInt32(3),
+                    reader.GetInt32(4),
+                    reader.GetInt32(5),
+                    reader.GetInt32(6)));
+            }
+
+            return historique;
+        }
+
+        if (TableExiste(connexion, "AudienceHistory"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = """
+                SELECT ShowId, Week, Audience, Reach, ShowScore, Stars, Saturation
+                FROM AudienceHistory
+                WHERE ShowId = $showId
+                ORDER BY Week DESC;
+                """;
+            command.Parameters.AddWithValue("$showId", showId);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                historique.Add(new AudienceHistoryEntry(
+                    reader.GetString(0),
+                    reader.GetInt32(1),
+                    reader.GetInt32(2),
+                    reader.GetInt32(3),
+                    reader.GetInt32(4),
+                    reader.GetInt32(5),
+                    reader.GetInt32(6)));
+            }
+        }
+
+        return historique;
+    }
+
+    private static TvDeal? ChargerTvDeal(SqliteConnection connexion, string? tvDealId)
+    {
+        if (string.IsNullOrWhiteSpace(tvDealId))
+        {
+            return null;
+        }
+
+        if (TableExiste(connexion, "tv_deals"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = """
+                SELECT tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min, base_revenue, revenue_per_point, penalty, constraints
+                FROM tv_deals
+                WHERE tv_deal_id = $tvDealId;
+                """;
+            command.Parameters.AddWithValue("$tvDealId", tvDealId);
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
+            {
+                return null;
+            }
+
+            return new TvDeal(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetDouble(6),
+                reader.GetDouble(7),
+                reader.GetDouble(8),
+                reader.IsDBNull(9) ? string.Empty : reader.GetString(9));
+        }
+
+        if (TableExiste(connexion, "TVDeals"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = """
+                SELECT TvDealId, CompanyId, NetworkName, ReachBonus, AudienceCap, MinimumAudience, BaseRevenue, RevenuePerPoint, Penalty, Constraints
+                FROM TVDeals
+                WHERE TvDealId = $tvDealId;
+                """;
+            command.Parameters.AddWithValue("$tvDealId", tvDealId);
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
+            {
+                return null;
+            }
+
+            return new TvDeal(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5),
+                reader.GetDouble(6),
+                reader.GetDouble(7),
+                reader.GetDouble(8),
+                reader.IsDBNull(9) ? string.Empty : reader.GetString(9));
+        }
+
+        return null;
+    }
+
+    private static int? ChargerSemaineShow(SqliteConnection connexion, string showId)
+    {
+        if (TableExiste(connexion, "shows"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = "SELECT semaine FROM shows WHERE show_id = $showId;";
+            command.Parameters.AddWithValue("$showId", showId);
+            var valeur = command.ExecuteScalar();
+            return valeur is null or DBNull ? null : Convert.ToInt32(valeur);
+        }
+
+        if (TableExiste(connexion, "Shows"))
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = "SELECT Week FROM Shows WHERE ShowId = $showId;";
+            command.Parameters.AddWithValue("$showId", showId);
+            var valeur = command.ExecuteScalar();
+            return valeur is null or DBNull ? null : Convert.ToInt32(valeur);
+        }
+
+        return null;
+    }
+
+    private static bool TableExiste(SqliteConnection connexion, string table)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = $table;";
+        command.Parameters.AddWithValue("$table", table);
+        return command.ExecuteScalar() is not null;
+    }
+
     private void SeedDatabase(SqliteConnection connexion)
     {
         using var transaction = connexion.BeginTransaction();
@@ -1307,6 +1645,14 @@ public sealed class GameRepository
             VALUES ('SHOW-001', 'Weekly Clash', 1, 'FR', 120, 'COMP-001', 'TV-001', 'Paris', 'Ring General TV');
             """;
         showCommand.ExecuteNonQuery();
+
+        using var dealCommand = connexion.CreateCommand();
+        dealCommand.Transaction = transaction;
+        dealCommand.CommandText = """
+            INSERT INTO tv_deals (tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min, base_revenue, revenue_per_point, penalty, constraints)
+            VALUES ('TV-001', 'COMP-001', 'RG Network', 12, 85, 40, 4500, 55, 1500, 'Show principal en prime time');
+            """;
+        dealCommand.ExecuteNonQuery();
 
         using var segmentCommand = connexion.CreateCommand();
         segmentCommand.Transaction = transaction;

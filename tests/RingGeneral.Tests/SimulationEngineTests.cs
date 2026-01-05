@@ -81,7 +81,34 @@ public sealed class SimulationEngineTests
         Assert.True(result.Delta.TitrePrestigeDelta["T-1"] != 0);
     }
 
-    private static ShowContext ConstruireContexte(IReadOnlyList<SegmentDefinition>? segments = null)
+    [Fact]
+    public void Deal_tv_ameliore_audience_et_revenus()
+    {
+        var deal = new TvDeal(
+            "TV-BOOST",
+            "COMP-1",
+            "NetPlus",
+            15,
+            90,
+            45,
+            4000,
+            60,
+            1200,
+            "Prime time obligatoire");
+        var contextSansDeal = ConstruireContexte();
+        var contextAvecDeal = ConstruireContexte(deal: deal);
+
+        var engine = new ShowSimulationEngine(new SeededRandomProvider(99));
+        var resultatSansDeal = engine.Simuler(contextSansDeal);
+        var resultatAvecDeal = engine.Simuler(contextAvecDeal);
+
+        Assert.True(resultatAvecDeal.RapportShow.Audience > resultatSansDeal.RapportShow.Audience);
+        Assert.True(resultatAvecDeal.RapportShow.Tv > resultatSansDeal.RapportShow.Tv);
+    }
+
+    private static ShowContext ConstruireContexte(
+        IReadOnlyList<SegmentDefinition>? segments = null,
+        TvDeal? deal = null)
     {
         var show = new ShowDefinition("SHOW-TEST", "Test Show", 1, "FR", 90, "COMP-1", "TV-1");
         var company = new CompanyState("COMP-1", "Compagnie Test", "FR", 55, 10000, 50, 4);
@@ -98,6 +125,6 @@ public sealed class SimulationEngineTests
         };
         var chimies = new Dictionary<string, int> { ["W-1|W-2"] = 5 };
 
-        return new ShowContext(show, company, workers, titles, storylines, segmentsList, chimies);
+        return new ShowContext(show, company, workers, titles, storylines, segmentsList, chimies, deal);
     }
 }
