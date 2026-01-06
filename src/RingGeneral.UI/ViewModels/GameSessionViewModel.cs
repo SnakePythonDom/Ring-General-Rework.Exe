@@ -129,6 +129,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         TableSelectedTypeFilter = TableTypeFilters[0];
         TableSelectedStatusFilter = TableStatusFilters[0];
         ChargerPreferencesTable();
+        _suspendTablePreferences = false;
         TableConfiguration.PropertyChanged += (_, _) => SauvegarderPreferencesTable();
         TableColumns.CollectionChanged += (_, _) => SauvegarderPreferencesTable();
         RechercheGlobaleResultats = new ObservableCollection<GlobalSearchResultViewModel>();
@@ -416,8 +417,11 @@ public sealed class GameSessionViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _tableRecherche, value);
-            AppliquerFiltreTable();
-            SauvegarderPreferencesTable();
+            if (!_suspendTablePreferences)
+            {
+                AppliquerFiltreTable();
+                SauvegarderPreferencesTable();
+            }
         }
     }
     private string? _tableRecherche;
@@ -428,8 +432,11 @@ public sealed class GameSessionViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _tableSelectedTypeFilter, value);
-            AppliquerFiltreTable();
-            SauvegarderPreferencesTable();
+            if (!_suspendTablePreferences)
+            {
+                AppliquerFiltreTable();
+                SauvegarderPreferencesTable();
+            }
         }
     }
     private TableFilterOptionViewModel _tableSelectedTypeFilter;
@@ -440,8 +447,11 @@ public sealed class GameSessionViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _tableSelectedStatusFilter, value);
-            AppliquerFiltreTable();
-            SauvegarderPreferencesTable();
+            if (!_suspendTablePreferences)
+            {
+                AppliquerFiltreTable();
+                SauvegarderPreferencesTable();
+            }
         }
     }
     private TableFilterOptionViewModel _tableSelectedStatusFilter;
@@ -1472,7 +1482,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             }
         }
 
-        if (TableSelectedTypeFilter.Id != "tous")
+        if (TableSelectedTypeFilter?.Id is not null && TableSelectedTypeFilter.Id != "tous")
         {
             var itemTypeId = tableItem.Type.ToLowerInvariant() switch
             {
@@ -1489,7 +1499,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             }
         }
 
-        if (TableSelectedStatusFilter.Id != "tous")
+        if (TableSelectedStatusFilter?.Id is not null && TableSelectedStatusFilter.Id != "tous")
         {
             var statutLower = tableItem.Statut.ToLowerInvariant();
             var statutId = statutLower switch
