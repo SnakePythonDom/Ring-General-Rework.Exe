@@ -1,10 +1,11 @@
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class ScoutingRepository : RepositoryBase
+public sealed class ScoutingRepository : RepositoryBase, IScoutingRepository
 {
     public ScoutingRepository(SqliteConnectionFactory factory) : base(factory)
     {
