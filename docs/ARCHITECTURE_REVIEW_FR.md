@@ -62,7 +62,7 @@ RingGeneral.sln (7 projets)
 ├── Couche Présentation
 │   └── RingGeneral.UI (WinExe)
 │       ├── Views/ - Vues Avalonia (AXAML)
-│       ├── ViewModels/ - ViewModels MVVM (32 fichiers)
+│       ├── ViewModels/ - ViewModels MVVM (33 fichiers)
 │       └── Services/ - Services UI
 │
 ├── Outils
@@ -320,7 +320,7 @@ public abstract class RepositoryBase
 - **Avalonia.Controls.DataGrid** - Vues tabulaires
 - **Avalonia.Themes.Fluent** - Design Fluent
 
-**ViewModels Principaux** (32 fichiers):
+**ViewModels Principaux** (33 fichiers):
 
 | ViewModel | Fonction | Taille |
 |-----------|----------|--------|
@@ -1107,7 +1107,7 @@ RingGeneral/
 | Classes Service | 15+ |
 | Classes Repository | 8 |
 | Interfaces Repository | 5 |
-| Fichiers ViewModels | 32 |
+| Fichiers ViewModels | 33 |
 | Fichiers migration | 16 |
 | Fichier le plus grand | GameRepository.cs (3,874 lignes) ⚠️ |
 | Deuxième plus grand | GameSessionViewModel.cs (2,320 lignes) ⚠️ |
