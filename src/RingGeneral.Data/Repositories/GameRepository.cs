@@ -467,45 +467,6 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
             """;
         commande.ExecuteNonQuery();
 
-        // Create PascalCase views for compatibility
-        using var viewCommand = connexion.CreateCommand();
-        viewCommand.CommandText = """
-            DROP VIEW IF EXISTS Workers;
-            CREATE VIEW Workers AS
-            SELECT worker_id AS WorkerId,
-                   nom || ' ' || prenom AS Name,
-                   in_ring AS InRing,
-                   entertainment AS Entertainment,
-                   story AS Story,
-                   popularite AS Popularity,
-                   fatigue AS Fatigue,
-                   blessure AS InjuryStatus,
-                   momentum AS Momentum,
-                   role_tv AS RoleTv,
-                   morale AS Morale,
-                   company_id AS CompanyId
-            FROM workers;
-
-            DROP VIEW IF EXISTS Contracts;
-            CREATE VIEW Contracts AS
-            SELECT contract_id AS ContractId,
-                   worker_id AS WorkerId,
-                   company_id AS CompanyId,
-                   type AS Type,
-                   debut_semaine AS StartWeek,
-                   fin_semaine AS EndDate,
-                   salaire AS Salary,
-                   bonus_show AS BonusShow,
-                   buyout AS Buyout,
-                   non_compete_weeks AS NonCompeteWeeks,
-                   auto_renew AS AutoRenew,
-                   exclusif AS Exclusif,
-                   statut AS Statut,
-                   created_week AS CreatedWeek
-            FROM contracts;
-            """;
-        viewCommand.ExecuteNonQuery();
-
         AssurerColonnesSupplementaires(connexion);
 
         using var countCommand = connexion.CreateCommand();
@@ -1287,7 +1248,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, Name FROM Workers WHERE CompanyId = $companyId;";
+        command.CommandText = "SELECT worker_id, nom || ' ' || prenom FROM workers WHERE company_id = $companyId;";
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
         var roster = new List<WorkerBackstageProfile>();
@@ -1303,7 +1264,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, Morale FROM Workers WHERE CompanyId = $companyId;";
+        command.CommandText = "SELECT worker_id, morale FROM workers WHERE company_id = $companyId;";
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
         var morales = new Dictionary<string, int>();
@@ -1319,7 +1280,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT Morale FROM Workers WHERE WorkerId = $workerId;";
+        command.CommandText = "SELECT morale FROM workers WHERE worker_id = $workerId;";
         command.Parameters.AddWithValue("$workerId", workerId);
         return Convert.ToInt32(command.ExecuteScalar());
     }
@@ -1378,7 +1339,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
         {
             using var selectCommand = connexion.CreateCommand();
             selectCommand.Transaction = transaction;
-            selectCommand.CommandText = "SELECT Morale FROM Workers WHERE WorkerId = $workerId;";
+            selectCommand.CommandText = "SELECT morale FROM workers WHERE worker_id = $workerId;";
             selectCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
             var moraleAvant = Convert.ToInt32(selectCommand.ExecuteScalar());
             var moraleApres = Math.Clamp(moraleAvant + impact.Delta, 0, 100);
@@ -1422,7 +1383,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     private static string ChargerCompanyIdPourWorker(SqliteConnection connexion, string workerId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT CompanyId FROM Workers WHERE WorkerId = $workerId;";
+        command.CommandText = "SELECT company_id FROM workers WHERE worker_id = $workerId;";
         command.Parameters.AddWithValue("$workerId", workerId);
         return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
     }
@@ -1966,7 +1927,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, COALESCE(EndDate, fin_semaine) FROM Contracts;";
+        command.CommandText = "SELECT worker_id, fin_semaine FROM contracts;";
         using var reader = command.ExecuteReader();
         var contracts = new List<(string, int)>();
         while (reader.Read())
@@ -1981,7 +1942,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, Name FROM Workers;";
+        command.CommandText = "SELECT worker_id, nom || ' ' || prenom FROM workers;";
         using var reader = command.ExecuteReader();
         var noms = new Dictionary<string, string>();
         while (reader.Read())
@@ -2005,7 +1966,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT Fatigue FROM Workers WHERE WorkerId = $workerId;";
+        command.CommandText = "SELECT fatigue FROM workers WHERE worker_id = $workerId;";
         command.Parameters.AddWithValue("$workerId", workerId);
         return Convert.ToInt32(command.ExecuteScalar());
     }
@@ -3215,20 +3176,18 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
 
     private static IReadOnlyList<ContractPayroll> ChargerPaieContratsUpper(SqliteConnection connexion, string companyId)
     {
-        var hasSalary = ColonneExiste(connexion, "Contracts", "Salary");
-        var hasFrequency = ColonneExiste(connexion, "Contracts", "PayFrequency");
-        var salaryColumn = hasSalary ? "Contracts.Salary" : "0";
-        var frequencyColumn = hasFrequency ? "Contracts.PayFrequency" : "'Hebdomadaire'";
+        var hasSalary = ColonneExiste(connexion, "contracts", "salaire");
+        var salaryColumn = hasSalary ? "contracts.salaire" : "0";
 
         using var command = connexion.CreateCommand();
         command.CommandText = $"""
-            SELECT Contracts.WorkerId,
-                   COALESCE(Workers.Name, Contracts.WorkerId),
+            SELECT contracts.worker_id,
+                   COALESCE(workers.nom || ' ' || workers.prenom, contracts.worker_id),
                    {salaryColumn},
-                   {frequencyColumn}
-            FROM Contracts
-            LEFT JOIN Workers ON Workers.WorkerId = Contracts.WorkerId
-            WHERE Contracts.CompanyId = $companyId;
+                   'Hebdomadaire'
+            FROM contracts
+            LEFT JOIN workers ON workers.worker_id = contracts.worker_id
+            WHERE contracts.company_id = $companyId;
             """;
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
@@ -3496,9 +3455,9 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
         using var command = connexion.CreateCommand();
         var placeholders = workerIds.Select((id, index) => $"$id{index}").ToList();
         command.CommandText = $"""
-            SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv, Morale
-            FROM Workers
-            WHERE WorkerId IN ({string.Join(", ", placeholders)});
+            SELECT worker_id, nom || ' ' || prenom, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, morale
+            FROM workers
+            WHERE worker_id IN ({string.Join(", ", placeholders)});
             """;
         for (var i = 0; i < workerIds.Count; i++)
         {
