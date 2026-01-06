@@ -35,7 +35,7 @@ public sealed class BackstageFlowTests
             var backstageService = new BackstageService(new SeededRandomProvider(42), definitions);
             var disciplineService = new DisciplineService(new SeededRandomProvider(4));
             var backstageRepo = new BackstageRepository(factory);
-            var gameRepo = new GameRepository(factory);
+            var gameRepo = RepositoryFactory.CreateGameRepository(factory);
 
             var incidents = backstageService.RollIncidents(3, new[]
             {

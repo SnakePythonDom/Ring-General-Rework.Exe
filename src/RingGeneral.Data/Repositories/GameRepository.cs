@@ -28,7 +28,7 @@ namespace RingGeneral.Data.Repositories;
 /// - Initialization (Initialiser, EnregistrerMatchTypes, EnregistrerSegmentTemplates)
 /// - Legacy methods not yet migrated
 /// </summary>
-public sealed class GameRepository : IScoutingRepository
+public sealed class GameRepository : IScoutingRepository, IContractRepository
 {
     private readonly SqliteConnectionFactory _factory;
     private readonly ShowRepository _showRepository;

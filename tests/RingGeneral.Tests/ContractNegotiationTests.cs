@@ -139,7 +139,7 @@ public sealed class ContractNegotiationTests
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-tests-{Guid.NewGuid():N}.db");
         var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-        var repository = new GameRepository(factory);
+        var repository = RepositoryFactory.CreateGameRepository(factory);
         repository.Initialiser();
         return (repository, dbPath);
     }

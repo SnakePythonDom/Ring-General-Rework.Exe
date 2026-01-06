@@ -16,7 +16,7 @@ public sealed class BookingTests
         try
         {
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-            var repository = new GameRepository(factory);
+            var repository = RepositoryFactory.CreateGameRepository(factory);
             repository.Initialiser();
 
             var context = repository.ChargerShowContext("SHOW-001");

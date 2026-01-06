@@ -17,7 +17,7 @@ public sealed class ScoutingServiceTests
         try
         {
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-            var repository = new GameRepository(factory);
+            var repository = RepositoryFactory.CreateGameRepository(factory);
             repository.Initialiser();
 
             InsererFreeAgent(factory, "FA-TEST-001", "Nina", "Libre", "FR");
@@ -28,7 +28,7 @@ public sealed class ScoutingServiceTests
             var rapports = repository.ChargerScoutReports();
             Assert.Contains(rapports, item => item.ReportId == report.ReportId && item.WorkerId == "FA-TEST-001");
 
-            var reload = new GameRepository(factory);
+            var reload = RepositoryFactory.CreateGameRepository(factory);
             var rapportsReload = reload.ChargerScoutReports();
             Assert.Contains(rapportsReload, item => item.ReportId == report.ReportId);
         }
@@ -49,7 +49,7 @@ public sealed class ScoutingServiceTests
         try
         {
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-            var repository = new GameRepository(factory);
+            var repository = RepositoryFactory.CreateGameRepository(factory);
             repository.Initialiser();
 
             var mission = new ScoutMission("MS-TEST-001", "Observer les free agents", "FR", "free_agents", 0, 10, "active", 1, 1);
