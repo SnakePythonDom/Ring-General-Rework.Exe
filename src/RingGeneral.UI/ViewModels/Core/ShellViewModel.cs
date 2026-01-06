@@ -4,11 +4,12 @@ using ReactiveUI;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.ViewModels.Shared.Navigation;
 using RingGeneral.UI.ViewModels.Booking;
-using RingGeneral.UI.ViewModels.Roster;
-using RingGeneral.UI.ViewModels.Storyline;
-using RingGeneral.UI.ViewModels.Youth;
-using RingGeneral.UI.ViewModels.Finance;
-using RingGeneral.UI.ViewModels.Schedule;
+// TODO: Uncomment when ViewModels are created
+// using RingGeneral.UI.ViewModels.Roster;
+// using RingGeneral.UI.ViewModels.Storyline;
+// using RingGeneral.UI.ViewModels.Youth;
+// using RingGeneral.UI.ViewModels.Finance;
+// using RingGeneral.UI.ViewModels.Schedule;
 
 namespace RingGeneral.UI.ViewModels.Core;
 
@@ -177,7 +178,7 @@ public sealed class ShellViewModel : ViewModelBase
             "roster.workers",
             "Workers",
             "  🤼",
-            typeof(RosterViewModel), // TODO: À créer
+            null, // typeof(RosterViewModel), // TODO: À créer
             roster
         ) { Badge = "(47)" });
         roster.Children.Add(new NavigationItemViewModel(
@@ -230,7 +231,7 @@ public sealed class ShellViewModel : ViewModelBase
             "youth",
             "YOUTH",
             "🎓",
-            typeof(YouthDashboardViewModel) // TODO: À créer
+            null // typeof(YouthDashboardViewModel) // TODO: À créer
         );
         root.Add(youth);
 
@@ -239,7 +240,7 @@ public sealed class ShellViewModel : ViewModelBase
             "finance",
             "FINANCE",
             "💼",
-            typeof(FinanceDashboardViewModel) // TODO: À créer
+            null // typeof(FinanceDashboardViewModel) // TODO: À créer
         );
         root.Add(finance);
 
@@ -248,7 +249,7 @@ public sealed class ShellViewModel : ViewModelBase
             "calendar",
             "CALENDRIER",
             "📆",
-            typeof(CalendarViewModel) // TODO: À créer
+            null // typeof(CalendarViewModel) // TODO: À créer
         );
         root.Add(calendar);
 
@@ -292,9 +293,17 @@ public sealed class ShellViewModel : ViewModelBase
 
     private void NavigateToViewModelType(Type viewModelType)
     {
-        // Cette méthode sera implémentée une fois qu'on aura tous les ViewModels
-        // Pour l'instant, placeholder
-        System.Diagnostics.Debug.WriteLine($"Navigation vers {viewModelType.Name}");
+        // Navigation vers un ViewModel spécifique
+        // Pour l'instant, seul BookingViewModel est implémenté
+        if (viewModelType == typeof(BookingViewModel))
+        {
+            _navigationService.NavigateTo<BookingViewModel>();
+        }
+        else
+        {
+            // Les autres ViewModels ne sont pas encore implémentés
+            System.Diagnostics.Debug.WriteLine($"Navigation vers {viewModelType.Name} - pas encore implémenté");
+        }
     }
 
     private void UpdateContextPanel(ViewModelBase? contentViewModel)

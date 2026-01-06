@@ -3,6 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RingGeneral.UI.ViewModels.Core"
+        xmlns:vmBooking="using:RingGeneral.UI.ViewModels.Booking"
+        xmlns:booking="using:RingGeneral.UI.Views.Booking"
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="RingGeneral.UI.Views.Shell.MainWindow"
         x:DataType="vm:ShellViewModel"
@@ -14,6 +16,18 @@
     <Design.DataContext>
         <vm:ShellViewModel />
     </Design.DataContext>
+
+    <Window.Resources>
+        <!-- DataTemplate pour BookingViewModel -->
+        <DataTemplate DataType="vmBooking:BookingViewModel">
+            <booking:BookingView />
+        </DataTemplate>
+
+        <!-- TODO: Ajouter les autres DataTemplates quand vous créez les vues -->
+        <!-- <DataTemplate DataType="vmRoster:RosterViewModel">
+            <roster:RosterView />
+        </DataTemplate> -->
+    </Window.Resources>
 
     <Grid>
         <!-- ==================== MAIN LAYOUT ==================== -->

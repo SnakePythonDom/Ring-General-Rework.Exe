@@ -221,7 +221,7 @@ public sealed class BookingViewModel : ViewModelBase
             ValidationIssues.Add(new BookingIssueViewModel(
                 "booking.empty",
                 "Le booking est vide. Ajoutez au moins un segment.",
-                "WARNING",
+                ValidationSeverity.Avertissement,
                 null,
                 "Ajouter"
             ));
@@ -233,7 +233,7 @@ public sealed class BookingViewModel : ViewModelBase
             ValidationIssues.Add(new BookingIssueViewModel(
                 "booking.main-event.missing",
                 "Aucun main event défini.",
-                "WARNING",
+                ValidationSeverity.Avertissement,
                 null,
                 "Marquer"
             ));
@@ -244,15 +244,15 @@ public sealed class BookingViewModel : ViewModelBase
             ValidationIssues.Add(new BookingIssueViewModel(
                 "booking.duration.exceed",
                 $"La durée totale ({TotalDuration} min) dépasse la durée du show ({ShowDuration} min).",
-                "ERROR",
+                ValidationSeverity.Erreur,
                 null,
                 "Réduire"
             ));
         }
 
         // Mettre à jour les résumés
-        var errors = ValidationIssues.Where(i => i.Severite == "ERROR").ToList();
-        var warnings = ValidationIssues.Where(i => i.Severite == "WARNING").ToList();
+        var errors = ValidationIssues.Where(i => i.Severity == ValidationSeverity.Erreur).ToList();
+        var warnings = ValidationIssues.Where(i => i.Severity == ValidationSeverity.Avertissement).ToList();
 
         ValidationErrors = errors.Count > 0 ? string.Join("\n", errors.Select(e => e.Message)) : null;
         ValidationWarnings = warnings.Count > 0 ? string.Join("\n", warnings.Select(w => w.Message)) : null;
