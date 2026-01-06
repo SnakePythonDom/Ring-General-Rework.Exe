@@ -89,6 +89,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         YouthTrainees = new ObservableCollection<YouthTraineeViewModel>();
         YouthPrograms = new ObservableCollection<YouthProgramViewModel>();
         YouthStaffAssignments = new ObservableCollection<YouthStaffAssignmentViewModel>();
+        _suspendTablePreferences = true;
         TableItems = new ObservableCollection<TableViewItemViewModel>();
         TableItemsView = new DataGridCollectionView(TableItems)
         {
@@ -1685,7 +1686,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void SauvegarderPreferencesTable()
     {
-        if (_suspendTablePreferences || _repository is null)
+        if (_suspendTablePreferences || _repository is null || TableSelectedTypeFilter is null || TableSelectedStatusFilter is null)
         {
             return;
         }
