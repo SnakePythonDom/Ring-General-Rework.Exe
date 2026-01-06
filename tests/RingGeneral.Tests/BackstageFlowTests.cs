@@ -119,12 +119,12 @@ public sealed class BackstageFlowTests
                 IncidentId TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS inbox_items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                type TEXT NOT NULL,
-                titre TEXT NOT NULL,
-                contenu TEXT NOT NULL,
-                semaine INTEGER NOT NULL
+            CREATE TABLE IF NOT EXISTS InboxItems (
+                InboxItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                Type TEXT NOT NULL,
+                Title TEXT NOT NULL,
+                Content TEXT NOT NULL,
+                Week INTEGER NOT NULL
             );
             """;
         command.ExecuteNonQuery();
