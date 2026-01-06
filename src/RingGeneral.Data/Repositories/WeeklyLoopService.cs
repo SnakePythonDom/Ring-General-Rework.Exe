@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
@@ -11,12 +12,14 @@ namespace RingGeneral.Data.Repositories;
 public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
+    private readonly IScoutingRepository _scoutingRepository;
     private readonly SeededRandomProvider _random = new(42);
     private readonly SpecsReader _specsReader = new();
 
-    public WeeklyLoopService(GameRepository repository)
+    public WeeklyLoopService(GameRepository repository, IScoutingRepository scoutingRepository)
     {
         _repository = repository;
+        _scoutingRepository = scoutingRepository;
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -160,7 +163,7 @@ public sealed class WeeklyLoopService
 
     private InboxItem? GenererScoutingHebdo(int semaine)
     {
-        var service = new ScoutingService(_repository, new SeededRandomProvider(semaine));
+        var service = new ScoutingService(_scoutingRepository, new SeededRandomProvider(semaine));
         var refresh = service.RafraichirHebdo(semaine);
 
         if (refresh.RapportsCrees == 0 && refresh.MissionsAvancees == 0 && refresh.MissionsTerminees == 0)

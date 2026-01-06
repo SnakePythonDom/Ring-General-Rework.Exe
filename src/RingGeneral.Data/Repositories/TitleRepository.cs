@@ -5,18 +5,15 @@ using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class TitleRepository : ITitleRepository, IContenderRepository
+public sealed class TitleRepository : RepositoryBase, ITitleRepository, IContenderRepository
 {
-    private readonly SqliteConnectionFactory _factory;
-
-    public TitleRepository(SqliteConnectionFactory factory)
+    public TitleRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _factory = factory;
     }
 
     public TitleDetail? ChargerTitre(string titleId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = "SELECT TitleId, CompanyId, Prestige, HolderWorkerId FROM Titles WHERE TitleId = $titleId;";
         command.Parameters.AddWithValue("$titleId", titleId);
@@ -35,7 +32,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public TitleReignDetail? ChargerRegneCourant(string titleId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT TitleReignId, TitleId, WorkerId, StartDate, EndDate, IsCurrent
@@ -62,7 +59,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public int CompterDefenses(string titleId, int depuisSemaine)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT COUNT(1)
@@ -76,7 +73,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public void MettreAJourChampion(string titleId, string? workerId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = "UPDATE Titles SET HolderWorkerId = $workerId WHERE TitleId = $titleId;";
         command.Parameters.AddWithValue("$titleId", titleId);
@@ -86,7 +83,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public int CreerRegne(string titleId, string workerId, int semaineDebut)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO TitleReigns (TitleId, WorkerId, StartDate, IsCurrent)
@@ -101,7 +98,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public void CloreRegne(int titleReignId, int semaineFin)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             UPDATE TitleReigns
@@ -116,7 +113,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public void AjouterMatch(TitleMatchRecord match)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO TitleMatches (TitleId, ShowId, Week, ChampionId, ChallengerId, WinnerId, IsTitleChange, PrestigeDelta)
@@ -135,7 +132,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public void MettreAJourPrestige(string titleId, int delta)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = "UPDATE Titles SET Prestige = MAX(0, MIN(100, Prestige + $delta)) WHERE TitleId = $titleId;";
         command.Parameters.AddWithValue("$delta", delta);
@@ -145,7 +142,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public IReadOnlyList<WorkerSnapshot> ChargerWorkersCompagnie(string companyId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv, Morale
@@ -176,7 +173,7 @@ public sealed class TitleRepository : ITitleRepository, IContenderRepository
 
     public void EnregistrerClassement(string titleId, IReadOnlyList<ContenderRanking> classements)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var transaction = connexion.BeginTransaction();
 
         using (var deleteCommand = connexion.CreateCommand())

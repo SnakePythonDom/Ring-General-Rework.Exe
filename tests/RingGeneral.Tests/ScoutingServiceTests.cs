@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
@@ -17,19 +18,20 @@ public sealed class ScoutingServiceTests
         try
         {
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-            var repository = new GameRepository(factory);
-            repository.Initialiser();
+            var repositories = RepositoryFactory.CreateRepositories(factory);
+            repositories.GameRepository.Initialiser();
+            var scoutingRepo = repositories.ScoutingRepository;
 
             InsererFreeAgent(factory, "FA-TEST-001", "Nina", "Libre", "FR");
 
-            var service = new ScoutingService(repository, new SeededRandomProvider(10));
+            var service = new ScoutingService(scoutingRepo, new SeededRandomProvider(10));
             var report = service.CreerRapport("FA-TEST-001", 3, "Note test.");
 
-            var rapports = repository.ChargerScoutReports();
+            var rapports = scoutingRepo.ChargerScoutReports();
             Assert.Contains(rapports, item => item.ReportId == report.ReportId && item.WorkerId == "FA-TEST-001");
 
-            var reload = new GameRepository(factory);
-            var rapportsReload = reload.ChargerScoutReports();
+            var reloadRepos = RepositoryFactory.CreateRepositories(factory);
+            var rapportsReload = reloadRepos.ScoutingRepository.ChargerScoutReports();
             Assert.Contains(rapportsReload, item => item.ReportId == report.ReportId);
         }
         finally
@@ -49,17 +51,18 @@ public sealed class ScoutingServiceTests
         try
         {
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-            var repository = new GameRepository(factory);
-            repository.Initialiser();
+            var repositories = RepositoryFactory.CreateRepositories(factory);
+            repositories.GameRepository.Initialiser();
+            var scoutingRepo = repositories.ScoutingRepository;
 
             var mission = new ScoutMission("MS-TEST-001", "Observer les free agents", "FR", "free_agents", 0, 10, "active", 1, 1);
-            repository.AjouterMission(mission);
+            scoutingRepo.AjouterMission(mission);
 
-            var service = new ScoutingService(repository, new SeededRandomProvider(5));
+            var service = new ScoutingService(scoutingRepo, new SeededRandomProvider(5));
             service.RafraichirHebdo(2);
             service.RafraichirHebdo(3);
 
-            var missions = repository.ChargerScoutMissions();
+            var missions = scoutingRepo.ChargerScoutMissions();
             var updated = missions.Single(item => item.MissionId == "MS-TEST-001");
 
             Assert.True(updated.Progression > mission.Progression);
