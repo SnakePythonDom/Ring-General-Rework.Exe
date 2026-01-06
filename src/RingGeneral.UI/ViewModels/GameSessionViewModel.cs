@@ -613,7 +613,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void CreerShow()
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -641,7 +641,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void AjouterSegment()
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -677,7 +677,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void EnregistrerSegment(SegmentViewModel segment)
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -705,7 +705,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void CopierSegment(SegmentViewModel segment)
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -731,7 +731,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void DupliquerMatch(SegmentViewModel segment)
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -757,7 +757,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void SupprimerSegment(SegmentViewModel segment)
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -779,7 +779,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void AppliquerTemplate(SegmentTemplateViewModel template)
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -801,7 +801,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void DeplacerSegment(SegmentViewModel segment, int delta)
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }
@@ -916,6 +916,12 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void EnregistrerParametresGeneration()
     {
+        if (_repository is null)
+        {
+            ParametresGenerationMessage = "Impossible d'enregistrer : aucune sauvegarde chargée.";
+            return;
+        }
+
         var youthMode = YouthGenerationSelection?.Mode ?? YouthGenerationMode.Realiste;
         var worldMode = WorldGenerationSelection?.Mode ?? WorldGenerationMode.Desactivee;
         var pivot = SemainePivotAnnuelle > 0 ? SemainePivotAnnuelle : (int?)null;
@@ -1163,13 +1169,13 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerBibliotheque()
     {
-        SegmentTemplates.Clear();
-        MatchTypes.Clear();
-
         if (_repository is null)
         {
             return;
         }
+
+        SegmentTemplates.Clear();
+        MatchTypes.Clear();
 
         var matchTypes = _repository.ChargerMatchTypes();
         var matchMap = matchTypes.ToDictionary(type => type.MatchTypeId, type => type.Nom);
@@ -1207,11 +1213,12 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerInbox()
     {
-        Inbox.Clear();
         if (_repository is null)
         {
             return;
         }
+
+        Inbox.Clear();
 
         foreach (var item in _repository.ChargerInbox())
         {
@@ -1221,11 +1228,12 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerHistoriqueShow()
     {
-        HistoriqueShow.Clear();
         if (_repository is null || _context is null)
         {
             return;
         }
+
+        HistoriqueShow.Clear();
 
         foreach (var entry in _repository.ChargerHistoriqueShow(_context.Show.ShowId))
         {
@@ -1243,11 +1251,12 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerYouth()
     {
-        YouthStructures.Clear();
         if (_repository is null)
         {
             return;
         }
+
+        YouthStructures.Clear();
 
         foreach (var structure in _repository.ChargerYouthStructures())
         {
@@ -1328,6 +1337,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         if (_repository is null || YouthStructureSelection is null)
         {
+            YouthActionMessage = "Impossible d'affecter : aucune sauvegarde chargée.";
             return;
         }
 
@@ -1347,6 +1357,10 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         if (_repository is null || string.IsNullOrWhiteSpace(workerId))
         {
+            if (_repository is null)
+            {
+                YouthActionMessage = "Impossible de diplômer : aucune sauvegarde chargée.";
+            }
             return;
         }
 
@@ -1616,6 +1630,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         if (_repository is null)
         {
+            MettreAJourResumeTable();
             return;
         }
 
@@ -1708,7 +1723,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void SauvegarderPreferencesTable()
     {
-        if (_suspendTablePreferences || _repository is null || TableSelectedTypeFilter is null || TableSelectedStatusFilter is null)
+        if (_repository is null || _suspendTablePreferences || TableSelectedTypeFilter is null || TableSelectedStatusFilter is null)
         {
             return;
         }
@@ -2078,7 +2093,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerCalendrier()
     {
-        if (_context is null)
+        if (_repository is null || _context is null)
         {
             return;
         }

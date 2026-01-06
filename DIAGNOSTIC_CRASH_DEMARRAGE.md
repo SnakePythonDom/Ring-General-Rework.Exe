@@ -292,13 +292,28 @@ public GameSessionViewModel(string? cheminDb = null)
 
 ---
 
-## 📦 Résumé des fichiers à patcher
+## 📦 Résumé des fichiers patchés
 
 | Fichier | Lignes | Modification |
 |---------|--------|--------------|
-| `src/RingGeneral.UI/ViewModels/SaveManagerViewModel.cs` | 56-73 | Ajouter try/catch dans `Initialiser()` |
-| `src/RingGeneral.UI/ViewModels/ShellViewModel.cs` | 29-30 | Gérer sauvegarde null |
-| `src/RingGeneral.UI/ViewModels/GameSessionViewModel.cs` | 44-55 | Ajouter try/catch initialisation |
+| `src/RingGeneral.UI/ViewModels/SaveManagerViewModel.cs` | 56-84 | Ajouter try/catch dans `Initialiser()` + gestion d'erreur explicite |
+| `src/RingGeneral.UI/ViewModels/ShellViewModel.cs` | 29-39 | Gérer sauvegarde null (mode dégradé) |
+| `src/RingGeneral.UI/ViewModels/GameSessionViewModel.cs` | 44-67 | Ajouter try/catch initialisation DB |
+| `src/RingGeneral.UI/ViewModels/GameSessionViewModel.cs` | Multiples | **+20 méthodes** avec garde-fous `_repository is null` |
+
+### Détail des méthodes protégées dans GameSessionViewModel
+
+**Couche 1 - Méthodes privées appelées depuis constructeur** :
+- `ChargerPreferencesTable()`, `InitialiserBibliotheque()`, `ChargerBibliotheque()`
+- `ChargerInbox()`, `ChargerYouth()`, `ChargerCalendrier()`, `ChargerHistoriqueShow()`
+
+**Couche 2 - Méthodes publiques de booking** :
+- `CreerShow()`, `AjouterSegment()`, `EnregistrerSegment()`, `CopierSegment()`
+- `DupliquerMatch()`, `SupprimerSegment()`, `AppliquerTemplate()`, `DeplacerSegment()`
+
+**Couche 3 - Méthodes de configuration** :
+- `EnregistrerParametresGeneration()`, `AffecterCoachYouth()`, `DiplomerTrainee()`
+- `SauvegarderPreferencesTable()`, `ChangerBudgetYouth()`
 
 ---
 
@@ -320,6 +335,10 @@ Après patch, vérifier :
 2. **Graceful degradation** : Permettre un mode dégradé plutôt que crasher
 3. **Separation of concerns** : L'UI ne devrait jamais dépendre d'un seul chemin d'initialisation
 4. **Explicit error messages** : Informer l'utilisateur de ce qui a échoué
+5. **⚠️ ANTI-PATTERN IDENTIFIÉ** : Constructeur qui fait de l'I/O + appelle 10+ méthodes
+   - **Problème** : Un try/catch autour de l'init ne suffit PAS si le reste du constructeur continue
+   - **Solution** : Ajouter des null-checks dans TOUTES les méthodes qui utilisent les dépendances
+   - **Mieux** : Lazy initialization ou pattern Factory pour différer l'init
 
 ---
 
