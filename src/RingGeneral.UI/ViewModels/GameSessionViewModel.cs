@@ -66,6 +66,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             _scoutingRepository = null;
         }
         _segmentCatalog = ChargerSegmentTypes();
+        _segmentLabels = _segmentCatalog.Labels;
         _tooltipHelper = new TooltipHelper(_helpProvider);
         _helpPages = ChargerPages();
         _impactPages = _helpPages
