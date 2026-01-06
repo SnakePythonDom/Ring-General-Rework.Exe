@@ -678,60 +678,6 @@ public sealed class GameRepository
     public IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistorique(string showId)
         => _showRepository.ChargerAudienceHistorique(showId);
 
-    private static IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistoriqueLower(SqliteConnection connexion, string showId)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            SELECT show_id, semaine, audience, reach, show_score, stars, saturation
-            FROM audience_history
-            WHERE show_id = $showId
-            ORDER BY semaine DESC;
-            """;
-        command.Parameters.AddWithValue("$showId", showId);
-        using var reader = command.ExecuteReader();
-        var entries = new List<AudienceHistoryEntry>();
-        while (reader.Read())
-        {
-            entries.Add(new AudienceHistoryEntry(
-                reader.GetString(0),
-                reader.GetInt32(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetInt32(6)));
-        }
-
-        return entries;
-    }
-
-    private static IReadOnlyList<AudienceHistoryEntry> ChargerAudienceHistoriqueUpper(SqliteConnection connexion, string showId)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            SELECT ShowId, Week, Audience, Reach, ShowScore, Stars, Saturation
-            FROM AudienceHistory
-            WHERE ShowId = $showId
-            ORDER BY Week DESC;
-            """;
-        command.Parameters.AddWithValue("$showId", showId);
-        using var reader = command.ExecuteReader();
-        var entries = new List<AudienceHistoryEntry>();
-        while (reader.Read())
-        {
-            entries.Add(new AudienceHistoryEntry(
-                reader.GetString(0),
-                reader.GetInt32(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetInt32(6)));
-        }
-
-        return entries;
-    }
-
     public void AppliquerDelta(string showId, GameStateDelta delta)
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -916,25 +862,6 @@ public sealed class GameRepository
     public IReadOnlyList<MoraleHistoryEntry> AppliquerMoraleImpacts(IReadOnlyList<BackstageMoraleImpact> impacts, int week)
         => _backstageRepository.AppliquerMoraleImpacts(impacts, week);
 
-    private static string ChargerCompanyIdPourWorker(SqliteConnection connexion, string workerId)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT company_id FROM workers WHERE worker_id = $workerId;";
-        command.Parameters.AddWithValue("$workerId", workerId);
-        return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
-    }
-
-    private static int MapperGraviteDiscipline(string actionType)
-    {
-        return actionType switch
-        {
-            "SUSPENSION" => 3,
-            "AMENDE" => 2,
-            "AVERTISSEMENT" => 1,
-            _ => 0
-        };
-    }
-
     public string ChargerCompagnieIdPourShow(string showId)
         => _companyRepository.ChargerCompagnieIdPourShow(showId);
 
@@ -997,43 +924,6 @@ public sealed class GameRepository
 
     public void MettreAJourMissionProgress(string missionId, int progression, string statut, int semaineMaj)
         => _scoutingRepository.MettreAJourMissionProgress(missionId, progression, statut, semaineMaj);
-
-    private IReadOnlyList<ScoutMission> ChargerMissions(string clause)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"""
-            SELECT mission_id,
-                   titre,
-                   region,
-                   focus,
-                   progression,
-                   objectif,
-                   statut,
-                   semaine_debut,
-                   semaine_maj
-            FROM scout_missions
-            {clause}
-            ORDER BY semaine_debut DESC;
-            """;
-        using var reader = command.ExecuteReader();
-        var missions = new List<ScoutMission>();
-        while (reader.Read())
-        {
-            missions.Add(new ScoutMission(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetString(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetString(6),
-                reader.GetInt32(7),
-                reader.GetInt32(8)));
-        }
-
-        return missions;
-    }
 
     public int IncrementerSemaine(string showId)
         => _showRepository.IncrementerSemaine(showId);
@@ -1107,45 +997,6 @@ public sealed class GameRepository
     public ContractNegotiationState? ChargerNegociationPourWorker(string workerId, string companyId)
         => _contractRepository.ChargerNegociationPourWorker(workerId, companyId);
 
-    private IReadOnlyList<ContractClause> ChargerClauses(string colonne, string id)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"SELECT type, valeur FROM contract_clauses WHERE {colonne} = $id;";
-        command.Parameters.AddWithValue("$id", id);
-        using var reader = command.ExecuteReader();
-        var clauses = new List<ContractClause>();
-        while (reader.Read())
-        {
-            clauses.Add(new ContractClause(reader.GetString(0), reader.GetString(1)));
-        }
-
-        return clauses;
-    }
-
-    private static void InsererClauses(SqliteTransaction transaction, IReadOnlyList<ContractClause> clauses, string? contractId, string? offerId)
-    {
-        foreach (var clause in clauses)
-        {
-            using var command = transaction.Connection!.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = """
-                INSERT INTO contract_clauses (contract_id, offer_id, type, valeur)
-                VALUES ($contractId, $offerId, $type, $valeur);
-                """;
-            command.Parameters.AddWithValue("$contractId", (object?)contractId ?? DBNull.Value);
-            command.Parameters.AddWithValue("$offerId", (object?)offerId ?? DBNull.Value);
-            command.Parameters.AddWithValue("$type", clause.Type);
-            command.Parameters.AddWithValue("$valeur", clause.Valeur);
-            command.ExecuteNonQuery();
-        }
-    }
-
-    private static decimal LireDecimal(SqliteDataReader reader, int index)
-    {
-        return reader.IsDBNull(index) ? 0m : Convert.ToDecimal(reader.GetDouble(index));
-    }
-
     private static T? LireJson<T>(SqliteDataReader reader, int index)
     {
         if (reader.IsDBNull(index))
@@ -1218,60 +1069,6 @@ public sealed class GameRepository
 
     public void EnregistrerGeneration(WorkerGenerationReport report)
         => _youthRepository.EnregistrerGeneration(report);
-
-    private void MettreAJourCounters(SqliteTransaction transaction, WorkerGenerationReport report)
-    {
-        var annee = ((report.Semaine - 1) / 52) + 1;
-        var traineesParPays = report.Workers.Where(w => w.TypeWorker == "TRAINEE").GroupBy(w => w.Region);
-        var traineesParCompagnie = report.Workers.Where(w => w.TypeWorker == "TRAINEE").GroupBy(w => w.CompagnieId ?? string.Empty);
-        var freeAgentsParPays = report.Workers.Where(w => w.TypeWorker != "TRAINEE").GroupBy(w => w.Region);
-
-        InsererOuMajCounter(transaction, annee, "GLOBAL", "GLOBAL", "TRAINEE", report.Workers.Count(w => w.TypeWorker == "TRAINEE"));
-        InsererOuMajCounter(transaction, annee, "GLOBAL", "GLOBAL", "FREE_AGENT", report.Workers.Count(w => w.TypeWorker != "TRAINEE"));
-
-        foreach (var group in traineesParPays)
-        {
-            InsererOuMajCounter(transaction, annee, "COUNTRY", group.Key, "TRAINEE", group.Count());
-        }
-
-        foreach (var group in traineesParCompagnie)
-        {
-            if (string.IsNullOrWhiteSpace(group.Key))
-            {
-                continue;
-            }
-
-            InsererOuMajCounter(transaction, annee, "COMPANY", group.Key, "TRAINEE", group.Count());
-        }
-
-        foreach (var group in freeAgentsParPays)
-        {
-            InsererOuMajCounter(transaction, annee, "COUNTRY", group.Key, "FREE_AGENT", group.Count());
-        }
-    }
-
-    private void MettreAJourGenerationState(SqliteTransaction transaction, WorkerGenerationReport report)
-    {
-        var structures = report.Workers.Where(w => w.TypeWorker == "TRAINEE").Select(w => w.YouthId).Distinct();
-        foreach (var youthId in structures)
-        {
-            if (string.IsNullOrWhiteSpace(youthId))
-            {
-                continue;
-            }
-
-            using var command = transaction.Connection!.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = """
-                INSERT INTO youth_generation_state (youth_id, derniere_generation_semaine)
-                VALUES ($youthId, $semaine)
-                ON CONFLICT(youth_id) DO UPDATE SET derniere_generation_semaine = excluded.derniere_generation_semaine;
-                """;
-            command.Parameters.AddWithValue("$youthId", youthId);
-            command.Parameters.AddWithValue("$semaine", report.Semaine);
-            command.ExecuteNonQuery();
-        }
-    }
 
     private static void InsererOuMajCounter(SqliteTransaction transaction, int annee, string scopeType, string scopeId, string workerType, int delta)
     {
@@ -1358,96 +1155,6 @@ public sealed class GameRepository
             reader.GetDouble(4),
             reader.GetInt32(5),
             reader.GetInt32(6));
-    }
-
-    private static IReadOnlyList<ContractPayroll> ChargerPaieContratsUpper(SqliteConnection connexion, string companyId)
-    {
-        var hasSalary = ColonneExiste(connexion, "contracts", "salaire");
-        var salaryColumn = hasSalary ? "contracts.salaire" : "0";
-
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"""
-            SELECT contracts.worker_id,
-                   COALESCE(workers.nom || ' ' || workers.prenom, contracts.worker_id),
-                   {salaryColumn},
-                   'Hebdomadaire'
-            FROM contracts
-            LEFT JOIN workers ON workers.worker_id = contracts.worker_id
-            WHERE contracts.company_id = $companyId;
-            """;
-        command.Parameters.AddWithValue("$companyId", companyId);
-        using var reader = command.ExecuteReader();
-        var contrats = new List<ContractPayroll>();
-        while (reader.Read())
-        {
-            var salaire = reader.IsDBNull(2) ? 0 : reader.GetDouble(2);
-            var frequence = reader.IsDBNull(3) ? PayrollFrequency.Hebdomadaire : ConvertFrequence(reader.GetString(3));
-            contrats.Add(new ContractPayroll(
-                reader.GetString(0),
-                reader.GetString(1),
-                salaire,
-                frequence));
-        }
-
-        return contrats;
-    }
-
-    private static IReadOnlyList<ContractPayroll> ChargerPaieContratsLower(SqliteConnection connexion, string companyId)
-    {
-        var hasSalary = ColonneExiste(connexion, "contracts", "salaire");
-        var hasFrequency = ColonneExiste(connexion, "contracts", "pay_frequency");
-        var salaryColumn = hasSalary ? "c.salaire" : "0";
-        var frequencyColumn = hasFrequency ? "c.pay_frequency" : "'Hebdomadaire'";
-
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"""
-            SELECT c.worker_id,
-                   TRIM(COALESCE(w.prenom, '') || ' ' || COALESCE(w.nom, c.worker_id)),
-                   {salaryColumn},
-                   {frequencyColumn}
-            FROM contracts c
-            LEFT JOIN workers w ON w.worker_id = c.worker_id
-            WHERE c.company_id = $companyId;
-            """;
-        command.Parameters.AddWithValue("$companyId", companyId);
-        using var reader = command.ExecuteReader();
-        var contrats = new List<ContractPayroll>();
-        while (reader.Read())
-        {
-            var salaire = reader.IsDBNull(2) ? 0 : reader.GetDouble(2);
-            var frequence = reader.IsDBNull(3) ? PayrollFrequency.Hebdomadaire : ConvertFrequence(reader.GetString(3));
-            contrats.Add(new ContractPayroll(
-                reader.GetString(0),
-                reader.GetString(1),
-                salaire,
-                frequence));
-        }
-
-        return contrats;
-    }
-
-    private static PayrollFrequency ConvertFrequence(string? valeur)
-    {
-        if (string.IsNullOrWhiteSpace(valeur))
-        {
-            return PayrollFrequency.Hebdomadaire;
-        }
-
-        return valeur.Trim().ToLowerInvariant() switch
-        {
-            "mensuelle" => PayrollFrequency.Mensuelle,
-            "mensuel" => PayrollFrequency.Mensuelle,
-            "monthly" => PayrollFrequency.Mensuelle,
-            _ => PayrollFrequency.Hebdomadaire
-        };
-    }
-
-    private static bool TableExiste(SqliteConnection connexion, string table)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = $table;";
-        command.Parameters.AddWithValue("$table", table);
-        return command.ExecuteScalar() is not null;
     }
 
     private static bool ColonneExiste(SqliteConnection connexion, string table, string colonne)
@@ -1567,70 +1274,6 @@ public sealed class GameRepository
         return settings;
     }
 
-    private static void SupprimerParticipants(SqliteConnection connexion, SqliteTransaction transaction, string segmentId)
-    {
-        using var command = connexion.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = "DELETE FROM SegmentParticipants WHERE ShowSegmentId = $segmentId;";
-        command.Parameters.AddWithValue("$segmentId", segmentId);
-        command.ExecuteNonQuery();
-    }
-
-    private static void SauvegarderParticipants(
-        SqliteConnection connexion,
-        SqliteTransaction transaction,
-        string segmentId,
-        IReadOnlyList<string> participants)
-    {
-        foreach (var participantId in participants.Distinct())
-        {
-            using var command = connexion.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = """
-                INSERT INTO SegmentParticipants (ShowSegmentId, WorkerId)
-                VALUES ($segmentId, $workerId);
-                """;
-            command.Parameters.AddWithValue("$segmentId", segmentId);
-            command.Parameters.AddWithValue("$workerId", participantId);
-            command.ExecuteNonQuery();
-        }
-    }
-
-    private static void SupprimerSettings(SqliteConnection connexion, SqliteTransaction transaction, string segmentId)
-    {
-        using var command = connexion.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = "DELETE FROM SegmentSettings WHERE ShowSegmentId = $segmentId;";
-        command.Parameters.AddWithValue("$segmentId", segmentId);
-        command.ExecuteNonQuery();
-    }
-
-    private static void SauvegarderSettings(
-        SqliteConnection connexion,
-        SqliteTransaction transaction,
-        string segmentId,
-        IReadOnlyDictionary<string, string>? settings)
-    {
-        if (settings is null)
-        {
-            return;
-        }
-
-        foreach (var (key, value) in settings)
-        {
-            using var command = connexion.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = """
-                INSERT INTO SegmentSettings (ShowSegmentId, SettingKey, SettingValue)
-                VALUES ($segmentId, $key, $value);
-                """;
-            command.Parameters.AddWithValue("$segmentId", segmentId);
-            command.Parameters.AddWithValue("$key", key);
-            command.Parameters.AddWithValue("$value", value);
-            command.ExecuteNonQuery();
-        }
-    }
-
     private static List<WorkerSnapshot> ChargerWorkers(SqliteConnection connexion, IReadOnlyList<string> workerIds)
     {
         if (workerIds.Count == 0)
@@ -1710,33 +1353,6 @@ public sealed class GameRepository
         }
 
         return storylines;
-    }
-
-    private static void MettreAJourStorylineParticipants(
-        SqliteConnection connexion,
-        SqliteTransaction transaction,
-        string storylineId,
-        IReadOnlyList<StorylineParticipant> participants)
-    {
-        using var deleteCommand = connexion.CreateCommand();
-        deleteCommand.Transaction = transaction;
-        deleteCommand.CommandText = "DELETE FROM storyline_participants WHERE storyline_id = $storylineId;";
-        deleteCommand.Parameters.AddWithValue("$storylineId", storylineId);
-        deleteCommand.ExecuteNonQuery();
-
-        foreach (var participant in participants)
-        {
-            using var insertCommand = connexion.CreateCommand();
-            insertCommand.Transaction = transaction;
-            insertCommand.CommandText = """
-                INSERT INTO storyline_participants (storyline_id, worker_id, role)
-                VALUES ($storylineId, $workerId, $role);
-                """;
-            insertCommand.Parameters.AddWithValue("$storylineId", storylineId);
-            insertCommand.Parameters.AddWithValue("$workerId", participant.WorkerId);
-            insertCommand.Parameters.AddWithValue("$role", participant.Role);
-            insertCommand.ExecuteNonQuery();
-        }
     }
 
     private static List<StorylineParticipant> ChargerStorylineParticipants(SqliteConnection connexion, string storylineId)
