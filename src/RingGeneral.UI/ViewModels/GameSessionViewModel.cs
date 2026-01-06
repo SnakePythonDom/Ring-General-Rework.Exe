@@ -24,10 +24,10 @@ public sealed class GameSessionViewModel : ViewModelBase
     private const string ShowId = "SHOW-001";
     private GameRepository? _repository;
     private IScoutingRepository? _scoutingRepository;
-    private readonly MedicalRepository _medicalRepository;
-    private readonly InjuryService _injuryService;
+    private readonly MedicalRepository? _medicalRepository;
+    private readonly InjuryService? _injuryService;
     private readonly BookingValidator _validator = new();
-    private readonly IReadOnlyDictionary<string, string> _segmentLabels;
+    private readonly IReadOnlyDictionary<string, string> _segmentLabels = new Dictionary<string, string>();
     private readonly TemplateService _templateService = new();
     private readonly SegmentTypeCatalog _segmentCatalog;
     private readonly BookingBuilderService _bookingBuilder = new();
@@ -61,7 +61,12 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             // En cas d'échec d'initialisation, l'application continue en mode lecture seule
             // L'utilisateur sera notifié via l'interface qu'aucune sauvegarde n'est chargée
+            Console.WriteLine("FATAL ERROR: Impossible de charger la base de données.");
+            Console.WriteLine($"Chemin tenté : {cheminFinal}");
+            Console.WriteLine($"Erreur : {ex.Message}");
+            Console.WriteLine($"Type d'erreur : {ex.GetType().Name}");
             System.Diagnostics.Debug.WriteLine($"Échec initialisation base de données ({cheminFinal}): {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             _repository = null;
             _scoutingRepository = null;
         }
@@ -563,7 +568,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public void SimulerShow()
     {
-        if (_context is null || _repository is null)
+        if (_context is null || _repository is null || _medicalRepository is null || _injuryService is null)
         {
             return;
         }
@@ -1993,6 +1998,8 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         if (_repository is null)
         {
+            System.Diagnostics.Debug.WriteLine("InitialiserBibliotheque abandonnée : Repository est null.");
+            Console.WriteLine("AVERTISSEMENT: InitialiserBibliotheque ne peut pas s'exécuter car la base de données n'est pas chargée.");
             return;
         }
 
