@@ -8,17 +8,63 @@ using MatchType = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class GameRepository : IScoutingRepository, IContractRepository
+/// <summary>
+/// GameRepository acts as a Façade orchestrating specialized repositories.
+///
+/// REFACTORING STATUS: In progress - transitioning from monolithic to façade pattern.
+///
+/// Methods are being systematically delegated to specialized repositories:
+/// - ShowRepository: Show and segment management
+/// - CompanyRepository: Company, finance, TV deals
+/// - WorkerRepository: Worker data and fatigue
+/// - BackstageRepository: Incidents, discipline, morale
+/// - ScoutingRepository: Scouting and recruiting
+/// - ContractRepository: Contracts and negotiations
+/// - SettingsRepository: Game settings
+/// - YouthRepository: Youth development and generation
+///
+/// Methods KEPT in GameRepository:
+/// - Cross-domain orchestration (ChargerShowContext, ChargerBookingPlan, AppliquerDelta)
+/// - Initialization (Initialiser, EnregistrerMatchTypes, EnregistrerSegmentTemplates)
+/// - Legacy methods not yet migrated
+/// </summary>
+public sealed class GameRepository
 {
     private readonly SqliteConnectionFactory _factory;
+    private readonly ShowRepository _showRepository;
+    private readonly CompanyRepository _companyRepository;
+    private readonly WorkerRepository _workerRepository;
+    private readonly BackstageRepository _backstageRepository;
+    private readonly ScoutingRepository _scoutingRepository;
+    private readonly ContractRepository _contractRepository;
+    private readonly SettingsRepository _settingsRepository;
+    private readonly YouthRepository _youthRepository;
+
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public GameRepository(SqliteConnectionFactory factory)
+    public GameRepository(
+        SqliteConnectionFactory factory,
+        ShowRepository showRepository,
+        CompanyRepository companyRepository,
+        WorkerRepository workerRepository,
+        BackstageRepository backstageRepository,
+        ScoutingRepository scoutingRepository,
+        ContractRepository contractRepository,
+        SettingsRepository settingsRepository,
+        YouthRepository youthRepository)
     {
         _factory = factory;
+        _showRepository = showRepository;
+        _companyRepository = companyRepository;
+        _workerRepository = workerRepository;
+        _backstageRepository = backstageRepository;
+        _scoutingRepository = scoutingRepository;
+        _contractRepository = contractRepository;
+        _settingsRepository = settingsRepository;
+        _youthRepository = youthRepository;
     }
 
     /// <summary>
@@ -626,68 +672,10 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     }
 
     public IReadOnlyList<ShowDefinition> ChargerShowsAVenir(string compagnieId, int semaineActuelle)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            SELECT show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id, lieu, diffusion
-            FROM shows
-            WHERE compagnie_id = $compagnieId
-              AND semaine >= $semaine
-            ORDER BY semaine ASC;
-            """;
-        command.Parameters.AddWithValue("$compagnieId", compagnieId);
-        command.Parameters.AddWithValue("$semaine", semaineActuelle);
-        using var reader = command.ExecuteReader();
-        var shows = new List<ShowDefinition>();
-        while (reader.Read())
-        {
-            var lieu = reader.IsDBNull(7) ? reader.GetString(3) : reader.GetString(7);
-            if (string.IsNullOrWhiteSpace(lieu))
-            {
-                lieu = reader.GetString(3);
-            }
-
-            var diffusion = reader.IsDBNull(8) ? "Non défini" : reader.GetString(8);
-            if (string.IsNullOrWhiteSpace(diffusion))
-            {
-                diffusion = "Non défini";
-            }
-
-            shows.Add(new ShowDefinition(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetInt32(2),
-                reader.GetString(3),
-                reader.GetInt32(4),
-                reader.GetString(5),
-                reader.IsDBNull(6) ? null : reader.GetString(6),
-                lieu,
-                diffusion));
-        }
-
-        return shows;
-    }
+        => _showRepository.ChargerShowsAVenir(compagnieId, semaineActuelle);
 
     public void CreerShow(ShowDefinition show)
-    {
-        using var connexion = _factory.OuvrirConnexion();
-        using var command = connexion.CreateCommand();
-        command.CommandText = """
-            INSERT INTO shows (show_id, nom, semaine, region, duree, compagnie_id, tv_deal_id, lieu, diffusion)
-            VALUES ($showId, $nom, $semaine, $region, $duree, $compagnieId, $tvDealId, $lieu, $diffusion);
-            """;
-        command.Parameters.AddWithValue("$showId", show.ShowId);
-        command.Parameters.AddWithValue("$nom", show.Nom);
-        command.Parameters.AddWithValue("$semaine", show.Semaine);
-        command.Parameters.AddWithValue("$region", show.Region);
-        command.Parameters.AddWithValue("$duree", show.DureeMinutes);
-        command.Parameters.AddWithValue("$compagnieId", show.CompagnieId);
-        command.Parameters.AddWithValue("$tvDealId", (object?)show.DealTvId ?? DBNull.Value);
-        command.Parameters.AddWithValue("$lieu", show.Lieu);
-        command.Parameters.AddWithValue("$diffusion", show.Diffusion);
-        command.ExecuteNonQuery();
-    }
+        => _showRepository.CreerShow(show);
 
     public void AjouterSegment(string showId, SegmentDefinition segment, int ordre)
     {
