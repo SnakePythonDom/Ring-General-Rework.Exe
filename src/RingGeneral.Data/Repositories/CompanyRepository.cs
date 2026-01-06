@@ -290,7 +290,7 @@ public sealed class CompanyRepository : RepositoryBase
             paies.Add(new ContractPayroll(
                 reader.GetString(0),
                 reader.GetString(1),
-                LireDecimal(reader, 2),
+                (double)LireDecimal(reader, 2),
                 ConvertFrequence(reader.GetString(3))));
         }
 
@@ -320,7 +320,7 @@ public sealed class CompanyRepository : RepositoryBase
             paies.Add(new ContractPayroll(
                 reader.GetString(0),
                 reader.GetString(1),
-                LireDecimal(reader, 2),
+                (double)LireDecimal(reader, 2),
                 ConvertFrequence(reader.GetString(3))));
         }
 

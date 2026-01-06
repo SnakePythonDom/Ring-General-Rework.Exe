@@ -4,18 +4,15 @@ using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class BackstageRepository
+public sealed class BackstageRepository : RepositoryBase
 {
-    private readonly SqliteConnectionFactory _factory;
-
-    public BackstageRepository(SqliteConnectionFactory factory)
+    public BackstageRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _factory = factory;
     }
 
     public void AjouterIncident(BackstageIncident incident)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO BackstageIncidents (IncidentId, WorkerId, IncidentType, Description, Severity, Week, Status)
@@ -33,7 +30,7 @@ public sealed class BackstageRepository
 
     public IReadOnlyList<BackstageIncident> ChargerIncidents()
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT IncidentId, WorkerId, IncidentType, Description, Severity, Week, Status
@@ -59,7 +56,7 @@ public sealed class BackstageRepository
 
     public void AjouterActionDisciplinaire(DisciplinaryAction action)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO DisciplinaryActions (ActionId, IncidentId, WorkerId, ActionType, MoraleDelta, Week, Notes)
@@ -77,7 +74,7 @@ public sealed class BackstageRepository
 
     public IReadOnlyList<DisciplinaryAction> ChargerActions(string? incidentId = null)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = incidentId is null
             ? """
@@ -115,7 +112,7 @@ public sealed class BackstageRepository
 
     public void AjouterMoraleHistorique(MoraleHistoryEntry entry)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO MoraleHistory (WorkerId, Week, Delta, Value, Reason, IncidentId)
@@ -132,7 +129,7 @@ public sealed class BackstageRepository
 
     public int ChargerMoraleActuelle(string workerId, int valeurDefaut = 50)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT Value
