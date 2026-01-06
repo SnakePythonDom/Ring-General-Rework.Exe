@@ -46,25 +46,13 @@ public sealed class GameSessionViewModel : ViewModelBase
         var cheminFinal = string.IsNullOrWhiteSpace(cheminDb)
             ? Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db")
             : cheminDb;
-
-        try
-        {
-            var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
-            var repositories = RepositoryFactory.CreateRepositories(factory);
-            _repository = repositories.GameRepository;
-            _scoutingRepository = repositories.ScoutingRepository;
-            _medicalRepository = new MedicalRepository(factory);
-            _injuryService = new InjuryService(new MedicalRecommendations());
-            _repository.Initialiser();
-        }
-        catch (Exception ex)
-        {
-            // En cas d'échec d'initialisation, l'application continue en mode lecture seule
-            // L'utilisateur sera notifié via l'interface qu'aucune sauvegarde n'est chargée
-            System.Diagnostics.Debug.WriteLine($"Échec initialisation base de données ({cheminFinal}): {ex.Message}");
-            _repository = null;
-            _scoutingRepository = null;
-        }
+        var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
+        var repositories = RepositoryFactory.CreateRepositories(factory);
+        _repository = repositories.GameRepository;
+        _scoutingRepository = repositories.ScoutingRepository;
+        _medicalRepository = new MedicalRepository(factory);
+        _injuryService = new InjuryService(new MedicalRecommendations());
+        _repository.Initialiser();
         _segmentCatalog = ChargerSegmentTypes();
         _tooltipHelper = new TooltipHelper(_helpProvider);
         _helpPages = ChargerPages();

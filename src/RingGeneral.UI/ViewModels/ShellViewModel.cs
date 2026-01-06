@@ -27,16 +27,7 @@ public sealed class ShellViewModel : ViewModelBase
             .Where(page => !string.IsNullOrWhiteSpace(page.Meta.PageId))
             .ToDictionary(page => page.Meta.PageId!, page => page, StringComparer.OrdinalIgnoreCase);
         var sauvegarde = Saves.SauvegardeCourante ?? Saves.Sauvegardes.FirstOrDefault();
-        if (sauvegarde is null)
-        {
-            // Mode dégradé : créer une session temporaire en cas d'échec d'initialisation
-            // L'utilisateur pourra créer/importer une sauvegarde via l'interface
-            Session = new GameSessionViewModel(null);
-        }
-        else
-        {
-            Session = new GameSessionViewModel(sauvegarde.Chemin);
-        }
+        Session = new GameSessionViewModel(sauvegarde?.Chemin);
         PageSelectionnee = TrouverPageParRoute("/dashboard")
             ?? Pages.FirstOrDefault()
             ?? new UiPageSpec { Meta = new UiPageMetaSpec { Titre = "Aucune page disponible" } };
