@@ -231,12 +231,12 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
                 resume TEXT NOT NULL,
                 details_json TEXT NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS inbox_items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                type TEXT NOT NULL,
-                titre TEXT NOT NULL,
-                contenu TEXT NOT NULL,
-                semaine INTEGER NOT NULL
+            CREATE TABLE IF NOT EXISTS InboxItems (
+                InboxItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                Type TEXT NOT NULL,
+                Title TEXT NOT NULL,
+                Content TEXT NOT NULL,
+                Week INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS backstage_incidents (
                 incident_id TEXT PRIMARY KEY,
@@ -466,6 +466,45 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
             CREATE INDEX IF NOT EXISTS idx_segment_templates_type ON segment_templates(type_segment);
             """;
         commande.ExecuteNonQuery();
+
+        // Create PascalCase views for compatibility
+        using var viewCommand = connexion.CreateCommand();
+        viewCommand.CommandText = """
+            DROP VIEW IF EXISTS Workers;
+            CREATE VIEW Workers AS
+            SELECT worker_id AS WorkerId,
+                   nom || ' ' || prenom AS Name,
+                   in_ring AS InRing,
+                   entertainment AS Entertainment,
+                   story AS Story,
+                   popularite AS Popularity,
+                   fatigue AS Fatigue,
+                   blessure AS InjuryStatus,
+                   momentum AS Momentum,
+                   role_tv AS RoleTv,
+                   morale AS Morale,
+                   company_id AS CompanyId
+            FROM workers;
+
+            DROP VIEW IF EXISTS Contracts;
+            CREATE VIEW Contracts AS
+            SELECT contract_id AS ContractId,
+                   worker_id AS WorkerId,
+                   company_id AS CompanyId,
+                   type AS Type,
+                   debut_semaine AS StartWeek,
+                   fin_semaine AS EndDate,
+                   salaire AS Salary,
+                   bonus_show AS BonusShow,
+                   buyout AS Buyout,
+                   non_compete_weeks AS NonCompeteWeeks,
+                   auto_renew AS AutoRenew,
+                   exclusif AS Exclusif,
+                   statut AS Statut,
+                   created_week AS CreatedWeek
+            FROM contracts;
+            """;
+        viewCommand.ExecuteNonQuery();
 
         AssurerColonnesSupplementaires(connexion);
 
@@ -1074,9 +1113,9 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
             command.CommandText = """
-                UPDATE Workers
-                SET Fatigue = MAX(0, MIN(100, Fatigue + $delta))
-                WHERE WorkerId = $workerId;
+                UPDATE workers
+                SET fatigue = MAX(0, MIN(100, fatigue + $delta))
+                WHERE worker_id = $workerId;
                 """;
             command.Parameters.AddWithValue("$delta", fatigueDelta);
             command.Parameters.AddWithValue("$workerId", workerId);
@@ -1087,7 +1126,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE Workers SET InjuryStatus = $blessure WHERE WorkerId = $workerId;";
+            command.CommandText = "UPDATE workers SET blessure = $blessure WHERE worker_id = $workerId;";
             command.Parameters.AddWithValue("$blessure", blessure);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -1113,7 +1152,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE Workers SET Momentum = Momentum + $delta WHERE WorkerId = $workerId;";
+            command.CommandText = "UPDATE workers SET momentum = momentum + $delta WHERE worker_id = $workerId;";
             command.Parameters.AddWithValue("$delta", momentum);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -1123,7 +1162,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE Workers SET Popularity = MAX(0, MIN(100, Popularity + $delta)) WHERE WorkerId = $workerId;";
+            command.CommandText = "UPDATE workers SET popularite = MAX(0, MIN(100, popularite + $delta)) WHERE worker_id = $workerId;";
             command.Parameters.AddWithValue("$delta", popularite);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -1346,7 +1385,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
 
             using var updateCommand = connexion.CreateCommand();
             updateCommand.Transaction = transaction;
-            updateCommand.CommandText = "UPDATE Workers SET Morale = $morale WHERE WorkerId = $workerId;";
+            updateCommand.CommandText = "UPDATE workers SET morale = $morale WHERE worker_id = $workerId;";
             updateCommand.Parameters.AddWithValue("$morale", moraleApres);
             updateCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
             updateCommand.ExecuteNonQuery();
@@ -1975,7 +2014,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "UPDATE Workers SET Fatigue = MAX(0, Fatigue - 12);";
+        command.CommandText = "UPDATE workers SET fatigue = MAX(0, fatigue - 12);";
         command.ExecuteNonQuery();
     }
 
