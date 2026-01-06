@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
@@ -6,6 +8,12 @@ namespace RingGeneral.Data.Repositories;
 public abstract class RepositoryBase
 {
     protected readonly SqliteConnectionFactory _factory;
+
+    // JsonSerializerOptions static readonly (explicitement immuable)
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     protected RepositoryBase(SqliteConnectionFactory factory)
     {
@@ -53,5 +61,92 @@ public abstract class RepositoryBase
     protected static void AjouterParametre(SqliteCommand commande, string nom, object valeur)
     {
         commande.Parameters.AddWithValue(nom, valeur ?? DBNull.Value);
+    }
+
+    // === Helpers techniques (Catégorie A) ===
+
+    protected static bool TableExiste(SqliteConnection connexion, string table)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = $table;";
+        command.Parameters.AddWithValue("$table", table);
+        return command.ExecuteScalar() is not null;
+    }
+
+    protected static bool ColonneExiste(SqliteConnection connexion, string table, string colonne)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected static void AjouterColonneSiAbsente(SqliteConnection connexion, string table, string colonne, string type)
+    {
+        using var command = connexion.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({table});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (reader.GetString(1).Equals(colonne, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        using var alterCommand = connexion.CreateCommand();
+        alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {colonne} {type};";
+        alterCommand.ExecuteNonQuery();
+    }
+
+    protected static decimal LireDecimal(SqliteDataReader reader, int index)
+    {
+        return reader.IsDBNull(index) ? 0m : Convert.ToDecimal(reader.GetDouble(index));
+    }
+
+    protected static T? LireJson<T>(SqliteDataReader reader, int index)
+    {
+        if (reader.IsDBNull(index))
+        {
+            return default;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<T>(reader.GetString(index), JsonOptions);
+        }
+        catch (JsonException)
+        {
+            return default;
+        }
+    }
+
+    protected static string? SerializeJson<T>(T value)
+    {
+        return value is null ? null : JsonSerializer.Serialize(value, JsonOptions);
+    }
+
+    protected static PayrollFrequency ConvertFrequence(string? valeur)
+    {
+        if (string.IsNullOrWhiteSpace(valeur))
+        {
+            return PayrollFrequency.Hebdomadaire;
+        }
+
+        return valeur.Trim().ToLowerInvariant() switch
+        {
+            "mensuelle" => PayrollFrequency.Mensuelle,
+            "mensuel" => PayrollFrequency.Mensuelle,
+            "monthly" => PayrollFrequency.Mensuelle,
+            _ => PayrollFrequency.Hebdomadaire
+        };
     }
 }
