@@ -3765,12 +3765,12 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
         using var contractCommand = connexion.CreateCommand();
         contractCommand.Transaction = transaction;
         contractCommand.CommandText = """
-            INSERT INTO contracts (worker_id, company_id, fin_semaine, salaire, pay_frequency)
+            INSERT INTO contracts (worker_id, company_id, fin_semaine, salaire)
             VALUES
-            ('W-001', 'COMP-001', 30, 1200, 'Hebdomadaire'),
-            ('W-002', 'COMP-001', 12, 850, 'Hebdomadaire'),
-            ('W-003', 'COMP-001', 6, 700, 'Mensuelle'),
-            ('W-004', 'COMP-001', 20, 600, 'Hebdomadaire');
+            ('W-001', 'COMP-001', 30, 1200),
+            ('W-002', 'COMP-001', 12, 850),
+            ('W-003', 'COMP-001', 6, 700),
+            ('W-004', 'COMP-001', 20, 600);
             """;
         contractCommand.ExecuteNonQuery();
 
