@@ -3,18 +3,15 @@ using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class MedicalRepository
+public sealed class MedicalRepository : RepositoryBase
 {
-    private readonly SqliteConnectionFactory _factory;
-
-    public MedicalRepository(SqliteConnectionFactory factory)
+    public MedicalRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _factory = factory;
     }
 
     public int AjouterBlessure(InjuryRecord blessure)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO Injuries (WorkerId, Type, Severity, StartDate, EndDate, IsActive, Notes)
@@ -33,7 +30,7 @@ public sealed class MedicalRepository
 
     public int AjouterPlanRecuperation(RecoveryPlan plan)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO RecoveryPlans (InjuryId, WorkerId, StartDate, TargetDate, RecommendedRestWeeks, RiskLevel, Status)
@@ -52,7 +49,7 @@ public sealed class MedicalRepository
 
     public int AjouterNoteMedicale(MedicalNote note)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO MedicalNotes (InjuryId, WorkerId, Note)
@@ -67,7 +64,7 @@ public sealed class MedicalRepository
 
     public InjuryRecord? ChargerBlessure(int injuryId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT InjuryId, WorkerId, Type, Severity, StartDate, EndDate, IsActive, Notes
@@ -94,7 +91,7 @@ public sealed class MedicalRepository
 
     public void MettreAJourBlessure(InjuryRecord blessure)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             UPDATE Injuries
