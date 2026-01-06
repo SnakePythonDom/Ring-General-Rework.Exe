@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Avalonia.Collections;
 using ReactiveUI;
 using System.Reactive;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Medical;
 using RingGeneral.Core.Random;
@@ -22,6 +23,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 {
     private const string ShowId = "SHOW-001";
     private GameRepository? _repository;
+    private IScoutingRepository? _scoutingRepository;
     private readonly MedicalRepository _medicalRepository;
     private readonly InjuryService _injuryService;
     private readonly BookingValidator _validator = new();
@@ -45,7 +47,9 @@ public sealed class GameSessionViewModel : ViewModelBase
             ? Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db")
             : cheminDb;
         var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
-        _repository = RepositoryFactory.CreateGameRepository(factory);
+        var repositories = RepositoryFactory.CreateRepositories(factory);
+        _repository = repositories.GameRepository;
+        _scoutingRepository = repositories.ScoutingRepository;
         _medicalRepository = new MedicalRepository(factory);
         _injuryService = new InjuryService(new MedicalRecommendations());
         _repository.Initialiser();
@@ -854,7 +858,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             return;
         }
 
-        var weekly = new WeeklyLoopService(_repository);
+        var weekly = new WeeklyLoopService(_repository, _scoutingRepository!);
         weekly.PasserSemaineSuivante(ShowId);
         ChargerInbox();
         ChargerShow();

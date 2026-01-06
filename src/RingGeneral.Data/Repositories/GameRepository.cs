@@ -27,8 +27,11 @@ namespace RingGeneral.Data.Repositories;
 /// - Cross-domain orchestration (ChargerShowContext, ChargerBookingPlan, AppliquerDelta)
 /// - Initialization (Initialiser, EnregistrerMatchTypes, EnregistrerSegmentTemplates)
 /// - Legacy methods not yet migrated
+///
+/// Note: GameRepository no longer implements IScoutingRepository or IContractRepository.
+/// Use RepositoryContainer from RepositoryFactory.CreateRepositories() to access specialized repositories directly.
 /// </summary>
-public sealed class GameRepository : IScoutingRepository, IContractRepository
+public sealed class GameRepository
 {
     private readonly SqliteConnectionFactory _factory;
     private readonly ShowRepository _showRepository;
