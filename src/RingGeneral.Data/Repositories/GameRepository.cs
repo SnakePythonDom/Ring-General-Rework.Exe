@@ -111,7 +111,8 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
             );
             CREATE TABLE IF NOT EXISTS storyline_participants (
                 storyline_id TEXT NOT NULL,
-                worker_id TEXT NOT NULL
+                worker_id TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'principal'
             );
             CREATE TABLE IF NOT EXISTS shows (
                 show_id TEXT PRIMARY KEY,
@@ -317,9 +318,9 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
                 negotiation_id TEXT PRIMARY KEY,
                 worker_id TEXT NOT NULL,
                 company_id TEXT NOT NULL,
-                fin_semaine INTEGER NOT NULL,
-                salaire REAL NOT NULL DEFAULT 0,
-                pay_frequency TEXT NOT NULL DEFAULT 'Hebdomadaire'
+                statut TEXT NOT NULL DEFAULT 'en_cours',
+                last_offer_id TEXT,
+                updated_week INTEGER NOT NULL DEFAULT 1
             );
             CREATE TABLE IF NOT EXISTS youth_structures (
                 youth_id TEXT PRIMARY KEY,
@@ -3534,7 +3535,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     {
         using var deleteCommand = connexion.CreateCommand();
         deleteCommand.Transaction = transaction;
-        deleteCommand.CommandText = "DELETE FROM StorylineParticipants WHERE StorylineId = $storylineId;";
+        deleteCommand.CommandText = "DELETE FROM storyline_participants WHERE storyline_id = $storylineId;";
         deleteCommand.Parameters.AddWithValue("$storylineId", storylineId);
         deleteCommand.ExecuteNonQuery();
 
@@ -3543,7 +3544,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
             using var insertCommand = connexion.CreateCommand();
             insertCommand.Transaction = transaction;
             insertCommand.CommandText = """
-                INSERT INTO StorylineParticipants (StorylineId, WorkerId, Role)
+                INSERT INTO storyline_participants (storyline_id, worker_id, role)
                 VALUES ($storylineId, $workerId, $role);
                 """;
             insertCommand.Parameters.AddWithValue("$storylineId", storylineId);
@@ -3556,7 +3557,7 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
     private static List<StorylineParticipant> ChargerStorylineParticipants(SqliteConnection connexion, string storylineId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT worker_id FROM storyline_participants WHERE storyline_id = $storylineId;";
+        command.CommandText = "SELECT worker_id, role FROM storyline_participants WHERE storyline_id = $storylineId;";
         command.Parameters.AddWithValue("$storylineId", storylineId);
         using var reader = command.ExecuteReader();
         var participants = new List<StorylineParticipant>();
