@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
+using MatchType = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.Data.Repositories;
 
