@@ -1,7 +1,7 @@
 # Ring General - Revue Architecture Complète
 
-**Date**: 2026-01-05
-**Version**: 2.0
+**Date**: 2026-01-06
+**Version**: 2.1
 **Statut**: En développement actif
 **Langage**: C# / .NET 8.0
 
@@ -16,7 +16,7 @@
 | Métrique | Valeur |
 |----------|--------|
 | Projets dans la solution | 7 |
-| Fichiers C# sources | 131+ |
+| Fichiers C# sources | 130 |
 | Fichiers de tests | 18 |
 | Framework | .NET 8.0 LTS |
 | UI Framework | Avalonia 11.0.6 |
@@ -24,10 +24,10 @@
 | Fichiers de migration | 16 |
 | Packages NuGet externes | 10 |
 
-### Notation Globale: **7/10**
+### Notation Globale: **7.5/10**
 
-**Points forts**: Architecture modulaire, modèles immuables, couverture tests solide, dépendances minimales
-**Points à améliorer**: Repository monolithique, absence de DI container, logging structuré manquant, ViewModels trop larges
+**Points forts**: Architecture modulaire, modèles immuables, couverture tests solide, dépendances minimales, début de refactoring repositories avec interfaces
+**Points à améliorer**: Repository principal toujours monolithique (3874 lignes), absence de DI container, logging structuré manquant, ViewModels trop larges, dette technique schéma DB
 
 ---
 
@@ -47,7 +47,7 @@ RingGeneral.sln (7 projets)
 │   │   ├── Contracts/ - Négociations de contrats
 │   │   ├── Random/ - Générateur aléatoire déterministe
 │   │   ├── Validation/ - Validation métier
-│   │   └── Interfaces/ - Contrats de services
+│   │   └── Interfaces/ - Contrats de services & repositories
 │   │
 │   └── RingGeneral.Specs
 │       ├── Models/ - Modèles de configuration
@@ -56,13 +56,13 @@ RingGeneral.sln (7 projets)
 ├── Couche Data (Accès aux Données)
 │   └── RingGeneral.Data
 │       ├── Database/ - Initialisation & migrations
-│       ├── Repositories/ - Pattern Repository
+│       ├── Repositories/ - Pattern Repository (split partiel)
 │       └── Models/ - DTOs & modèles de persistance
 │
 ├── Couche Présentation
 │   └── RingGeneral.UI (WinExe)
 │       ├── Views/ - Vues Avalonia (AXAML)
-│       ├── ViewModels/ - ViewModels MVVM (18 fichiers)
+│       ├── ViewModels/ - ViewModels MVVM (33 fichiers)
 │       └── Services/ - Services UI
 │
 ├── Outils
@@ -125,11 +125,13 @@ RingGeneral.Tests
 │  - Validation & contrats                 │
 │  - Système médical                       │
 │  - Spécifications JSON                   │
+│  - Interfaces de repositories            │
 └────────────┬────────────────────────────┘
              │
 ┌────────────▼────────────────────────────┐
 │  COUCHE ACCÈS DONNÉES (Data)             │
-│  - Pattern Repository                    │
+│  - Pattern Repository (split partiel)    │
+│  - Interfaces implémentées               │
 │  - SQLite avec migrations                │
 │  - Initialisation DB                     │
 │  - Gestion sauvegardes                   │
@@ -248,17 +250,35 @@ public sealed record GameStateDelta(
 - Calcule impacts fatigue, momentum, heat storyline
 - Utilise `IRandomProvider` pour random déterministe
 
-### 2.5 Pattern Repository
+### 2.5 Pattern Repository (Split Partiel en Cours)
 
 **Localisation**: `src/RingGeneral.Data/Repositories/`
 
-| Repository | Fonction | Taille |
-|------------|----------|--------|
-| `GameRepository` | CRUD principal pour toutes entités | **3,750 lignes** ⚠️ |
-| `TitleRepository` | Gestion titres & règnes | 207 lignes |
-| `MedicalRepository` | Tracking blessures & récupération | 49 lignes |
-| `BackstageRepository` | Incidents backstage, discipline | 153 lignes |
-| `WeeklyLoopService` | Orchestration simulation hebdomadaire | 381 lignes |
+**⚠️ ÉTAT ACTUEL - TRANSITION ARCHITECTURALE**:
+
+Le projet a entamé un refactoring des repositories avec création d'interfaces et extraction de domaines spécifiques. État actuel:
+
+| Repository | Fonction | Taille | Statut |
+|------------|----------|--------|--------|
+| `GameRepository` | CRUD principal (LEGACY - split en cours) | **3,874 lignes** | ⚠️ TEMPORARY - Implémente IScoutingRepository, IContractRepository |
+| `TitleRepository` | Gestion titres & règnes | 208 lignes | ✅ Extrait - Implémente ITitleRepository, IContenderRepository |
+| `MedicalRepository` | Tracking blessures & récupération | 112 lignes | ✅ Extrait - Implémente IMedicalRepository |
+| `BackstageRepository` | Incidents backstage, discipline | 148 lignes | ✅ Extrait |
+| `ImpactApplier` | Helper application des impacts | 109 lignes | ✅ Nouveau |
+| `Pagination` | Support pagination requêtes | 6 lignes | ✅ Nouveau |
+| `WeeklyLoopService` | Orchestration simulation hebdomadaire | 451 lignes | - |
+
+**Interfaces de Repositories** (nouvellement créées):
+
+**Localisation**: `src/RingGeneral.Core/Interfaces/`
+
+```
+✅ ITitleRepository - Gestion titres/championnats
+✅ IMedicalRepository - Système blessures/récupération
+✅ IContractRepository - Gestion contrats (implémentée par GameRepository)
+✅ IScoutingRepository - Système scouting (implémentée par GameRepository)
+✅ IContenderRepository - Rankings contenders (implémentée par TitleRepository)
+```
 
 **RepositoryBase Pattern**:
 ```csharp
@@ -271,7 +291,24 @@ public abstract class RepositoryBase
 }
 ```
 
-**⚠️ PROBLÈME IDENTIFIÉ**: `GameRepository` est un **monolithe de 3,750 lignes** gérant toutes les entités.
+**⚠️ DETTE TECHNIQUE IDENTIFIÉE**:
+
+1. **GameRepository toujours monolithique** (3,874 lignes) - Contient encore Workers, Companies, Shows, Storylines, Contracts, Scouting
+2. **Duplication de schéma DB** (documentée dans le code) :
+   - `GameRepository.Initialiser()` crée tables snake_case (workers, companies, etc.)
+   - `DbInitializer.ApplyMigrations()` crée tables PascalCase (Workers, Companies, etc.)
+   - Les deux systèmes coexistent → risque de bugs silencieux
+3. **Pas de DI container** - Instanciation manuelle dans ViewModels:
+   ```csharp
+   _repository = new GameRepository(factory);
+   _medicalRepository = new MedicalRepository(factory);
+   ```
+
+**✅ PROGRÈS RÉCENTS**:
+- Interfaces de repositories créées dans Core
+- TitleRepository, MedicalRepository, BackstageRepository extraits
+- Pattern d'implémentation d'interfaces établi
+- Helpers utilitaires ajoutés (ImpactApplier, Pagination)
 
 ### 2.6 Couche UI (Avalonia MVVM)
 
@@ -283,18 +320,21 @@ public abstract class RepositoryBase
 - **Avalonia.Controls.DataGrid** - Vues tabulaires
 - **Avalonia.Themes.Fluent** - Design Fluent
 
-**ViewModels Principaux** (18 fichiers):
+**ViewModels Principaux** (33 fichiers):
 
 | ViewModel | Fonction | Taille |
 |-----------|----------|--------|
-| `GameSessionViewModel` | Logique de jeu principale, binding | **2,092 lignes** ⚠️ |
-| `ShellViewModel` | Navigation principale & gestion sauvegardes | ~400 lignes |
-| `SaveManagerViewModel` | Système save/load | ~300 lignes |
-| `SegmentViewModel` | Gestion carte de booking | ~250 lignes |
-| `StorylineViewModel` | Gestion feuds/angles | ~200 lignes |
-| Autres ViewModels spécialisés | Divers | Variable |
+| `GameSessionViewModel` | Logique de jeu principale, binding | **2,320 lignes** ⚠️ |
+| `SaveManagerViewModel` | Système save/load | 229 lignes |
+| `SegmentViewModel` | Gestion carte de booking | 154 lignes |
+| `HelpViewModels` | Système d'aide contextuelle | 160 lignes |
+| `ShellViewModel` | Navigation principale & gestion sauvegardes | 109 lignes |
+| `SegmentResultViewModel` | Affichage résultats segments | 98 lignes |
+| `StorylineViewModels` | Gestion feuds/angles | 89 lignes |
+| `YouthViewModels` | Système youth/trainees | 71 lignes |
+| Autres ViewModels spécialisés | Divers (petits, focalisés) | 10-50 lignes |
 
-**⚠️ PROBLÈME IDENTIFIÉ**: `GameSessionViewModel` est **trop large** (2,092 lignes).
+**⚠️ PROBLÈME IDENTIFIÉ**: `GameSessionViewModel` reste **trop large** (2,320 lignes, augmenté de 2,092).
 
 ### 2.7 Spécifications (Configuration Data-Driven)
 
@@ -336,7 +376,8 @@ public sealed class SpecsReader
 
 | Pattern | Localisation | Exemple |
 |---------|--------------|---------|
-| **Repository** | Couche Data | `GameRepository`, `TitleRepository` |
+| **Repository** | Couche Data | `GameRepository`, `TitleRepository`, `MedicalRepository` |
+| **Repository Interface** | Core/Interfaces | `ITitleRepository`, `IMedicalRepository` |
 | **Factory/Builder** | Services | `ShowSchedulerService.CreerShow()` |
 | **Strategy** | Simulation | Modèles multiples de rating (AudienceModel, HeatModel) |
 | **Observer** | UI bindings | Notifications ReactiveUI property change |
@@ -419,6 +460,14 @@ public void ApplyMigrations(string cheminDb)
     }
 }
 ```
+
+**⚠️ DETTE TECHNIQUE - DUPLICATION DE SCHÉMA**:
+
+Comme documenté dans le code source (`GameRepository.cs:28-42`), **deux systèmes de création de tables coexistent** :
+1. `GameRepository.Initialiser()` → tables snake_case (workers, companies, etc.)
+2. `DbInitializer.ApplyMigrations()` → tables PascalCase (Workers, Companies, etc.)
+
+Cette duplication peut causer confusion et bugs silencieux. Une migration est planifiée pour unifier sur le système PascalCase.
 
 ### 4.3 Schéma de Base de Données
 
@@ -605,6 +654,7 @@ dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj \
 | `TemplateServiceTests` | Templates booking |
 | `HelpSpecsTests` | Validation contenu aide |
 | `ContractSpecsTests` | Configuration contrats |
+| `ShowSchedulerServiceTests` | Scheduling shows |
 
 **Pattern de Test Exemple**:
 ```csharp
@@ -709,32 +759,55 @@ public ValidationResult ValiderBooking(BookingPlan plan)
 - Utilisation directe ADO.NET
 - Capacité déploiement self-contained
 
+**7. Progrès Refactoring Repositories** ✅ NOUVEAU
+- Interfaces de repositories définies dans Core
+- TitleRepository, MedicalRepository, BackstageRepository extraits et fonctionnels
+- Pattern d'implémentation d'interfaces établi
+- Helpers utilitaires ajoutés (ImpactApplier, Pagination)
+
 ### 7.2 ⚠️ Problèmes & Anti-Patterns Identifiés
 
-**1. GameRepository Monolithique (3,750 lignes)**
-- **Problème**: Repository unique gère TOUS les types d'entités
+**1. GameRepository Toujours Monolithique (3,874 lignes)** ⚠️ LEGACY/TEMPORARY
+- **Problème**: Repository principal reste très large malgré extraction partielle
+- **État actuel**: Implémente IScoutingRepository et IContractRepository
 - **Impact**: Difficile à tester, maintenir et comprendre
-- **Recommandation**: Diviser en repositories spécifiques par domaine:
+- **Domaines encore présents**: Workers, Companies, Shows, Storylines, Contracts, Scouting, Youth
+- **Recommandation**: Continuer le split avec:
   ```
-  IWorkerRepository
-  IShowRepository
-  ITitleRepository
-  IStorylineRepository
-  IContractRepository
-  IMedicalRepository
+  ✅ ITitleRepository (extrait)
+  ✅ IMedicalRepository (extrait)
+  ✅ IBackstageRepository (extrait)
+  ⚠️ IWorkerRepository (à extraire de GameRepository)
+  ⚠️ IShowRepository (à extraire de GameRepository)
+  ⚠️ IStorylineRepository (à extraire de GameRepository)
+  ⚠️ ICompanyRepository (à extraire de GameRepository)
+  ⚠️ IYouthRepository (à extraire de GameRepository)
   ```
 
-**2. Absence de Conteneur d'Injection de Dépendances**
+**2. Duplication de Schéma Base de Données** ⚠️ DETTE TECHNIQUE DOCUMENTÉE
+- **Problème**: Deux systèmes de création de tables coexistent
+  - `GameRepository.Initialiser()` → snake_case (workers, companies)
+  - `DbInitializer.ApplyMigrations()` → PascalCase (Workers, Companies)
+- **Impact**: Confusion, risque de bugs silencieux, maintenance difficile
+- **Statut**: Dette technique documentée dans le code source
+- **Recommandation**: Migration planifiée vers schéma PascalCase uniquement
+
+**3. Absence de Conteneur d'Injection de Dépendances**
 - **Problème**: Instanciation manuelle dans ViewModels
-- **Impact**: Couplage fort, difficile d'échanger implémentations
+  ```csharp
+  _repository = new GameRepository(factory);
+  _medicalRepository = new MedicalRepository(factory);
+  ```
+- **Impact**: Couplage fort, difficile d'échanger implémentations malgré interfaces
 - **Recommandation**: Ajouter Microsoft.Extensions.DependencyInjection
   ```csharp
   services.AddSingleton<SqliteConnectionFactory>();
-  services.AddScoped<IGameRepository, GameRepository>();
+  services.AddScoped<ITitleRepository, TitleRepository>();
+  services.AddScoped<IMedicalRepository, MedicalRepository>();
   services.AddScoped<ShowSimulationEngine>();
   ```
 
-**3. Absence de Framework de Logging Centralisé**
+**4. Absence de Framework de Logging Centralisé**
 - **Problème**: Erreurs lancées mais pas loguées
 - **Impact**: Debugging production difficile
 - **Manque**: Intégration Serilog ou ILogger
@@ -744,29 +817,30 @@ public ValidationResult ValiderBooking(BookingPlan plan)
   _logger.LogError(ex, "Migration échouée pour version {Version}", version);
   ```
 
-**4. ViewModel Large (GameSessionViewModel - 2,092 lignes)**
-- **Problème**: ViewModel monolithique gérant toute logique jeu
-- **Impact**: Complexe, difficile à tester
+**5. ViewModel Large (GameSessionViewModel - 2,320 lignes)** ⚠️ CROISSANCE
+- **Problème**: ViewModel monolithique gérant toute logique jeu (augmenté de 2,092)
+- **Impact**: Complexe, difficile à tester, maintenance difficile
 - **Recommandation**: Extraire en ViewModels plus petits et focalisés:
   ```
   BookingViewModel
   SimulationViewModel
   WorkerManagementViewModel
   FinancialViewModel
+  StorylineManagementViewModel
   ```
 
-**5. Validation Faible dans Plusieurs Endroits**
+**6. Validation Faible dans Plusieurs Endroits**
 - **Problème**: Logique validation éparpillée (BookingValidator, ShowSchedulerService, etc.)
 - **Impact**: Règles de validation incohérentes
 - **Recommandation**: Service de validation centralisé avec builder fluent
 
-**6. Absence de Récupération d'Erreurs**
+**7. Absence de Récupération d'Erreurs**
 - **Problème**: Exceptions lancées, pas de mécanisme de récupération
 - **Impact**: Crashes au lieu de dégradation gracieuse
 - **Exemple**: Désérialisation JSON catch JsonException mais re-throw comme null
 - **Recommandation**: Pattern Result<T, Error> ou monade Maybe
 
-**7. Identification de Types Basée sur Strings**
+**8. Identification de Types Basée sur Strings**
 - **Problème**: Types segments comme strings ("match", "promo", "angle_backstage")
 - **Impact**: Erreurs runtime possibles, pas de sécurité compile-time
 - **Recommandation**: Utiliser enums ou unions discriminées
@@ -805,8 +879,9 @@ public ValidationResult ValiderBooking(BookingPlan plan)
 - Support transactions
 
 **Problèmes**:
+- Duplication schéma (snake_case vs PascalCase) ⚠️
 - Pas de documentation/commentaires colonnes
-- Conventions nommage mixtes (CamelCase vs snake_case)
+- Conventions nommage mixtes
 - Pas de génération ID auto-increment pour tables audit
 - Hints optimisation requêtes limités
 
@@ -816,66 +891,73 @@ public ValidationResult ValiderBooking(BookingPlan plan)
 
 ### Priorité 1: Impact Élevé, Effort Moyen
 
-**1. Implémenter Conteneur DI**
+**1. Résoudre Duplication Schéma DB**
+- Unifier sur système PascalCase (DbInitializer/migrations)
+- Supprimer CREATE TABLE de GameRepository.Initialiser()
+- Mettre à jour toutes requêtes SQL pour noms corrects
+- **Fichiers affectés**: `GameRepository.cs` (lignes 24-400+), `DbInitializer.cs`
+
+**2. Implémenter Conteneur DI**
 - Utiliser Microsoft.Extensions.DependencyInjection
 - Réduire complexité ViewModels
+- Exploiter interfaces de repositories créées
 - **Fichiers affectés**: `GameSessionViewModel.cs`, `ShellViewModel.cs`, `Program.cs`
 
-**2. Ajouter Logging Structuré**
+**3. Ajouter Logging Structuré**
 - Intégrer Serilog ou ILogger
 - Ajouter wrapper try-catch pour opérations base de données
 - **Fichiers affectés**: Tous repositories, simulation engines
 
-**3. Diviser GameRepository**
-- Créer repositories spécifiques par domaine (Worker, Show, Title, etc.)
-- Implémenter interface IRepository de base
-- **Fichiers affectés**: `GameRepository.cs` (split en 6-8 fichiers)
+**4. Continuer Split GameRepository**
+- Extraire domaines restants (Worker, Show, Storyline, Company, Youth)
+- Créer interfaces et implémentations comme TitleRepository/MedicalRepository
+- **Fichiers affectés**: `GameRepository.cs` (split en 5-7 nouveaux fichiers)
 
-**4. Ajouter Gestion Configuration**
+### Priorité 2: Impact Moyen, Effort Moyen
+
+**5. Ajouter Gestion Configuration**
 - Utiliser IConfiguration pour settings environnement
 - Support appsettings.json pour chemins DB, settings simulation
 - **Nouveau fichier**: `appsettings.json`, `ConfigurationService.cs`
 
-### Priorité 2: Impact Moyen, Effort Moyen
-
-**5. Implémenter Pattern Result<T>**
+**6. Implémenter Pattern Result<T>**
 - Remplacer flux piloté par exceptions avec types Result
 - Meilleure gestion erreurs et récupération
 - **Fichiers affectés**: Tous services, repositories
 
-**6. Ajouter Monitoring de Performance**
+**7. Ajouter Monitoring de Performance**
 - Ajouter timing exécution requêtes
 - Profiler bottlenecks moteur simulation
 - **Nouveau fichier**: `PerformanceMonitor.cs`
 
-**7. Extraire Composants MVVM**
+**8. Extraire Composants MVVM**
 - Diviser GameSessionViewModel en ViewModels plus petits
 - Créer composants UI réutilisables
 - **Fichiers affectés**: `GameSessionViewModel.cs` (split en 4-6 fichiers)
 
-**8. Implémenter Cache**
+**9. Implémenter Cache**
 - Cacher attributs workers, données compagnie
 - Implémenter stratégie invalidation
 - **Nouveau fichier**: `CacheService.cs`
 
 ### Priorité 3: Nice-to-Have, Effort Élevé
 
-**9. Ajouter Event Bus**
+**10. Ajouter Event Bus**
 - Activer architecture event-driven
 - Découpler simulation des mises à jour UI
 - **Nouveau package**: MediatR ou custom event bus
 
-**10. Implémenter Trail d'Audit**
+**11. Implémenter Trail d'Audit**
 - Tracker toutes modifications
 - Support replay/historique jeu
 - **Nouveaux fichiers**: Tables audit, `AuditService.cs`
 
-**11. Ajouter Simulation en Background**
+**12. Ajouter Simulation en Background**
 - Simulation non-bloquante pour grands mondes
 - UI de rapport de progression
 - **Nouveau fichier**: `BackgroundSimulationService.cs`
 
-**12. Créer API REST**
+**13. Créer API REST**
 - Si multijoueur prévu
 - Serveur séparé pour simulation monde
 - **Nouveau projet**: `RingGeneral.API`
@@ -1017,16 +1099,18 @@ RingGeneral/
 
 | Métrique | Valeur |
 |----------|--------|
-| Total fichiers C# sources | 131+ |
+| Total fichiers C# sources | 130 |
 | Fichiers de tests | 18 |
 | Projets dans solution | 7 |
 | Namespaces core | 20+ |
 | Modèles domaine (sealed records) | 40+ |
 | Classes Service | 15+ |
 | Classes Repository | 8 |
+| Interfaces Repository | 5 |
+| Fichiers ViewModels | 33 |
 | Fichiers migration | 16 |
-| Fichier le plus grand | GameRepository.cs (3,750 lignes) |
-| Deuxième plus grand | GameSessionViewModel.cs (2,092 lignes) |
+| Fichier le plus grand | GameRepository.cs (3,874 lignes) ⚠️ |
+| Deuxième plus grand | GameSessionViewModel.cs (2,320 lignes) ⚠️ |
 | Packages NuGet externes | 10 |
 | Version .NET | 8.0 LTS |
 | Framework UI | Avalonia 11.0.6 |
@@ -1036,46 +1120,51 @@ RingGeneral/
 
 ## 12. Conclusion
 
-Ring General démontre une **architecture en couches solide** avec modélisation domaine claire et bon usage des fonctionnalités C# modernes (records, nullable reference types). Le design est testable et maintenable à petite échelle.
+Ring General démontre une **architecture en couches solide** avec modélisation domaine claire et bon usage des fonctionnalités C# modernes (records, nullable reference types). Le design est testable et maintenable à petite échelle. **Le projet a entamé un refactoring architectural positif** avec extraction de repositories spécialisés et création d'interfaces.
 
-### Note Globale: **7/10**
+### Note Globale: **7.5/10** (+0.5)
 
 **Points Forts Clés**:
 - ✅ Immuabilité des modèles
 - ✅ Séparation des responsabilités
 - ✅ Couverture tests solide
 - ✅ Dépendances minimales
+- ✅ **NOUVEAU**: Interfaces de repositories créées
+- ✅ **NOUVEAU**: Début extraction repositories (Title, Medical, Backstage)
 
 **Améliorations Critiques Nécessaires**:
-1. Implémentation conteneur DI
-2. Raffinement pattern Repository (diviser monolithe)
-3. Logging structuré
-4. Standardisation gestion erreurs
+1. Résoudre duplication schéma DB (TEMPORARY/LEGACY)
+2. Continuer split GameRepository (3,874 lignes - TEMPORARY)
+3. Implémentation conteneur DI pour exploiter interfaces
+4. Logging structuré
+5. Réduction taille GameSessionViewModel (2,320 lignes)
 
-**Évaluation Globale**: Bonne architecture fondationnelle avec espace pour maturation dans patterns enterprise et observabilité opérationnelle.
+**Évaluation Globale**: Bonne architecture fondationnelle **en cours d'amélioration**. Le refactoring repositories est sur la bonne voie mais incomplet. Dettes techniques identifiées et documentées dans le code.
 
 ---
 
 ## 13. Prochaines Étapes Recommandées
 
 ### Court Terme (1-2 sprints)
-1. Implémenter Microsoft.Extensions.DependencyInjection
-2. Ajouter Serilog pour logging structuré
-3. Diviser GameRepository en 6 repositories spécifiques
+1. **PRIORITÉ 1**: Résoudre duplication schéma DB (snake_case vs PascalCase)
+2. Continuer extraction GameRepository (Workers, Shows, Storylines, Companies, Youth)
+3. Implémenter Microsoft.Extensions.DependencyInjection
+4. Ajouter Serilog pour logging structuré
 
 ### Moyen Terme (3-6 sprints)
-4. Extraire GameSessionViewModel en composants plus petits
-5. Implémenter pattern Result<T> pour gestion erreurs
-6. Ajouter monitoring performance et profiling
+5. Finaliser split complet de GameRepository
+6. Extraire GameSessionViewModel en composants plus petits
+7. Implémenter pattern Result<T> pour gestion erreurs
+8. Ajouter monitoring performance et profiling
 
 ### Long Terme (6+ sprints)
-7. Système d'audit complet
-8. Event bus pour architecture event-driven
-9. Support simulation en background pour grands mondes
-10. API REST si multijoueur prévu
+9. Système d'audit complet
+10. Event bus pour architecture event-driven
+11. Support simulation en background pour grands mondes
+12. API REST si multijoueur prévu
 
 ---
 
-**Document généré le**: 2026-01-05
+**Document généré le**: 2026-01-06
 **Auteur**: Claude (Architecture Review Assistant)
-**Version**: 1.0
+**Version**: 2.1
