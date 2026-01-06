@@ -19,4 +19,7 @@
     <ProjectReference Include="../../src/RingGeneral.Data/RingGeneral.Data.csproj" />
     <ProjectReference Include="../../src/RingGeneral.Specs/RingGeneral.Specs.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../../data/migrations/*.sql" CopyToOutputDirectory="PreserveNewest" LinkBase="data/migrations" />
+  </ItemGroup>
 </Project>
