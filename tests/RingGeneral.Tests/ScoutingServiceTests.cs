@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
@@ -33,6 +34,7 @@ public sealed class ScoutingServiceTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);
@@ -65,6 +67,7 @@ public sealed class ScoutingServiceTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);

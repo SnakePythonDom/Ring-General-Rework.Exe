@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Database;
@@ -55,6 +56,7 @@ public sealed class BookingTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);

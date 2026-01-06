@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Contracts;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
@@ -48,6 +49,7 @@ public sealed class ContractNegotiationTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);
@@ -84,6 +86,7 @@ public sealed class ContractNegotiationTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);
@@ -124,6 +127,7 @@ public sealed class ContractNegotiationTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);

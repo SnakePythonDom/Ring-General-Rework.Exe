@@ -841,8 +841,6 @@
                             GridLinesVisibility="All"
                             HeadersVisibility="All"
                             IsReadOnly="True"
-                            EnableColumnVirtualization="True"
-                            EnableRowVirtualization="True"
                             Sorting="OnTableSorting"
                             ToolTip.Tip="Table virtualisée avec tri, filtres et recherche.">
                     <controls:DataGrid.Columns>
@@ -930,15 +928,15 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
 
-                <Grid ColumnDefinitions="160,12,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6">
+                <Grid ColumnDefinitions="160,12,*" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto">
                   <TextBlock Text="Type" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Column="1" Text="{Binding Session.YouthStructureSelection.Type}" Foreground="#E5E7EB" />
-                  <TextBlock Grid.Row="1" Text="Région" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.Region}" Foreground="#E5E7EB" />
-                  <TextBlock Grid.Row="2" Text="Budget" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.BudgetAnnuel}" Foreground="#FCD34D" />
-                  <TextBlock Grid.Row="3" Text="Capacité" Foreground="#9CA3AF" />
-                  <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Session.YouthStructureSelection.TraineesActifs}" Foreground="#E5E7EB" />
+                  <TextBlock Grid.Column="2" Text="{Binding Session.YouthStructureSelection.Type}" Foreground="#E5E7EB" />
+                  <TextBlock Grid.Row="2" Text="Région" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Session.YouthStructureSelection.Region}" Foreground="#E5E7EB" />
+                  <TextBlock Grid.Row="4" Text="Budget" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding Session.YouthStructureSelection.BudgetAnnuel}" Foreground="#FCD34D" />
+                  <TextBlock Grid.Row="6" Text="Capacité" Foreground="#9CA3AF" />
+                  <TextBlock Grid.Row="6" Grid.Column="2" Text="{Binding Session.YouthStructureSelection.TraineesActifs}" Foreground="#E5E7EB" />
                 </Grid>
 
                 <StackPanel Spacing="6">
@@ -1012,9 +1010,9 @@
             <TextBlock Text="Génération automatique" FontSize="20" FontWeight="Bold" Foreground="White" />
             <Border Background="#111827" Padding="12" CornerRadius="8">
               <StackPanel Spacing="8">
-                <Grid ColumnDefinitions="160,12,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                <Grid ColumnDefinitions="160,12,*" RowDefinitions="Auto,6,Auto,6,Auto">
                   <TextBlock Text="Youth" Foreground="#9CA3AF" />
-                  <ComboBox Grid.Column="1"
+                  <ComboBox Grid.Column="2"
                             ItemsSource="{Binding Session.YouthGenerationModes}"
                             SelectedItem="{Binding Session.YouthGenerationSelection}">
                     <ComboBox.ItemTemplate>
@@ -1023,8 +1021,8 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <TextBlock Grid.Row="1" Text="Monde" Foreground="#9CA3AF" />
-                  <ComboBox Grid.Row="1" Grid.Column="1"
+                  <TextBlock Grid.Row="2" Text="Monde" Foreground="#9CA3AF" />
+                  <ComboBox Grid.Row="2" Grid.Column="2"
                             ItemsSource="{Binding Session.WorldGenerationModes}"
                             SelectedItem="{Binding Session.WorldGenerationSelection}">
                     <ComboBox.ItemTemplate>
@@ -1033,8 +1031,8 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <TextBlock Grid.Row="2" Text="Semaine pivot" Foreground="#9CA3AF" />
-                  <NumericUpDown Grid.Row="2" Grid.Column="1"
+                  <TextBlock Grid.Row="4" Text="Semaine pivot" Foreground="#9CA3AF" />
+                  <NumericUpDown Grid.Row="4" Grid.Column="2"
                                  Minimum="1"
                                  Maximum="52"
                                  Value="{Binding Session.SemainePivotAnnuelle}" />

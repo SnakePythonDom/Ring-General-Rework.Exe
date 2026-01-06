@@ -16,4 +16,10 @@
     <ProjectReference Include="../../src/RingGeneral.Data/RingGeneral.Data.csproj" />
     <ProjectReference Include="../../src/RingGeneral.Specs/RingGeneral.Specs.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="../../specs/**/*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>specs/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
 </Project>

@@ -209,6 +209,7 @@ public sealed class WorkerGenerationServiceTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);

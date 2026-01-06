@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
@@ -15,10 +16,8 @@ public sealed class BackstageFlowTests
         var dbPath = Path.Combine(Path.GetTempPath(), $"backstage-{Guid.NewGuid():N}.db");
         try
         {
-            var initializer = new DbInitializer();
-            initializer.CreateDatabaseIfMissing(dbPath);
-
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
+            CreerSchema(factory);
             SeedData(factory);
 
             var definitions = new List<IncidentDefinition>
@@ -33,7 +32,7 @@ public sealed class BackstageFlowTests
                     new[] { "conflit" })
             };
 
-            var backstageService = new BackstageService(new SeededRandomProvider(9), definitions);
+            var backstageService = new BackstageService(new SeededRandomProvider(42), definitions);
             var disciplineService = new DisciplineService(new SeededRandomProvider(4));
             var backstageRepo = new BackstageRepository(factory);
             var gameRepo = new GameRepository(factory);
@@ -41,7 +40,7 @@ public sealed class BackstageFlowTests
             var incidents = backstageService.RollIncidents(3, new[]
             {
                 new WorkerBackstageProfile("W-1", "Alpha")
-            }, 1);
+            });
 
             Assert.Single(incidents);
             var incident = incidents[0];
@@ -70,6 +69,7 @@ public sealed class BackstageFlowTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(dbPath))
             {
                 File.Delete(dbPath);
@@ -77,20 +77,64 @@ public sealed class BackstageFlowTests
         }
     }
 
+    private static void CreerSchema(SqliteConnectionFactory factory)
+    {
+        using var connexion = factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS Workers (
+                WorkerId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                Nationality TEXT NOT NULL,
+                CompanyId TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS BackstageIncidents (
+                IncidentId TEXT PRIMARY KEY,
+                WorkerId TEXT NOT NULL,
+                IncidentType TEXT NOT NULL,
+                Description TEXT NOT NULL,
+                Severity INTEGER NOT NULL,
+                Week INTEGER NOT NULL,
+                Status TEXT NOT NULL DEFAULT 'pending'
+            );
+
+            CREATE TABLE IF NOT EXISTS DisciplinaryActions (
+                ActionId TEXT PRIMARY KEY,
+                IncidentId TEXT NOT NULL,
+                WorkerId TEXT NOT NULL,
+                ActionType TEXT NOT NULL,
+                MoraleDelta INTEGER NOT NULL,
+                Week INTEGER NOT NULL,
+                Notes TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS MoraleHistory (
+                MoraleHistoryId INTEGER PRIMARY KEY AUTOINCREMENT,
+                WorkerId TEXT NOT NULL,
+                Week INTEGER NOT NULL,
+                Delta INTEGER NOT NULL,
+                Value INTEGER NOT NULL,
+                Reason TEXT NOT NULL,
+                IncidentId TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS InboxItems (
+                InboxItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                Type TEXT NOT NULL,
+                Title TEXT NOT NULL,
+                Content TEXT NOT NULL,
+                Week INTEGER NOT NULL
+            );
+            """;
+        command.ExecuteNonQuery();
+    }
+
     private static void SeedData(SqliteConnectionFactory factory)
     {
         using var connexion = factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO Countries (CountryId, Code, Name)
-            VALUES ('FR', 'FR', 'France');
-
-            INSERT INTO Regions (RegionId, CountryId, Name)
-            VALUES ('FR-IDF', 'FR', 'Île-de-France');
-
-            INSERT INTO Companies (CompanyId, Name, CountryId, RegionId, Prestige, Treasury, AverageAudience, Reach, SimLevel)
-            VALUES ('COMP-1', 'Compagnie Test', 'FR', 'FR-IDF', 50, 10000, 45, 3, 0);
-
             INSERT INTO Workers (WorkerId, Name, Nationality, CompanyId)
             VALUES ('W-1', 'Alpha', 'FR', 'COMP-1');
             """;

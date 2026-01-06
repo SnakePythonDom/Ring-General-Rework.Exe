@@ -8,7 +8,7 @@ using MatchType = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class GameRepository : IScoutingRepository
+public sealed class GameRepository : IScoutingRepository, IContractRepository
 {
     private readonly SqliteConnectionFactory _factory;
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -21,6 +21,25 @@ public sealed class GameRepository : IScoutingRepository
         _factory = factory;
     }
 
+    /// <summary>
+    /// Initialise la base de données avec les tables nécessaires.
+    /// </summary>
+    /// <remarks>
+    /// TODO: DETTE TECHNIQUE - DUPLICATION DE SCHÉMA
+    ///
+    /// Il existe actuellement deux systèmes de création de tables:
+    /// 1. Cette méthode (GameRepository.Initialiser) - crée des tables snake_case (workers, companies, etc.)
+    /// 2. DbInitializer.ApplyMigrations() - crée des tables PascalCase (Workers, Companies, etc.)
+    ///
+    /// Les deux ensembles coexistent, ce qui peut causer confusion et bugs silencieux.
+    ///
+    /// SOLUTION RECOMMANDÉE (Phase 1):
+    /// 1. Supprimer ces CREATE TABLE et utiliser uniquement DbInitializer
+    /// 2. Mettre à jour toutes les requêtes SQL pour utiliser les noms PascalCase
+    /// 3. Ajouter une migration de transition pour les anciennes bases
+    ///
+    /// Voir: docs/PLAN_ACTION_FR.md - Tâche 0.3
+    /// </remarks>
     public void Initialiser()
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -92,7 +111,8 @@ public sealed class GameRepository : IScoutingRepository
             );
             CREATE TABLE IF NOT EXISTS storyline_participants (
                 storyline_id TEXT NOT NULL,
-                worker_id TEXT NOT NULL
+                worker_id TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'principal'
             );
             CREATE TABLE IF NOT EXISTS shows (
                 show_id TEXT PRIMARY KEY,
@@ -212,12 +232,12 @@ public sealed class GameRepository : IScoutingRepository
                 resume TEXT NOT NULL,
                 details_json TEXT NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS inbox_items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                type TEXT NOT NULL,
-                titre TEXT NOT NULL,
-                contenu TEXT NOT NULL,
-                semaine INTEGER NOT NULL
+            CREATE TABLE IF NOT EXISTS InboxItems (
+                InboxItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                Type TEXT NOT NULL,
+                Title TEXT NOT NULL,
+                Content TEXT NOT NULL,
+                Week INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS backstage_incidents (
                 incident_id TEXT PRIMARY KEY,
@@ -298,9 +318,9 @@ public sealed class GameRepository : IScoutingRepository
                 negotiation_id TEXT PRIMARY KEY,
                 worker_id TEXT NOT NULL,
                 company_id TEXT NOT NULL,
-                fin_semaine INTEGER NOT NULL,
-                salaire REAL NOT NULL DEFAULT 0,
-                pay_frequency TEXT NOT NULL DEFAULT 'Hebdomadaire'
+                statut TEXT NOT NULL DEFAULT 'en_cours',
+                last_offer_id TEXT,
+                updated_week INTEGER NOT NULL DEFAULT 1
             );
             CREATE TABLE IF NOT EXISTS youth_structures (
                 youth_id TEXT PRIMARY KEY,
@@ -362,6 +382,31 @@ public sealed class GameRepository : IScoutingRepository
                 youth_id TEXT,
                 region TEXT NOT NULL,
                 company_id TEXT
+            );
+            CREATE TABLE IF NOT EXISTS scout_reports (
+                report_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                region TEXT,
+                potentiel INTEGER NOT NULL DEFAULT 0,
+                in_ring INTEGER NOT NULL DEFAULT 0,
+                entertainment INTEGER NOT NULL DEFAULT 0,
+                story INTEGER NOT NULL DEFAULT 0,
+                resume TEXT,
+                notes TEXT,
+                semaine INTEGER NOT NULL,
+                source TEXT
+            );
+            CREATE TABLE IF NOT EXISTS scout_missions (
+                mission_id TEXT PRIMARY KEY,
+                titre TEXT NOT NULL,
+                region TEXT,
+                focus TEXT,
+                progression INTEGER NOT NULL DEFAULT 0,
+                objectif INTEGER NOT NULL DEFAULT 100,
+                statut TEXT NOT NULL DEFAULT 'active',
+                semaine_debut INTEGER NOT NULL,
+                semaine_maj INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS game_settings (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -710,6 +755,23 @@ public sealed class GameRepository : IScoutingRepository
         transaction.Commit();
     }
 
+    public void SupprimerSegment(string segmentId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var transaction = connexion.BeginTransaction();
+
+        SupprimerParticipants(connexion, transaction, segmentId);
+        SupprimerSettings(connexion, transaction, segmentId);
+
+        using var command = connexion.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "DELETE FROM ShowSegments WHERE ShowSegmentId = $segmentId;";
+        command.Parameters.AddWithValue("$segmentId", segmentId);
+        command.ExecuteNonQuery();
+
+        transaction.Commit();
+    }
+
     public void MettreAJourOrdreSegments(string showId, IReadOnlyList<string> segmentIds)
     {
         using var connexion = _factory.OuvrirConnexion();
@@ -1013,9 +1075,9 @@ public sealed class GameRepository : IScoutingRepository
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
             command.CommandText = """
-                UPDATE Workers
-                SET Fatigue = MAX(0, MIN(100, Fatigue + $delta))
-                WHERE WorkerId = $workerId;
+                UPDATE workers
+                SET fatigue = MAX(0, MIN(100, fatigue + $delta))
+                WHERE worker_id = $workerId;
                 """;
             command.Parameters.AddWithValue("$delta", fatigueDelta);
             command.Parameters.AddWithValue("$workerId", workerId);
@@ -1026,7 +1088,7 @@ public sealed class GameRepository : IScoutingRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE Workers SET InjuryStatus = $blessure WHERE WorkerId = $workerId;";
+            command.CommandText = "UPDATE workers SET blessure = $blessure WHERE worker_id = $workerId;";
             command.Parameters.AddWithValue("$blessure", blessure);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -1052,7 +1114,7 @@ public sealed class GameRepository : IScoutingRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE Workers SET Momentum = Momentum + $delta WHERE WorkerId = $workerId;";
+            command.CommandText = "UPDATE workers SET momentum = momentum + $delta WHERE worker_id = $workerId;";
             command.Parameters.AddWithValue("$delta", momentum);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -1062,7 +1124,7 @@ public sealed class GameRepository : IScoutingRepository
         {
             using var command = connexion.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = "UPDATE Workers SET Popularity = MAX(0, MIN(100, Popularity + $delta)) WHERE WorkerId = $workerId;";
+            command.CommandText = "UPDATE workers SET popularite = MAX(0, MIN(100, popularite + $delta)) WHERE worker_id = $workerId;";
             command.Parameters.AddWithValue("$delta", popularite);
             command.Parameters.AddWithValue("$workerId", workerId);
             command.ExecuteNonQuery();
@@ -1187,7 +1249,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, Name FROM Workers WHERE CompanyId = $companyId;";
+        command.CommandText = "SELECT worker_id, nom || ' ' || prenom FROM workers WHERE company_id = $companyId;";
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
         var roster = new List<WorkerBackstageProfile>();
@@ -1203,7 +1265,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, Morale FROM Workers WHERE CompanyId = $companyId;";
+        command.CommandText = "SELECT worker_id, morale FROM workers WHERE company_id = $companyId;";
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
         var morales = new Dictionary<string, int>();
@@ -1219,7 +1281,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT Morale FROM Workers WHERE WorkerId = $workerId;";
+        command.CommandText = "SELECT morale FROM workers WHERE worker_id = $workerId;";
         command.Parameters.AddWithValue("$workerId", workerId);
         return Convert.ToInt32(command.ExecuteScalar());
     }
@@ -1278,14 +1340,14 @@ public sealed class GameRepository : IScoutingRepository
         {
             using var selectCommand = connexion.CreateCommand();
             selectCommand.Transaction = transaction;
-            selectCommand.CommandText = "SELECT Morale FROM Workers WHERE WorkerId = $workerId;";
+            selectCommand.CommandText = "SELECT morale FROM workers WHERE worker_id = $workerId;";
             selectCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
             var moraleAvant = Convert.ToInt32(selectCommand.ExecuteScalar());
             var moraleApres = Math.Clamp(moraleAvant + impact.Delta, 0, 100);
 
             using var updateCommand = connexion.CreateCommand();
             updateCommand.Transaction = transaction;
-            updateCommand.CommandText = "UPDATE Workers SET Morale = $morale WHERE WorkerId = $workerId;";
+            updateCommand.CommandText = "UPDATE workers SET morale = $morale WHERE worker_id = $workerId;";
             updateCommand.Parameters.AddWithValue("$morale", moraleApres);
             updateCommand.Parameters.AddWithValue("$workerId", impact.WorkerId);
             updateCommand.ExecuteNonQuery();
@@ -1322,7 +1384,7 @@ public sealed class GameRepository : IScoutingRepository
     private static string ChargerCompanyIdPourWorker(SqliteConnection connexion, string workerId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT CompanyId FROM Workers WHERE WorkerId = $workerId;";
+        command.CommandText = "SELECT company_id FROM workers WHERE worker_id = $workerId;";
         command.Parameters.AddWithValue("$workerId", workerId);
         return Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
     }
@@ -1866,7 +1928,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, COALESCE(EndDate, fin_semaine) FROM Contracts;";
+        command.CommandText = "SELECT worker_id, fin_semaine FROM contracts;";
         using var reader = command.ExecuteReader();
         var contracts = new List<(string, int)>();
         while (reader.Read())
@@ -1881,7 +1943,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT WorkerId, Name FROM Workers;";
+        command.CommandText = "SELECT worker_id, nom || ' ' || prenom FROM workers;";
         using var reader = command.ExecuteReader();
         var noms = new Dictionary<string, string>();
         while (reader.Read())
@@ -1905,7 +1967,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT Fatigue FROM Workers WHERE WorkerId = $workerId;";
+        command.CommandText = "SELECT fatigue FROM workers WHERE worker_id = $workerId;";
         command.Parameters.AddWithValue("$workerId", workerId);
         return Convert.ToInt32(command.ExecuteScalar());
     }
@@ -1914,7 +1976,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
-        command.CommandText = "UPDATE Workers SET Fatigue = MAX(0, Fatigue - 12);";
+        command.CommandText = "UPDATE workers SET fatigue = MAX(0, fatigue - 12);";
         command.ExecuteNonQuery();
     }
 
@@ -3115,20 +3177,18 @@ public sealed class GameRepository : IScoutingRepository
 
     private static IReadOnlyList<ContractPayroll> ChargerPaieContratsUpper(SqliteConnection connexion, string companyId)
     {
-        var hasSalary = ColonneExiste(connexion, "Contracts", "Salary");
-        var hasFrequency = ColonneExiste(connexion, "Contracts", "PayFrequency");
-        var salaryColumn = hasSalary ? "Contracts.Salary" : "0";
-        var frequencyColumn = hasFrequency ? "Contracts.PayFrequency" : "'Hebdomadaire'";
+        var hasSalary = ColonneExiste(connexion, "contracts", "salaire");
+        var salaryColumn = hasSalary ? "contracts.salaire" : "0";
 
         using var command = connexion.CreateCommand();
         command.CommandText = $"""
-            SELECT Contracts.WorkerId,
-                   COALESCE(Workers.Name, Contracts.WorkerId),
+            SELECT contracts.worker_id,
+                   COALESCE(workers.nom || ' ' || workers.prenom, contracts.worker_id),
                    {salaryColumn},
-                   {frequencyColumn}
-            FROM Contracts
-            LEFT JOIN Workers ON Workers.WorkerId = Contracts.WorkerId
-            WHERE Contracts.CompanyId = $companyId;
+                   'Hebdomadaire'
+            FROM contracts
+            LEFT JOIN workers ON workers.worker_id = contracts.worker_id
+            WHERE contracts.company_id = $companyId;
             """;
         command.Parameters.AddWithValue("$companyId", companyId);
         using var reader = command.ExecuteReader();
@@ -3396,9 +3456,9 @@ public sealed class GameRepository : IScoutingRepository
         using var command = connexion.CreateCommand();
         var placeholders = workerIds.Select((id, index) => $"$id{index}").ToList();
         command.CommandText = $"""
-            SELECT WorkerId, Name, InRing, Entertainment, Story, Popularity, Fatigue, InjuryStatus, Momentum, RoleTv, Morale
-            FROM Workers
-            WHERE WorkerId IN ({string.Join(", ", placeholders)});
+            SELECT worker_id, nom || ' ' || prenom, in_ring, entertainment, story, popularite, fatigue, blessure, momentum, role_tv, morale
+            FROM workers
+            WHERE worker_id IN ({string.Join(", ", placeholders)});
             """;
         for (var i = 0; i < workerIds.Count; i++)
         {
@@ -3475,7 +3535,7 @@ public sealed class GameRepository : IScoutingRepository
     {
         using var deleteCommand = connexion.CreateCommand();
         deleteCommand.Transaction = transaction;
-        deleteCommand.CommandText = "DELETE FROM StorylineParticipants WHERE StorylineId = $storylineId;";
+        deleteCommand.CommandText = "DELETE FROM storyline_participants WHERE storyline_id = $storylineId;";
         deleteCommand.Parameters.AddWithValue("$storylineId", storylineId);
         deleteCommand.ExecuteNonQuery();
 
@@ -3484,7 +3544,7 @@ public sealed class GameRepository : IScoutingRepository
             using var insertCommand = connexion.CreateCommand();
             insertCommand.Transaction = transaction;
             insertCommand.CommandText = """
-                INSERT INTO StorylineParticipants (StorylineId, WorkerId, Role)
+                INSERT INTO storyline_participants (storyline_id, worker_id, role)
                 VALUES ($storylineId, $workerId, $role);
                 """;
             insertCommand.Parameters.AddWithValue("$storylineId", storylineId);
@@ -3497,7 +3557,7 @@ public sealed class GameRepository : IScoutingRepository
     private static List<StorylineParticipant> ChargerStorylineParticipants(SqliteConnection connexion, string storylineId)
     {
         using var command = connexion.CreateCommand();
-        command.CommandText = "SELECT worker_id FROM storyline_participants WHERE storyline_id = $storylineId;";
+        command.CommandText = "SELECT worker_id, role FROM storyline_participants WHERE storyline_id = $storylineId;";
         command.Parameters.AddWithValue("$storylineId", storylineId);
         using var reader = command.ExecuteReader();
         var participants = new List<StorylineParticipant>();
@@ -3612,8 +3672,8 @@ public sealed class GameRepository : IScoutingRepository
         using var youthProgrammeCommand = connexion.CreateCommand();
         youthProgrammeCommand.Transaction = transaction;
         youthProgrammeCommand.CommandText = """
-            INSERT INTO youth_programs (programme_id, youth_id, nom, type, duree_semaines, focus_attributs, actif)
-            VALUES ('PROG-001', 'YOUTH-001', 'Fondamentaux', 'fundamentaux', 12, '["in_ring","story"]', 1);
+            INSERT INTO youth_programs (program_id, youth_id, nom, duree_semaines, focus)
+            VALUES ('PROG-001', 'YOUTH-001', 'Fondamentaux', 12, 'in_ring,story');
             """;
         youthProgrammeCommand.ExecuteNonQuery();
 
@@ -3729,12 +3789,12 @@ public sealed class GameRepository : IScoutingRepository
         using var contractCommand = connexion.CreateCommand();
         contractCommand.Transaction = transaction;
         contractCommand.CommandText = """
-            INSERT INTO contracts (worker_id, company_id, fin_semaine, salaire, pay_frequency)
+            INSERT INTO contracts (worker_id, company_id, fin_semaine, salaire)
             VALUES
-            ('W-001', 'COMP-001', 30, 1200, 'Hebdomadaire'),
-            ('W-002', 'COMP-001', 12, 850, 'Hebdomadaire'),
-            ('W-003', 'COMP-001', 6, 700, 'Mensuelle'),
-            ('W-004', 'COMP-001', 20, 600, 'Hebdomadaire');
+            ('W-001', 'COMP-001', 30, 1200),
+            ('W-002', 'COMP-001', 12, 850),
+            ('W-003', 'COMP-001', 6, 700),
+            ('W-004', 'COMP-001', 20, 600);
             """;
         contractCommand.ExecuteNonQuery();
 
