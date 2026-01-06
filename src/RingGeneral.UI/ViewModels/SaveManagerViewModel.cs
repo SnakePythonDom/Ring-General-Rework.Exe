@@ -58,12 +58,23 @@ public sealed class SaveManagerViewModel : ViewModelBase
         ActualiserSauvegardes();
         if (Sauvegardes.Count == 0)
         {
-            var info = _storage.CreerSauvegarde("Sauvegarde 1");
-            ActualiserSauvegardes();
-            var slot = Sauvegardes.FirstOrDefault(s => s.Chemin == info.Chemin);
-            if (slot is not null)
+            try
             {
-                DefinirSauvegardeCourante(slot);
+                var info = _storage.CreerSauvegarde("Sauvegarde 1");
+                ActualiserSauvegardes();
+                var slot = Sauvegardes.FirstOrDefault(s => s.Chemin == info.Chemin);
+                if (slot is not null)
+                {
+                    DefinirSauvegardeCourante(slot);
+                }
+                else
+                {
+                    StatutErreur("Impossible de trouver la sauvegarde créée. Vérifiez les permissions d'accès au dossier.");
+                }
+            }
+            catch (Exception ex)
+            {
+                StatutErreur($"Impossible de créer la sauvegarde initiale : {ex.Message}");
             }
         }
         else
