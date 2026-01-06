@@ -32,7 +32,7 @@ public sealed class BackstageFlowTests
                     new[] { "conflit" })
             };
 
-            var backstageService = new BackstageService(new SeededRandomProvider(9), definitions);
+            var backstageService = new BackstageService(new SeededRandomProvider(42), definitions);
             var disciplineService = new DisciplineService(new SeededRandomProvider(4));
             var backstageRepo = new BackstageRepository(factory);
             var gameRepo = new GameRepository(factory);
@@ -40,7 +40,7 @@ public sealed class BackstageFlowTests
             var incidents = backstageService.RollIncidents(3, new[]
             {
                 new WorkerBackstageProfile("W-1", "Alpha")
-            }, 1);
+            });
 
             Assert.Single(incidents);
             var incident = incidents[0];

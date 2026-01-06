@@ -382,6 +382,31 @@ public sealed class GameRepository : IScoutingRepository, IContractRepository
                 region TEXT NOT NULL,
                 company_id TEXT
             );
+            CREATE TABLE IF NOT EXISTS scout_reports (
+                report_id TEXT PRIMARY KEY,
+                worker_id TEXT NOT NULL,
+                nom TEXT NOT NULL,
+                region TEXT,
+                potentiel INTEGER NOT NULL DEFAULT 0,
+                in_ring INTEGER NOT NULL DEFAULT 0,
+                entertainment INTEGER NOT NULL DEFAULT 0,
+                story INTEGER NOT NULL DEFAULT 0,
+                resume TEXT,
+                notes TEXT,
+                semaine INTEGER NOT NULL,
+                source TEXT
+            );
+            CREATE TABLE IF NOT EXISTS scout_missions (
+                mission_id TEXT PRIMARY KEY,
+                titre TEXT NOT NULL,
+                region TEXT,
+                focus TEXT,
+                progression INTEGER NOT NULL DEFAULT 0,
+                objectif INTEGER NOT NULL DEFAULT 100,
+                statut TEXT NOT NULL DEFAULT 'active',
+                semaine_debut INTEGER NOT NULL,
+                semaine_maj INTEGER NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS game_settings (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
                 youth_generation_mode TEXT NOT NULL,
