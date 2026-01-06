@@ -63,7 +63,7 @@ public sealed class SaveStorageService
             : nom;
         var chemin = ObtenirCheminUnique(nomFinal);
         var factory = new SqliteConnectionFactory($"Data Source={chemin}");
-        var repository = new GameRepository(factory);
+        var repository = RepositoryFactory.CreateGameRepository(factory);
         repository.Initialiser();
         return ConstruireInfo(chemin);
     }

@@ -45,7 +45,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             ? Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db")
             : cheminDb;
         var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
-        _repository = new GameRepository(factory);
+        _repository = RepositoryFactory.CreateGameRepository(factory);
         _medicalRepository = new MedicalRepository(factory);
         _injuryService = new InjuryService(new MedicalRecommendations());
         _repository.Initialiser();
