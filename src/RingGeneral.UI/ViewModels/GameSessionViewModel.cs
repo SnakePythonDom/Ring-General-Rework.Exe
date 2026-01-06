@@ -49,6 +49,10 @@ public sealed class GameSessionViewModel : ViewModelBase
 
         try
         {
+            // Apply database migrations first to ensure all tables exist
+            var initializer = new DbInitializer();
+            initializer.CreateDatabaseIfMissing(cheminFinal);
+
             var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
             var repositories = RepositoryFactory.CreateRepositories(factory);
             _repository = repositories.GameRepository;
