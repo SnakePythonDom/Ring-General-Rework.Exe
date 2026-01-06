@@ -416,13 +416,11 @@ public sealed class GameSessionViewModel : ViewModelBase
         get => _tableRecherche;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _tableRecherche, value))
+            this.RaiseAndSetIfChanged(ref _tableRecherche, value);
+            if (!_suspendTablePreferences)
             {
-                if (!_suspendTablePreferences)
-                {
-                    AppliquerFiltreTable();
-                    SauvegarderPreferencesTable();
-                }
+                AppliquerFiltreTable();
+                SauvegarderPreferencesTable();
             }
         }
     }
@@ -433,13 +431,11 @@ public sealed class GameSessionViewModel : ViewModelBase
         get => _tableSelectedTypeFilter;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _tableSelectedTypeFilter, value))
+            this.RaiseAndSetIfChanged(ref _tableSelectedTypeFilter, value);
+            if (!_suspendTablePreferences)
             {
-                if (!_suspendTablePreferences)
-                {
-                    AppliquerFiltreTable();
-                    SauvegarderPreferencesTable();
-                }
+                AppliquerFiltreTable();
+                SauvegarderPreferencesTable();
             }
         }
     }
@@ -450,13 +446,11 @@ public sealed class GameSessionViewModel : ViewModelBase
         get => _tableSelectedStatusFilter;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _tableSelectedStatusFilter, value))
+            this.RaiseAndSetIfChanged(ref _tableSelectedStatusFilter, value);
+            if (!_suspendTablePreferences)
             {
-                if (!_suspendTablePreferences)
-                {
-                    AppliquerFiltreTable();
-                    SauvegarderPreferencesTable();
-                }
+                AppliquerFiltreTable();
+                SauvegarderPreferencesTable();
             }
         }
     }
