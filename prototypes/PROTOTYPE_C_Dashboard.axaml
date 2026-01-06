@@ -1,0 +1,439 @@
+<!--
+PROTOTYPE C : Dashboard avec cards/widgets (Style Management Moderne)
+Style : Dashboard avec widgets réorganisables, vue d'ensemble métier
+Inspiration : Power BI, Tableau, Dashboards modernes
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="RingGeneral.UI.Views.MainWindow"
+        Title="Ring General"
+        Width="1600"
+        Height="900"
+        Background="#f5f5f5">
+
+    <Design.DataContext>
+        <vm:ShellViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>   <!-- Header -->
+            <RowDefinition Height="*"/>    <!-- Dashboard Content -->
+        </Grid.RowDefinitions>
+
+        <!-- ==================== HEADER ==================== -->
+        <Border Grid.Row="0" Background="White" BoxShadow="0 2 8 0 #20000000">
+            <Grid Margin="30,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Logo & Nav -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="30">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Background="#3b82f6" Width="40" Height="40" CornerRadius="8">
+                            <TextBlock Text="🎭" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Ring General" FontSize="16" FontWeight="Bold" Foreground="#1f2937"/>
+                            <TextBlock Text="Monday Night Raw" FontSize="11" Foreground="#6b7280"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Navigation Pills -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border Background="#3b82f6" Padding="14,8" CornerRadius="20">
+                            <TextBlock Text="Dashboard" FontSize="13" Foreground="White" FontWeight="SemiBold"/>
+                        </Border>
+                        <Border Background="Transparent" Padding="14,8" CornerRadius="20">
+                            <TextBlock Text="Booking" FontSize="13" Foreground="#6b7280"/>
+                        </Border>
+                        <Border Background="Transparent" Padding="14,8" CornerRadius="20">
+                            <TextBlock Text="Roster" FontSize="13" Foreground="#6b7280"/>
+                        </Border>
+                        <Border Background="Transparent" Padding="14,8" CornerRadius="20">
+                            <TextBlock Text="Storylines" FontSize="13" Foreground="#6b7280"/>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Right: Actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
+                    <Button Background="White" BorderBrush="#e5e7eb" BorderThickness="1" Padding="12,8" CornerRadius="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="🔍" FontSize="14"/>
+                            <TextBlock Text="Recherche" FontSize="13" Foreground="#6b7280"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Background="#ef4444" Padding="12,8" CornerRadius="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="📥" FontSize="14" Foreground="White"/>
+                            <TextBlock Text="3" FontSize="13" Foreground="White" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                    <Border Background="#f3f4f6" Width="36" Height="36" CornerRadius="18">
+                        <TextBlock Text="⚙️" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ==================== DASHBOARD CONTENT ==================== -->
+        <ScrollViewer Grid.Row="1" Background="#f5f5f5">
+            <StackPanel Margin="30,30,30,30" Spacing="25">
+                <!-- Key Metrics Row -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Metric Card 1 -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="20" Margin="0,0,10,0" BoxShadow="0 1 3 0 #10000000">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Border Background="#dbeafe" Width="40" Height="40" CornerRadius="8">
+                                    <TextBlock Text="📅" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="SEMAINE ACTUELLE" FontSize="11" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                    <TextBlock Text="24" FontSize="24" Foreground="#1f2937" FontWeight="Bold"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Text="3 shows planifiés" FontSize="12" Foreground="#6b7280" Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Metric Card 2 -->
+                    <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="20" Margin="5,0" BoxShadow="0 1 3 0 #10000000">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Border Background="#d1fae5" Width="40" Height="40" CornerRadius="8">
+                                    <TextBlock Text="💰" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="BUDGET" FontSize="11" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                    <TextBlock Text="$2.4M" FontSize="24" Foreground="#10b981" FontWeight="Bold"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
+                                <TextBlock Text="↗" FontSize="14" Foreground="#10b981" FontWeight="Bold"/>
+                                <TextBlock Text="+12.5% vs. semaine dernière" FontSize="12" Foreground="#6b7280"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Metric Card 3 -->
+                    <Border Grid.Column="2" Background="White" CornerRadius="12" Padding="20" Margin="5,0" BoxShadow="0 1 3 0 #10000000">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Border Background="#fef3c7" Width="40" Height="40" CornerRadius="8">
+                                    <TextBlock Text="⭐" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="NOTE MOYENNE" FontSize="11" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                    <TextBlock Text="78/100" FontSize="24" Foreground="#f59e0b" FontWeight="Bold"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Text="Dernier show : 82/100" FontSize="12" Foreground="#6b7280" Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Metric Card 4 -->
+                    <Border Grid.Column="3" Background="White" CornerRadius="12" Padding="20" Margin="10,0,0,0" BoxShadow="0 1 3 0 #10000000">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Border Background="#ddd6fe" Width="40" Height="40" CornerRadius="8">
+                                    <TextBlock Text="📺" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="AUDIENCE" FontSize="11" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                    <TextBlock Text="2.1M" FontSize="24" Foreground="#8b5cf6" FontWeight="Bold"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
+                                <TextBlock Text="↘" FontSize="14" Foreground="#ef4444" FontWeight="Bold"/>
+                                <TextBlock Text="-3.2% vs. moyenne" FontSize="12" Foreground="#6b7280"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Main Content Grid -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Column: Booking & Schedule -->
+                    <StackPanel Grid.Column="0" Spacing="20">
+                        <!-- Next Show Card -->
+                        <Border Background="White" CornerRadius="12" BoxShadow="0 1 3 0 #10000000">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Header -->
+                                <Border Grid.Row="0" Background="#f9fafb" Padding="20,15" CornerRadius="12,12,0,0" BorderBrush="#e5e7eb" BorderThickness="0,0,0,1">
+                                    <Grid>
+                                        <StackPanel>
+                                            <TextBlock Text="PROCHAIN SHOW" FontSize="13" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Monday Night Raw • Semaine 24" FontSize="16" Foreground="#1f2937" FontWeight="Bold" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <Button Content="✏️ Éditer" Padding="12,8" Background="#3b82f6" Foreground="White" CornerRadius="8" FontSize="12" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Segments -->
+                                <ScrollViewer Grid.Row="1" MaxHeight="350">
+                                    <StackPanel Padding="20" Spacing="12">
+                                        <!-- Segment 1 -->
+                                        <Border Background="#eff6ff" BorderBrush="#3b82f6" BorderThickness="2" Padding="16" CornerRadius="8">
+                                            <Grid>
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="⭐" FontSize="16"/>
+                                                        <TextBlock Text="MAIN EVENT" FontSize="12" Foreground="#3b82f6" FontWeight="Bold"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="Singles Match" FontSize="15" Foreground="#1f2937" FontWeight="Bold" Margin="0,6,0,0"/>
+                                                    <TextBlock Text="John Cena vs. Randy Orton" FontSize="13" Foreground="#4b5563" Margin="0,4,0,0"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+                                                        <Border Background="White" Padding="8,4" CornerRadius="6">
+                                                            <TextBlock Text="⏱️ 15 min" FontSize="11" Foreground="#6b7280"/>
+                                                        </Border>
+                                                        <Border Background="White" Padding="8,4" CornerRadius="6">
+                                                            <TextBlock Text="🔥 85%" FontSize="11" Foreground="#f59e0b"/>
+                                                        </Border>
+                                                        <Border Background="White" Padding="8,4" CornerRadius="6">
+                                                            <TextBlock Text="📖 Title Feud" FontSize="11" Foreground="#3b82f6"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <TextBlock Text="82" FontSize="32" Foreground="#3b82f6" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Segment 2 -->
+                                        <Border Background="#f9fafb" Padding="16" CornerRadius="8">
+                                            <Grid>
+                                                <StackPanel>
+                                                    <TextBlock Text="Interview Segment" FontSize="14" Foreground="#1f2937" FontWeight="Bold"/>
+                                                    <TextBlock Text="The Rock" FontSize="13" Foreground="#4b5563" Margin="0,4,0,0"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                                                        <Border Background="White" Padding="8,4" CornerRadius="6">
+                                                            <TextBlock Text="⏱️ 8 min" FontSize="11" Foreground="#6b7280"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <TextBlock Text="68" FontSize="28" Foreground="#6b7280" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Segment 3 -->
+                                        <Border Background="#f9fafb" Padding="16" CornerRadius="8">
+                                            <Grid>
+                                                <StackPanel>
+                                                    <TextBlock Text="Tag Team Match" FontSize="14" Foreground="#1f2937" FontWeight="Bold"/>
+                                                    <TextBlock Text="DX vs. Legacy" FontSize="13" Foreground="#4b5563" Margin="0,4,0,0"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                                                        <Border Background="White" Padding="8,4" CornerRadius="6">
+                                                            <TextBlock Text="⏱️ 12 min" FontSize="11" Foreground="#6b7280"/>
+                                                        </Border>
+                                                        <Border Background="White" Padding="8,4" CornerRadius="6">
+                                                            <TextBlock Text="🔥 70%" FontSize="11" Foreground="#f59e0b"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <TextBlock Text="74" FontSize="28" Foreground="#6b7280" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Add Segment -->
+                                        <Border Background="Transparent" BorderBrush="#d1d5db" BorderThickness="2" BorderDashArray="4,4" Padding="20" CornerRadius="8">
+                                            <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                                <TextBlock Text="➕" FontSize="24" Foreground="#9ca3af" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="Ajouter un segment" FontSize="13" Foreground="#6b7280"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </ScrollViewer>
+
+                                <!-- Footer -->
+                                <Border Grid.Row="2" Background="#f9fafb" Padding="20,15" CornerRadius="0,0,12,12" BorderBrush="#e5e7eb" BorderThickness="0,1,0,0">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="20">
+                                            <StackPanel>
+                                                <TextBlock Text="Durée totale" FontSize="11" Foreground="#6b7280"/>
+                                                <TextBlock Text="35/120 min" FontSize="14" Foreground="#1f2937" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <Border Width="1" Background="#e5e7eb"/>
+                                            <StackPanel>
+                                                <TextBlock Text="Note moyenne" FontSize="11" Foreground="#6b7280"/>
+                                                <TextBlock Text="75/100" FontSize="14" Foreground="#f59e0b" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Button Content="▶️ Simuler" Padding="20,10" Background="#10b981" Foreground="White" CornerRadius="8" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Calendar Widget -->
+                        <Border Background="White" CornerRadius="12" Padding="20" BoxShadow="0 1 3 0 #10000000">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="SHOWS À VENIR" FontSize="13" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                <StackPanel Spacing="10">
+                                    <Border Background="#f9fafb" Padding="12" CornerRadius="8">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="Semaine 25" FontSize="12" Foreground="#6b7280"/>
+                                                <TextBlock Text="Friday Night SmackDown" FontSize="14" Foreground="#1f2937" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Text="→" FontSize="18" Foreground="#3b82f6" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Background="#f9fafb" Padding="12" CornerRadius="8">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="Semaine 26" FontSize="12" Foreground="#6b7280"/>
+                                                <TextBlock Text="Monday Night Raw" FontSize="14" Foreground="#1f2937" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Text="→" FontSize="18" Foreground="#3b82f6" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Column: Quick Stats & Alerts -->
+                    <StackPanel Grid.Column="2" Spacing="20">
+                        <!-- Validation Widget -->
+                        <Border Background="White" CornerRadius="12" Padding="20" BoxShadow="0 1 3 0 #10000000">
+                            <StackPanel Spacing="15">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Border Background="#d1fae5" Width="32" Height="32" CornerRadius="8">
+                                        <TextBlock Text="✅" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="VALIDATION" FontSize="13" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Prêt à simuler" FontSize="12" Foreground="#10b981"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Separator Background="#e5e7eb"/>
+                                <StackPanel Spacing="10">
+                                    <Border Background="#fef3c7" Padding="10" CornerRadius="6">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="⚠️" FontSize="14"/>
+                                            <TextBlock Text="2 warnings" FontSize="12" Foreground="#92400e" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Text="• Fatigue élevée (Cena)" FontSize="11" Foreground="#6b7280" Margin="18,0,0,0"/>
+                                    <TextBlock Text="• Peu de storylines" FontSize="11" Foreground="#6b7280" Margin="18,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Top Performers -->
+                        <Border Background="White" CornerRadius="12" Padding="20" BoxShadow="0 1 3 0 #10000000">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="TOP PERFORMERS" FontSize="13" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                <StackPanel Spacing="12">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#10b981" Width="32" Height="32" CornerRadius="16">
+                                                <TextBlock Text="JC" FontSize="12" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="John Cena" FontSize="13" Foreground="#1f2937" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Popularité 95" FontSize="11" Foreground="#6b7280"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Text="↗ +5" FontSize="13" Foreground="#10b981" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#ef4444" Width="32" Height="32" CornerRadius="16">
+                                                <TextBlock Text="RO" FontSize="12" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Randy Orton" FontSize="13" Foreground="#1f2937" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Popularité 88" FontSize="11" Foreground="#6b7280"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Text="↗ +3" FontSize="13" Foreground="#10b981" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#8b5cf6" Width="32" Height="32" CornerRadius="16">
+                                                <TextBlock Text="TR" FontSize="12" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="The Rock" FontSize="13" Foreground="#1f2937" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Popularité 92" FontSize="11" Foreground="#6b7280"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Text="→ 0" FontSize="13" Foreground="#6b7280" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Active Storylines -->
+                        <Border Background="White" CornerRadius="12" Padding="20" BoxShadow="0 1 3 0 #10000000">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="STORYLINES ACTIVES" FontSize="13" Foreground="#6b7280" FontWeight="SemiBold"/>
+                                <StackPanel Spacing="10">
+                                    <Border Background="#eff6ff" Padding="12" CornerRadius="8">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Rivalité Title" FontSize="13" Foreground="#1f2937" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Cena vs. Orton" FontSize="11" Foreground="#6b7280"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                                <Border Background="#3b82f6" Padding="6,3" CornerRadius="4">
+                                                    <TextBlock Text="Peak" FontSize="10" Foreground="White"/>
+                                                </Border>
+                                                <TextBlock Text="Heat 88" FontSize="11" Foreground="#3b82f6" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="#f9fafb" Padding="12" CornerRadius="8">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Legacy Rising" FontSize="13" Foreground="#1f2937" FontWeight="SemiBold"/>
+                                            <TextBlock Text="DX vs. Legacy" FontSize="11" Foreground="#6b7280"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                                <Border Background="#6b7280" Padding="6,3" CornerRadius="4">
+                                                    <TextBlock Text="Build" FontSize="10" Foreground="White"/>
+                                                </Border>
+                                                <TextBlock Text="Heat 65" FontSize="11" Foreground="#6b7280" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                                <Button Content="+ Nouvelle storyline" Padding="0,10" Background="Transparent" BorderBrush="#3b82f6" BorderThickness="1" Foreground="#3b82f6" CornerRadius="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Quick Actions -->
+                        <Border Background="#3b82f6" CornerRadius="12" Padding="20" BoxShadow="0 1 3 0 #10000000">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="ACTIONS RAPIDES" FontSize="13" Foreground="#dbeafe" FontWeight="SemiBold"/>
+                                <Button Content="🔄 Passer à la semaine suivante" Padding="0,12" Background="White" Foreground="#3b82f6" CornerRadius="8" FontWeight="SemiBold" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                                <Button Content="📚 Bibliothèque de templates" Padding="0,12" Background="#2563eb" Foreground="White" CornerRadius="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                                <Button Content="📊 Voir l'historique" Padding="0,12" Background="#2563eb" Foreground="White" CornerRadius="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>
