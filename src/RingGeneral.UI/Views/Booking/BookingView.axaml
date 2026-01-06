@@ -1,0 +1,221 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Booking"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="RingGeneral.UI.Views.Booking.BookingView"
+             x:DataType="vm:BookingViewModel"
+             Background="#1a1a1a">
+
+    <Design.DataContext>
+        <vm:BookingViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ==================== CONTENT HEADER ==================== -->
+        <Border Grid.Row="0" Background="#242424" Padding="25,18" BorderBrush="#3a3a3a" BorderThickness="0,0,0,1">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="BOOKING • SHOWS ACTIFS" FontSize="11" Foreground="#888888" FontWeight="SemiBold"/>
+                    <TextBlock Text="Monday Night Raw" FontSize="20" Foreground="#e0e0e0" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,8,0,0">
+                        <!-- Validation Status -->
+                        <Border Background="#065f46" Padding="8,4" CornerRadius="4" IsVisible="{Binding IsBookingValid}">
+                            <TextBlock Text="✅ Valide" FontSize="11" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                        </Border>
+                        <Border Background="#92400e" Padding="8,4" CornerRadius="4" IsVisible="{Binding ValidationWarnings, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock FontSize="11" Foreground="#fde68a" FontWeight="SemiBold">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="⚠️ {0} warnings">
+                                        <Binding Path="ValidationIssues.Count"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Border>
+                        <TextBlock Text="{Binding DurationSummary}" FontSize="11" Foreground="#888888" VerticalAlignment="Center"/>
+                        <TextBlock FontSize="11" Foreground="#888888" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="• {0} segments">
+                                    <Binding Path="Segments.Count"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+                <Button Content="+ Nouveau segment"
+                        Padding="15,10"
+                        Background="#3b82f6"
+                        Foreground="White"
+                        CornerRadius="6"
+                        FontWeight="SemiBold"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Command="{Binding AddSegmentCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- ==================== SEGMENTS TABLE ==================== -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="25,20" Spacing="12">
+                <!-- Table Header -->
+                <Grid Height="35" Background="#242424" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="80"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="#" FontSize="11" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center" Margin="12,0"/>
+                    <TextBlock Grid.Column="1" Text="TYPE" FontSize="11" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="PARTICIPANTS" FontSize="11" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="DURÉE" FontSize="11" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="INTENSITÉ" FontSize="11" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="5" Text="STORYLINE" FontSize="11" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="6" Text="NOTE" FontSize="11" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Grid>
+
+                <!-- Segments List (ItemsControl) -->
+                <ItemsControl ItemsSource="{Binding Segments}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- Segment Row -->
+                            <Border Padding="0" CornerRadius="8" Margin="0,0,0,8">
+                                <Border.Styles>
+                                    <!-- Style normal -->
+                                    <Style Selector="Border">
+                                        <Setter Property="Background" Value="#2d2d2d"/>
+                                    </Style>
+                                    <!-- Style Main Event -->
+                                    <Style Selector="Border[Tag=MainEvent]">
+                                        <Setter Property="Background" Value="#1e3a8a"/>
+                                        <Setter Property="BorderBrush" Value="#3b82f6"/>
+                                        <Setter Property="BorderThickness" Value="2"/>
+                                    </Style>
+                                    <!-- Style hover -->
+                                    <Style Selector="Border:pointerover">
+                                        <Setter Property="Background" Value="#374151"/>
+                                    </Style>
+                                </Border.Styles>
+
+                                <Border.Tag>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="EstMainEvent"/>
+                                    </MultiBinding>
+                                </Border.Tag>
+
+                                <Grid Height="60">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Numéro + Badge Main Event -->
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="12,0">
+                                        <TextBlock Text="⭐" FontSize="12" HorizontalAlignment="Center" IsVisible="{Binding EstMainEvent}"/>
+                                    </StackPanel>
+
+                                    <!-- Type -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Libelle}" FontSize="13" Foreground="#e0e0e0" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding TypeSegment}" FontSize="10" Foreground="#666666" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Participants -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding ParticipantsResume}" FontSize="13" Foreground="#e0e0e0"/>
+                                        <TextBlock FontSize="10" Foreground="#666666" Margin="0,2,0,0">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} participants">
+                                                    <Binding Path="Participants.Count"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <!-- Durée -->
+                                    <TextBlock Grid.Column="3" FontSize="13" Foreground="#e0e0e0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} min">
+                                                <Binding Path="DureeMinutes"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+
+                                    <!-- Intensité -->
+                                    <Border Grid.Column="4" Background="#92400e" Padding="8,4" CornerRadius="4" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            IsVisible="{Binding Intensite, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <TextBlock FontSize="12" Foreground="#fde68a" FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0}%">
+                                                    <Binding Path="Intensite"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Border>
+
+                                    <!-- Storyline -->
+                                    <TextBlock Grid.Column="5" Text="{Binding StorylineNom}" FontSize="12" Foreground="#3b82f6" VerticalAlignment="Center"/>
+
+                                    <!-- Note estimée (Placeholder) -->
+                                    <Border Grid.Column="6" Background="#374151" Width="50" Height="50" CornerRadius="25" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="--" FontSize="18" Foreground="#d1d5db" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Add Segment Placeholder -->
+                <Border Background="Transparent" BorderBrush="#3a3a3a" BorderThickness="2" BorderDashArray="6,4" Height="60" CornerRadius="8">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+                        <TextBlock Text="➕" FontSize="20" Foreground="#666666"/>
+                        <TextBlock Text="Ajouter un segment" FontSize="13" Foreground="#888888"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ==================== BOTTOM ACTION BAR ==================== -->
+        <Border Grid.Row="2" Background="#242424" Padding="25,15" BorderBrush="#3a3a3a" BorderThickness="0,1,0,0">
+            <Grid>
+                <StackPanel Orientation="Horizontal" Spacing="25">
+                    <StackPanel>
+                        <TextBlock Text="DURÉE TOTALE" FontSize="10" Foreground="#666666"/>
+                        <TextBlock Text="{Binding DurationSummary}" FontSize="14" Foreground="#e0e0e0" FontWeight="Bold" Margin="0,4,0,0"/>
+                        <ProgressBar Value="{Binding TotalDuration}" Maximum="{Binding ShowDuration}" Height="4" Background="#374151" Foreground="#3b82f6" Margin="0,6,0,0" Width="120"/>
+                    </StackPanel>
+                    <Border Width="1" Background="#3a3a3a"/>
+                    <StackPanel>
+                        <TextBlock Text="NOTE MOYENNE" FontSize="10" Foreground="#666666"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                            <TextBlock Text="⭐⭐⭐⭐" FontSize="14" Foreground="#fbbf24"/>
+                            <TextBlock Text="--/100" FontSize="14" Foreground="#e0e0e0" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Width="1" Background="#3a3a3a"/>
+                    <StackPanel>
+                        <TextBlock Text="AUDIENCE ESTIMÉE" FontSize="10" Foreground="#666666"/>
+                        <TextBlock Text="-- spectateurs" FontSize="14" Foreground="#10b981" FontWeight="Bold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+                <Button Content="▶️ SIMULER LE SHOW" Padding="30,12" Background="#10b981" Foreground="White" CornerRadius="8" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
