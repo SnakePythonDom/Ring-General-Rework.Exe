@@ -1,6 +1,7 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Medical;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Services;
 
 namespace RingGeneral.Data.Repositories;
 
@@ -9,12 +10,18 @@ public sealed class ImpactApplier : IImpactApplier
     private readonly GameRepository _repository;
     private readonly MedicalRepository _medicalRepository;
     private readonly InjuryService _injuryService;
+    private readonly TitleService? _titleService;
 
-    public ImpactApplier(GameRepository repository, MedicalRepository medicalRepository, InjuryService injuryService)
+    public ImpactApplier(
+        GameRepository repository,
+        MedicalRepository medicalRepository,
+        InjuryService injuryService,
+        TitleService? titleService = null)
     {
         _repository = repository;
         _medicalRepository = medicalRepository;
         _injuryService = injuryService;
+        _titleService = titleService;
     }
 
     public ImpactReport AppliquerImpacts(ImpactContext context)
@@ -24,12 +31,20 @@ public sealed class ImpactApplier : IImpactApplier
             _repository.EnregistrerRapport(context.RapportShow);
         }
 
+        // Traiter les changements de titres AVANT d'appliquer le delta général
+        // Cela permet de mettre à jour les champions et le prestige des titres
+        var changementsTitres = TraiterChangementsTitres(context);
+
         if (context.Delta is not null)
         {
             _repository.AppliquerDelta(context.ShowId, context.Delta);
         }
 
         var changements = new List<string>();
+
+        // Ajouter les changements de titres en premier
+        changements.AddRange(changementsTitres);
+
         if (context.Delta is not null)
         {
             EnregistrerBlessures(context.ShowId, context.Delta.Blessures);
@@ -79,6 +94,84 @@ public sealed class ImpactApplier : IImpactApplier
             : $"Impacts appliqués pour le show {context.RapportShow.ShowId}.";
 
         return new ImpactReport(changements, resume);
+    }
+
+    /// <summary>
+    /// Traite les changements de titres pour tous les segments avec un titre
+    /// Retourne une liste de messages décrivant les changements
+    /// </summary>
+    private List<string> TraiterChangementsTitres(ImpactContext context)
+    {
+        var changements = new List<string>();
+
+        if (_titleService is null || context.RapportShow is null)
+        {
+            return changements;
+        }
+
+        // Charger le contexte du show pour avoir accès aux segments
+        var showContext = _repository.ChargerShowContext(context.ShowId);
+        if (showContext is null)
+        {
+            return changements;
+        }
+
+        foreach (var segmentReport in context.RapportShow.Segments)
+        {
+            var segmentDef = showContext.Segments.FirstOrDefault(s => s.SegmentId == segmentReport.SegmentId);
+            if (segmentDef is null || segmentDef.TitreId is null || segmentDef.VainqueurId is null)
+            {
+                continue;
+            }
+
+            var titre = showContext.Titres.FirstOrDefault(t => t.TitreId == segmentDef.TitreId);
+            if (titre is null)
+            {
+                continue;
+            }
+
+            var championActuel = titre.HolderWorkerId;
+            var challengerId = segmentDef.Participants
+                .FirstOrDefault(p => p != segmentDef.VainqueurId);
+
+            var semaine = showContext.Show.Semaine;
+            var input = new TitleMatchInput(
+                segmentDef.TitreId,
+                context.ShowId,
+                semaine,
+                championActuel,
+                challengerId,
+                segmentDef.VainqueurId);
+
+            try
+            {
+                var outcome = _titleService.EnregistrerMatch(input);
+
+                if (outcome.TitleChange)
+                {
+                    var ancienNom = championActuel is not null
+                        ? showContext.Workers.FirstOrDefault(w => w.WorkerId == championActuel)?.NomComplet ?? "Vacant"
+                        : "Vacant";
+                    var nouveauNom = showContext.Workers
+                        .FirstOrDefault(w => w.WorkerId == segmentDef.VainqueurId)?.NomComplet ?? "Unknown";
+
+                    changements.Add($"🏆 TITLE CHANGE: {nouveauNom} remporte le {titre.Nom} (Prestige {outcome.PrestigeDelta:+#;-#;0})");
+                }
+                else
+                {
+                    var championNom = showContext.Workers
+                        .FirstOrDefault(w => w.WorkerId == championActuel)?.NomComplet ?? championActuel;
+                    changements.Add($"✓ {championNom} conserve le {titre.Nom} (Prestige {outcome.PrestigeDelta:+#;-#;0})");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.Error.WriteLine($"[ImpactApplier] Erreur lors du traitement du titre {segmentDef.TitreId}: {ex.Message}");
+                changements.Add($"⚠️ Erreur lors du traitement du titre {titre.Nom}");
+            }
+        }
+
+        return changements;
     }
 
     private void EnregistrerBlessures(string showId, IReadOnlyDictionary<string, string> blessures)
