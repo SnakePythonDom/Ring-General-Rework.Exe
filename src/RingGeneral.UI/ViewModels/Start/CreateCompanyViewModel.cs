@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.ViewModels.Dashboard;
 
 namespace RingGeneral.UI.ViewModels.Start;
 
@@ -162,8 +163,8 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             // Créer la sauvegarde
             CreateSaveGame(connection, companyId);
 
-            // Naviguer vers le Shell (tableau de bord)
-            _navigationService.NavigateTo<Core.ShellViewModel>();
+            // Naviguer vers le Dashboard (tableau de bord)
+            _navigationService.NavigateTo<DashboardViewModel>();
         }
         catch (Exception ex)
         {

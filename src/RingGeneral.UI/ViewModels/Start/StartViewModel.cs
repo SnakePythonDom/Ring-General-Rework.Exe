@@ -1,6 +1,7 @@
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
+using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.Data.Repositories;
 
@@ -118,8 +119,8 @@ public sealed class StartViewModel : ViewModelBase
         // Plus tard: afficher une liste de sauvegardes
         if (HasActiveSave)
         {
-            // Naviguer vers le Shell (tableau de bord)
-            _navigationService.NavigateTo<Core.ShellViewModel>();
+            // Naviguer vers le Dashboard (tableau de bord)
+            _navigationService.NavigateTo<DashboardViewModel>();
         }
     }
 
