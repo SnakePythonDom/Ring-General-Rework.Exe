@@ -54,6 +54,7 @@ public sealed class App : Application
         // ViewModels - Start
         services.AddTransient<StartViewModel>();
         services.AddTransient<CompanySelectorViewModel>();
+        services.AddTransient<CreateCompanyViewModel>();
 
         // ViewModels - Game
         services.AddTransient<DashboardViewModel>();

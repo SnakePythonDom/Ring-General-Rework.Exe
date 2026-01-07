@@ -179,8 +179,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
     private void CreateNewCompany()
     {
         System.Console.WriteLine("[CompanySelectorViewModel] Création d'une nouvelle compagnie...");
-        // TODO: Naviguer vers CreateCompanyViewModel
-        // Pour l'instant, on ne fait rien
+        _navigationService.NavigateTo<CreateCompanyViewModel>();
     }
 
     /// <summary>

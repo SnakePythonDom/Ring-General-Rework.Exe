@@ -87,6 +87,11 @@
             <start:CompanySelectorView />
         </DataTemplate>
 
+        <!-- DataTemplate pour CreateCompanyViewModel -->
+        <DataTemplate DataType="vmStart:CreateCompanyViewModel">
+            <start:CreateCompanyView />
+        </DataTemplate>
+
         <!-- DataTemplate pour ShellViewModel -->
         <DataTemplate DataType="vm:ShellViewModel">
             <ContentControl Content="{Binding}"/>
