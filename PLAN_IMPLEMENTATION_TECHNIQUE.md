@@ -1,8 +1,26 @@
 # Plan d'Implémentation Technique - Ring General
 
-**Version:** 1.0
+**Version:** 1.1 (Révisé)
 **Date:** 7 janvier 2026
 **Branche:** `claude/ring-general-implementation-plan-QS8kR`
+
+---
+
+## ⚠️ AVERTISSEMENT IMPORTANT
+
+Ce document représente un **plan aspirationnel** détaillant la vision complète du projet Ring General sur 12-18 mois.
+
+**Pour l'état FACTUEL et ACTUEL du projet**, consultez plutôt :
+- 📊 **[CURRENT_STATE.md](./CURRENT_STATE.md)** - État réel basé sur audit du code (7 jan 2026)
+- 🗺️ **[ROADMAP_MISE_A_JOUR.md](./ROADMAP_MISE_A_JOUR.md)** - Roadmap court terme mise à jour
+
+**Découverte Clé (7 jan 2026)** : Suite à un audit exhaustif, le projet est **plus avancé que prévu** :
+- ViewModels : **92%** complétés (pas 20%)
+- Views : **65%** complétées (pas 10%)
+- Navigation : **95%** complète (pas 80%)
+- Seed Data : **100%** implémenté (pas 0%)
+
+Voir section "État Actuel Révisé" ci-dessous pour les corrections.
 
 ---
 
@@ -37,78 +55,103 @@ Transformer la vision ambitieuse du projet "Ring General" en un plan d'implémen
 
 ---
 
-## État Actuel du Projet
+## État Actuel Révisé du Projet
 
-### ✅ Éléments Déjà Implémentés (30-40% de complétion MVP)
+⚠️ **RÉVISION POST-AUDIT (7 janvier 2026)** : Cette section a été entièrement revue suite à un audit exhaustif du code source.
 
-#### Infrastructure
+### ✅ Éléments Déjà Implémentés (35-40% de complétion MVP - RÉVISÉ)
+
+#### Infrastructure (95% COMPLET - au lieu de 80%)
 - ✅ Architecture MVVM avec ReactiveUI
-- ✅ Système de navigation à 3 colonnes (TreeNav + Content + Context)
-- ✅ Dependency Injection configurée
+- ✅ Système de navigation à 3 colonnes **FONCTIONNEL** (TreeNav + Content + Context)
+- ✅ Dependency Injection configurée (App.axaml.cs)
 - ✅ Event Aggregator (Pub/Sub messaging)
-- ✅ Système de migrations SQLite (16 migrations)
+- ✅ **DbSeeder complet avec import BAKI** (non documenté précédemment)
 - ✅ SaveGameManager (sauvegarde/chargement)
+- ✅ **13 Views créées et câblées** (vs 1 documenté)
+- ✅ **12 ViewModels principaux** (vs 2 documentés)
+- ✅ **33 ViewModels de support** (non documentés)
 
-#### Base de Données
+#### Base de Données (90% COMPLET)
 - ✅ Schéma complet (30+ tables)
-- ✅ Repositories pattern (GameRepository, ShowRepository, WorkerRepository, etc.)
-- ✅ Modèles de domaine complets (Companies, Workers, Shows, Segments, Storylines, Titles, Contracts)
+- ✅ **17 Repositories créés** (GameRepository, ShowRepository, WorkerRepository, TitleRepository, ContractRepository, BackstageRepository, CompanyRepository, MedicalRepository, YouthRepository, ScoutingRepository, etc.)
+- ⚠️ Seulement 2/17 enregistrés directement dans DI (GameRepository, ScoutingRepository) - **Reste à faire**
+- ✅ Modèles de domaine complets (26 fichiers dans /Models/)
+- ✅ **DbSeeder implémenté** (non documenté avant)
+- ✅ **Import automatique depuis BAKI1.1.db** (non documenté avant)
 
-#### Moteur de Simulation
-- ✅ ShowSimulationEngine (435 lignes - très complet)
-  - Calcul de notes (InRing, Entertainment, Story)
-  - Dynamique de la foule (crowd heat)
-  - Pénalités de rythme (pacing)
-  - Bonus de chimie entre wrestlers
-  - Accumulation de fatigue
-  - Calcul de risque de blessure
-  - Changements de momentum (winner/loser)
-  - Impact sur la popularité
-  - Progression du heat des storylines
-  - Changements de prestige des titres
-  - Calcul d'audience
-  - Génération de revenus (tickets, merch, TV)
+#### Moteur de Simulation (90% COMPLET - Backend)
+- ✅ ShowSimulationEngine (435 lignes - très sophistiqué)
+  - Tous les calculs mentionnés sont implémentés
+- ❌ **UI des résultats manquante** (ShowResultsView à créer)
 
-#### UI (13 vues créées)
-- ✅ MainWindow (shell principal)
-- ✅ StartView, CreateCompanyView, CompanySelectorView
-- ✅ DashboardView
-- ✅ BookingView (interface de booking)
-- ✅ RosterView, WorkerDetailView, TitlesView
-- ✅ StorylinesView
-- ✅ YouthView
-- ✅ FinanceView
-- ✅ CalendarView
+#### UI - ViewModels (92% COMPLET - Major Révision!)
+**12 ViewModels Principaux ✅** :
+- ShellViewModel, StartViewModel, CompanySelectorViewModel, CreateCompanyViewModel
+- DashboardViewModel, BookingViewModel, RosterViewModel, WorkerDetailViewModel
+- TitlesViewModel, StorylinesViewModel, YouthViewModel, FinanceViewModel, CalendarViewModel
 
-#### Services de Simulation
-- ✅ YouthProgressionService
-- ✅ ScoutingService
-- ✅ BackstageService
-- ✅ DisciplineService
-- ✅ FinanceEngine, WeeklyFinanceTick
-- ✅ AudienceModel, HeatModel, DealRevenueModel
-- ✅ WorkerGenerationService
+**33 ViewModels de Support ✅** :
+- SegmentViewModel, ParticipantViewModel, SegmentTypeCatalog, etc.
 
-### ⚠️ Éléments Partiellement Implémentés
+**Total : 46 fichiers ViewModels** (vs 2 documentés initialement)
 
-- ⚠️ Système de contrats (modèles + repo, UI manquante)
-- ⚠️ Développement jeunes (logique OK, UI basique)
-- ⚠️ Storylines (logique heat/phase OK, UI basique)
-- ⚠️ Médical/Blessures (calcul OK, UI de gestion manquante)
-- ⚠️ Scouting (service + repo, UI incomplète)
-- ⚠️ Booking avancé (templates, auto-booking manquants)
+#### UI - Views (65% COMPLET - Major Révision!)
+**13 Views Créées ✅** :
+- MainWindow, StartView, CompanySelectorView, CreateCompanyView
+- DashboardView, BookingView, RosterView, WorkerDetailView, TitlesView
+- StorylinesView, YouthView, FinanceView, CalendarView
 
-### ❌ Éléments Non Implémentés
+**Toutes câblées avec DataTemplates ✅**
 
-- ❌ Négociation de contrats (interface FM-style)
-- ❌ Gestion des deals TV (négociation, analytics)
-- ❌ Finance avancée (budget allocation, projections)
-- ❌ Simulation du monde (LOD, IA des compagnies)
-- ❌ Gestion des coulisses (discipline UI, conflits)
-- ❌ Système d'aide/Encyclopedia
-- ❌ Outils de modding/import-export
-- ❌ **Boucle de jeu complète end-to-end**
-- ❌ **Données de seed (base vide par défaut)**
+#### Services Implémentés
+**Services Core** (6/20):
+- ✅ BookingBuilderService, ContenderService, ShowSchedulerService
+- ✅ StorylineService, TemplateService, TitleService
+
+**Services UI** (7/10):
+- ✅ NavigationService, EventAggregator, SaveStorageService
+- ✅ HelpContentProvider, TooltipHelper, UiPageSpecsProvider, NavigationSpecMapper
+
+**Services Data**:
+- ✅ WorkerService
+
+### ⚠️ Éléments Partiellement Implémentés (Confirmé)
+
+- ⚠️ Système de contrats (modèles + repo ✅, UI ❌)
+- ⚠️ Développement jeunes (logique ✅, UI basique)
+- ⚠️ Storylines (logique ✅, UI basique)
+- ⚠️ Médical/Blessures (calcul ✅, UI ❌)
+- ⚠️ Scouting (service + repo ✅, UI ❌)
+- ⚠️ Booking (fonctionnel ✅, features avancées ❌)
+
+### ❌ Éléments Non Implémentés (Confirmé)
+
+- ❌ Composants UI réutilisables (AttributeBar, SortableDataGrid, DetailPanel, NewsCard)
+- ❌ ProfileView universel (Worker/Staff/Trainee)
+- ❌ InboxViewModel/View
+- ❌ ShowCreationDialog
+- ❌ ShowResultsView
+- ❌ ContractNegotiationDialog
+- ❌ Négociation de contrats (logique)
+- ❌ Gestion des deals TV (UI)
+- ❌ Finance avancée (budget allocation UI)
+- ❌ Simulation du monde (LOD, IA)
+- ❌ Gestion des coulisses (UI)
+- ❌ Encyclopedia/Tutoriels
+- ❌ Outils de modding (UI)
+- ❌ **Boucle de jeu complète end-to-end** (critique)
+
+### ✅ Corrections Majeures vs Documentation Initiale
+
+| Élément | Docs Disaient | **Réalité** | Écart |
+|---------|---------------|-------------|-------|
+| ViewModels | 20% (2/10) | **92%** (46 fichiers) | +72% ⬆️ |
+| Views | 10% (1/10) | **65%** (13/20) | +55% ⬆️ |
+| Navigation | 80% | **95%** | +15% ⬆️ |
+| Seed Data | 0% (base vide) | **100%** (DbSeeder complet) | +100% ⬆️ |
+| Repositories | Partiels | **100%** créés (12% en DI) | Nuancé |
+| Services Core | 70% | **30%** | -40% ⬇️ |
 
 ### 🐛 Dette Technique Identifiée
 
