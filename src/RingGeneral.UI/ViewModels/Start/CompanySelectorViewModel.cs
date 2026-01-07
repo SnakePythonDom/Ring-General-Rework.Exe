@@ -91,21 +91,33 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                 using var connection = _repository.CreateConnection();
                 using var cmd = connection.CreateCommand();
                 cmd.CommandText = @"
-                    SELECT CompanyId, Name, Region, Prestige, Treasury
-                    FROM Companies
-                    ORDER BY Prestige DESC
+                    SELECT
+                        c.CompanyId,
+                        c.Name,
+                        r.Name as RegionName,
+                        ct.Name as CountryName,
+                        c.Prestige,
+                        c.Treasury
+                    FROM Companies c
+                    LEFT JOIN Regions r ON r.RegionId = c.RegionId
+                    LEFT JOIN Countries ct ON ct.CountryId = c.CountryId
+                    ORDER BY c.Prestige DESC
                     LIMIT 50";
 
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
+                    var regionName = reader.IsDBNull(2) ? null : reader.GetString(2);
+                    var countryName = reader.IsDBNull(3) ? "Unknown" : reader.GetString(3);
+                    var regionDisplay = regionName != null ? $"{regionName}, {countryName}" : countryName;
+
                     result.Add(new CompanyListItem
                     {
                         CompanyId = reader.GetString(0),
                         Name = reader.GetString(1),
-                        Region = reader.IsDBNull(2) ? "Unknown" : reader.GetString(2),
-                        Prestige = reader.IsDBNull(3) ? 50 : reader.GetInt32(3),
-                        Treasury = reader.IsDBNull(4) ? 1000000.0 : reader.GetDouble(4)
+                        Region = regionDisplay,
+                        Prestige = reader.IsDBNull(4) ? 50 : reader.GetInt32(4),
+                        Treasury = reader.IsDBNull(5) ? 1000000.0 : reader.GetDouble(5)
                     });
                 }
 
@@ -184,18 +196,6 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                     insertCmd.Parameters.AddWithValue("@date", "2024-01-01");
 
                     insertCmd.ExecuteNonQuery();
-                }
-
-                // Marquer la compagnie comme contrôlée par le joueur
-                using (var updateCmd = connection.CreateCommand())
-                {
-                    updateCmd.CommandText = @"
-                        UPDATE Companies
-                        SET IsPlayerControlled = 1
-                        WHERE CompanyId = @companyId";
-
-                    updateCmd.Parameters.AddWithValue("@companyId", SelectedCompany.CompanyId);
-                    updateCmd.ExecuteNonQuery();
                 }
 
                 System.Console.WriteLine("[CompanySelectorViewModel] Sauvegarde créée avec succès");

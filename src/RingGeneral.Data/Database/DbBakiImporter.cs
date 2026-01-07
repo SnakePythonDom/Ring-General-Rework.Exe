@@ -34,21 +34,27 @@ public static class DbBakiImporter
                 attachCmd.ExecuteNonQuery();
             }
 
-            // 1. Importer les compagnies
+            // 1. Importer les countries
+            var countriesImported = ImportCountries(targetConnection);
+            Console.WriteLine($"[DbBakiImporter] {countriesImported} pays importés");
+
+            // 2. Importer les regions
+            var regionsImported = ImportRegions(targetConnection);
+            Console.WriteLine($"[DbBakiImporter] {regionsImported} régions importées");
+
+            // 3. Importer les compagnies (promotions)
             var companiesImported = ImportCompanies(targetConnection);
             Console.WriteLine($"[DbBakiImporter] {companiesImported} compagnies importées");
 
-            // 2. Importer les workers
-            var workersImported = ImportWorkers(targetConnection);
+            // 4. Importer les workers avec leurs contrats
+            var (workersImported, contractsImported, freeAgents) = ImportWorkersAndContracts(targetConnection);
             Console.WriteLine($"[DbBakiImporter] {workersImported} workers importés");
+            Console.WriteLine($"[DbBakiImporter] {contractsImported} contrats importés");
+            Console.WriteLine($"[DbBakiImporter] {freeAgents} free agents (sans contrat)");
 
-            // 3. Importer les titres
+            // 5. Importer les titres
             var titlesImported = ImportTitles(targetConnection);
             Console.WriteLine($"[DbBakiImporter] {titlesImported} titres importés");
-
-            // 4. Importer les shows
-            var showsImported = ImportShows(targetConnection);
-            Console.WriteLine($"[DbBakiImporter] {showsImported} shows importés");
 
             // Détacher la base BAKI
             using (var detachCmd = targetConnection.CreateCommand())
@@ -64,155 +70,386 @@ public static class DbBakiImporter
         {
             transaction.Rollback();
             Console.Error.WriteLine($"[DbBakiImporter] Erreur lors de l'import: {ex.Message}");
+            Console.Error.WriteLine($"[DbBakiImporter] Stack trace: {ex.StackTrace}");
             throw;
         }
     }
 
+    /// <summary>
+    /// Importe les countries depuis BAKI
+    /// </summary>
+    private static int ImportCountries(SqliteConnection connection)
+    {
+        Console.WriteLine("[DbBakiImporter] Import des countries...");
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            INSERT OR IGNORE INTO Countries (CountryId, Code, Name)
+            SELECT
+                'COUNTRY_' || countryID,
+                COALESCE(SUBSTR(countryName, 1, 3), 'UNK'),
+                countryName
+            FROM baki.countries
+            WHERE countryName IS NOT NULL AND countryName != ''";
+
+        return cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Importe les regions depuis BAKI
+    /// </summary>
+    private static int ImportRegions(SqliteConnection connection)
+    {
+        Console.WriteLine("[DbBakiImporter] Import des regions...");
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            INSERT OR IGNORE INTO Regions (RegionId, CountryId, Name)
+            SELECT
+                'REGION_' || r.regionID,
+                'COUNTRY_' || r.regionParent,
+                r.regionName
+            FROM baki.regions r
+            INNER JOIN baki.countries c ON c.countryID = r.regionParent
+            WHERE r.regionName IS NOT NULL AND r.regionName != ''";
+
+        return cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Importe les companies (promotions) depuis BAKI
+    /// </summary>
     private static int ImportCompanies(SqliteConnection connection)
     {
-        // Vérifier si la table existe dans BAKI
-        using (var checkCmd = connection.CreateCommand())
-        {
-            checkCmd.CommandText = "SELECT COUNT(*) FROM baki.sqlite_master WHERE type='table' AND name='Companies'";
-            var tableExists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+        Console.WriteLine("[DbBakiImporter] Import des companies...");
 
-            if (!tableExists)
+        // Récupérer les promotions avec leurs pays et régions
+        using var selectCmd = connection.CreateCommand();
+        selectCmd.CommandText = @"
+            SELECT
+                p.promotionID,
+                p.fullName,
+                p.prestige,
+                p.money,
+                p.basedInCountry,
+                p.basedInRegion,
+                c.countryID as countryId,
+                r.regionID as regionId
+            FROM baki.promotions p
+            LEFT JOIN baki.countries c ON c.countryName = p.basedInCountry
+            LEFT JOIN baki.regions r ON r.regionName = p.basedInRegion AND r.regionParent = c.countryID
+            WHERE p.fullName IS NOT NULL
+            LIMIT 50";
+
+        var promotions = new List<(int id, string name, double prestige, int money, int? countryId, int? regionId)>();
+
+        using (var reader = selectCmd.ExecuteReader())
+        {
+            while (reader.Read())
             {
-                Console.WriteLine("[DbBakiImporter] Table Companies absente dans BAKI, création d'une compagnie par défaut");
-                // Créer une compagnie par défaut
-                using var insertCmd = connection.CreateCommand();
-                insertCmd.CommandText = @"
-                    INSERT INTO Companies (CompanyId, Name, Region, Prestige, Treasury, CurrentWeek, IsPlayerControlled)
-                    VALUES ('COMP_WWE', 'World Wrestling Entertainment', 'USA', 95, 10000000.0, 1, 1)";
-                insertCmd.ExecuteNonQuery();
-                return 1;
+                var id = reader.GetInt32(0);
+                var name = reader.GetString(1);
+                var prestige = reader.IsDBNull(2) ? 50.0 : reader.GetDouble(2);
+                var money = reader.IsDBNull(3) ? 1000000 : reader.GetInt32(3);
+                var countryId = reader.IsDBNull(6) ? (int?)null : reader.GetInt32(6);
+                var regionId = reader.IsDBNull(7) ? (int?)null : reader.GetInt32(7);
+
+                promotions.Add((id, name, prestige, money, countryId, regionId));
             }
         }
 
-        // Importer depuis BAKI
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = @"
-            INSERT INTO Companies (CompanyId, Name, Region, Prestige, Treasury, CurrentWeek, IsPlayerControlled)
-            SELECT
-                COALESCE(CompanyId, 'COMP_' || CAST(rowid AS TEXT)),
-                Name,
-                COALESCE(Region, 'Unknown'),
-                COALESCE(Prestige, 50),
-                COALESCE(Treasury, 1000000.0),
-                1,
-                1
-            FROM baki.Companies
-            LIMIT 10";
+        // Si aucune promotion trouvée ou pas de région valide, créer une région par défaut
+        var hasDefaultRegion = false;
+        using (var checkCmd = connection.CreateCommand())
+        {
+            checkCmd.CommandText = "SELECT COUNT(*) FROM Regions WHERE RegionId = 'REGION_DEFAULT'";
+            hasDefaultRegion = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+        }
 
-        return cmd.ExecuteNonQuery();
+        if (!hasDefaultRegion)
+        {
+            // Créer un pays par défaut si nécessaire
+            using (var insertCountryCmd = connection.CreateCommand())
+            {
+                insertCountryCmd.CommandText = @"
+                    INSERT OR IGNORE INTO Countries (CountryId, Code, Name)
+                    VALUES ('COUNTRY_DEFAULT', 'WLD', 'World')";
+                insertCountryCmd.ExecuteNonQuery();
+            }
+
+            // Créer une région par défaut
+            using (var insertRegionCmd = connection.CreateCommand())
+            {
+                insertRegionCmd.CommandText = @"
+                    INSERT OR IGNORE INTO Regions (RegionId, CountryId, Name)
+                    VALUES ('REGION_DEFAULT', 'COUNTRY_DEFAULT', 'Global')";
+                insertRegionCmd.ExecuteNonQuery();
+            }
+        }
+
+        // Insérer les compagnies
+        int count = 0;
+        foreach (var promo in promotions)
+        {
+            using var insertCmd = connection.CreateCommand();
+
+            var countryIdStr = promo.countryId.HasValue ? $"COUNTRY_{promo.countryId.Value}" : "COUNTRY_DEFAULT";
+            var regionIdStr = promo.regionId.HasValue ? $"REGION_{promo.regionId.Value}" : "REGION_DEFAULT";
+
+            insertCmd.CommandText = @"
+                INSERT OR IGNORE INTO Companies (CompanyId, Name, CountryId, RegionId, Prestige, Treasury)
+                VALUES (@id, @name, @countryId, @regionId, @prestige, @treasury)";
+
+            insertCmd.Parameters.AddWithValue("@id", $"COMP_{promo.id}");
+            insertCmd.Parameters.AddWithValue("@name", promo.name);
+            insertCmd.Parameters.AddWithValue("@countryId", countryIdStr);
+            insertCmd.Parameters.AddWithValue("@regionId", regionIdStr);
+            insertCmd.Parameters.AddWithValue("@prestige", (int)promo.prestige);
+            insertCmd.Parameters.AddWithValue("@treasury", (double)promo.money);
+
+            count += insertCmd.ExecuteNonQuery();
+        }
+
+        return count;
     }
 
-    private static int ImportWorkers(SqliteConnection connection)
+    /// <summary>
+    /// Importe les workers et leurs contrats depuis BAKI
+    /// </summary>
+    /// <returns>Tuple (workers importés, contrats importés, free agents)</returns>
+    private static (int workers, int contracts, int freeAgents) ImportWorkersAndContracts(SqliteConnection connection)
     {
-        // Vérifier si la table existe dans BAKI
+        Console.WriteLine("[DbBakiImporter] Import des workers et contrats...");
+
+        // Vérifier si les tables existent dans BAKI
         using (var checkCmd = connection.CreateCommand())
         {
-            checkCmd.CommandText = "SELECT COUNT(*) FROM baki.sqlite_master WHERE type='table' AND name='Workers' OR name='workers'";
+            checkCmd.CommandText = "SELECT COUNT(*) FROM baki.sqlite_master WHERE type='table' AND name='workers'";
             var tableExists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
 
             if (!tableExists)
             {
-                Console.WriteLine("[DbBakiImporter] Table Workers absente dans BAKI, pas d'import");
-                return 0;
+                Console.WriteLine("[DbBakiImporter] Table workers absente dans BAKI");
+                return (0, 0, 0);
             }
         }
 
-        // Déterminer le nom de la table (Workers ou workers)
-        string tableName = "Workers";
-        using (var checkCmd = connection.CreateCommand())
+        // Créer un mapping des promotionID vers CompanyId
+        var promotionMapping = new Dictionary<int, string>();
+        using (var mapCmd = connection.CreateCommand())
         {
-            checkCmd.CommandText = "SELECT name FROM baki.sqlite_master WHERE type='table' AND (name='Workers' OR name='workers')";
-            using var reader = checkCmd.ExecuteReader();
-            if (reader.Read())
+            mapCmd.CommandText = @"
+                SELECT
+                    CAST(SUBSTR(CompanyId, 6) AS INTEGER) as PromotionId,
+                    CompanyId
+                FROM Companies
+                WHERE CompanyId LIKE 'COMP_%'";
+
+            using var reader = mapCmd.ExecuteReader();
+            while (reader.Read())
             {
-                tableName = reader.GetString(0);
+                if (!reader.IsDBNull(0))
+                {
+                    var promotionId = reader.GetInt32(0);
+                    var companyId = reader.GetString(1);
+                    promotionMapping[promotionId] = companyId;
+                }
             }
         }
 
-        // Importer les workers avec mapping des attributs BAKI -> Ring General
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = $@"
-            INSERT INTO Workers (WorkerId, FullName, CompanyId, InRing, Entertainment, Story, Popularity, Fatigue, Morale, TvRole)
+        // Récupérer tous les workers avec leurs contrats (s'ils en ont)
+        using var selectCmd = connection.CreateCommand();
+        selectCmd.CommandText = @"
             SELECT
-                COALESCE(WorkerId, 'W_' || CAST(rowid AS TEXT)),
-                COALESCE(FullName, Name, 'Unknown Worker'),
-                'COMP_WWE',
-                CAST(COALESCE(InRing, technique, 50) * 0.2 AS INTEGER),
-                CAST(COALESCE(Entertainment, charisme, 50) * 0.2 AS INTEGER),
-                CAST(COALESCE(Story, psychologie, 50) * 0.2 AS INTEGER),
-                CAST(COALESCE(Popularity, popularite, 50) * 0.2 AS INTEGER),
-                COALESCE(Fatigue, 0),
-                COALESCE(Morale, 75),
-                COALESCE(TvRole, 'Midcard')
-            FROM baki.{tableName}
-            LIMIT 200";
+                w.workerID,
+                w.fullName,
+                w.nationality,
+                w.technique,
+                w.charisme,
+                w.psychologie,
+                w.popularite,
+                c.promotionID,
+                c.role,
+                c.exclusive,
+                c.expiryDate,
+                c.wagePerMonth
+            FROM baki.workers w
+            LEFT JOIN baki.contracts c ON c.workerID = w.workerID
+            WHERE w.fullName IS NOT NULL
+            LIMIT 400";
 
-        return cmd.ExecuteNonQuery();
+        var workerData = new List<(
+            int id,
+            string name,
+            string nationality,
+            int technique,
+            int charisme,
+            int psychologie,
+            int popularite,
+            int? promotionId,
+            string? role,
+            int? exclusive,
+            string? expiryDate,
+            int? salary
+        )>();
+
+        using (var reader = selectCmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                var id = reader.GetInt32(0);
+                var name = reader.GetString(1);
+                var nationality = reader.IsDBNull(2) ? "Unknown" : reader.GetString(2);
+                var technique = reader.IsDBNull(3) ? 50 : reader.GetInt32(3);
+                var charisme = reader.IsDBNull(4) ? 50 : reader.GetInt32(4);
+                var psychologie = reader.IsDBNull(5) ? 50 : reader.GetInt32(5);
+                var popularite = reader.IsDBNull(6) ? 50 : reader.GetInt32(6);
+                var promotionId = reader.IsDBNull(7) ? (int?)null : reader.GetInt32(7);
+                var role = reader.IsDBNull(8) ? null : reader.GetString(8);
+                var exclusive = reader.IsDBNull(9) ? (int?)null : reader.GetInt32(9);
+                var expiryDate = reader.IsDBNull(10) ? null : reader.GetString(10);
+                var salary = reader.IsDBNull(11) ? (int?)null : reader.GetInt32(11);
+
+                workerData.Add((id, name, nationality, technique, charisme, psychologie, popularite,
+                               promotionId, role, exclusive, expiryDate, salary));
+            }
+        }
+
+        // Insérer les workers et leurs contrats
+        int workersCount = 0;
+        int contractsCount = 0;
+        int freeAgentsCount = 0;
+
+        foreach (var worker in workerData)
+        {
+            // Déterminer le CompanyId du worker
+            string? companyId = null;
+            if (worker.promotionId.HasValue && promotionMapping.ContainsKey(worker.promotionId.Value))
+            {
+                companyId = promotionMapping[worker.promotionId.Value];
+            }
+
+            // Si pas de contrat, le worker est un free agent (CompanyId = null)
+            if (!worker.promotionId.HasValue)
+            {
+                freeAgentsCount++;
+            }
+
+            // Insérer le worker
+            using (var insertWorkerCmd = connection.CreateCommand())
+            {
+                insertWorkerCmd.CommandText = @"
+                    INSERT OR IGNORE INTO Workers (
+                        WorkerId, Name, CompanyId, Nationality,
+                        InRing, Entertainment, Story, Popularity, Fatigue
+                    )
+                    VALUES (@id, @name, @companyId, @nationality, @inRing, @entertainment, @story, @popularity, @fatigue)";
+
+                insertWorkerCmd.Parameters.AddWithValue("@id", $"W_{worker.id}");
+                insertWorkerCmd.Parameters.AddWithValue("@name", worker.name);
+                insertWorkerCmd.Parameters.AddWithValue("@companyId", (object?)companyId ?? DBNull.Value);
+                insertWorkerCmd.Parameters.AddWithValue("@nationality", worker.nationality);
+                // Convertir les stats BAKI (0-500) en stats Ring General (0-100)
+                insertWorkerCmd.Parameters.AddWithValue("@inRing", (int)(worker.technique * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@entertainment", (int)(worker.charisme * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@story", (int)(worker.psychologie * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@popularity", (int)(worker.popularite * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@fatigue", 0);
+
+                workersCount += insertWorkerCmd.ExecuteNonQuery();
+            }
+
+            // Insérer le contrat si le worker en a un
+            if (worker.promotionId.HasValue && companyId != null)
+            {
+                using var insertContractCmd = connection.CreateCommand();
+
+                // Calculer une date de fin (aujourd'hui + 1 an si pas de date d'expiration valide)
+                var endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd");
+                if (!string.IsNullOrEmpty(worker.expiryDate) &&
+                    worker.expiryDate != "No Expiry" &&
+                    DateTime.TryParse(worker.expiryDate, out var parsedDate))
+                {
+                    // Convertir en timestamp (jours depuis epoch)
+                    endDate = ((int)(parsedDate - new DateTime(1970, 1, 1)).TotalDays).ToString();
+                }
+                else
+                {
+                    // Pas d'expiration = contrat longue durée (3 ans)
+                    endDate = ((int)(DateTime.Now.AddYears(3) - new DateTime(1970, 1, 1)).TotalDays).ToString();
+                }
+
+                insertContractCmd.CommandText = @"
+                    INSERT OR IGNORE INTO Contracts (
+                        WorkerId, CompanyId, StartDate, EndDate, Salary, IsExclusive
+                    )
+                    VALUES (@workerId, @companyId, @startDate, @endDate, @salary, @isExclusive)";
+
+                insertContractCmd.Parameters.AddWithValue("@workerId", $"W_{worker.id}");
+                insertContractCmd.Parameters.AddWithValue("@companyId", companyId);
+                insertContractCmd.Parameters.AddWithValue("@startDate", (int)(DateTime.Now - new DateTime(1970, 1, 1)).TotalDays);
+                insertContractCmd.Parameters.AddWithValue("@endDate", endDate);
+                insertContractCmd.Parameters.AddWithValue("@salary", worker.salary ?? 0);
+                insertContractCmd.Parameters.AddWithValue("@isExclusive", worker.exclusive ?? 0);
+
+                contractsCount += insertContractCmd.ExecuteNonQuery();
+            }
+        }
+
+        return (workersCount, contractsCount, freeAgentsCount);
     }
 
+    /// <summary>
+    /// Importe les titles depuis BAKI
+    /// </summary>
     private static int ImportTitles(SqliteConnection connection)
     {
+        Console.WriteLine("[DbBakiImporter] Import des titles...");
+
         // Vérifier si la table existe dans BAKI
         using (var checkCmd = connection.CreateCommand())
         {
-            checkCmd.CommandText = "SELECT COUNT(*) FROM baki.sqlite_master WHERE type='table' AND name='Titles'";
+            checkCmd.CommandText = "SELECT COUNT(*) FROM baki.sqlite_master WHERE type='table' AND name='titles'";
             var tableExists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
 
             if (!tableExists)
             {
-                Console.WriteLine("[DbBakiImporter] Table Titles absente dans BAKI, pas d'import");
+                Console.WriteLine("[DbBakiImporter] Table titles absente dans BAKI");
                 return 0;
             }
         }
 
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = @"
-            INSERT INTO Titles (TitleId, Name, CompanyId, Prestige, CurrentChampionId)
-            SELECT
-                COALESCE(TitleId, 'T_' || CAST(rowid AS TEXT)),
-                Name,
-                'COMP_WWE',
-                COALESCE(Prestige, 50),
-                CurrentChampionId
-            FROM baki.Titles
-            LIMIT 20";
-
-        return cmd.ExecuteNonQuery();
-    }
-
-    private static int ImportShows(SqliteConnection connection)
-    {
-        // Vérifier si la table existe dans BAKI
-        using (var checkCmd = connection.CreateCommand())
+        // Récupérer le premier CompanyId disponible
+        string? firstCompanyId = null;
+        using (var companyCmd = connection.CreateCommand())
         {
-            checkCmd.CommandText = "SELECT COUNT(*) FROM baki.sqlite_master WHERE type='table' AND name='Shows'";
-            var tableExists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
-
-            if (!tableExists)
+            companyCmd.CommandText = "SELECT CompanyId FROM Companies LIMIT 1";
+            using var reader = companyCmd.ExecuteReader();
+            if (reader.Read())
             {
-                Console.WriteLine("[DbBakiImporter] Table Shows absente dans BAKI, pas d'import");
-                return 0;
+                firstCompanyId = reader.GetString(0);
             }
+        }
+
+        if (firstCompanyId == null)
+        {
+            Console.WriteLine("[DbBakiImporter] Aucune compagnie disponible pour associer les titres");
+            return 0;
         }
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO Shows (ShowId, Name, CompanyId, Week, DurationMinutes, Location, Broadcast)
+            INSERT OR IGNORE INTO Titles (TitleId, Name, CompanyId, Prestige)
             SELECT
-                COALESCE(ShowId, 'SHOW_' || CAST(rowid AS TEXT)),
-                Name,
-                'COMP_WWE',
-                COALESCE(Week, 1),
-                COALESCE(DurationMinutes, 120),
-                COALESCE(Location, 'Unknown'),
-                COALESCE(Broadcast, 'TV')
-            FROM baki.Shows
+                'T_' || titleID,
+                titleName,
+                @companyId,
+                CAST(COALESCE(prestige, 50) * 0.2 AS INTEGER)
+            FROM baki.titles
+            WHERE titleName IS NOT NULL
             LIMIT 50";
+
+        cmd.Parameters.AddWithValue("@companyId", firstCompanyId);
 
         return cmd.ExecuteNonQuery();
     }
