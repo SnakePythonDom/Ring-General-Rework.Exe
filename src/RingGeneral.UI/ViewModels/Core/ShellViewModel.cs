@@ -143,28 +143,28 @@ public sealed class ShellViewModel : ViewModelBase
             "booking.shows",
             "Shows actifs",
             "  📺",
-            typeof(BookingViewModel), // TODO: À créer
+            typeof(BookingViewModel),
             booking
         ));
         booking.Children.Add(new NavigationItemViewModel(
             "booking.library",
             "Bibliothèque",
             "  📚",
-            null, // TODO: LibraryViewModel
+            typeof(LibraryViewModel),
             booking
         ));
         booking.Children.Add(new NavigationItemViewModel(
             "booking.history",
             "Historique",
             "  📊",
-            null, // TODO: ShowHistoryViewModel
+            typeof(ShowHistoryPageViewModel),
             booking
         ));
         booking.Children.Add(new NavigationItemViewModel(
             "booking.settings",
             "Paramètres",
             "  ⚙️",
-            null,
+            typeof(BookingSettingsViewModel),
             booking
         ));
         root.Add(booking);
@@ -193,7 +193,7 @@ public sealed class ShellViewModel : ViewModelBase
             "roster.injuries",
             "Blessures",
             "  🏥",
-            null,
+            typeof(InjuriesViewModel),
             roster
         ));
         root.Add(roster);
@@ -274,43 +274,66 @@ public sealed class ShellViewModel : ViewModelBase
 
     private void NavigateToViewModelType(Type viewModelType)
     {
-        // Navigation vers un ViewModel spécifique
-        // Pour l'instant, seul BookingViewModel est implémenté
-        if (viewModelType == typeof(BookingViewModel))
-        {
-            _navigationService.NavigateTo<BookingViewModel>();
-        }
-        else
-        {
-            // Les autres ViewModels ne sont pas encore implémentés
-            System.Diagnostics.Debug.WriteLine($"Navigation vers {viewModelType.Name} - pas encore implémenté");
-        }
+        // Navigation vers un ViewModel spécifique via reflection
+        var navigateMethod = typeof(INavigationService)
+            .GetMethod(nameof(INavigationService.NavigateTo))
+            ?.MakeGenericMethod(viewModelType);
+
+        navigateMethod?.Invoke(_navigationService, null);
     }
 
     private void UpdateContextPanel(ViewModelBase? contentViewModel)
     {
         // Mettre à jour le panneau de contexte selon le contenu affiché
-        // Par exemple : si on affiche BookingViewModel, on affiche ValidationPanelViewModel
-        // TODO: Implémenter la logique de contexte
+        // Le context panel affiche des informations contextuelles selon la vue active
+
+        if (contentViewModel is BookingViewModel)
+        {
+            // Afficher le panel de validation pour le booking
+            CurrentContextViewModel = null; // TODO: Créer ValidationPanelViewModel
+        }
+        else if (contentViewModel is RosterViewModel or WorkerDetailViewModel or InjuriesViewModel)
+        {
+            // Afficher les stats du worker sélectionné
+            CurrentContextViewModel = null; // TODO: Créer WorkerStatsPanelViewModel
+        }
+        else if (contentViewModel is StorylinesViewModel)
+        {
+            // Afficher les détails de la storyline sélectionnée
+            CurrentContextViewModel = null; // TODO: Créer StorylineDetailsPanelViewModel
+        }
+        else
+        {
+            // Pas de context panel pour les autres vues
+            CurrentContextViewModel = null;
+        }
     }
 
     private void OpenGlobalSearch()
     {
-        // TODO: Ouvrir le panneau de recherche globale
+        // Ouvrir le panneau de recherche globale
+        // TODO: Créer GlobalSearchViewModel et l'afficher en overlay ou modal
+        System.Diagnostics.Debug.WriteLine("Opening global search...");
     }
 
     private void OpenInbox()
     {
-        // TODO: Ouvrir l'inbox
+        // Ouvrir l'inbox des notifications
+        // TODO: Créer InboxViewModel et l'afficher en overlay
+        System.Diagnostics.Debug.WriteLine("Opening inbox...");
     }
 
     private void OpenHelp()
     {
-        // TODO: Ouvrir l'aide
+        // Ouvrir le panneau d'aide
+        // TODO: Créer HelpViewModel ou ouvrir documentation externe
+        System.Diagnostics.Debug.WriteLine("Opening help...");
     }
 
     private void OpenSettings()
     {
-        // TODO: Ouvrir les paramètres
+        // Ouvrir les paramètres globaux de l'application
+        // TODO: Créer SettingsViewModel et l'afficher en modal
+        System.Diagnostics.Debug.WriteLine("Opening settings...");
     }
 }

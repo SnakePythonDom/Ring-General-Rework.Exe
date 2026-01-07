@@ -58,10 +58,20 @@ public sealed class App : Application
 
         // ViewModels - Game
         services.AddTransient<DashboardViewModel>();
+
+        // Booking ViewModels
         services.AddTransient<BookingViewModel>();
+        services.AddTransient<LibraryViewModel>();
+        services.AddTransient<ShowHistoryPageViewModel>();
+        services.AddTransient<BookingSettingsViewModel>();
+
+        // Roster ViewModels
         services.AddTransient<RosterViewModel>();
         services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>();
         services.AddTransient<ViewModels.Roster.TitlesViewModel>();
+        services.AddTransient<ViewModels.Roster.InjuriesViewModel>();
+
+        // Other ViewModels
         services.AddTransient<StorylinesViewModel>();
         services.AddTransient<YouthViewModel>();
         services.AddTransient<FinanceViewModel>();

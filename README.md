@@ -1,10 +1,40 @@
 # Ring General Rework — Vision Produit (FR)
 
+## ⚠️ État Actuel du Projet (Janvier 2026)
+
+**Version actuelle :** Phase 2 - ~35% complété
+**Dernière mise à jour architecture :** 7 janvier 2026
+
+### 📊 Statut Développement
+- ✅ **Architecture MVVM** : Core, Repositories, Services en place
+- ✅ **Navigation** : Prototype D (FM26 dual-pane) implémenté
+- ✅ **ViewModels créés** : 17 ViewModels (Dashboard, Booking, Roster, Finance, Youth, Calendar, etc.)
+- ✅ **Base de données** : SQLite avec DbSeeder automatique
+- ⏳ **UI** : Interface partiellement fonctionnelle (en cours)
+- ⏳ **Gameplay** : Boucle de base en développement
+
+### 📚 Documentation Clé
+Pour comprendre l'état actuel du projet, consultez **dans cet ordre** :
+1. **[RECAPITULATIF_TECHNIQUE.md](RECAPITULATIF_TECHNIQUE.md)** - État actuel et problèmes critiques
+2. **[ROADMAP_MISE_A_JOUR.md](ROADMAP_MISE_A_JOUR.md)** - Plan de développement (Phases 1-5, Release Avril 2026)
+3. **[docs/ARCHITECTURE_REVIEW_FR.md](docs/ARCHITECTURE_REVIEW_FR.md)** - Analyse architecture détaillée (1100+ lignes)
+4. **[RAPPORT_IMPLEMENTATION_FINALE.md](RAPPORT_IMPLEMENTATION_FINALE.md)** - Dernière implémentation (7 Jan 2026)
+
+### 🎯 Prochaines Étapes (Phase 3 - Janvier 2026)
+- Créer les Views manquantes pour tous les ViewModels
+- Compléter l'intégration BAKI1.1.db
+- Implémenter la recherche globale
+- Finaliser le système de validation du booking
+
+**Le reste de ce document décrit la vision produit complète (objectif final).**
+
+---
+
 ## Source de vérité
 Toutes les spécifications officielles (UI, modèles, boucle hebdo, booking, impacts, services) sont désormais la source de vérité dans le dossier `/specs`.
 Merci de vous référer aux fichiers JSON en français de ce dossier pour toute mise à jour.
 
-## Documentation
+## Documentation (Guides Utilisateur)
 - [Guide du jeu (FR)](docs/JEU_GUIDE_FR.md)
 - [Guide du modding (FR)](docs/MODDING_GUIDE_FR.md)
 - [Guide de développement (FR)](docs/DEV_GUIDE_FR.md)
