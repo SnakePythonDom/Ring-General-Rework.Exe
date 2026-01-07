@@ -22,9 +22,11 @@
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="RingGeneral.UI.Views.Shell.MainWindow"
         x:DataType="vm:ShellViewModel"
-        Title="Ring General"
+        Title="RING GENERAL - Wrestling Management Simulation"
         Width="1600"
         Height="900"
+        WindowState="Maximized"
+        Icon="/Assets/icon.png"
         Background="#1a1a1a">
 
     <Design.DataContext>
@@ -117,8 +119,24 @@
 
                 <!-- Left: Logo & Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="15,0" VerticalAlignment="Center" Spacing="12">
-                    <TextBlock Text="🎭" FontSize="22"/>
-                    <TextBlock Text="RING GENERAL" FontSize="14" FontWeight="Bold" Foreground="#e0e0e0" VerticalAlignment="Center"/>
+                    <!-- Logo: affiche l'image si disponible, sinon emoji -->
+                    <Panel Width="28" Height="28">
+                        <!-- Image logo (si le fichier existe) -->
+                        <Image Source="/Assets/logo-titlebar.png"
+                               Width="28" Height="28"
+                               IsVisible="True"/>
+                        <!-- Fallback emoji si l'image n'existe pas -->
+                        <TextBlock Text="🎭" FontSize="22"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   IsVisible="False"/>
+                    </Panel>
+                    <TextBlock Text="RING GENERAL"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               Foreground="#e0e0e0"
+                               VerticalAlignment="Center"
+                               LetterSpacing="1"/>
                 </StackPanel>
 
                 <!-- Center: Current Context -->
