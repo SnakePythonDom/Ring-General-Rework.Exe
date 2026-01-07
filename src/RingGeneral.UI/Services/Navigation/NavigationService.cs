@@ -20,6 +20,7 @@ public sealed class NavigationService : INavigationService
         _serviceProvider = serviceProvider;
         _currentViewModelSubject = new BehaviorSubject<ViewModelBase?>(null);
         _navigationStack = new Stack<ViewModelBase>();
+        System.Console.WriteLine("[NavigationService] Service initialisé");
     }
 
     public ViewModelBase? CurrentViewModel => _currentViewModelSubject.Value;
@@ -77,6 +78,7 @@ public sealed class NavigationService : INavigationService
 
     private void NavigateToViewModel(ViewModelBase viewModel)
     {
+        System.Console.WriteLine($"[NavigationService] Navigation vers {viewModel.GetType().Name}");
         _navigationStack.Push(viewModel);
         _currentViewModelSubject.OnNext(viewModel);
     }
