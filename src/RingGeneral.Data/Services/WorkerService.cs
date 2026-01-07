@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
-using RingGeneral.Data.Repositories;
+using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Services;
 
@@ -9,12 +10,12 @@ namespace RingGeneral.Data.Services;
 /// </summary>
 public sealed class WorkerService
 {
-    private readonly GameRepository _repository;
+    private readonly SqliteConnectionFactory _factory;
     private readonly System.Random _random;
 
-    public WorkerService(GameRepository repository)
+    public WorkerService(SqliteConnectionFactory factory)
     {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _random = new System.Random();
     }
 
@@ -26,7 +27,7 @@ public sealed class WorkerService
     {
         Console.WriteLine($"[WorkerService] Traitement du vieillissement pour la semaine {currentWeek}");
 
-        using var connection = _repository.CreateConnection();
+        using var connection = _factory.OuvrirConnexion();
         using var transaction = connection.BeginTransaction();
 
         try
@@ -40,7 +41,7 @@ public sealed class WorkerService
                     WHERE CompanyId IS NOT NULL";
 
                 using var reader = selectCmd.ExecuteReader();
-                var workersToAge = new System.Collections.Generic.List<(string workerId, int age, int inRing, int entertainment)>();
+                var workersToAge = new List<(string workerId, int age, int inRing, int entertainment)>();
 
                 while (reader.Read())
                 {
@@ -124,7 +125,7 @@ public sealed class WorkerService
     {
         Console.WriteLine($"[WorkerService] Traitement de la récupération de fatigue pour la semaine {currentWeek}");
 
-        using var connection = _repository.CreateConnection();
+        using var connection = _factory.OuvrirConnexion();
 
         try
         {
@@ -152,7 +153,7 @@ public sealed class WorkerService
     {
         Console.WriteLine($"[WorkerService] Traitement des changements de moral pour la semaine {currentWeek}");
 
-        using var connection = _repository.CreateConnection();
+        using var connection = _factory.OuvrirConnexion();
 
         try
         {
