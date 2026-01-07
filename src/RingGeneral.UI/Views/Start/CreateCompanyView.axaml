@@ -65,10 +65,10 @@
                 <Style Selector="TextBox">
                   <Setter Property="Foreground" Value="White"/>
                 </Style>
-                <Style Selector="TextBox:focus /template/ TextPresenter">
+                <Style Selector="TextBox:focus">
                   <Setter Property="Foreground" Value="White"/>
                 </Style>
-                <Style Selector="TextBox:pointerover /template/ TextPresenter">
+                <Style Selector="TextBox:pointerover">
                   <Setter Property="Foreground" Value="White"/>
                 </Style>
               </TextBox.Styles>

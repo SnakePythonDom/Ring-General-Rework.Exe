@@ -252,11 +252,11 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Annule et retourne au sélecteur de compagnies
+    /// Annule et retourne au menu principal
     /// </summary>
     private void Cancel()
     {
-        _navigationService.NavigateTo<CompanySelectorViewModel>();
+        _navigationService.NavigateTo<StartViewModel>();
     }
 }
 
