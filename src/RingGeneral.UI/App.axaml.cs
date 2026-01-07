@@ -105,7 +105,7 @@ public sealed class App : Application
         {
             using var connection = repository.CreateConnection();
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM GameState WHERE IsActive = 1";
+            cmd.CommandText = "SELECT COUNT(*) FROM SaveGames WHERE IsActive = 1";
             var count = Convert.ToInt32(cmd.ExecuteScalar());
             return count > 0;
         }

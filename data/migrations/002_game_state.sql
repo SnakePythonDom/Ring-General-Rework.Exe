@@ -1,8 +1,8 @@
 PRAGMA foreign_keys = ON;
 
 -- Table pour l'état de la partie en cours
-CREATE TABLE IF NOT EXISTS GameState (
-    GameStateId INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS SaveGames (
+    SaveGameId INTEGER PRIMARY KEY AUTOINCREMENT,
     SaveName TEXT NOT NULL,
     PlayerCompanyId TEXT NOT NULL,
     CurrentWeek INTEGER NOT NULL DEFAULT 1,
@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS GameState (
     FOREIGN KEY (PlayerCompanyId) REFERENCES Companies(CompanyId)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_gamestate_active
-    ON GameState(IsActive) WHERE IsActive = 1;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_savegames_active
+    ON SaveGames(IsActive) WHERE IsActive = 1;
 
-CREATE INDEX IF NOT EXISTS idx_gamestate_company
-    ON GameState(PlayerCompanyId);
+CREATE INDEX IF NOT EXISTS idx_savegames_company
+    ON SaveGames(PlayerCompanyId);

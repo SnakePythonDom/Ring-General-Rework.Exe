@@ -5,9 +5,9 @@ namespace RingGeneral.Core.Models;
 /// <summary>
 /// Représente l'état d'une partie sauvegardée
 /// </summary>
-public sealed class GameState
+public sealed class SaveGame
 {
-    public int GameStateId { get; set; }
+    public int SaveGameId { get; set; }
     public string SaveName { get; set; } = string.Empty;
     public string PlayerCompanyId { get; set; } = string.Empty;
     public int CurrentWeek { get; set; } = 1;

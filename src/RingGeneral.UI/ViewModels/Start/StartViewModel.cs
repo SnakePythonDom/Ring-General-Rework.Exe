@@ -74,7 +74,7 @@ public sealed class StartViewModel : ViewModelBase
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 SELECT SaveName
-                FROM GameState
+                FROM SaveGames
                 WHERE IsActive = 1
                 LIMIT 1";
 

@@ -123,7 +123,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
 
         System.Console.WriteLine($"[CompanySelectorViewModel] Démarrage avec {SelectedCompany.Name}");
 
-        // Créer une nouvelle GameState
+        // Créer une nouvelle sauvegarde
         try
         {
             using var connection = _repository.CreateConnection();
@@ -131,15 +131,15 @@ public sealed class CompanySelectorViewModel : ViewModelBase
             // Désactiver toutes les sauvegardes existantes
             using (var deactivateCmd = connection.CreateCommand())
             {
-                deactivateCmd.CommandText = "UPDATE GameState SET IsActive = 0";
+                deactivateCmd.CommandText = "UPDATE SaveGames SET IsActive = 0";
                 deactivateCmd.ExecuteNonQuery();
             }
 
-            // Créer la nouvelle GameState
+            // Créer la nouvelle sauvegarde
             using (var insertCmd = connection.CreateCommand())
             {
                 insertCmd.CommandText = @"
-                    INSERT INTO GameState (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive)
+                    INSERT INTO SaveGames (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive)
                     VALUES (@saveName, @companyId, @week, @date, 1)";
 
                 insertCmd.Parameters.AddWithValue("@saveName", $"{SelectedCompany.Name} - {DateTime.Now:yyyy-MM-dd HH:mm}");
@@ -162,7 +162,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                 updateCmd.ExecuteNonQuery();
             }
 
-            System.Console.WriteLine("[CompanySelectorViewModel] GameState créé avec succès");
+            System.Console.WriteLine("[CompanySelectorViewModel] Sauvegarde créée avec succès");
 
             // Naviguer vers le Shell (tableau de bord)
             _navigationService.NavigateTo<Core.ShellViewModel>();
