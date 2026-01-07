@@ -17,7 +17,7 @@ public sealed class ShellViewModel : ViewModelBase
     public ShellViewModel()
     {
         var spec = ChargerSpecNavigation();
-        Sidebar = new ObservableCollection<NavigationItemViewModel>(_mapper.ConstruireSidebar(spec));
+        Sidebar = new ObservableCollection<LegacyNavigationItemViewModel>(_mapper.ConstruireSidebar(spec));
         TopbarActions = new ObservableCollection<TopbarActionViewModel>(_mapper.ConstruireActions(spec));
         TopbarIndicators = new ObservableCollection<TopbarIndicatorViewModel>(_mapper.ConstruireIndicateurs(spec));
         Saves = new SaveManagerViewModel(_saveStorage);
@@ -42,7 +42,7 @@ public sealed class ShellViewModel : ViewModelBase
             ?? new UiPageSpec { Meta = new UiPageMetaSpec { Titre = "Aucune page disponible" } };
     }
 
-    public ObservableCollection<NavigationItemViewModel> Sidebar { get; }
+    public ObservableCollection<LegacyNavigationItemViewModel> Sidebar { get; }
     public ObservableCollection<TopbarActionViewModel> TopbarActions { get; }
     public ObservableCollection<TopbarIndicatorViewModel> TopbarIndicators { get; }
     public SaveManagerViewModel Saves { get; }

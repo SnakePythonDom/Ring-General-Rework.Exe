@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.Services.Navigation;
-using NavigationItemViewModel = RingGeneral.UI.ViewModels.Shared.Navigation.NavigationItemViewModel;
+using RingGeneral.UI.ViewModels.Shared.Navigation;
 using RingGeneral.UI.ViewModels.Booking;
 // TODO: Uncomment when ViewModels are created
 // using RingGeneral.UI.ViewModels.Roster;
