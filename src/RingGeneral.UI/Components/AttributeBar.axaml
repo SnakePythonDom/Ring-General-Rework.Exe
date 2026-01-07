@@ -97,18 +97,20 @@
 
       <!-- Progress Bar -->
       <Border Grid.Row="1" Classes="bar-container">
-        <Border Classes="bar-fill low"
-                Width="{Binding BarWidth}"
-                HorizontalAlignment="Left"
-                IsVisible="{Binding IsLow}"/>
-        <Border Classes="bar-fill medium"
-                Width="{Binding BarWidth}"
-                HorizontalAlignment="Left"
-                IsVisible="{Binding IsMedium}"/>
-        <Border Classes="bar-fill high"
-                Width="{Binding BarWidth}"
-                HorizontalAlignment="Left"
-                IsVisible="{Binding IsHigh}"/>
+        <Grid>
+          <Border Classes="bar-fill low"
+                  Width="{Binding BarWidth}"
+                  HorizontalAlignment="Left"
+                  IsVisible="{Binding IsLow}"/>
+          <Border Classes="bar-fill medium"
+                  Width="{Binding BarWidth}"
+                  HorizontalAlignment="Left"
+                  IsVisible="{Binding IsMedium}"/>
+          <Border Classes="bar-fill high"
+                  Width="{Binding BarWidth}"
+                  HorizontalAlignment="Left"
+                  IsVisible="{Binding IsHigh}"/>
+        </Grid>
       </Border>
     </Grid>
   </Border>

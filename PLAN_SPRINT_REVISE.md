@@ -212,22 +212,24 @@ public int MaxValue { get; set; } = 100
 
 ---
 
-### SPRINT 2 : ProfileView Universel (3-4 jours) 🔴 HAUTE
+### SPRINT 2 : ProfileView Universel (4-5 jours) 🔴 HAUTE
 
-**Objectif** : Créer la fiche de profil complète qui servira pour Workers, Staff et Trainees
+**Objectif** : Créer la fiche de profil complète avec 6 onglets pour Workers, Staff et Trainees
 
-**Dépendances** : Sprint 1 (composants)
+**Dépendances** : Sprint 1 (composants terminé ✅)
 
-#### Tâche 2.1 : ViewModels de Profil (Jour 1)
+#### Tâche 2.1 : ViewModels de Profil (Jours 1-2)
 
 **Fichiers à créer** :
 ```
 /src/RingGeneral.UI/ViewModels/Profile/
 ├── ProfileViewModel.cs
-├── ProfileTabViewModel.cs
 ├── AttributesTabViewModel.cs
+├── ContractsTabViewModel.cs
+├── GimmickTabViewModel.cs
+├── RelationsTabViewModel.cs
 ├── HistoryTabViewModel.cs
-└── ContractTabViewModel.cs
+└── NotesTabViewModel.cs
 ```
 
 **ProfileViewModel** :
@@ -235,56 +237,245 @@ public int MaxValue { get; set; } = 100
 public class ProfileViewModel : ViewModelBase
 {
     public string ProfileType { get; } // Worker, Staff, Trainee
-    public ProfileTabViewModel ProfileTab { get; }
-    public AttributesTabViewModel AttributesTab { get; }
-    public HistoryTabViewModel HistoryTab { get; }
-    public ContractTabViewModel ContractTab { get; }
+    public string WorkerId { get; }
+    public string FullName { get; }
+    public string PhotoPath { get; }
+    public string Role { get; } // Main Eventer, Mid-Carder, etc.
 
-    public ReactiveCommand<string, Unit> SwitchTabCommand { get; }
+    // Tabs
+    public AttributesTabViewModel AttributesTab { get; }
+    public ContractsTabViewModel ContractsTab { get; }
+    public GimmickTabViewModel GimmickTab { get; }
+    public RelationsTabViewModel RelationsTab { get; }
+    public HistoryTabViewModel HistoryTab { get; }
+    public NotesTabViewModel NotesTab { get; }
+
+    public int SelectedTabIndex { get; set; }
+    public ReactiveCommand<int, Unit> SwitchTabCommand { get; }
     public ReactiveCommand<Unit, Unit> EditCommand { get; }
     public ReactiveCommand<Unit, Unit> ReleaseCommand { get; }
 }
 ```
 
+**Tabs ViewModels** :
+
+1. **AttributesTabViewModel** :
+```csharp
+public class AttributesTabViewModel : ViewModelBase
+{
+    // Universels
+    public int ConditionPhysique { get; }
+    public int Moral { get; }
+    public int Popularite { get; }
+    public int Fatigue { get; }
+    public int Momentum { get; }
+
+    // In-Ring (si Worker)
+    public int InRing { get; }
+    public int Timing { get; }
+    public int Psychology { get; }
+    public int Selling { get; }
+    public int Stamina { get; }
+    public int Safety { get; }
+
+    // Entertainment (si Worker)
+    public int Entertainment { get; }
+    public int Charisma { get; }
+    public int Promo { get; }
+    public int CrowdConnection { get; }
+    public int StarPower { get; }
+
+    // Story (si Worker)
+    public int Story { get; }
+    public int Storytelling { get; }
+    public int CharacterWork { get; }
+
+    public bool IsWorker { get; }
+}
+```
+
+2. **ContractsTabViewModel** :
+```csharp
+public class ContractsTabViewModel : ViewModelBase
+{
+    public DateTime ContractStartDate { get; }
+    public DateTime ContractEndDate { get; }
+    public int ContractWeeksRemaining { get; }
+    public decimal WeeklySalary { get; }
+    public decimal SigningBonus { get; }
+    public string ContractType { get; } // Exclusive, Per-Appearance, Developmental
+    public bool AutoRenew { get; }
+    public bool HasReleaseClause { get; }
+
+    public ObservableCollection<ContractHistoryItem> ContractHistory { get; }
+    public ReactiveCommand<Unit, Unit> RenegotiateCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReleaseCommand { get; }
+    public ReactiveCommand<Unit, Unit> ExtendCommand { get; }
+}
+```
+
+3. **GimmickTabViewModel** :
+```csharp
+public class GimmickTabViewModel : ViewModelBase
+{
+    public string CurrentGimmick { get; set; }
+    public string Alignment { get; set; } // Face, Heel, Tweener
+    public string PushLevel { get; set; } // Main Event Push, Mid-Card Push, Low-Card, Jobber
+    public int TvRole { get; } // 0-100 (Main Eventer, Upper Mid, Lower Mid, etc.)
+    public string BookingIntent { get; } // What the booker intends for this worker
+
+    public ObservableCollection<string> GimmickHistory { get; }
+    public ObservableCollection<string> FinishingMoves { get; }
+    public ObservableCollection<string> Signatures { get; }
+
+    public ReactiveCommand<Unit, Unit> ChangeGimmickCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleAlignmentCommand { get; }
+    public ReactiveCommand<Unit, Unit> AdjustPushCommand { get; }
+}
+```
+
+4. **RelationsTabViewModel** :
+```csharp
+public class RelationsTabViewModel : ViewModelBase
+{
+    public ObservableCollection<WorkerRelationViewModel> Relations { get; }
+
+    public ReactiveCommand<Unit, Unit> AddRelationCommand { get; }
+    public ReactiveCommand<WorkerRelationViewModel, Unit> EditRelationCommand { get; }
+    public ReactiveCommand<WorkerRelationViewModel, Unit> DeleteRelationCommand { get; }
+}
+
+public class WorkerRelationViewModel : ViewModelBase
+{
+    public string RelatedWorkerId { get; }
+    public string RelatedWorkerName { get; }
+    public string RelationType { get; } // Amitié, Couple, Fraternité, Rivalité
+    public int RelationStrength { get; } // 0-100
+    public string Notes { get; set; }
+    public bool IsPublic { get; set; } // Visible en kayfabe ou backstage only
+}
+```
+
+5. **HistoryTabViewModel** :
+```csharp
+public class HistoryTabViewModel : ViewModelBase
+{
+    // Biographie
+    public string RealName { get; }
+    public DateTime BirthDate { get; }
+    public string Hometown { get; }
+    public int Height { get; }
+    public int Weight { get; }
+    public DateTime CareerStart { get; }
+    public DateTime CompanyJoinDate { get; }
+
+    // Historique
+    public ObservableCollection<TitleReignViewModel> TitleReigns { get; }
+    public ObservableCollection<MatchHistoryViewModel> MatchHistory { get; }
+    public ObservableCollection<InjuryHistoryViewModel> InjuryHistory { get; }
+    public ObservableCollection<StorylineHistoryViewModel> StorylineHistory { get; }
+
+    // Stats
+    public int TotalMatches { get; }
+    public int Wins { get; }
+    public int Losses { get; }
+    public int Draws { get; }
+    public decimal WinPercentage { get; }
+    public int TitleReigns { get; }
+}
+```
+
+6. **NotesTabViewModel** :
+```csharp
+public class NotesTabViewModel : ViewModelBase
+{
+    public ObservableCollection<NoteViewModel> Notes { get; }
+    public string NewNoteText { get; set; }
+
+    public ReactiveCommand<Unit, Unit> AddNoteCommand { get; }
+    public ReactiveCommand<NoteViewModel, Unit> EditNoteCommand { get; }
+    public ReactiveCommand<NoteViewModel, Unit> DeleteNoteCommand { get; }
+}
+
+public class NoteViewModel : ViewModelBase
+{
+    public int NoteId { get; }
+    public string Text { get; set; }
+    public DateTime CreatedDate { get; }
+    public DateTime? ModifiedDate { get; }
+    public string Category { get; set; } // Booking Ideas, Personal, Injury, Other
+}
+```
+
 ---
 
-#### Tâche 2.2 : Views de Profil (Jours 2-3)
+#### Tâche 2.2 : Views de Profil (Jours 2-4)
 
 **Fichiers à créer** :
 ```
 /src/RingGeneral.UI/Views/Profile/
 ├── ProfileView.axaml
-├── ProfileTabView.axaml
 ├── AttributesTabView.axaml
+├── ContractsTabView.axaml
+├── GimmickTabView.axaml
+├── RelationsTabView.axaml
 ├── HistoryTabView.axaml
-└── ContractTabView.axaml
+└── NotesTabView.axaml
 ```
 
 **Structure ProfileView** :
 ```xml
 <Grid RowDefinitions="Auto,*">
     <!-- Header : Photo + Nom + Stats clés -->
-    <Border Grid.Row="0">
-        <StackPanel>
-            <Image Source="{Binding PhotoPath}" Width="120"/>
-            <TextBlock Text="{Binding FullName}" FontSize="24"/>
-            <TextBlock Text="{Binding Role}"/>
-        </StackPanel>
+    <Border Grid.Row="0" Classes="panel" Padding="16">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+            <!-- Photo -->
+            <Border Grid.Column="0" Width="80" Height="80"
+                    CornerRadius="40" ClipToBounds="True" Margin="0,0,16,0">
+                <Image Source="{Binding PhotoPath}"
+                       Stretch="UniformToFill"/>
+            </Border>
+
+            <!-- Infos -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Classes="h2" Text="{Binding FullName}"/>
+                <TextBlock Classes="body muted" Text="{Binding Role}"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                    <TextBlock Classes="caption" Text="{Binding ProfileType}"/>
+                    <TextBlock Classes="caption" Text="•"/>
+                    <TextBlock Classes="caption" Text="{Binding ContractStatus}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Actions -->
+            <StackPanel Grid.Column="2" Spacing="8">
+                <Button Classes="secondary" Content="✏ Éditer"
+                        Command="{Binding EditCommand}"/>
+                <Button Classes="danger" Content="🚫 Libérer"
+                        Command="{Binding ReleaseCommand}"/>
+            </StackPanel>
+        </Grid>
     </Border>
 
     <!-- Tabs -->
-    <TabControl Grid.Row="1">
-        <TabItem Header="PROFIL">
-            <ProfileTabView DataContext="{Binding ProfileTab}"/>
-        </TabItem>
-        <TabItem Header="ATTRIBUTS">
+    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
+        <TabItem Header="📊 ATTRIBUTS">
             <AttributesTabView DataContext="{Binding AttributesTab}"/>
         </TabItem>
-        <TabItem Header="HISTORIQUE">
+        <TabItem Header="📝 CONTRATS">
+            <ContractsTabView DataContext="{Binding ContractsTab}"/>
+        </TabItem>
+        <TabItem Header="🎭 GIMMICK/PUSH">
+            <GimmickTabView DataContext="{Binding GimmickTab}"/>
+        </TabItem>
+        <TabItem Header="👥 RELATIONS">
+            <RelationsTabView DataContext="{Binding RelationsTab}"/>
+        </TabItem>
+        <TabItem Header="📖 HISTORIQUE">
             <HistoryTabView DataContext="{Binding HistoryTab}"/>
         </TabItem>
-        <TabItem Header="CONTRAT">
-            <ContractTabView DataContext="{Binding ContractTab}"/>
+        <TabItem Header="📌 NOTES">
+            <NotesTabView DataContext="{Binding NotesTab}"/>
         </TabItem>
     </TabControl>
 </Grid>
@@ -293,45 +484,147 @@ public class ProfileViewModel : ViewModelBase
 **AttributesTabView** - Utilise `AttributeBar` :
 ```xml
 <ScrollViewer>
-    <StackPanel>
+    <StackPanel Spacing="12" Margin="16">
         <Expander Header="ATTRIBUTS UNIVERSELS" IsExpanded="True">
-            <StackPanel>
+            <StackPanel Spacing="6" Margin="0,8,0,0">
                 <components:AttributeBar
                     AttributeName="Condition Physique"
-                    Value="{Binding ConditionPhysique}"/>
+                    Value="{Binding ConditionPhysique}"
+                    Description="État de forme général du wrestler"/>
                 <components:AttributeBar
                     AttributeName="Moral"
                     Value="{Binding Moral}"/>
+                <components:AttributeBar
+                    AttributeName="Popularite"
+                    Value="{Binding Popularite}"/>
+                <components:AttributeBar
+                    AttributeName="Fatigue"
+                    Value="{Binding Fatigue}"/>
+                <components:AttributeBar
+                    AttributeName="Momentum"
+                    Value="{Binding Momentum}"/>
             </StackPanel>
         </Expander>
 
         <Expander Header="IN-RING" IsExpanded="True"
                   IsVisible="{Binding IsWorker}">
-            <!-- 6 AttributeBars -->
+            <StackPanel Spacing="6" Margin="0,8,0,0">
+                <components:AttributeBar AttributeName="In-Ring" Value="{Binding InRing}"/>
+                <components:AttributeBar AttributeName="Timing" Value="{Binding Timing}"/>
+                <components:AttributeBar AttributeName="Psychology" Value="{Binding Psychology}"/>
+                <components:AttributeBar AttributeName="Selling" Value="{Binding Selling}"/>
+                <components:AttributeBar AttributeName="Stamina" Value="{Binding Stamina}"/>
+                <components:AttributeBar AttributeName="Safety" Value="{Binding Safety}"/>
+            </StackPanel>
         </Expander>
 
-        <!-- Autres sections -->
+        <Expander Header="ENTERTAINMENT" IsExpanded="True"
+                  IsVisible="{Binding IsWorker}">
+            <StackPanel Spacing="6" Margin="0,8,0,0">
+                <components:AttributeBar AttributeName="Entertainment" Value="{Binding Entertainment}"/>
+                <components:AttributeBar AttributeName="Charisma" Value="{Binding Charisma}"/>
+                <components:AttributeBar AttributeName="Promo" Value="{Binding Promo}"/>
+                <components:AttributeBar AttributeName="Crowd Connection" Value="{Binding CrowdConnection}"/>
+                <components:AttributeBar AttributeName="Star Power" Value="{Binding StarPower}"/>
+            </StackPanel>
+        </Expander>
+
+        <Expander Header="STORY" IsExpanded="True"
+                  IsVisible="{Binding IsWorker}">
+            <StackPanel Spacing="6" Margin="0,8,0,0">
+                <components:AttributeBar AttributeName="Story" Value="{Binding Story}"/>
+                <components:AttributeBar AttributeName="Storytelling" Value="{Binding Storytelling}"/>
+                <components:AttributeBar AttributeName="Character Work" Value="{Binding CharacterWork}"/>
+            </StackPanel>
+        </Expander>
     </StackPanel>
 </ScrollViewer>
 ```
 
+**RelationsTabView** - Gestion des relations entre workers :
+```xml
+<Grid RowDefinitions="Auto,*">
+    <!-- Toolbar -->
+    <Border Grid.Row="0" Classes="toolbar">
+        <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="h3" Text="Relations avec les autres workers"
+                       VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Classes="primary"
+                    Content="+ Ajouter Relation"
+                    Command="{Binding AddRelationCommand}"/>
+        </Grid>
+    </Border>
+
+    <!-- Liste des relations -->
+    <ScrollViewer Grid.Row="1">
+        <ItemsControl ItemsSource="{Binding Relations}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Classes="card" Margin="16,8">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <!-- Icône de type -->
+                            <TextBlock Grid.Column="0" FontSize="32"
+                                       Text="{Binding RelationTypeIcon}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0"/>
+
+                            <!-- Infos -->
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Classes="body" Text="{Binding RelatedWorkerName}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Classes="caption muted" Text="{Binding RelationType}"/>
+                                    <TextBlock Classes="caption muted" Text="•"/>
+                                    <TextBlock Classes="caption"
+                                               Classes.success="{Binding IsStrongRelation}"
+                                               Classes.warning="{Binding IsMediumRelation}"
+                                               Text="{Binding RelationStrengthText}"/>
+                                </StackPanel>
+                                <TextBlock Classes="caption muted" Text="{Binding Notes}"
+                                           TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- Actions -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                                <Button Classes="icon" Content="✏"
+                                        Command="{Binding $parent[ItemsControl].DataContext.EditRelationCommand}"
+                                        CommandParameter="{Binding}"/>
+                                <Button Classes="icon" Content="🗑"
+                                        Command="{Binding $parent[ItemsControl].DataContext.DeleteRelationCommand}"
+                                        CommandParameter="{Binding}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</Grid>
+```
+
 ---
 
-#### Tâche 2.3 : Intégration et Tests (Jour 4)
+#### Tâche 2.3 : Intégration et Tests (Jour 5)
 
-- Enregistrer ProfileViewModel dans DI
-- Ajouter DataTemplate
-- Navigation depuis RosterView
+- Enregistrer ProfileViewModel et tous les TabViewModels dans DI
+- Ajouter DataTemplate dans MainWindow.axaml
+- Navigation depuis RosterView vers ProfileView
 - Tests avec données réelles (DbSeeder)
+- Vérifier bindings AttributeBar avec descriptions
+- Tester ajout/edit/delete de relations
+- Tester ajout/edit/delete de notes
 
 **Livrables Sprint 2** :
-- ✅ ProfileView complet avec 4 onglets
+- ✅ ProfileView complet avec **6 onglets**
 - ✅ Support Worker/Staff/Trainee
-- ✅ Affichage de tous les attributs
-- ✅ Navigation fonctionnelle
+- ✅ Affichage de tous les attributs avec AttributeBar
+- ✅ Gestion des contrats (view + edit)
+- ✅ Gestion du gimmick et push level
+- ✅ Système de relations (Amitié, Couple, Fraternité, Rivalité)
+- ✅ Historique complet + biographie
+- ✅ Système de notes personnalisables
+- ✅ Navigation fonctionnelle depuis RosterView
 - ✅ Tests validés
 
-**Durée** : 3-4 jours
+**Durée** : 4-5 jours
 
 ---
 
