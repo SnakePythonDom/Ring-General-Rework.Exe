@@ -202,7 +202,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
             });
 
             // Naviguer vers le Dashboard (tableau de bord) - sur le thread UI
-            _navigationService.NavigateTo<Dashboard.DashboardViewModel>();
+            _navigationService.NavigateTo<DashboardViewModel>();
             System.Console.WriteLine("[CompanySelectorViewModel] Navigation vers Dashboard effectuée");
         }
         catch (Exception ex)
