@@ -6,11 +6,10 @@ using RingGeneral.UI.ViewModels.Shared.Navigation;
 using RingGeneral.UI.ViewModels.Booking;
 using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.ViewModels.Roster;
-// TODO: Uncomment when ViewModels are created
-// using RingGeneral.UI.ViewModels.Storyline;
-// using RingGeneral.UI.ViewModels.Youth;
-// using RingGeneral.UI.ViewModels.Finance;
-// using RingGeneral.UI.ViewModels.Schedule;
+using RingGeneral.UI.ViewModels.Storylines;
+using RingGeneral.UI.ViewModels.Youth;
+using RingGeneral.UI.ViewModels.Finance;
+using RingGeneral.UI.ViewModels.Calendar;
 
 namespace RingGeneral.UI.ViewModels.Core;
 
@@ -203,29 +202,9 @@ public sealed class ShellViewModel : ViewModelBase
         var storylines = new NavigationItemViewModel(
             "storylines",
             "STORYLINES",
-            "📖"
+            "📖",
+            typeof(StorylinesViewModel)
         );
-        storylines.Children.Add(new NavigationItemViewModel(
-            "storylines.active",
-            "Actives",
-            "  🔥",
-            null, // TODO: ActiveStorylinesViewModel
-            storylines
-        ) { Badge = "(2)" });
-        storylines.Children.Add(new NavigationItemViewModel(
-            "storylines.suspended",
-            "Suspendues",
-            "  ⏸️",
-            null,
-            storylines
-        ) { Badge = "(1)" });
-        storylines.Children.Add(new NavigationItemViewModel(
-            "storylines.completed",
-            "Terminées",
-            "  ✅",
-            null,
-            storylines
-        ));
         root.Add(storylines);
 
         // 🎓 YOUTH
@@ -233,7 +212,7 @@ public sealed class ShellViewModel : ViewModelBase
             "youth",
             "YOUTH",
             "🎓",
-            null // typeof(YouthDashboardViewModel) // TODO: À créer
+            typeof(YouthViewModel)
         );
         root.Add(youth);
 
@@ -242,7 +221,7 @@ public sealed class ShellViewModel : ViewModelBase
             "finance",
             "FINANCE",
             "💼",
-            null // typeof(FinanceDashboardViewModel) // TODO: À créer
+            typeof(FinanceViewModel)
         );
         root.Add(finance);
 
@@ -251,7 +230,7 @@ public sealed class ShellViewModel : ViewModelBase
             "calendar",
             "CALENDRIER",
             "📆",
-            null // typeof(CalendarViewModel) // TODO: À créer
+            typeof(CalendarViewModel)
         );
         root.Add(calendar);
 

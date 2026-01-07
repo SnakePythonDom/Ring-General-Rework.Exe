@@ -14,6 +14,7 @@ public sealed class RosterViewModel : ViewModelBase
     private readonly GameRepository? _repository;
     private string _searchText = string.Empty;
     private WorkerListItemViewModel? _selectedWorker;
+    private readonly List<WorkerListItemViewModel> _allWorkers = new List<WorkerListItemViewModel>();
 
     public RosterViewModel(GameRepository? repository = null)
     {
@@ -63,6 +64,7 @@ public sealed class RosterViewModel : ViewModelBase
     public void LoadWorkers()
     {
         Workers.Clear();
+        _allWorkers.Clear();
 
         if (_repository == null)
         {
@@ -84,7 +86,7 @@ public sealed class RosterViewModel : ViewModelBase
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                Workers.Add(new WorkerListItemViewModel
+                var worker = new WorkerListItemViewModel
                 {
                     WorkerId = reader.GetString(0),
                     Name = reader.GetString(1),
@@ -92,7 +94,10 @@ public sealed class RosterViewModel : ViewModelBase
                     Popularity = reader.GetInt32(3),
                     Status = "Actif", // TODO: Calculer depuis blessures/fatigue
                     Company = reader.IsDBNull(5) ? "Free Agent" : reader.GetString(5)
-                });
+                };
+
+                _allWorkers.Add(worker);
+                Workers.Add(worker);
             }
 
             System.Console.WriteLine($"[RosterViewModel] {Workers.Count} workers chargés depuis la DB");
@@ -109,7 +114,7 @@ public sealed class RosterViewModel : ViewModelBase
     /// </summary>
     private void LoadPlaceholderData()
     {
-        Workers.Add(new WorkerListItemViewModel
+        var worker1 = new WorkerListItemViewModel
         {
             WorkerId = "W001",
             Name = "John Cena",
@@ -117,8 +122,8 @@ public sealed class RosterViewModel : ViewModelBase
             Popularity = 95,
             Status = "Actif",
             Company = "WWE"
-        });
-        Workers.Add(new WorkerListItemViewModel
+        };
+        var worker2 = new WorkerListItemViewModel
         {
             WorkerId = "W002",
             Name = "Randy Orton",
@@ -126,8 +131,8 @@ public sealed class RosterViewModel : ViewModelBase
             Popularity = 92,
             Status = "Actif",
             Company = "WWE"
-        });
-        Workers.Add(new WorkerListItemViewModel
+        };
+        var worker3 = new WorkerListItemViewModel
         {
             WorkerId = "W003",
             Name = "CM Punk",
@@ -135,7 +140,15 @@ public sealed class RosterViewModel : ViewModelBase
             Popularity = 88,
             Status = "Blessé",
             Company = "WWE"
-        });
+        };
+
+        _allWorkers.Add(worker1);
+        _allWorkers.Add(worker2);
+        _allWorkers.Add(worker3);
+
+        Workers.Add(worker1);
+        Workers.Add(worker2);
+        Workers.Add(worker3);
     }
 
     /// <summary>
@@ -143,7 +156,32 @@ public sealed class RosterViewModel : ViewModelBase
     /// </summary>
     private void FilterWorkers()
     {
-        // TODO: Implémenter le filtrage
+        Workers.Clear();
+
+        if (string.IsNullOrWhiteSpace(_searchText))
+        {
+            // Pas de recherche, afficher tous les workers
+            foreach (var worker in _allWorkers)
+            {
+                Workers.Add(worker);
+            }
+            return;
+        }
+
+        // Filtrer par nom, rôle ou compagnie (insensible à la casse)
+        var searchLower = _searchText.ToLower();
+        var filtered = _allWorkers.Where(w =>
+            w.Name.ToLower().Contains(searchLower) ||
+            w.Role.ToLower().Contains(searchLower) ||
+            w.Company.ToLower().Contains(searchLower)
+        );
+
+        foreach (var worker in filtered)
+        {
+            Workers.Add(worker);
+        }
+
+        this.RaisePropertyChanged(nameof(TotalWorkers));
     }
 }
 

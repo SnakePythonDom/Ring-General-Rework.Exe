@@ -6,9 +6,17 @@
         xmlns:vmDashboard="using:RingGeneral.UI.ViewModels.Dashboard"
         xmlns:vmBooking="using:RingGeneral.UI.ViewModels.Booking"
         xmlns:vmRoster="using:RingGeneral.UI.ViewModels.Roster"
+        xmlns:vmStorylines="using:RingGeneral.UI.ViewModels.Storylines"
+        xmlns:vmYouth="using:RingGeneral.UI.ViewModels.Youth"
+        xmlns:vmFinance="using:RingGeneral.UI.ViewModels.Finance"
+        xmlns:vmCalendar="using:RingGeneral.UI.ViewModels.Calendar"
         xmlns:dashboard="using:RingGeneral.UI.Views.Dashboard"
         xmlns:booking="using:RingGeneral.UI.Views.Booking"
         xmlns:roster="using:RingGeneral.UI.Views.Roster"
+        xmlns:storylines="using:RingGeneral.UI.Views.Storylines"
+        xmlns:youth="using:RingGeneral.UI.Views.Youth"
+        xmlns:finance="using:RingGeneral.UI.Views.Finance"
+        xmlns:calendar="using:RingGeneral.UI.Views.Calendar"
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="RingGeneral.UI.Views.Shell.MainWindow"
         x:DataType="vm:ShellViewModel"
@@ -47,7 +55,25 @@
             <roster:TitlesView />
         </DataTemplate>
 
-        <!-- TODO: Ajouter les autres DataTemplates quand vous créez les vues -->
+        <!-- DataTemplate pour StorylinesViewModel -->
+        <DataTemplate DataType="vmStorylines:StorylinesViewModel">
+            <storylines:StorylinesView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour YouthViewModel -->
+        <DataTemplate DataType="vmYouth:YouthViewModel">
+            <youth:YouthView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour FinanceViewModel -->
+        <DataTemplate DataType="vmFinance:FinanceViewModel">
+            <finance:FinanceView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour CalendarViewModel -->
+        <DataTemplate DataType="vmCalendar:CalendarViewModel">
+            <calendar:CalendarView />
+        </DataTemplate>
     </Window.DataTemplates>
 
     <Grid>

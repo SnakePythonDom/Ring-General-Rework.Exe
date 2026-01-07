@@ -15,6 +15,7 @@ public sealed class TitlesViewModel : ViewModelBase
     private readonly GameRepository? _repository;
     private TitleListItemViewModel? _selectedTitle;
     private string _searchText = string.Empty;
+    private readonly List<TitleListItemViewModel> _allTitles = new List<TitleListItemViewModel>();
 
     public TitlesViewModel(GameRepository? repository = null)
     {
@@ -78,6 +79,7 @@ public sealed class TitlesViewModel : ViewModelBase
     private void LoadTitles()
     {
         Titles.Clear();
+        _allTitles.Clear();
 
         if (_repository == null)
         {
@@ -109,7 +111,7 @@ public sealed class TitlesViewModel : ViewModelBase
                 var championName = reader.IsDBNull(4) ? "VACANT" : reader.GetString(4);
                 var isVacant = string.IsNullOrEmpty(championId);
 
-                Titles.Add(new TitleListItemViewModel
+                var title = new TitleListItemViewModel
                 {
                     TitleId = reader.GetString(0),
                     Name = reader.GetString(1),
@@ -118,7 +120,10 @@ public sealed class TitlesViewModel : ViewModelBase
                     ReignDays = 0, // TODO: Calculer depuis StartWeek
                     ReignCount = reader.GetInt32(5),
                     IsVacant = isVacant
-                });
+                };
+
+                _allTitles.Add(title);
+                Titles.Add(title);
             }
 
             System.Console.WriteLine($"[TitlesViewModel] {Titles.Count} titres chargés depuis la DB");
@@ -135,7 +140,7 @@ public sealed class TitlesViewModel : ViewModelBase
     /// </summary>
     private void LoadPlaceholderTitles()
     {
-        Titles.Add(new TitleListItemViewModel
+        var title1 = new TitleListItemViewModel
         {
             TitleId = "T001",
             Name = "WWE Championship",
@@ -144,8 +149,8 @@ public sealed class TitlesViewModel : ViewModelBase
             ReignDays = 278,
             ReignCount = 1,
             IsVacant = false
-        });
-        Titles.Add(new TitleListItemViewModel
+        };
+        var title2 = new TitleListItemViewModel
         {
             TitleId = "T002",
             Name = "World Heavyweight Championship",
@@ -154,8 +159,8 @@ public sealed class TitlesViewModel : ViewModelBase
             ReignDays = 145,
             ReignCount = 3,
             IsVacant = false
-        });
-        Titles.Add(new TitleListItemViewModel
+        };
+        var title3 = new TitleListItemViewModel
         {
             TitleId = "T003",
             Name = "Intercontinental Championship",
@@ -164,7 +169,15 @@ public sealed class TitlesViewModel : ViewModelBase
             ReignDays = 0,
             ReignCount = 0,
             IsVacant = true
-        });
+        };
+
+        _allTitles.Add(title1);
+        _allTitles.Add(title2);
+        _allTitles.Add(title3);
+
+        Titles.Add(title1);
+        Titles.Add(title2);
+        Titles.Add(title3);
     }
 
     /// <summary>
@@ -209,7 +222,32 @@ public sealed class TitlesViewModel : ViewModelBase
     /// </summary>
     private void FilterTitles()
     {
-        // TODO: Implémenter le filtrage
+        Titles.Clear();
+
+        if (string.IsNullOrWhiteSpace(_searchText))
+        {
+            // Pas de recherche, afficher tous les titres
+            foreach (var title in _allTitles)
+            {
+                Titles.Add(title);
+            }
+            return;
+        }
+
+        // Filtrer par nom de titre ou nom du champion (insensible à la casse)
+        var searchLower = _searchText.ToLower();
+        var filtered = _allTitles.Where(t =>
+            t.Name.ToLower().Contains(searchLower) ||
+            t.CurrentChampion.ToLower().Contains(searchLower)
+        );
+
+        foreach (var title in filtered)
+        {
+            Titles.Add(title);
+        }
+
+        this.RaisePropertyChanged(nameof(TotalTitles));
+        this.RaisePropertyChanged(nameof(VacantTitles));
     }
 }
 

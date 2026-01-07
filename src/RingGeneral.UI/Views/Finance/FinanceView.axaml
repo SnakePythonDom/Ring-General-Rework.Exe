@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Finance"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Finance.FinanceView"
+             x:DataType="vm:FinanceViewModel">
+
+    <Design.DataContext>
+        <vm:FinanceViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,*">
+
+        <!-- En-tête -->
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="💰 FINANCIAL MANAGEMENT" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+            <TextBlock FontSize="14" Foreground="#888888">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}Week {0} • Balance: {1}">
+                        <Binding Path="CurrentWeek"/>
+                        <Binding Path="CurrentBalanceFormatted"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Stats Finance (4 colonnes) -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*,*,*" ColumnSpacing="15">
+            <!-- Balance Actuelle -->
+            <Border Grid.Column="0" Background="#1e40af" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="💵 BALANCE" FontSize="12" Foreground="#bfdbfe" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding CurrentBalanceFormatted}" FontSize="24" FontWeight="Bold" Foreground="#93c5fd"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Revenus hebdomadaires -->
+            <Border Grid.Column="1" Background="#065f46" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="📈 WEEKLY REVENUE" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding WeeklyRevenueFormatted}" FontSize="24" FontWeight="Bold" Foreground="#10b981"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Dépenses hebdomadaires -->
+            <Border Grid.Column="2" Background="#7f1d1d" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="📉 WEEKLY EXPENSES" FontSize="12" Foreground="#fecaca" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding WeeklyExpensesFormatted}" FontSize="24" FontWeight="Bold" Foreground="#ef4444"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Bénéfice net -->
+            <Border Grid.Column="3" Background="#713f12" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="💎 NET INCOME" FontSize="12" Foreground="#fde68a" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding NetIncomeFormatted}" FontSize="24" FontWeight="Bold" Foreground="#fbbf24"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Transaction History -->
+        <Border Grid.Row="4" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Grid RowDefinitions="Auto,15,*">
+                <TextBlock Grid.Row="0" Text="TRANSACTION HISTORY" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Transactions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="15">
+                                        <!-- Week Badge -->
+                                        <Border Grid.Column="0" Background="#334155" CornerRadius="4" Padding="8,4">
+                                            <TextBlock Text="{Binding WeekDisplay}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                        </Border>
+
+                                        <!-- Category + Description -->
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <TextBlock Text="{Binding Category}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#94a3b8"/>
+                                        </StackPanel>
+
+                                        <!-- Amount -->
+                                        <TextBlock Grid.Column="3"
+                                                  Text="{Binding AmountFormatted}"
+                                                  FontSize="18"
+                                                  FontWeight="Bold"
+                                                  Foreground="{Binding AmountColor}"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+    </Grid>
+
+</UserControl>

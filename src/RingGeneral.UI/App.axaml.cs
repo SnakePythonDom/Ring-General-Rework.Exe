@@ -8,6 +8,10 @@ using RingGeneral.UI.ViewModels.Core;
 using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.ViewModels.Booking;
 using RingGeneral.UI.ViewModels.Roster;
+using RingGeneral.UI.ViewModels.Storylines;
+using RingGeneral.UI.ViewModels.Youth;
+using RingGeneral.UI.ViewModels.Finance;
+using RingGeneral.UI.ViewModels.Calendar;
 using RingGeneral.UI.Views.Shell;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
@@ -50,6 +54,10 @@ public sealed class App : Application
         services.AddTransient<RosterViewModel>();
         services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>();
         services.AddTransient<ViewModels.Roster.TitlesViewModel>();
+        services.AddTransient<StorylinesViewModel>();
+        services.AddTransient<YouthViewModel>();
+        services.AddTransient<FinanceViewModel>();
+        services.AddTransient<CalendarViewModel>();
 
         var provider = services.BuildServiceProvider();
 
