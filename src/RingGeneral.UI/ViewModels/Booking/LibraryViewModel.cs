@@ -110,9 +110,12 @@ public sealed class LibraryViewModel : ViewModelBase
             $"TPL-{Guid.NewGuid():N}".ToUpperInvariant(),
             "Nouveau Template",
             "match",
-            "Aucune catégorie",
+            "Match",
             15,
-            string.Empty
+            false,
+            70,
+            null,
+            null
         );
 
         Templates.Add(newTemplate);
@@ -142,9 +145,12 @@ public sealed class LibraryViewModel : ViewModelBase
             $"TPL-{Guid.NewGuid():N}".ToUpperInvariant(),
             $"{template.Nom} (copie)",
             template.TypeSegment,
-            template.Categorie,
+            template.TypeSegmentLibelle,
             template.DureeMinutes,
-            template.Description
+            template.EstMainEvent,
+            template.Intensite,
+            template.MatchTypeId,
+            template.MatchTypeNom
         );
 
         Templates.Add(duplicate);
@@ -172,45 +178,60 @@ public sealed class LibraryViewModel : ViewModelBase
             "TPL001",
             "Main Event Championship",
             "match",
-            "Matches",
+            "Match",
             20,
-            "Match de championnat principal (20 min, high intensity)"
+            true,
+            90,
+            "MATCH001",
+            "Singles Match"
         ));
 
         Templates.Add(new SegmentTemplateViewModel(
             "TPL002",
             "Opening Promo",
             "promo",
-            "Promos",
+            "Promo",
             10,
-            "Promo d'ouverture pour challenger"
+            false,
+            0,
+            null,
+            null
         ));
 
         Templates.Add(new SegmentTemplateViewModel(
             "TPL003",
             "Tag Team Match",
             "match",
-            "Matches",
+            "Match",
             15,
-            "Match par équipe standard"
+            false,
+            75,
+            "MATCH002",
+            "Tag Team Match"
         ));
 
         Templates.Add(new SegmentTemplateViewModel(
             "TPL004",
             "Backstage Interview",
             "interview",
-            "Interviews",
+            "Interview",
             5,
-            "Interview en backstage rapide"
+            false,
+            0,
+            null,
+            null
         ));
 
         Templates.Add(new SegmentTemplateViewModel(
             "TPL005",
             "Angle Setup",
             "angle",
-            "Angles",
+            "Angle",
             8,
-            "Setup pour une future storyline"
+            false,
+            0,
+            null,
+            null
         ));
     }
 }
