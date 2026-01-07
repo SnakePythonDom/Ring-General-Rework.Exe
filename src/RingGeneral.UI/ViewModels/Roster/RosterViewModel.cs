@@ -66,12 +66,32 @@ public sealed class RosterViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Nombre total de workers
+    /// Nombre total de workers affichés
     /// </summary>
     public int TotalWorkers => Workers.Count;
 
     /// <summary>
-    /// Charge les workers depuis le repository
+    /// Nombre total de workers dans la base
+    /// </summary>
+    private int _totalWorkersInDatabase;
+    public int TotalWorkersInDatabase
+    {
+        get => _totalWorkersInDatabase;
+        private set => this.RaiseAndSetIfChanged(ref _totalWorkersInDatabase, value);
+    }
+
+    /// <summary>
+    /// Taille de page pour la pagination
+    /// </summary>
+    private const int PAGE_SIZE = 100;
+
+    /// <summary>
+    /// Indique s'il y a plus de workers à charger
+    /// </summary>
+    public bool HasMoreWorkers => _allWorkers.Count < TotalWorkersInDatabase;
+
+    /// <summary>
+    /// Charge les workers depuis le repository (avec pagination)
     /// </summary>
     public void LoadWorkers()
     {
@@ -86,14 +106,25 @@ public sealed class RosterViewModel : ViewModelBase
 
         try
         {
-            // Charger tous les workers depuis la DB
             using var connection = _repository.CreateConnection();
+
+            // Obtenir le nombre total de workers
+            using (var countCmd = connection.CreateCommand())
+            {
+                countCmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                TotalWorkersInDatabase = Convert.ToInt32(countCmd.ExecuteScalar());
+            }
+
+            // Charger les premiers PAGE_SIZE workers
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.CompanyId, c.Name as CompanyName
                 FROM Workers w
                 LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
-                ORDER BY w.Popularity DESC";
+                ORDER BY w.Popularity DESC
+                LIMIT @pageSize";
+
+            cmd.Parameters.AddWithValue("@pageSize", PAGE_SIZE);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -112,12 +143,62 @@ public sealed class RosterViewModel : ViewModelBase
                 Workers.Add(worker);
             }
 
-            System.Console.WriteLine($"[RosterViewModel] {Workers.Count} workers chargés depuis la DB");
+            System.Console.WriteLine($"[RosterViewModel] {Workers.Count}/{TotalWorkersInDatabase} workers chargés (pagination)");
         }
         catch (Exception ex)
         {
             System.Console.Error.WriteLine($"[RosterViewModel] Erreur lors du chargement: {ex.Message}");
             LoadPlaceholderData();
+        }
+    }
+
+    /// <summary>
+    /// Charge plus de workers (pagination)
+    /// </summary>
+    public void LoadMoreWorkers()
+    {
+        if (_repository == null || !HasMoreWorkers)
+        {
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.CompanyId, c.Name as CompanyName
+                FROM Workers w
+                LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
+                ORDER BY w.Popularity DESC
+                LIMIT @pageSize OFFSET @offset";
+
+            cmd.Parameters.AddWithValue("@pageSize", PAGE_SIZE);
+            cmd.Parameters.AddWithValue("@offset", _allWorkers.Count);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var worker = new WorkerListItemViewModel
+                {
+                    WorkerId = reader.GetString(0),
+                    Name = reader.GetString(1),
+                    Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
+                    Popularity = reader.GetInt32(3),
+                    Status = "Actif",
+                    Company = reader.IsDBNull(5) ? "Free Agent" : reader.GetString(5)
+                };
+
+                _allWorkers.Add(worker);
+                Workers.Add(worker);
+            }
+
+            System.Console.WriteLine($"[RosterViewModel] {Workers.Count}/{TotalWorkersInDatabase} workers chargés");
+            this.RaisePropertyChanged(nameof(HasMoreWorkers));
+        }
+        catch (Exception ex)
+        {
+            System.Console.Error.WriteLine($"[RosterViewModel] Erreur lors du chargement: {ex.Message}");
         }
     }
 
