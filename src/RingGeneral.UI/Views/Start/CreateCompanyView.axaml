@@ -59,7 +59,20 @@
                      Background="#0f172a"
                      Foreground="White"
                      BorderBrush="#475569"
-                     BorderThickness="1"/>
+                     BorderThickness="1"
+                     CaretBrush="White">
+              <TextBox.Styles>
+                <Style Selector="TextBox">
+                  <Setter Property="Foreground" Value="White"/>
+                </Style>
+                <Style Selector="TextBox:focus /template/ TextPresenter">
+                  <Setter Property="Foreground" Value="White"/>
+                </Style>
+                <Style Selector="TextBox:pointerover /template/ TextPresenter">
+                  <Setter Property="Foreground" Value="White"/>
+                </Style>
+              </TextBox.Styles>
+            </TextBox>
           </StackPanel>
 
           <!-- Region -->
