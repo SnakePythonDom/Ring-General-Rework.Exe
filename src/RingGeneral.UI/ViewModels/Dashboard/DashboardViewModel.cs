@@ -1,8 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Services;
+using RingGeneral.Core.Interfaces;
 
 namespace RingGeneral.UI.ViewModels.Dashboard;
 
@@ -13,17 +16,27 @@ namespace RingGeneral.UI.ViewModels.Dashboard;
 public sealed class DashboardViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
+    private readonly ShowDayOrchestrator? _showDayOrchestrator;
+    private readonly IShowSchedulerStore? _showSchedulerStore;
     private string _companyName = "Ma Compagnie";
+    private string _companyId = string.Empty;
     private int _currentWeek = 1;
     private int _totalWorkers;
     private int _activeStorylines;
     private int _upcomingShows;
     private decimal _currentBudget;
     private string _latestNews = "Bienvenue dans Ring General !";
+    private bool _hasUpcomingShow;
+    private string _upcomingShowName = string.Empty;
 
-    public DashboardViewModel(GameRepository? repository = null)
+    public DashboardViewModel(
+        GameRepository? repository = null,
+        IShowSchedulerStore? showSchedulerStore = null,
+        ShowDayOrchestrator? showDayOrchestrator = null)
     {
         _repository = repository;
+        _showSchedulerStore = showSchedulerStore;
+        _showDayOrchestrator = showDayOrchestrator;
 
         // Données par défaut (seront remplacées par les vraies données)
         TotalWorkers = 0;
@@ -38,9 +51,23 @@ public sealed class DashboardViewModel : ViewModelBase
             "⚠️ Veuillez importer une base de données ou créer une nouvelle partie"
         };
 
+        // Commandes
+        ContinueCommand = ReactiveCommand.Create(OnContinue);
+        PrepareShowCommand = ReactiveCommand.Create(OnPrepareShow);
+
         // Charger les données au démarrage
         LoadDashboardData();
     }
+
+    /// <summary>
+    /// Commande pour continuer (avancer d'une semaine)
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ContinueCommand { get; }
+
+    /// <summary>
+    /// Commande pour préparer le show
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> PrepareShowCommand { get; }
 
     /// <summary>
     /// Nom de la compagnie
@@ -116,6 +143,29 @@ public sealed class DashboardViewModel : ViewModelBase
     public ObservableCollection<string> RecentActivity { get; }
 
     /// <summary>
+    /// Indique si un show est prévu cette semaine
+    /// </summary>
+    public bool HasUpcomingShow
+    {
+        get => _hasUpcomingShow;
+        set => this.RaiseAndSetIfChanged(ref _hasUpcomingShow, value);
+    }
+
+    /// <summary>
+    /// Nom du show à venir (si existant)
+    /// </summary>
+    public string UpcomingShowName
+    {
+        get => _upcomingShowName;
+        set => this.RaiseAndSetIfChanged(ref _upcomingShowName, value);
+    }
+
+    /// <summary>
+    /// Label du bouton principal (dynamique)
+    /// </summary>
+    public string MainButtonLabel => HasUpcomingShow ? "📺 Préparer le Show" : "▶️ Continuer";
+
+    /// <summary>
     /// Charge les données du dashboard depuis le repository
     /// </summary>
     public void LoadDashboardData()
@@ -164,13 +214,14 @@ public sealed class DashboardViewModel : ViewModelBase
             try
             {
                 using var cmd = connection.CreateCommand();
-                cmd.CommandText = "SELECT Name, Treasury, CurrentWeek FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                cmd.CommandText = "SELECT CompanyId, Name, Treasury, CurrentWeek FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
-                    CompanyName = reader.GetString(0);
-                    CurrentBudget = (decimal)reader.GetDouble(1);
-                    CurrentWeek = reader.GetInt32(2);
+                    _companyId = reader.GetString(0);
+                    CompanyName = reader.GetString(1);
+                    CurrentBudget = (decimal)reader.GetDouble(2);
+                    CurrentWeek = reader.GetInt32(3);
                 }
             }
             catch (Exception ex)
@@ -178,11 +229,19 @@ public sealed class DashboardViewModel : ViewModelBase
                 System.Console.Error.WriteLine($"[DashboardViewModel] Erreur chargement compagnie: {ex.Message}");
             }
 
+            // Détecter si un show est prévu cette semaine
+            DetectUpcomingShow();
+
             // Mettre à jour l'activité récente
             RecentActivity.Clear();
             RecentActivity.Add($"✅ Données chargées avec succès");
             RecentActivity.Add($"🤼 {TotalWorkers} workers dans le roster");
             RecentActivity.Add($"🏆 Titres et storylines actives");
+
+            if (HasUpcomingShow)
+            {
+                RecentActivity.Add($"📺 Show à préparer: {UpcomingShowName}");
+            }
 
             System.Console.WriteLine($"[DashboardViewModel] Dashboard chargé: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
         }
@@ -191,5 +250,64 @@ public sealed class DashboardViewModel : ViewModelBase
             System.Console.Error.WriteLine($"[DashboardViewModel] Erreur lors du chargement: {ex.Message}");
             LatestNews = $"⚠️ Erreur de chargement: {ex.Message}";
         }
+    }
+
+    /// <summary>
+    /// Détecte si un show est prévu à la semaine actuelle
+    /// </summary>
+    private void DetectUpcomingShow()
+    {
+        if (_showDayOrchestrator is null || string.IsNullOrEmpty(_companyId))
+        {
+            HasUpcomingShow = false;
+            return;
+        }
+
+        var detection = _showDayOrchestrator.DetecterShowAVenir(_companyId, CurrentWeek);
+        HasUpcomingShow = detection.ShowDetecte;
+        UpcomingShowName = detection.Show?.Nom ?? string.Empty;
+
+        // Notifier le changement du label du bouton
+        this.RaisePropertyChanged(nameof(MainButtonLabel));
+    }
+
+    /// <summary>
+    /// Action du bouton "Continuer" (avancer d'une semaine)
+    /// </summary>
+    private void OnContinue()
+    {
+        if (_repository is null)
+        {
+            return;
+        }
+
+        // Incrémenter la semaine
+        CurrentWeek++;
+
+        // TODO: Appeler WeeklyLoopService pour avancer d'une semaine
+        // weekly.PasserSemaineSuivante(companyId);
+
+        // Recharger les données
+        LoadDashboardData();
+
+        RecentActivity.Insert(0, $"⏭️ Passage à la semaine {CurrentWeek}");
+        System.Console.WriteLine($"[DashboardViewModel] Avancé à la semaine {CurrentWeek}");
+    }
+
+    /// <summary>
+    /// Action du bouton "Préparer le Show"
+    /// </summary>
+    private void OnPrepareShow()
+    {
+        if (!HasUpcomingShow)
+        {
+            return;
+        }
+
+        // TODO: Naviguer vers la vue de booking
+        // _navigationService.NavigateTo<BookingViewModel>();
+
+        RecentActivity.Insert(0, $"📋 Préparation du show: {UpcomingShowName}");
+        System.Console.WriteLine($"[DashboardViewModel] Navigation vers le booking pour: {UpcomingShowName}");
     }
 }
