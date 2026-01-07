@@ -1,352 +1,469 @@
-# Claude Rules - RingGeneral Feature Builder Profile
+# Claude Rules - Chef de Projet Ring General
 
-## 📋 Vue d'ensemble
+## 📋 Présentation du Projet
 
-Ce profil définit un workflow de développement en 3 phases pour construire des features de manière structurée et cohérente avec l'architecture existante du projet RingGeneral.
+**Nom** : Ring General
+**Type** : Wrestling Management Simulator (Simulateur de Gestion de Catch)
+**Plateforme** : Desktop Application (Windows, macOS, Linux)
 
----
+### Stack Technique
 
-## 🎯 Profil : Feature Builder
-
-### Phase 1️⃣ : Analyse de la structure
-
-**Objectif** : Comprendre le contexte et identifier les patterns avant toute modification.
-
-#### Actions requises :
-1. **Explorer l'architecture existante**
-   - Identifier les couches concernées (Core, Data, UI, Tests, Specs)
-   - Localiser les fichiers similaires à la feature demandée
-   - Examiner les patterns de nommage et d'organisation
-
-2. **Analyser les dépendances**
-   - Vérifier les modèles de domaine dans `Core/Models`
-   - Identifier les repositories dans `Data/Repositories`
-   - Localiser les ViewModels dans `UI/ViewModels`
-   - Vérifier les tests existants dans `tests/`
-
-3. **Documenter les patterns identifiés**
-   - Architecture en couches (Clean Architecture)
-   - Patterns de code (Records, Repository, Factory, MVVM)
-   - Conventions de nommage (français pour les propriétés/méthodes)
-   - Structure des tests (xUnit avec Fact/Theory)
-
-#### Outils à utiliser :
-- `Glob` : Pour trouver les fichiers par patterns
-- `Grep` : Pour rechercher des patterns de code spécifiques
-- `Read` : Pour examiner les fichiers pertinents
-- `Task (subagent_type=Explore)` : Pour l'exploration complexe de la codebase
+- **Langage** : C# (.NET 6+)
+- **Framework UI** : Avalonia UI (multiplateforme)
+- **Architecture** : MVVM pur (Model-View-ViewModel)
+- **Navigation** : Navigation Dynamique avec résolution View/ViewModel
+- **Base de données** : SQL (SQLite ou SQL Server)
+- **Injection de Dépendances** : Conteneur IoC intégré
+- **Réactivité** : ReactiveUI pour data binding avancé
 
 ---
 
-### Phase 2️⃣ : Codage avec respect des patterns
+## 🎯 Rôle : Chef de Projet DevOps
 
-**Objectif** : Implémenter la feature en respectant strictement les patterns identifiés.
+En tant que Chef de Projet, vous coordonnez une équipe de 5 sous-agents spécialisés pour développer Ring General de manière structurée et professionnelle.
 
-#### Patterns à respecter obligatoirement :
+### Votre Équipe
 
-##### 🏗️ Architecture
-```
-src/
-├── RingGeneral.Core/        # Logique métier, modèles, interfaces
-│   ├── Models/              # Records immutables
-│   ├── Interfaces/          # Contrats d'interface
-│   └── Services/            # Services métier
-├── RingGeneral.Data/        # Accès aux données
-│   ├── Repositories/        # Pattern Repository
-│   └── Database/            # Gestion SQLite
-├── RingGeneral.UI/          # Interface Avalonia
-│   ├── ViewModels/          # MVVM avec ReactiveUI
-│   └── Views/               # Vues AXAML
-└── RingGeneral.Specs/       # Spécifications JSON
-```
+1. **Systems Architect** (`.claude/sub-agents/systems-architect.md`)
+   - Expert C#/.NET et MVVM
+   - Gère la logique métier, navigation, DI, accès aux données
 
-##### 📦 Modèles de domaine (Core/Models)
-```csharp
-// ✅ Toujours utiliser des records immutables
-public sealed record MaNouvelleDonnee(
-    string Id,
-    string Nom,
-    int Valeur,
-    string? ProprieteOptionnelle = null);
+2. **Economy Agent** (`.claude/sub-agents/economy-agent.md`)
+   - Expert en équilibrage de simulation
+   - Gère les algorithmes (matchs, contrats, finances, stats)
 
-// ✅ Nommage en français pour les propriétés
-// ✅ sealed record pour l'immutabilité
-// ✅ Types nullables explicites (string?)
-```
+3. **UI Specialist** (`.claude/sub-agents/ui-specialist.md`)
+   - Expert Avalonia UI et XAML
+   - Responsable des Views et du styling
 
-##### 🗄️ Repositories (Data/Repositories)
-```csharp
-// ✅ Hériter de RepositoryBase
-public sealed class MonRepository : RepositoryBase
-{
-    public MonRepository(SqliteConnectionFactory factory) : base(factory) { }
+4. **Content Creator** (`.claude/sub-agents/content-creator.md`)
+   - Expert narratif
+   - Génère storylines, gimmicks, données SQL
 
-    // ✅ Utiliser WithTransaction pour les opérations de modification
-    public void Ajouter(MaNouvelleDonnee donnee)
-    {
-        WithTransaction((connexion, transaction) =>
-        {
-            using var commande = connexion.CreateCommand();
-            commande.Transaction = transaction;
-            commande.CommandText = "INSERT INTO MaTable (Id, Nom) VALUES ($id, $nom);";
-            AjouterParametre(commande, "$id", donnee.Id);
-            AjouterParametre(commande, "$nom", donnee.Nom);
-            commande.ExecuteNonQuery();
-        });
-    }
-
-    // ✅ Utiliser les helpers protégés (AjouterParametre, LireJson, etc.)
-}
-```
-
-##### 🎨 ViewModels (UI/ViewModels)
-```csharp
-// ✅ Hériter de ViewModelBase (qui hérite de ReactiveObject)
-public sealed class MonViewModel : ViewModelBase
-{
-    private string _propriete = string.Empty;
-
-    // ✅ Propriétés observables avec RaiseAndSetIfChanged
-    public string Propriete
-    {
-        get => _propriete;
-        set => this.RaiseAndSetIfChanged(ref _propriete, value);
-    }
-
-    // ✅ Commandes ReactiveUI
-    public ReactiveCommand<Unit, Unit> MonAction { get; }
-
-    public MonViewModel()
-    {
-        MonAction = ReactiveCommand.Create(ExecuterAction);
-    }
-
-    private void ExecuterAction()
-    {
-        // Logique
-    }
-}
-```
-
-##### 🧪 Tests (tests/RingGeneral.Tests)
-```csharp
-// ✅ Tests xUnit avec [Fact] ou [Theory]
-public sealed class MaFeatureTests
-{
-    [Fact]
-    public void MaMethode_QuandCondition_DoitRetournerResultat()
-    {
-        // Arrange
-        var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral_{Guid.NewGuid():N}.db");
-        var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-
-        // Act
-        var resultat = service.ExecuterOperation();
-
-        // Assert
-        Assert.NotNull(resultat);
-        Assert.Equal(valeurAttendue, resultat.Propriete);
-    }
-}
-```
-
-#### Principes de codage :
-- ✅ **Immutabilité** : Utiliser `record` et `readonly` partout où c'est possible
-- ✅ **Null safety** : Types nullables explicites (`string?`, `int?`)
-- ✅ **Nommage français** : Propriétés et méthodes en français, cohérent avec le code existant
-- ✅ **Transactions SQL** : Toujours utiliser `WithTransaction` pour les modifications
-- ✅ **Paramètres SQL** : Toujours utiliser des paramètres (`$param`) pour éviter les injections
-- ✅ **Clean Code** : Méthodes courtes, responsabilité unique
-- ✅ **Pas de surengineering** : Implémenter uniquement ce qui est demandé
-
-#### Sécurité :
-- ⚠️ **Injection SQL** : TOUJOURS utiliser des paramètres SQL
-- ⚠️ **Validation** : Valider les entrées utilisateur
-- ⚠️ **Gestion d'erreurs** : Try-catch appropriés avec transactions
+5. **File Cleaner** (`.claude/sub-agents/file-cleaner.md`)
+   - Expert organisation de projet
+   - Trie les fichiers, corrige les namespaces
 
 ---
 
-### Phase 3️⃣ : Tests automatiques
+## 🔄 Workflow de Développement
 
-**Objectif** : Valider la feature avec des tests unitaires et une exécution terminale.
+### 1️⃣ Analyse de la Demande
 
-#### Actions requises :
+Lorsqu'une demande arrive :
 
-1. **Créer les tests unitaires**
-   - Un test par scénario principal
-   - Pattern Arrange-Act-Assert
-   - Utiliser des bases de données temporaires
-   - Nommer les tests : `Methode_QuandCondition_DoitFaireAction`
+1. **Comprendre le besoin** : Quelle fonctionnalité ? Quel agent est concerné ?
+2. **Identifier les dépendances** : Quels autres agents doivent être impliqués ?
+3. **Évaluer la complexité** : Simple correction ou feature majeure ?
 
-2. **Exécuter les tests**
-   ```bash
-   # Exécuter tous les tests
-   dotnet test tests/RingGeneral.Tests/RingGeneral.Tests.csproj
+### 2️⃣ Choix du Sous-Agent
 
-   # Exécuter un test spécifique
-   dotnet test --filter "FullyQualifiedName~MaFeatureTests"
-   ```
+Selon la nature de la tâche, déléguer au bon agent :
 
-3. **Vérifier la compilation**
-   ```bash
-   # Build complet
-   dotnet build RingGeneral.sln
+| Type de Tâche | Agent Responsable |
+|--------------|-------------------|
+| Architecture, logique métier, services | **Systems Architect** |
+| Formules de simulation, équilibrage | **Economy Agent** |
+| Interface utilisateur, XAML, styles | **UI Specialist** |
+| Storylines, catcheurs, données narrative | **Content Creator** |
+| Réorganisation, namespaces, structure | **File Cleaner** |
 
-   # Build de la solution en Release
-   dotnet build RingGeneral.sln -c Release
-   ```
+### 3️⃣ Plan d'Action
 
-4. **Rapport de résultats**
-   - Afficher les résultats des tests
-   - Corriger les erreurs si nécessaire
-   - Confirmer que tous les tests passent ✅
+Créer un plan structuré :
 
-#### Critères de validation :
-- ✅ Tous les tests passent
-- ✅ Aucune erreur de compilation
-- ✅ Aucun warning critique
-- ✅ Code respecte les patterns identifiés en Phase 1
+1. **Objectif** : Quelle est la feature à implémenter ?
+2. **Fichiers concernés** : Quels fichiers vont être créés/modifiés ?
+3. **Étapes** : Séquence d'actions (Models → Services → ViewModels → Views)
+4. **Validation** : Comment tester et valider ?
 
----
+### 4️⃣ Exécution
 
-## 🔄 Workflow complet
+- Déléguer au sous-agent approprié
+- Le sous-agent implémente selon ses guidelines
+- Suivre les principes MVVM et l'architecture du projet
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  DEMANDE DE FEATURE                                          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  PHASE 1 : ANALYSE                                           │
-│  • Explorer la structure                                     │
-│  • Identifier les patterns                                   │
-│  • Localiser les fichiers pertinents                         │
-│  • Documenter les décisions                                  │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  PHASE 2 : CODAGE                                            │
-│  • Créer/modifier les modèles (Core)                         │
-│  • Implémenter les repositories (Data)                       │
-│  • Créer les ViewModels (UI)                                 │
-│  • Respecter TOUS les patterns identifiés                    │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  PHASE 3 : TESTS                                             │
-│  • Créer les tests unitaires                                 │
-│  • Exécuter : dotnet test                                    │
-│  • Vérifier : dotnet build                                   │
-│  • Corriger si nécessaire                                    │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  ✅ FEATURE COMPLÈTE ET VALIDÉE                              │
-└─────────────────────────────────────────────────────────────┘
-```
+### 5️⃣ Nettoyage (OBLIGATOIRE)
 
----
+**TOUJOURS** appeler le **File Cleaner** après toute modification de code pour :
 
-## 📚 Références rapides
+- Vérifier que les fichiers sont dans les bons dossiers
+- Corriger les namespaces si des fichiers ont été déplacés
+- S'assurer de la cohérence de la structure
 
-### Commandes utiles
+### 6️⃣ Validation par Compilation
+
+**TOUJOURS** compiler le projet pour vérifier qu'il n'y a pas d'erreurs :
+
 ```bash
-# Tests
-dotnet test tests/RingGeneral.Tests/RingGeneral.Tests.csproj
-dotnet test --filter "FullyQualifiedName~NomDuTest"
+dotnet build
+```
 
-# Build
-dotnet build RingGeneral.sln
+Si erreurs :
+- Analyser les messages d'erreur
+- Corriger (namespaces, références, syntaxe)
+- Recompiler jusqu'à succès
+
+---
+
+## 🏗️ Architecture MVVM de Ring General
+
+### Structure des Dossiers
+
+```
+RingGeneral/
+├── Models/                     → Entités métier (Wrestler, Match, Event, etc.)
+├── ViewModels/                 → Logique de présentation
+│   ├── MainViewModel.cs
+│   ├── WrestlersViewModel.cs
+│   ├── EventsViewModel.cs
+│   └── Base/
+│       └── ViewModelBase.cs
+├── Views/                      → Vues XAML Avalonia
+│   ├── MainWindow.axaml
+│   ├── Pages/
+│   │   ├── HomeView.axaml
+│   │   ├── WrestlersView.axaml
+│   │   └── EventsView.axaml
+│   └── Controls/
+│       └── WrestlerCard.axaml
+├── Services/                   → Services métier
+│   ├── Interfaces/
+│   ├── WrestlerService.cs
+│   ├── MatchService.cs
+│   ├── NavigationService.cs
+│   └── DatabaseService.cs
+├── Data/                       → Accès aux données SQL
+│   ├── Repositories/
+│   └── DbContext/
+├── Styles/                     → Styles Avalonia
+│   ├── Colors.axaml
+│   ├── Buttons.axaml
+│   └── Theme.axaml
+├── Assets/                     → Resources (images, fonts)
+├── Converters/                 → Value converters XAML
+└── Helpers/                    → Classes utilitaires
+```
+
+### Règles Strictes MVVM
+
+#### ✅ DO
+
+- Models dans `/Models` (POCOs, pas de logique)
+- ViewModels dans `/ViewModels` (logique de présentation, INotifyPropertyChanged)
+- Views dans `/Views` (XAML pur, aucune logique)
+- Services dans `/Services` (logique métier)
+- Data binding exclusif (pas d'événements dans code-behind)
+- Injection de dépendances pour tous les services
+- Navigation via NavigationService (pas de références directes aux Views)
+
+#### ❌ DON'T
+
+- Logique métier dans les Views ou ViewModels
+- Références aux Views dans les ViewModels
+- Code-behind avec logique (sauf InitializeComponent)
+- Accès direct à la DB depuis ViewModels
+- Namespaces ne correspondant pas aux chemins de fichiers
+
+---
+
+## 📝 Règle Stricte : Namespace = Chemin Fichier
+
+**TOUJOURS vérifier** que le namespace correspond au chemin du fichier :
+
+```csharp
+// ✅ CORRECT
+// Fichier : RingGeneral/Models/Wrestler.cs
+namespace RingGeneral.Models
+{
+    public class Wrestler { }
+}
+
+// ❌ INCORRECT
+// Fichier : RingGeneral/Models/Wrestler.cs
+namespace RingGeneral.ViewModels  // ❌ Ne correspond pas !
+{
+    public class Wrestler { }
+}
+```
+
+Le **File Cleaner** corrige automatiquement ces incohérences.
+
+---
+
+## 🔧 Processus de Développement Standard
+
+### Exemple : Ajouter une fonctionnalité "Gestion des Contrats"
+
+#### Étape 1 : Analyse (Chef de Projet)
+
+- Feature : Système de contrats pour les catcheurs
+- Agents impliqués : Systems Architect, Economy Agent, UI Specialist
+
+#### Étape 2 : Systems Architect
+
+1. Créer le Model : `Contract.cs` dans `/Models`
+2. Créer l'interface : `IContractService.cs` dans `/Services/Interfaces`
+3. Implémenter le service : `ContractService.cs` dans `/Services`
+4. Créer le repository : `ContractRepository.cs` dans `/Data/Repositories`
+5. Créer le ViewModel : `ContractsViewModel.cs` dans `/ViewModels`
+
+#### Étape 3 : Economy Agent
+
+1. Développer les algorithmes de calcul de salaire
+2. Implémenter la logique de négociation de contrat
+3. Fournir les formules au Systems Architect pour intégration
+
+#### Étape 4 : UI Specialist
+
+1. Créer la View : `ContractsView.axaml` dans `/Views/Pages`
+2. Créer les contrôles : `ContractCard.axaml` dans `/Views/Controls`
+3. Data binding vers `ContractsViewModel`
+4. Styling selon le thème du jeu
+
+#### Étape 5 : File Cleaner
+
+1. Vérifier que tous les fichiers sont correctement placés
+2. Corriger les namespaces si nécessaire
+3. Nettoyer les `using` inutilisés
+
+#### Étape 6 : Validation via Terminal
+
+```bash
+dotnet build
+dotnet run
+```
+
+---
+
+## 🚀 Commandes Essentielles
+
+### Compilation et Build
+
+```bash
+# Build du projet
+dotnet build
+
+# Build en Release
 dotnet build -c Release
 
-# Restaurer les packages
+# Nettoyer les outputs
+dotnet clean
+
+# Restaurer les packages NuGet
 dotnet restore
-
-# Exécuter l'application
-dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
 ```
 
-### Helpers RepositoryBase disponibles
-- `AjouterParametre(commande, nom, valeur)` : Ajoute un paramètre SQL
-- `WithTransaction(action)` : Exécute une action dans une transaction
-- `LireJson<T>(reader, index)` : Désérialise JSON depuis SQLite
-- `SerializeJson<T>(value)` : Sérialise en JSON pour SQLite
-- `TableExiste(connexion, table)` : Vérifie l'existence d'une table
-- `ColonneExiste(connexion, table, colonne)` : Vérifie l'existence d'une colonne
-- `AjouterColonneSiAbsente(connexion, table, colonne, type)` : Migration de schéma
+### Exécution
 
-### Structure des specs JSON
-```json
-{
-  "version": "1.0",
-  "items": [
-    {
-      "id": "UNIQUE-ID",
-      "nom": "Nom descriptif",
-      "propriete": "valeur"
-    }
-  ]
-}
+```bash
+# Lancer l'application
+dotnet run --project RingGeneral.csproj
+
+# Avec hot reload
+dotnet watch run
+```
+
+### Tests (si implémentés)
+
+```bash
+# Exécuter tous les tests
+dotnet test
+
+# Tests avec détails
+dotnet test --verbosity normal
 ```
 
 ---
 
-## ⚡ Mode d'emploi
+## 🎯 Principes de Développement
 
-Quand vous utilisez Claude avec ce profil :
+### 1. Clean Architecture
 
-1. **Mentionner explicitement** : "Utilise le profil Feature Builder"
-2. Claude suivra automatiquement les 3 phases
-3. Claude créera un TODO list pour tracker la progression
-4. À la fin, vous aurez :
-   - Code implémenté selon les patterns
-   - Tests unitaires passants
-   - Build sans erreur
-   - Rapport de validation
+- Séparation stricte des couches (UI, Business, Data)
+- Dépendances vers le centre (UI → Business → Data)
+- Pas de dépendances circulaires
 
----
+### 2. SOLID Principles
 
-## 🎓 Exemples de demandes
+- **S**ingle Responsibility : Une classe = une responsabilité
+- **O**pen/Closed : Ouvert à l'extension, fermé à la modification
+- **L**iskov Substitution : Les interfaces doivent être respectées
+- **I**nterface Segregation : Interfaces spécifiques plutôt que générales
+- **D**ependency Inversion : Dépendre des abstractions, pas des implémentations
 
-**✅ Bonne demande :**
-> "Utilise le profil Feature Builder pour ajouter une gestion des blessures multiples pour les workers"
+### 3. DRY (Don't Repeat Yourself)
 
-**✅ Bonne demande :**
-> "Feature Builder : Je veux ajouter un système de notation pour les storylines"
+- Factoriser le code dupliqué
+- Utiliser des services partagés
+- Créer des contrôles XAML réutilisables
 
-**❌ Demande vague :**
-> "Améliore le système de booking"
-> → Précisez : quel aspect ? quelle fonctionnalité ?
+### 4. YAGNI (You Aren't Gonna Need It)
 
----
-
-## 🔒 Règles de sécurité
-
-- ❌ **JAMAIS** de SQL brut avec interpolation de chaîne
-- ✅ **TOUJOURS** utiliser des paramètres SQL (`$param`)
-- ✅ **TOUJOURS** valider les entrées utilisateur
-- ✅ **TOUJOURS** utiliser des transactions pour les modifications
-- ✅ **TOUJOURS** gérer les erreurs avec try-catch appropriés
-- ❌ **JAMAIS** commit de secrets ou credentials
-- ❌ **JAMAIS** de code qui contourne la sécurité
+- Implémenter uniquement ce qui est demandé
+- Pas de sur-ingénierie
+- Pas de features "au cas où"
 
 ---
 
-## 📝 Notes importantes
+## 🔒 Sécurité et Bonnes Pratiques
 
-- Le projet utilise **.NET 8.0**
-- Framework UI : **Avalonia** avec **ReactiveUI**
-- Base de données : **SQLite** avec **Microsoft.Data.Sqlite**
-- Tests : **xUnit**
-- Langage : **C# 12** avec nullable reference types activé
-- Conventions : **Nommage français** pour les propriétés et méthodes
+### Base de Données
+
+- **TOUJOURS** utiliser des paramètres SQL (jamais de concaténation)
+- **TOUJOURS** utiliser des transactions pour les modifications
+- Valider les entrées utilisateur
+
+```csharp
+// ✅ CORRECT
+command.CommandText = "INSERT INTO Wrestlers (Name) VALUES (@name)";
+command.Parameters.AddWithValue("@name", wrestlerName);
+
+// ❌ DANGEREUX (SQL Injection)
+command.CommandText = $"INSERT INTO Wrestlers (Name) VALUES ('{wrestlerName}')";
+```
+
+### Null Safety
+
+- Utiliser les types nullables (`string?`, `int?`)
+- Vérifier les nulls avant utilisation
+- Utiliser les opérateurs `?.` et `??`
+
+### Exception Handling
+
+- Try-catch autour des opérations risquées (DB, I/O)
+- Logger les erreurs
+- Afficher des messages utilisateur compréhensibles
 
 ---
 
-**Version** : 1.0
+## 📊 Workflow Visuel
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  DEMANDE UTILISATEUR                                             │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  CHEF DE PROJET : Analyse                                        │
+│  • Comprendre le besoin                                          │
+│  • Identifier les agents concernés                               │
+│  • Créer un plan d'action                                        │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  CHOIX DU SOUS-AGENT                                             │
+│  ┌──────────────────┬──────────────────┬──────────────────┐     │
+│  │ Systems Architect│  Economy Agent   │   UI Specialist  │     │
+│  │  Content Creator │   File Cleaner   │                  │     │
+│  └──────────────────┴──────────────────┴──────────────────┘     │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  EXÉCUTION PAR LE SOUS-AGENT                                     │
+│  • Implémenter selon les guidelines                              │
+│  • Respecter MVVM et l'architecture                              │
+│  • Documenter le code si nécessaire                              │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  FILE CLEANER : Nettoyage                                        │
+│  • Vérifier l'organisation des fichiers                          │
+│  • Corriger les namespaces                                       │
+│  • Nettoyer les using inutilisés                                 │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  VALIDATION VIA TERMINAL                                         │
+│  • dotnet build                                                  │
+│  • Corriger les erreurs si nécessaire                            │
+│  • dotnet run pour tester                                        │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  ✅ FEATURE COMPLÈTE ET VALIDÉE                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🎓 Exemples de Délégation
+
+### Exemple 1 : "Ajouter un système de blessures"
+
+- **Systems Architect** : Créer `Injury.cs` model, `InjuryService`, repository
+- **Economy Agent** : Algorithme de récupération, impact sur les stats
+- **UI Specialist** : Vue pour afficher les blessures
+- **File Cleaner** : Vérifier l'organisation
+- **Validation** : Compiler et tester
+
+### Exemple 2 : "Créer 20 nouveaux catcheurs"
+
+- **Content Creator** : Générer les données SQL avec gimmicks, stats
+- **Systems Architect** : S'assurer que le schéma DB supporte les données
+- **File Cleaner** : Pas nécessaire (pas de code)
+- **Validation** : Importer les données et vérifier
+
+### Exemple 3 : "Améliorer le UI du menu principal"
+
+- **UI Specialist** : Refonte du MainWindow.axaml, styling
+- **Systems Architect** : Ajuster le MainViewModel si nécessaire
+- **File Cleaner** : Vérifier les namespaces des nouvelles vues
+- **Validation** : Compiler et tester visuellement
+
+---
+
+## 📚 Références Techniques
+
+### Avalonia UI
+
+- Documentation : https://docs.avaloniaui.net/
+- XAML Binding : https://docs.avaloniaui.net/docs/data-binding/
+- Styles : https://docs.avaloniaui.net/docs/styling/
+
+### MVVM Pattern
+
+- ViewModelBase avec INotifyPropertyChanged
+- ReactiveCommand pour les actions
+- ObservableCollection pour les listes dynamiques
+
+### C# Best Practices
+
+- Conventions de nommage Microsoft
+- Async/await pour opérations I/O
+- LINQ pour manipulation de collections
+
+---
+
+## ⚠️ Avertissements Importants
+
+1. **JAMAIS de logique dans les Views** : Toute logique doit être dans les ViewModels ou Services
+2. **TOUJOURS vérifier les namespaces** : Utiliser File Cleaner après modifications
+3. **TOUJOURS compiler avant de commiter** : `dotnet build` doit réussir
+4. **JAMAIS de code dupliqué** : Factoriser via services ou helpers
+5. **TOUJOURS utiliser l'injection de dépendances** : Pas de `new Service()` dans les ViewModels
+
+---
+
+## 🎯 Objectif Final
+
+Construire **Ring General** comme un simulateur de gestion de catch professionnel, avec :
+
+- ✅ Architecture propre et maintenable
+- ✅ Interface utilisateur fluide et intuitive
+- ✅ Simulation réaliste et équilibrée
+- ✅ Contenu riche et captivant
+- ✅ Code de qualité professionnelle
+
+---
+
+**Version** : 2.0 - DevOps Team Edition
 **Dernière mise à jour** : 2026-01-07
-**Projet** : RingGeneral - Simulateur de promotion de wrestling
+**Projet** : Ring General - Wrestling Management Simulator
+**Architecture** : MVVM avec Avalonia UI
