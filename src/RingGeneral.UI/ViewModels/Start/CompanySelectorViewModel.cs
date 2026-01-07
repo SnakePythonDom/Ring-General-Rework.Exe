@@ -16,6 +16,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
     private readonly INavigationService _navigationService;
     private readonly GameRepository _repository;
     private CompanyListItem? _selectedCompany;
+    private bool _isLoading;
 
     public CompanySelectorViewModel(INavigationService navigationService, GameRepository repository)
     {
@@ -24,13 +25,22 @@ public sealed class CompanySelectorViewModel : ViewModelBase
 
         Companies = new ObservableCollection<CompanyListItem>();
 
-        // Commandes
-        SelectCompanyCommand = ReactiveCommand.Create(StartGameWithSelectedCompany);
+        // Commandes (async)
+        SelectCompanyCommand = ReactiveCommand.CreateFromTask(StartGameWithSelectedCompanyAsync);
         CreateNewCompanyCommand = ReactiveCommand.Create(CreateNewCompany);
         BackCommand = ReactiveCommand.Create(GoBack);
 
-        // Charger les compagnies
-        LoadCompanies();
+        // Charger les compagnies de manière asynchrone
+        _ = LoadCompaniesAsync();
+    }
+
+    /// <summary>
+    /// Indique si le chargement est en cours
+    /// </summary>
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set => this.RaiseAndSetIfChanged(ref _isLoading, value);
     }
 
     /// <summary>
@@ -63,42 +73,60 @@ public sealed class CompanySelectorViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BackCommand { get; }
 
     /// <summary>
-    /// Charge la liste des compagnies depuis la base de données
+    /// Charge la liste des compagnies depuis la base de données (asynchrone)
     /// </summary>
-    private void LoadCompanies()
+    private async Task LoadCompaniesAsync()
     {
-        Companies.Clear();
+        IsLoading = true;
+        System.Console.WriteLine("[CompanySelectorViewModel] Début du chargement des compagnies...");
 
         try
         {
-            using var connection = _repository.CreateConnection();
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT CompanyId, Name, Region, Prestige, Treasury
-                FROM Companies
-                ORDER BY Prestige DESC
-                LIMIT 50";
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            // Exécuter la requête DB dans un thread en arrière-plan
+            var companies = await Task.Run(() =>
             {
-                Companies.Add(new CompanyListItem
+                var result = new List<CompanyListItem>();
+
+                using var connection = _repository.CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT CompanyId, Name, Region, Prestige, Treasury
+                    FROM Companies
+                    ORDER BY Prestige DESC
+                    LIMIT 50";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    CompanyId = reader.GetString(0),
-                    Name = reader.GetString(1),
-                    Region = reader.IsDBNull(2) ? "Unknown" : reader.GetString(2),
-                    Prestige = reader.IsDBNull(3) ? 50 : reader.GetInt32(3),
-                    Treasury = reader.IsDBNull(4) ? 1000000.0 : reader.GetDouble(4)
-                });
+                    result.Add(new CompanyListItem
+                    {
+                        CompanyId = reader.GetString(0),
+                        Name = reader.GetString(1),
+                        Region = reader.IsDBNull(2) ? "Unknown" : reader.GetString(2),
+                        Prestige = reader.IsDBNull(3) ? 50 : reader.GetInt32(3),
+                        Treasury = reader.IsDBNull(4) ? 1000000.0 : reader.GetDouble(4)
+                    });
+                }
+
+                return result;
+            });
+
+            // Mettre à jour l'UI sur le thread principal
+            Companies.Clear();
+            foreach (var company in companies)
+            {
+                Companies.Add(company);
             }
 
-            System.Console.WriteLine($"[CompanySelectorViewModel] {Companies.Count} compagnies chargées");
+            System.Console.WriteLine($"[CompanySelectorViewModel] {Companies.Count} compagnies chargées avec succès");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Erreur: {ex.Message}");
+            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Erreur lors du chargement: {ex.Message}");
+            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Stack trace: {ex.StackTrace}");
 
             // Ajouter une compagnie par défaut en cas d'erreur
+            Companies.Clear();
             Companies.Add(new CompanyListItem
             {
                 CompanyId = "COMP_DEFAULT",
@@ -108,12 +136,16 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                 Treasury = 1000000.0
             });
         }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     /// <summary>
-    /// Démarre le jeu avec la compagnie sélectionnée
+    /// Démarre le jeu avec la compagnie sélectionnée (asynchrone)
     /// </summary>
-    private void StartGameWithSelectedCompany()
+    private async Task StartGameWithSelectedCompanyAsync()
     {
         if (SelectedCompany == null)
         {
@@ -121,55 +153,65 @@ public sealed class CompanySelectorViewModel : ViewModelBase
             return;
         }
 
-        System.Console.WriteLine($"[CompanySelectorViewModel] Démarrage avec {SelectedCompany.Name}");
+        System.Console.WriteLine($"[CompanySelectorViewModel] Démarrage avec {SelectedCompany.Name}...");
+        IsLoading = true;
 
-        // Créer une nouvelle sauvegarde
         try
         {
-            using var connection = _repository.CreateConnection();
-
-            // Désactiver toutes les sauvegardes existantes
-            using (var deactivateCmd = connection.CreateCommand())
+            // Exécuter les opérations DB dans un thread en arrière-plan
+            await Task.Run(() =>
             {
-                deactivateCmd.CommandText = "UPDATE SaveGames SET IsActive = 0";
-                deactivateCmd.ExecuteNonQuery();
-            }
+                using var connection = _repository.CreateConnection();
 
-            // Créer la nouvelle sauvegarde
-            using (var insertCmd = connection.CreateCommand())
-            {
-                insertCmd.CommandText = @"
-                    INSERT INTO SaveGames (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive)
-                    VALUES (@saveName, @companyId, @week, @date, 1)";
+                // Désactiver toutes les sauvegardes existantes
+                using (var deactivateCmd = connection.CreateCommand())
+                {
+                    deactivateCmd.CommandText = "UPDATE SaveGames SET IsActive = 0";
+                    deactivateCmd.ExecuteNonQuery();
+                }
 
-                insertCmd.Parameters.AddWithValue("@saveName", $"{SelectedCompany.Name} - {DateTime.Now:yyyy-MM-dd HH:mm}");
-                insertCmd.Parameters.AddWithValue("@companyId", SelectedCompany.CompanyId);
-                insertCmd.Parameters.AddWithValue("@week", 1);
-                insertCmd.Parameters.AddWithValue("@date", "2024-01-01");
+                // Créer la nouvelle sauvegarde
+                using (var insertCmd = connection.CreateCommand())
+                {
+                    insertCmd.CommandText = @"
+                        INSERT INTO SaveGames (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive)
+                        VALUES (@saveName, @companyId, @week, @date, 1)";
 
-                insertCmd.ExecuteNonQuery();
-            }
+                    insertCmd.Parameters.AddWithValue("@saveName", $"{SelectedCompany.Name} - {DateTime.Now:yyyy-MM-dd HH:mm}");
+                    insertCmd.Parameters.AddWithValue("@companyId", SelectedCompany.CompanyId);
+                    insertCmd.Parameters.AddWithValue("@week", 1);
+                    insertCmd.Parameters.AddWithValue("@date", "2024-01-01");
 
-            // Marquer la compagnie comme contrôlée par le joueur
-            using (var updateCmd = connection.CreateCommand())
-            {
-                updateCmd.CommandText = @"
-                    UPDATE Companies
-                    SET IsPlayerControlled = 1
-                    WHERE CompanyId = @companyId";
+                    insertCmd.ExecuteNonQuery();
+                }
 
-                updateCmd.Parameters.AddWithValue("@companyId", SelectedCompany.CompanyId);
-                updateCmd.ExecuteNonQuery();
-            }
+                // Marquer la compagnie comme contrôlée par le joueur
+                using (var updateCmd = connection.CreateCommand())
+                {
+                    updateCmd.CommandText = @"
+                        UPDATE Companies
+                        SET IsPlayerControlled = 1
+                        WHERE CompanyId = @companyId";
 
-            System.Console.WriteLine("[CompanySelectorViewModel] Sauvegarde créée avec succès");
+                    updateCmd.Parameters.AddWithValue("@companyId", SelectedCompany.CompanyId);
+                    updateCmd.ExecuteNonQuery();
+                }
 
-            // Naviguer vers le Shell (tableau de bord)
+                System.Console.WriteLine("[CompanySelectorViewModel] Sauvegarde créée avec succès");
+            });
+
+            // Naviguer vers le Shell (tableau de bord) - sur le thread UI
             _navigationService.NavigateTo<Core.ShellViewModel>();
+            System.Console.WriteLine("[CompanySelectorViewModel] Navigation vers Shell effectuée");
         }
         catch (Exception ex)
         {
             System.Console.Error.WriteLine($"[CompanySelectorViewModel] Erreur lors de la création: {ex.Message}");
+            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Stack trace: {ex.StackTrace}");
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 

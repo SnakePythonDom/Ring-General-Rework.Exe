@@ -23,4 +23,8 @@
   <ItemGroup>
     <None Include="../../data/migrations/*.sql" CopyToOutputDirectory="PreserveNewest" LinkBase="data/migrations" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Include Assets (logo, icons, etc.) -->
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
 </Project>
