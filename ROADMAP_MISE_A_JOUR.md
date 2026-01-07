@@ -6,9 +6,10 @@
 
 ## 📊 ÉTAT ACTUEL DU PROJET
 
-### Progrès Global: ~35-40% (Phase 0 Complète, Phase 1 En Cours)
+### Progrès Global: ~35-40% (Phase 0: 100% ✅, Phase 1: 40% En Cours)
 
 **Phase actuelle**: **Phase 1 - Fondations UI/UX (40% complété)**
+**Sprint actuel**: **Sprint 1 - Composants UI Réutilisables** (Démarré 7 janvier 2026)
 
 ⚠️ **MISE À JOUR IMPORTANTE** : Suite à un audit complet du code source, il s'avère que le projet est **significativement plus avancé** que ce que la documentation précédente indiquait. Voir [CURRENT_STATE.md](./CURRENT_STATE.md) pour l'état détaillé.
 
@@ -16,7 +17,7 @@
 
 ## 🎯 PHASES DE DÉVELOPPEMENT
 
-### ✅ PHASE 0: STABILISATION CRITIQUE (COMPLÉTÉE - 95%)
+### ✅ PHASE 0: STABILISATION CRITIQUE (COMPLÉTÉE - 100% ✅ SPRINT 0 TERMINÉ)
 
 **Objectif**: Rendre le projet buildable et l'architecture navigable
 
@@ -30,10 +31,11 @@
 | Créer les ViewModels manquants | ✅ FAIT | 🔴 HAUTE | **12/12 créés** (100%) |
 | Créer les Views correspondantes | ✅ FAIT | 🔴 HAUTE | **13/13 créées** (100%) |
 | Peupler la DB avec données de test | ✅ FAIT | 🔴 HAUTE | **DbSeeder implémenté** avec import BAKI |
+| Enregistrer tous les repositories dans le DI | ✅ FAIT | 🔴 HAUTE | **11/11 enregistrés** (Sprint 0 - 7 jan 2026) |
 
-**Livrable**: ✅ **COMPLET** - Application démarre avec navigation fonctionnelle et données de seed
+**Livrable**: ✅ **100% COMPLET** - Infrastructure complète, tous les repos en DI
 
-**Reste à faire (5%)** : Enregistrer tous les repositories dans le DI (actuellement 2/17)
+**Sprint 0 (7 janvier 2026)** : ✅ Terminé - Commit `51d0b77`
 
 ---
 

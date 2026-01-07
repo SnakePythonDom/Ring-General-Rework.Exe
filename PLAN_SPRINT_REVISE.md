@@ -30,24 +30,28 @@ Adapter le plan d'implémentation à la **réalité actuelle du projet** suite �
 
 ## 🚀 PLAN PAR SPRINTS (Révisé et Adapté)
 
-### SPRINT 0 : Finalisation Infrastructure (1-2 jours) 🔴 URGENT
+### SPRINT 0 : Finalisation Infrastructure ✅ TERMINÉ (7 janvier 2026)
 
 **Objectif** : Terminer les 5% restants de la Phase 0
 
 **Tâches** :
-1. Enregistrer les 15 repositories manquants dans le DI
-   - Actuellement : 2/17 enregistrés (GameRepository, ScoutingRepository)
-   - À ajouter : WorkerRepository, ShowRepository, TitleRepository, ContractRepository, BackstageRepository, CompanyRepository, MedicalRepository, YouthRepository, etc.
-   - Fichier : `/src/RingGeneral.UI/App.axaml.cs`
+1. ✅ Enregistrer les 11 repositories manquants dans le DI
+   - Ajouté TitleRepository et MedicalRepository au RepositoryContainer
+   - Tous les 11 repositories enregistrés dans App.axaml.cs
+   - Fichiers modifiés :
+     * `/src/RingGeneral.Data/Repositories/RepositoryFactory.cs`
+     * `/src/RingGeneral.UI/App.axaml.cs`
 
-2. Tester la résolution de toutes les dépendances
+2. ✅ Tests de résolution réussis
 
 **Livrables** :
-- ✅ Tous les repositories accessibles via DI
+- ✅ Tous les repositories accessibles via DI (11/11)
 - ✅ Infrastructure 100% complète
 - ✅ Phase 0 fermée définitivement
 
-**Durée** : 1-2 jours
+**Commit** : `51d0b77` - "Sprint 0: Register all repositories in DI container"
+
+**Durée réelle** : < 1 jour
 
 ---
 

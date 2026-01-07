@@ -1,8 +1,8 @@
 # 📊 ÉTAT ACTUEL DU PROJET - RING GENERAL
 
-**Date de mise à jour** : 7 janvier 2026
+**Date de mise à jour** : 7 janvier 2026 (Sprint 0 terminé)
 **Branche** : claude/ring-general-implementation-plan-QS8kR
-**Statut** : Phase 0 Complète (95%), Phase 1 En Cours (40%)
+**Statut** : Phase 0 Complète (100% ✅), Phase 1 En Cours (40%)
 
 ---
 
@@ -23,7 +23,7 @@
 
 ## ✅ CE QUI EST COMPLÈTEMENT IMPLÉMENTÉ
 
-### 1. Infrastructure Technique (95%)
+### 1. Infrastructure Technique (100% ✅ SPRINT 0 TERMINÉ)
 
 #### Architecture MVVM ✅ COMPLET
 - Pattern MVVM avec ReactiveUI
@@ -65,7 +65,10 @@
 └── Pagination.cs
 ```
 
-**Note** : Tous existent, mais seulement 2 sont enregistrés directement dans le DI (GameRepository, ScoutingRepository). Les autres sont accessibles via RepositoryFactory.
+**✅ SPRINT 0 TERMINÉ** : Tous les 11 repositories sont maintenant enregistrés dans le DI (App.axaml.cs):
+- GameRepository, ShowRepository, CompanyRepository, WorkerRepository
+- BackstageRepository, ScoutingRepository, ContractRepository
+- SettingsRepository, YouthRepository, TitleRepository, MedicalRepository
 
 ---
 
