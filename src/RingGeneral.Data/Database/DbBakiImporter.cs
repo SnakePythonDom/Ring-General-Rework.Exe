@@ -46,9 +46,11 @@ public static class DbBakiImporter
             var companiesImported = ImportCompanies(targetConnection);
             Console.WriteLine($"[DbBakiImporter] {companiesImported} compagnies importées");
 
-            // 4. Importer les workers
-            var workersImported = ImportWorkers(targetConnection);
+            // 4. Importer les workers avec leurs contrats
+            var (workersImported, contractsImported, freeAgents) = ImportWorkersAndContracts(targetConnection);
             Console.WriteLine($"[DbBakiImporter] {workersImported} workers importés");
+            Console.WriteLine($"[DbBakiImporter] {contractsImported} contrats importés");
+            Console.WriteLine($"[DbBakiImporter] {freeAgents} free agents (sans contrat)");
 
             // 5. Importer les titres
             var titlesImported = ImportTitles(targetConnection);
@@ -212,13 +214,14 @@ public static class DbBakiImporter
     }
 
     /// <summary>
-    /// Importe les workers depuis BAKI
+    /// Importe les workers et leurs contrats depuis BAKI
     /// </summary>
-    private static int ImportWorkers(SqliteConnection connection)
+    /// <returns>Tuple (workers importés, contrats importés, free agents)</returns>
+    private static (int workers, int contracts, int freeAgents) ImportWorkersAndContracts(SqliteConnection connection)
     {
-        Console.WriteLine("[DbBakiImporter] Import des workers...");
+        Console.WriteLine("[DbBakiImporter] Import des workers et contrats...");
 
-        // Vérifier si la table workers existe dans BAKI
+        // Vérifier si les tables existent dans BAKI
         using (var checkCmd = connection.CreateCommand())
         {
             checkCmd.CommandText = "SELECT COUNT(*) FROM baki.sqlite_master WHERE type='table' AND name='workers'";
@@ -227,44 +230,68 @@ public static class DbBakiImporter
             if (!tableExists)
             {
                 Console.WriteLine("[DbBakiImporter] Table workers absente dans BAKI");
-                return 0;
+                return (0, 0, 0);
             }
         }
 
-        // Récupérer le premier CompanyId disponible
-        string? firstCompanyId = null;
-        using (var companyCmd = connection.CreateCommand())
+        // Créer un mapping des promotionID vers CompanyId
+        var promotionMapping = new Dictionary<int, string>();
+        using (var mapCmd = connection.CreateCommand())
         {
-            companyCmd.CommandText = "SELECT CompanyId FROM Companies LIMIT 1";
-            using var reader = companyCmd.ExecuteReader();
-            if (reader.Read())
+            mapCmd.CommandText = @"
+                SELECT
+                    CAST(SUBSTR(CompanyId, 6) AS INTEGER) as PromotionId,
+                    CompanyId
+                FROM Companies
+                WHERE CompanyId LIKE 'COMP_%'";
+
+            using var reader = mapCmd.ExecuteReader();
+            while (reader.Read())
             {
-                firstCompanyId = reader.GetString(0);
+                if (!reader.IsDBNull(0))
+                {
+                    var promotionId = reader.GetInt32(0);
+                    var companyId = reader.GetString(1);
+                    promotionMapping[promotionId] = companyId;
+                }
             }
         }
 
-        if (firstCompanyId == null)
-        {
-            Console.WriteLine("[DbBakiImporter] Aucune compagnie disponible pour associer les workers");
-            return 0;
-        }
-
-        // Récupérer les workers depuis BAKI
+        // Récupérer tous les workers avec leurs contrats (s'ils en ont)
         using var selectCmd = connection.CreateCommand();
         selectCmd.CommandText = @"
             SELECT
-                workerID,
-                fullName,
-                nationality,
-                technique,
-                charisme,
-                psychologie,
-                popularite
-            FROM baki.workers
-            WHERE fullName IS NOT NULL
-            LIMIT 200";
+                w.workerID,
+                w.fullName,
+                w.nationality,
+                w.technique,
+                w.charisme,
+                w.psychologie,
+                w.popularite,
+                c.promotionID,
+                c.role,
+                c.exclusive,
+                c.expiryDate,
+                c.wagePerMonth
+            FROM baki.workers w
+            LEFT JOIN baki.contracts c ON c.workerID = w.workerID
+            WHERE w.fullName IS NOT NULL
+            LIMIT 400";
 
-        var workers = new List<(int id, string name, string nationality, int technique, int charisme, int psychologie, int popularite)>();
+        var workerData = new List<(
+            int id,
+            string name,
+            string nationality,
+            int technique,
+            int charisme,
+            int psychologie,
+            int popularite,
+            int? promotionId,
+            string? role,
+            int? exclusive,
+            string? expiryDate,
+            int? salary
+        )>();
 
         using (var reader = selectCmd.ExecuteReader())
         {
@@ -277,38 +304,99 @@ public static class DbBakiImporter
                 var charisme = reader.IsDBNull(4) ? 50 : reader.GetInt32(4);
                 var psychologie = reader.IsDBNull(5) ? 50 : reader.GetInt32(5);
                 var popularite = reader.IsDBNull(6) ? 50 : reader.GetInt32(6);
+                var promotionId = reader.IsDBNull(7) ? (int?)null : reader.GetInt32(7);
+                var role = reader.IsDBNull(8) ? null : reader.GetString(8);
+                var exclusive = reader.IsDBNull(9) ? (int?)null : reader.GetInt32(9);
+                var expiryDate = reader.IsDBNull(10) ? null : reader.GetString(10);
+                var salary = reader.IsDBNull(11) ? (int?)null : reader.GetInt32(11);
 
-                workers.Add((id, name, nationality, technique, charisme, psychologie, popularite));
+                workerData.Add((id, name, nationality, technique, charisme, psychologie, popularite,
+                               promotionId, role, exclusive, expiryDate, salary));
             }
         }
 
-        // Insérer les workers
-        int count = 0;
-        foreach (var worker in workers)
+        // Insérer les workers et leurs contrats
+        int workersCount = 0;
+        int contractsCount = 0;
+        int freeAgentsCount = 0;
+
+        foreach (var worker in workerData)
         {
-            using var insertCmd = connection.CreateCommand();
-            insertCmd.CommandText = @"
-                INSERT OR IGNORE INTO Workers (
-                    WorkerId, Name, CompanyId, Nationality,
-                    InRing, Entertainment, Story, Popularity, Fatigue
-                )
-                VALUES (@id, @name, @companyId, @nationality, @inRing, @entertainment, @story, @popularity, @fatigue)";
+            // Déterminer le CompanyId du worker
+            string? companyId = null;
+            if (worker.promotionId.HasValue && promotionMapping.ContainsKey(worker.promotionId.Value))
+            {
+                companyId = promotionMapping[worker.promotionId.Value];
+            }
 
-            insertCmd.Parameters.AddWithValue("@id", $"W_{worker.id}");
-            insertCmd.Parameters.AddWithValue("@name", worker.name);
-            insertCmd.Parameters.AddWithValue("@companyId", firstCompanyId);
-            insertCmd.Parameters.AddWithValue("@nationality", worker.nationality);
-            // Convertir les stats BAKI (0-500) en stats Ring General (0-100)
-            insertCmd.Parameters.AddWithValue("@inRing", (int)(worker.technique * 0.2));
-            insertCmd.Parameters.AddWithValue("@entertainment", (int)(worker.charisme * 0.2));
-            insertCmd.Parameters.AddWithValue("@story", (int)(worker.psychologie * 0.2));
-            insertCmd.Parameters.AddWithValue("@popularity", (int)(worker.popularite * 0.2));
-            insertCmd.Parameters.AddWithValue("@fatigue", 0);
+            // Si pas de contrat, le worker est un free agent (CompanyId = null)
+            if (!worker.promotionId.HasValue)
+            {
+                freeAgentsCount++;
+            }
 
-            count += insertCmd.ExecuteNonQuery();
+            // Insérer le worker
+            using (var insertWorkerCmd = connection.CreateCommand())
+            {
+                insertWorkerCmd.CommandText = @"
+                    INSERT OR IGNORE INTO Workers (
+                        WorkerId, Name, CompanyId, Nationality,
+                        InRing, Entertainment, Story, Popularity, Fatigue
+                    )
+                    VALUES (@id, @name, @companyId, @nationality, @inRing, @entertainment, @story, @popularity, @fatigue)";
+
+                insertWorkerCmd.Parameters.AddWithValue("@id", $"W_{worker.id}");
+                insertWorkerCmd.Parameters.AddWithValue("@name", worker.name);
+                insertWorkerCmd.Parameters.AddWithValue("@companyId", (object?)companyId ?? DBNull.Value);
+                insertWorkerCmd.Parameters.AddWithValue("@nationality", worker.nationality);
+                // Convertir les stats BAKI (0-500) en stats Ring General (0-100)
+                insertWorkerCmd.Parameters.AddWithValue("@inRing", (int)(worker.technique * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@entertainment", (int)(worker.charisme * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@story", (int)(worker.psychologie * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@popularity", (int)(worker.popularite * 0.2));
+                insertWorkerCmd.Parameters.AddWithValue("@fatigue", 0);
+
+                workersCount += insertWorkerCmd.ExecuteNonQuery();
+            }
+
+            // Insérer le contrat si le worker en a un
+            if (worker.promotionId.HasValue && companyId != null)
+            {
+                using var insertContractCmd = connection.CreateCommand();
+
+                // Calculer une date de fin (aujourd'hui + 1 an si pas de date d'expiration valide)
+                var endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd");
+                if (!string.IsNullOrEmpty(worker.expiryDate) &&
+                    worker.expiryDate != "No Expiry" &&
+                    DateTime.TryParse(worker.expiryDate, out var parsedDate))
+                {
+                    // Convertir en timestamp (jours depuis epoch)
+                    endDate = ((int)(parsedDate - new DateTime(1970, 1, 1)).TotalDays).ToString();
+                }
+                else
+                {
+                    // Pas d'expiration = contrat longue durée (3 ans)
+                    endDate = ((int)(DateTime.Now.AddYears(3) - new DateTime(1970, 1, 1)).TotalDays).ToString();
+                }
+
+                insertContractCmd.CommandText = @"
+                    INSERT OR IGNORE INTO Contracts (
+                        WorkerId, CompanyId, StartDate, EndDate, Salary, IsExclusive
+                    )
+                    VALUES (@workerId, @companyId, @startDate, @endDate, @salary, @isExclusive)";
+
+                insertContractCmd.Parameters.AddWithValue("@workerId", $"W_{worker.id}");
+                insertContractCmd.Parameters.AddWithValue("@companyId", companyId);
+                insertContractCmd.Parameters.AddWithValue("@startDate", (int)(DateTime.Now - new DateTime(1970, 1, 1)).TotalDays);
+                insertContractCmd.Parameters.AddWithValue("@endDate", endDate);
+                insertContractCmd.Parameters.AddWithValue("@salary", worker.salary ?? 0);
+                insertContractCmd.Parameters.AddWithValue("@isExclusive", worker.exclusive ?? 0);
+
+                contractsCount += insertContractCmd.ExecuteNonQuery();
+            }
         }
 
-        return count;
+        return (workersCount, contractsCount, freeAgentsCount);
     }
 
     /// <summary>
