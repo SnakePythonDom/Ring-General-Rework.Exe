@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="200"
+             x:Class="RingGeneral.UI.Components.DetailSection">
+
+  <UserControl.Styles>
+    <Style Selector="Expander.detail-section">
+      <Setter Property="Background" Value="#1e1e1e"/>
+      <Setter Property="Margin" Value="0,0,0,8"/>
+    </Style>
+
+    <Style Selector="Expander.detail-section /template/ ToggleButton#ExpanderToggle">
+      <Setter Property="Background" Value="#2d2d2d"/>
+      <Setter Property="Padding" Value="12,10"/>
+      <Setter Property="BorderBrush" Value="#3a3a3a"/>
+      <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <Style Selector="Expander.detail-section /template/ ToggleButton#ExpanderToggle:pointerover">
+      <Setter Property="Background" Value="#333333"/>
+    </Style>
+
+    <Style Selector="Expander.detail-section /template/ Border#ExpanderContent">
+      <Setter Property="Background" Value="#1e1e1e"/>
+      <Setter Property="Padding" Value="12"/>
+      <Setter Property="BorderBrush" Value="#3a3a3a"/>
+      <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <Style Selector="StackPanel.section-header">
+      <Setter Property="Orientation" Value="Horizontal"/>
+      <Setter Property="Spacing" Value="8"/>
+    </Style>
+
+    <Style Selector="TextBlock.section-title">
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="#e0e0e0"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Border.section-badge">
+      <Setter Property="Background" Value="#3b82f6"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="6,2"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Border.section-badge.success">
+      <Setter Property="Background" Value="#10b981"/>
+    </Style>
+
+    <Style Selector="Border.section-badge.warning">
+      <Setter Property="Background" Value="#f59e0b"/>
+    </Style>
+
+    <Style Selector="Border.section-badge.error">
+      <Setter Property="Background" Value="#ef4444"/>
+    </Style>
+
+    <Style Selector="Border.section-badge.info">
+      <Setter Property="Background" Value="#3b82f6"/>
+    </Style>
+
+    <Style Selector="TextBlock.badge-text">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Expander Classes="detail-section"
+            IsExpanded="{Binding IsExpanded}">
+    <Expander.Header>
+      <StackPanel Classes="section-header">
+        <TextBlock Classes="section-title"
+                   Text="{Binding SectionTitle}"/>
+        <Border Classes="section-badge"
+                Classes.success="{Binding IsSuccessBadge}"
+                Classes.warning="{Binding IsWarningBadge}"
+                Classes.error="{Binding IsErrorBadge}"
+                Classes.info="{Binding IsInfoBadge}"
+                IsVisible="{Binding HasBadge}">
+          <TextBlock Classes="badge-text"
+                     Text="{Binding BadgeText}"/>
+        </Border>
+      </StackPanel>
+    </Expander.Header>
+    <ContentControl Content="{Binding SectionContent}"/>
+  </Expander>
+</UserControl>
