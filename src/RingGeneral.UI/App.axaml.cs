@@ -41,8 +41,19 @@ public sealed class App : Application
         var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db");
         var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
         var repositories = RepositoryFactory.CreateRepositories(factory);
+
+        // Register all repositories
         services.AddSingleton(repositories.GameRepository);
+        services.AddSingleton(repositories.ShowRepository);
+        services.AddSingleton(repositories.CompanyRepository);
+        services.AddSingleton(repositories.WorkerRepository);
+        services.AddSingleton(repositories.BackstageRepository);
         services.AddSingleton(repositories.ScoutingRepository);
+        services.AddSingleton(repositories.ContractRepository);
+        services.AddSingleton(repositories.SettingsRepository);
+        services.AddSingleton(repositories.YouthRepository);
+        services.AddSingleton(repositories.TitleRepository);
+        services.AddSingleton(repositories.MedicalRepository);
 
         // Core Services
         services.AddSingleton<BookingValidator>();
