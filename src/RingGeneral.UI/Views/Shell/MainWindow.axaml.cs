@@ -23,7 +23,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Legacy constructor for backward compatibility
     /// </summary>
-    public MainWindow(ShellViewModel viewModel) : this((ViewModelBase)viewModel)
+    public MainWindow(ViewModels.Core.ShellViewModel viewModel) : this((ViewModelBase)viewModel)
     {
     }
 }

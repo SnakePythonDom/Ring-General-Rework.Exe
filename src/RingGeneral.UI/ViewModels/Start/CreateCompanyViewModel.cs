@@ -1,9 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
+using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
-using RingGeneral.UI.Services;
+using RingGeneral.UI.Services.Navigation;
 
 namespace RingGeneral.UI.ViewModels.Start;
 
@@ -174,7 +175,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// <summary>
     /// Crée une nouvelle sauvegarde pour la compagnie créée
     /// </summary>
-    private void CreateSaveGame(Microsoft.Data.Sqlite.SqliteConnection connection, string companyId)
+    private void CreateSaveGame(SqliteConnection connection, string companyId)
     {
         // Désactiver toutes les sauvegardes existantes
         using (var deactivateCmd = connection.CreateCommand())
