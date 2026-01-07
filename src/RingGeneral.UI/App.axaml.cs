@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.Services.Messaging;
 using RingGeneral.UI.ViewModels.Core;
+using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.ViewModels.Booking;
+using RingGeneral.UI.ViewModels.Roster;
 using RingGeneral.UI.Views.Shell;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
@@ -43,7 +45,9 @@ public sealed class App : Application
 
         // ViewModels
         services.AddSingleton<ViewModels.Core.ShellViewModel>();
+        services.AddTransient<DashboardViewModel>();
         services.AddTransient<BookingViewModel>();
+        services.AddTransient<RosterViewModel>();
 
         var provider = services.BuildServiceProvider();
 

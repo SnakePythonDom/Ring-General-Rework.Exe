@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
+             xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Roster.RosterView"
+             x:DataType="vm:RosterViewModel">
+
+    <Design.DataContext>
+        <vm:RosterViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="30" RowDefinitions="Auto,20,*">
+
+        <!-- En-tête -->
+        <StackPanel Grid.Row="0" Spacing="12">
+            <StackPanel Spacing="6">
+                <TextBlock Text="🤼 ROSTER" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock FontSize="14" Foreground="#888888">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0} workers au total">
+                            <Binding Path="TotalWorkers"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Barre de recherche et filtres -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBox Grid.Column="0"
+                         Text="{Binding SearchText, Mode=TwoWay}"
+                         Watermark="🔍 Rechercher un worker par nom..."
+                         Background="#1e293b"
+                         Foreground="#e0e0e0"
+                         Padding="12,8"/>
+                <Button Grid.Column="1" Content="Filtres" Padding="15,8" Background="#334155" Foreground="#e0e0e0"/>
+            </Grid>
+        </StackPanel>
+
+        <!-- Liste des workers -->
+        <Border Grid.Row="2" Background="#1e293b" CornerRadius="8" Padding="0">
+            <controls:DataGrid ItemsSource="{Binding Workers}"
+                              SelectedItem="{Binding SelectedWorker, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              CanUserSortColumns="True"
+                              CanUserReorderColumns="False"
+                              CanUserResizeColumns="True"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              IsReadOnly="True"
+                              Background="#1e293b"
+                              BorderThickness="0">
+
+                <controls:DataGrid.Columns>
+                    <controls:DataGridTextColumn Header="NOM"
+                                                Binding="{Binding Name}"
+                                                Width="2*"
+                                                SortMemberPath="Name"/>
+
+                    <controls:DataGridTextColumn Header="RÔLE"
+                                                Binding="{Binding Role}"
+                                                Width="*"
+                                                SortMemberPath="Role"/>
+
+                    <controls:DataGridTextColumn Header="POPULARITÉ"
+                                                Binding="{Binding Popularity}"
+                                                Width="*"
+                                                SortMemberPath="Popularity"/>
+
+                    <controls:DataGridTextColumn Header="STATUT"
+                                                Binding="{Binding Status}"
+                                                Width="*"
+                                                SortMemberPath="Status"/>
+
+                    <controls:DataGridTextColumn Header="COMPAGNIE"
+                                                Binding="{Binding Company}"
+                                                Width="*"
+                                                SortMemberPath="Company"/>
+                </controls:DataGrid.Columns>
+
+                <controls:DataGrid.Styles>
+                    <Style Selector="DataGridRow">
+                        <Setter Property="Background" Value="#0f172a"/>
+                        <Setter Property="Foreground" Value="#cbd5e1"/>
+                    </Style>
+                    <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+                        <Setter Property="Fill" Value="#1e293b"/>
+                    </Style>
+                    <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+                        <Setter Property="Fill" Value="#334155"/>
+                    </Style>
+                    <Style Selector="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#334155"/>
+                        <Setter Property="Foreground" Value="#e0e0e0"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="Padding" Value="12,8"/>
+                    </Style>
+                    <Style Selector="DataGridCell">
+                        <Setter Property="Padding" Value="12,8"/>
+                    </Style>
+                </controls:DataGrid.Styles>
+
+            </controls:DataGrid>
+        </Border>
+
+    </Grid>
+
+</UserControl>

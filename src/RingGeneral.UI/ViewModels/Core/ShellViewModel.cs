@@ -4,8 +4,9 @@ using ReactiveUI;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.ViewModels.Shared.Navigation;
 using RingGeneral.UI.ViewModels.Booking;
+using RingGeneral.UI.ViewModels.Dashboard;
+using RingGeneral.UI.ViewModels.Roster;
 // TODO: Uncomment when ViewModels are created
-// using RingGeneral.UI.ViewModels.Roster;
 // using RingGeneral.UI.ViewModels.Storyline;
 // using RingGeneral.UI.ViewModels.Youth;
 // using RingGeneral.UI.ViewModels.Finance;
@@ -128,7 +129,7 @@ public sealed class ShellViewModel : ViewModelBase
             "home",
             "ACCUEIL",
             "🏠",
-            null // TODO: Créer DashboardViewModel
+            typeof(DashboardViewModel)
         );
         root.Add(home);
 
@@ -179,7 +180,7 @@ public sealed class ShellViewModel : ViewModelBase
             "roster.workers",
             "Workers",
             "  🤼",
-            null, // typeof(RosterViewModel), // TODO: À créer
+            typeof(RosterViewModel),
             roster
         ) { Badge = "(47)" });
         roster.Children.Add(new NavigationItemViewModel(

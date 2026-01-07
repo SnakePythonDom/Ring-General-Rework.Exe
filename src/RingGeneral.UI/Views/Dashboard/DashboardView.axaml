@@ -1,0 +1,107 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Dashboard"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Dashboard.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+    <Design.DataContext>
+        <vm:DashboardViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25">
+            <!-- En-tête -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="🏠 TABLEAU DE BORD" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock Text="{Binding CompanyName}" FontSize="18" Foreground="#888888"/>
+                <TextBlock FontSize="14" Foreground="#666666">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Semaine {0}">
+                            <Binding Path="CurrentWeek"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Cartes de statistiques -->
+            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="15">
+                <!-- Workers -->
+                <Border Grid.Column="0" Background="#1e293b" Padding="20" CornerRadius="8">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🤼 WORKERS" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TotalWorkers}" FontSize="32" FontWeight="Bold" Foreground="#3b82f6"/>
+                        <TextBlock Text="Roster total" FontSize="11" Foreground="#94a3b8"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Storylines -->
+                <Border Grid.Column="1" Background="#1e293b" Padding="20" CornerRadius="8">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="📖 STORYLINES" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding ActiveStorylines}" FontSize="32" FontWeight="Bold" Foreground="#f59e0b"/>
+                        <TextBlock Text="Actives" FontSize="11" Foreground="#94a3b8"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Shows -->
+                <Border Grid.Column="2" Background="#1e293b" Padding="20" CornerRadius="8">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="📺 SHOWS" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding UpcomingShows}" FontSize="32" FontWeight="Bold" Foreground="#8b5cf6"/>
+                        <TextBlock Text="À venir" FontSize="11" Foreground="#94a3b8"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Budget -->
+                <Border Grid.Column="3" Background="#065f46" Padding="20" CornerRadius="8">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="💰 BUDGET" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding CurrentBudgetFormatted}" FontSize="28" FontWeight="Bold" Foreground="#34d399"/>
+                        <TextBlock Text="Disponible" FontSize="11" Foreground="#a7f3d0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Dernière actualité -->
+            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="📰 DERNIÈRE ACTUALITÉ" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding LatestNews}" FontSize="13" Foreground="#cbd5e1" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Activité récente -->
+            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="📋 ACTIVITÉ RÉCENTE" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                    <ItemsControl ItemsSource="{Binding RecentActivity}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
+                                    <TextBlock Text="{Binding .}" FontSize="12" Foreground="#94a3b8"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Actions rapides -->
+            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="⚡ ACTIONS RAPIDES" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0" Content="➕ Nouveau Show" Padding="12,10" Background="#3b82f6" Foreground="White" CornerRadius="6"/>
+                        <Button Grid.Column="1" Content="📋 Créer Booking" Padding="12,10" Background="#8b5cf6" Foreground="White" CornerRadius="6"/>
+                        <Button Grid.Column="2" Content="⏭️ Semaine Suivante" Padding="12,10" Background="#059669" Foreground="White" CornerRadius="6"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>
