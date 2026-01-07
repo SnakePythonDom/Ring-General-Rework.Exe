@@ -1,7 +1,8 @@
 using System;
+using Microsoft.Data.Sqlite;
 using RingGeneral.Data.Repositories;
 
-namespace RingGeneral.Core.Services;
+namespace RingGeneral.Data.Services;
 
 /// <summary>
 /// Service de gestion des workers (vieillissement, fatigue, morale, etc.)
@@ -9,12 +10,12 @@ namespace RingGeneral.Core.Services;
 public sealed class WorkerService
 {
     private readonly GameRepository _repository;
-    private readonly Random _random;
+    private readonly System.Random _random;
 
     public WorkerService(GameRepository repository)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _random = new Random();
+        _random = new System.Random();
     }
 
     /// <summary>
@@ -79,7 +80,7 @@ public sealed class WorkerService
     /// <summary>
     /// Applique le vieillissement à un worker individuel
     /// </summary>
-    private void ApplyAgingToWorker(Microsoft.Data.Sqlite.SqliteConnection connection, string workerId, int ageInYears, int currentInRing, int currentEntertainment)
+    private void ApplyAgingToWorker(SqliteConnection connection, string workerId, int ageInYears, int currentInRing, int currentEntertainment)
     {
         // Règle de vieillissement: après 35 ans, 20% de chance de perdre 1 point en InRing chaque année
         if (ageInYears > 35)
