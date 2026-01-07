@@ -56,19 +56,21 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="#0f172a" Padding="16,12" Margin="0,0,0,1">
-                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
 
                                         <!-- Nom du titre -->
                                         <TextBlock Grid.Row="0"
                                                    Text="{Binding Name}"
                                                    FontSize="14"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#e0e0e0"/>
+                                                   Foreground="#e0e0e0"
+                                                   Margin="0,0,0,3"/>
 
                                         <!-- Champion actuel -->
                                         <TextBlock Grid.Row="1"
                                                    FontSize="12"
-                                                   Foreground="{Binding IsVacant, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#f59e0b:#3b82f6}">
+                                                   Foreground="{Binding IsVacant, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#f59e0b:#3b82f6}"
+                                                   Margin="0,3,0,3">
                                             <TextBlock.Text>
                                                 <MultiBinding StringFormat="Champion: {0}">
                                                     <Binding Path="CurrentChampion"/>
@@ -77,7 +79,7 @@
                                         </TextBlock>
 
                                         <!-- Prestige et durée -->
-                                        <Grid Grid.Row="2" ColumnDefinitions="*,*">
+                                        <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,3,0,3">
                                             <TextBlock Grid.Column="0" FontSize="11" Foreground="#64748b">
                                                 <TextBlock.Text>
                                                     <MultiBinding StringFormat="Prestige: {0}">
@@ -96,7 +98,8 @@
                                         <TextBlock Grid.Row="3"
                                                    FontSize="10"
                                                    Foreground="#475569"
-                                                   IsVisible="{Binding !IsVacant}">
+                                                   IsVisible="{Binding !IsVacant}"
+                                                   Margin="0,3,0,0">
                                             <TextBlock.Text>
                                                 <MultiBinding StringFormat="Règne #{0}">
                                                     <Binding Path="ReignCount"/>
@@ -195,23 +198,25 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Background="#0f172a" Padding="14,10" Margin="0,0,0,8" CornerRadius="6">
-                                                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                                <Grid RowDefinitions="Auto,Auto,Auto">
 
                                                     <!-- Champion -->
                                                     <TextBlock Grid.Row="0"
                                                                Text="{Binding Champion}"
                                                                FontSize="13"
                                                                FontWeight="SemiBold"
-                                                               Foreground="#e0e0e0"/>
+                                                               Foreground="#e0e0e0"
+                                                               Margin="0,0,0,2"/>
 
                                                     <!-- Période -->
                                                     <TextBlock Grid.Row="1"
                                                                Text="{Binding PeriodDisplay}"
                                                                FontSize="11"
-                                                               Foreground="#94a3b8"/>
+                                                               Foreground="#94a3b8"
+                                                               Margin="0,2,0,2"/>
 
                                                     <!-- Stats -->
-                                                    <Grid Grid.Row="2" ColumnDefinitions="*,*">
+                                                    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,2,0,0">
                                                         <TextBlock Grid.Column="0" FontSize="10" Foreground="#64748b">
                                                             <TextBlock.Text>
                                                                 <MultiBinding StringFormat="{}{0} jours">

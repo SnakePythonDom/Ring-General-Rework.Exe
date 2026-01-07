@@ -60,9 +60,9 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#0f172a" Padding="16,12" Margin="0,0,0,1">
-                                            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
-                                                <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                                                <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+                                            <Grid RowDefinitions="Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0" Margin="0,0,0,3"/>
+                                                <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,3,0,0">
                                                     <TextBlock Grid.Column="0" Text="{Binding Phase}" FontSize="11" Foreground="#94a3b8"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding HeatDisplay}" FontSize="11" Foreground="#f59e0b" FontWeight="SemiBold"/>
                                                 </Grid>

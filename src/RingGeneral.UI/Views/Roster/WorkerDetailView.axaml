@@ -60,9 +60,9 @@
                         <StackPanel Spacing="12">
                             <TextBlock Text="CONDITION" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
 
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
                                 <!-- Popularité -->
-                                <Border Grid.Row="0" Grid.Column="0" Background="#1e40af" Padding="12,8" CornerRadius="6">
+                                <Border Grid.Row="0" Grid.Column="0" Background="#1e40af" Padding="12,8" CornerRadius="6" Margin="0,0,5,4">
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="POPULARITÉ" FontSize="10" Foreground="#bfdbfe"/>
                                         <TextBlock Text="{Binding PopularityDisplay}" FontSize="20" FontWeight="Bold" Foreground="#93c5fd"/>
@@ -70,7 +70,7 @@
                                 </Border>
 
                                 <!-- Momentum -->
-                                <Border Grid.Row="0" Grid.Column="1" Background="#7c2d12" Padding="12,8" CornerRadius="6">
+                                <Border Grid.Row="0" Grid.Column="1" Background="#7c2d12" Padding="12,8" CornerRadius="6" Margin="5,0,0,4">
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="MOMENTUM" FontSize="10" Foreground="#fed7aa"/>
                                         <TextBlock Text="{Binding MomentumDisplay}" FontSize="20" FontWeight="Bold" Foreground="#fdba74"/>
@@ -78,7 +78,7 @@
                                 </Border>
 
                                 <!-- Fatigue -->
-                                <Border Grid.Row="1" Grid.Column="0" Background="#713f12" Padding="12,8" CornerRadius="6">
+                                <Border Grid.Row="1" Grid.Column="0" Background="#713f12" Padding="12,8" CornerRadius="6" Margin="0,4,5,4">
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="FATIGUE" FontSize="10" Foreground="#fde68a"/>
                                         <TextBlock Text="{Binding FatigueDisplay}" FontSize="20" FontWeight="Bold" Foreground="#fbbf24"/>
@@ -86,7 +86,7 @@
                                 </Border>
 
                                 <!-- Morale -->
-                                <Border Grid.Row="1" Grid.Column="1" Background="#065f46" Padding="12,8" CornerRadius="6">
+                                <Border Grid.Row="1" Grid.Column="1" Background="#065f46" Padding="12,8" CornerRadius="6" Margin="5,4,0,4">
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="MORALE" FontSize="10" Foreground="#a7f3d0"/>
                                         <TextBlock Text="{Binding MoraleDisplay}" FontSize="20" FontWeight="Bold" Foreground="#34d399"/>
@@ -96,7 +96,7 @@
                                 <!-- Blessure -->
                                 <Border Grid.Row="2" Grid.ColumnSpan="2"
                                         Background="{Binding HasInjury, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#991b1b:#064e3b}"
-                                        Padding="12,8" CornerRadius="6">
+                                        Padding="12,8" CornerRadius="6" Margin="0,4,0,0">
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="BLESSURE" FontSize="10"
                                                    Foreground="{Binding HasInjury, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#fecaca:#a7f3d0}"/>

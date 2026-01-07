@@ -28,13 +28,14 @@
             </StackPanel>
 
             <!-- Barre de recherche et filtres -->
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <Grid ColumnDefinitions="*,Auto">
                 <TextBox Grid.Column="0"
                          Text="{Binding SearchText, Mode=TwoWay}"
                          Watermark="🔍 Rechercher un worker par nom..."
                          Background="#1e293b"
                          Foreground="#e0e0e0"
-                         Padding="12,8"/>
+                         Padding="12,8"
+                         Margin="0,0,12,0"/>
                 <Button Grid.Column="1" Content="Filtres" Padding="15,8" Background="#334155" Foreground="#e0e0e0"/>
             </Grid>
         </StackPanel>
