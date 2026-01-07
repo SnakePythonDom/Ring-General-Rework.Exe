@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
+using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.Data.Repositories;
+using RingGeneral.UI.Services.Navigation;
 using System.Linq;
 
 namespace RingGeneral.UI.ViewModels.Roster;
@@ -12,19 +14,29 @@ namespace RingGeneral.UI.ViewModels.Roster;
 public sealed class RosterViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
+    private readonly INavigationService? _navigationService;
     private string _searchText = string.Empty;
     private WorkerListItemViewModel? _selectedWorker;
     private readonly List<WorkerListItemViewModel> _allWorkers = new List<WorkerListItemViewModel>();
 
-    public RosterViewModel(GameRepository? repository = null)
+    public RosterViewModel(GameRepository? repository = null, INavigationService? navigationService = null)
     {
         _repository = repository;
+        _navigationService = navigationService;
 
         Workers = new ObservableCollection<WorkerListItemViewModel>();
+
+        // Commande pour naviguer vers les détails d'un worker
+        ViewWorkerDetailsCommand = ReactiveCommand.Create<string>(ViewWorkerDetails);
 
         // Charger les workers
         LoadWorkers();
     }
+
+    /// <summary>
+    /// Commande pour afficher les détails d'un worker
+    /// </summary>
+    public ReactiveCommand<string, Unit> ViewWorkerDetailsCommand { get; }
 
     /// <summary>
     /// Liste des workers
@@ -149,6 +161,27 @@ public sealed class RosterViewModel : ViewModelBase
         Workers.Add(worker1);
         Workers.Add(worker2);
         Workers.Add(worker3);
+    }
+
+    /// <summary>
+    /// Navigue vers les détails d'un worker
+    /// </summary>
+    private void ViewWorkerDetails(string workerId)
+    {
+        if (_navigationService == null)
+        {
+            System.Console.WriteLine("[RosterViewModel] NavigationService non disponible");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(workerId))
+        {
+            System.Console.WriteLine("[RosterViewModel] WorkerId invalide");
+            return;
+        }
+
+        System.Console.WriteLine($"[RosterViewModel] Navigation vers WorkerDetail: {workerId}");
+        _navigationService.NavigateTo<WorkerDetailViewModel>(workerId);
     }
 
     /// <summary>

@@ -3,13 +3,14 @@ using ReactiveUI;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Repositories;
+using RingGeneral.UI.Services.Navigation;
 
 namespace RingGeneral.UI.ViewModels.Roster;
 
 /// <summary>
 /// ViewModel pour les détails complets d'un worker
 /// </summary>
-public sealed class WorkerDetailViewModel : ViewModelBase
+public sealed class WorkerDetailViewModel : ViewModelBase, INavigableViewModel
 {
     private readonly GameRepository? _repository;
     private WorkerSnapshot? _worker;
@@ -24,6 +25,17 @@ public sealed class WorkerDetailViewModel : ViewModelBase
         Storylines = new ObservableCollection<string>();
         Titles = new ObservableCollection<string>();
         RecentMatches = new ObservableCollection<string>();
+    }
+
+    /// <summary>
+    /// Appelé quand on navigue vers ce ViewModel
+    /// </summary>
+    public void OnNavigatedTo(object? parameter)
+    {
+        if (parameter is string workerId && !string.IsNullOrEmpty(workerId))
+        {
+            WorkerId = workerId;
+        }
     }
 
     /// <summary>

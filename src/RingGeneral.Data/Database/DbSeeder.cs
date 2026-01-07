@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace RingGeneral.Data.Database;
 
@@ -22,9 +23,65 @@ public static class DbSeeder
 
         Console.WriteLine("[DbSeeder] Base de données vide détectée. Démarrage du seed...");
 
-        SeedDemoData(connection);
+        // Chercher BAKI1.1.db dans plusieurs emplacements possibles
+        string? bakiDbPath = FindBakiDatabase();
+
+        if (bakiDbPath != null)
+        {
+            Console.WriteLine($"[DbSeeder] BAKI1.1.db trouvé à: {bakiDbPath}");
+            Console.WriteLine("[DbSeeder] Import des données réelles depuis BAKI1.1.db...");
+
+            try
+            {
+                DbBakiImporter.ImportFromBaki(connection, bakiDbPath);
+                Console.WriteLine("[DbSeeder] Import BAKI terminé avec succès");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[DbSeeder] Erreur lors de l'import BAKI: {ex.Message}");
+                Console.WriteLine("[DbSeeder] Fallback vers données de démonstration...");
+                SeedDemoData(connection);
+            }
+        }
+        else
+        {
+            Console.WriteLine("[DbSeeder] BAKI1.1.db introuvable, utilisation des données de démonstration");
+            SeedDemoData(connection);
+        }
 
         Console.WriteLine("[DbSeeder] Seed terminé avec succès.");
+    }
+
+    /// <summary>
+    /// Recherche BAKI1.1.db dans plusieurs emplacements
+    /// </summary>
+    private static string? FindBakiDatabase()
+    {
+        var possiblePaths = new[]
+        {
+            Path.Combine(Directory.GetCurrentDirectory(), "BAKI1.1.db"),
+            Path.Combine(AppContext.BaseDirectory, "BAKI1.1.db"),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "BAKI1.1.db"),
+            "BAKI1.1.db"
+        };
+
+        foreach (var path in possiblePaths)
+        {
+            try
+            {
+                var fullPath = Path.GetFullPath(path);
+                if (File.Exists(fullPath))
+                {
+                    return fullPath;
+                }
+            }
+            catch
+            {
+                // Ignorer les erreurs de path
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

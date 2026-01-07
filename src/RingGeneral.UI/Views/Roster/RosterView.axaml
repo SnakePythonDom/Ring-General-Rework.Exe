@@ -78,6 +78,21 @@
                                                 Binding="{Binding Company}"
                                                 Width="*"
                                                 SortMemberPath="Company"/>
+
+                    <controls:DataGridTemplateColumn Header="ACTIONS" Width="Auto">
+                        <controls:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="📋 Voir"
+                                        Padding="8,4"
+                                        Background="#3b82f6"
+                                        Foreground="White"
+                                        CornerRadius="4"
+                                        FontSize="12"
+                                        Command="{Binding $parent[UserControl].((vm:RosterViewModel)DataContext).ViewWorkerDetailsCommand}"
+                                        CommandParameter="{Binding WorkerId}"/>
+                            </DataTemplate>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
                 </controls:DataGrid.Columns>
 
                 <controls:DataGrid.Styles>
