@@ -17,7 +17,7 @@ public sealed class ShowDayOrchestratorTests
             "SHOW-001",
             "COMPANY-001",
             "Monday Night Raw",
-            ShowType.TvWeekly,
+            ShowType.Tv,
             new DateOnly(2024, 1, 15),
             120,
             "VENUE-001",
@@ -30,7 +30,7 @@ public sealed class ShowDayOrchestratorTests
         var orchestrator = new ShowDayOrchestrator(store);
 
         // Act
-        var result = orchestrator.DetecterShowAVenir("COMPANY-001", 2024);
+        var result = orchestrator.DetecterShowAVenir("COMPANY-001", 1);
 
         // Assert
         Assert.True(result.ShowDetecte);
@@ -132,21 +132,22 @@ public sealed class ShowDayOrchestratorTests
             "Test Company",
             "USA",
             75,
+            50000,
             80,
-            65,
-            50000);
+            65);
 
         var worker = new WorkerSnapshot(
             "WORKER-001",
             "John Doe",
-            "Face",
             75,
             70,
             65,
             80,
             50,
+            string.Empty,
             10,
-            null);
+            "Face",
+            50);
 
         var segment = new SegmentDefinition(
             "SEG-001",
@@ -165,9 +166,9 @@ public sealed class ShowDayOrchestratorTests
             show,
             compagnie,
             new[] { worker },
+            Array.Empty<TitleInfo>(),
+            Array.Empty<StorylineInfo>(),
             new[] { segment },
-            Array.Empty<StorylineSnapshot>(),
-            Array.Empty<TitleSnapshot>(),
             new Dictionary<string, int>(),
             null);
     }
@@ -190,39 +191,41 @@ public sealed class ShowDayOrchestratorTests
             "Test Company",
             "USA",
             75,
+            50000,
             80,
-            65,
-            50000);
+            65);
 
         var champion = new WorkerSnapshot(
             "WORKER-001",
             "Champion",
-            "Face",
             75,
             70,
             65,
             80,
             50,
+            string.Empty,
             10,
-            null);
+            "Face",
+            50);
 
         var challenger = new WorkerSnapshot(
             "WORKER-002",
             "Challenger",
-            "Heel",
             70,
             75,
             60,
             75,
             45,
+            string.Empty,
             15,
-            null);
+            "Heel",
+            50);
 
-        var titre = new TitleSnapshot(
+        var titre = new TitleInfo(
             "TITLE-001",
             "World Championship",
-            "WORKER-001",
-            75);
+            75,
+            "WORKER-001");
 
         var segment = new SegmentDefinition(
             "SEG-001",
@@ -241,9 +244,9 @@ public sealed class ShowDayOrchestratorTests
             show,
             compagnie,
             new[] { champion, challenger },
-            new[] { segment },
-            Array.Empty<StorylineSnapshot>(),
             new[] { titre },
+            Array.Empty<StorylineInfo>(),
+            new[] { segment },
             new Dictionary<string, int>(),
             null);
     }
@@ -258,13 +261,12 @@ public sealed class ShowDayOrchestratorTests
         public void MettreAJourShow(ShowSchedule show) { }
         public ShowSchedule? ChargerShow(string showId) => Shows.FirstOrDefault(s => s.ShowId == showId);
 
-        public IReadOnlyList<ShowSchedule> ChargerShowsAVenir(string companyId, int minWeek, int maxWeek)
+        public IReadOnlyList<ShowSchedule> ChargerShows(string companyId)
         {
-            return Shows
-                .Where(s => s.CompanyId == companyId && s.Date.Year >= minWeek && s.Date.Year <= maxWeek)
-                .ToList();
+            return Shows.Where(s => s.CompanyId == companyId).ToList();
         }
 
+        public void SupprimerShow(string showId) { }
         public void AjouterCalendarEntry(CalendarEntry entry) { }
         public void MettreAJourCalendarEntry(CalendarEntry entry) { }
         public void SupprimerCalendarEntry(string entryId) { }
@@ -274,42 +276,43 @@ public sealed class ShowDayOrchestratorTests
 
     private sealed class FakeTitleRepository : ITitleRepository
     {
-        private readonly Dictionary<string, TitleData> _titles = new();
+        private readonly Dictionary<string, TitleDetail> _titles = new();
         private readonly List<TitleMatchRecord> _matches = new();
-        private readonly Dictionary<string, TitleReignData> _reigns = new();
+        private readonly Dictionary<int, TitleReignDetail> _reigns = new();
+        private int _nextReignId = 1;
 
-        public TitleData? ChargerTitre(string titleId)
+        public TitleDetail? ChargerTitre(string titleId)
         {
             if (!_titles.ContainsKey(titleId))
             {
-                _titles[titleId] = new TitleData(titleId, "Test Title", "WORKER-001", 75);
+                _titles[titleId] = new TitleDetail(titleId, "COMPANY-001", 75, "WORKER-001");
             }
             return _titles[titleId];
         }
 
-        public TitleReignData? ChargerRegneCourant(string titleId) =>
-            _reigns.Values.FirstOrDefault(r => r.TitleId == titleId && r.EndWeek == null);
+        public TitleReignDetail? ChargerRegneCourant(string titleId) =>
+            _reigns.Values.FirstOrDefault(r => r.TitleId == titleId && r.EndDate == null);
 
-        public int CompterDefenses(string titleId, int startWeek) =>
-            _matches.Count(m => m.TitleId == titleId && m.Week >= startWeek && !m.TitleChange);
+        public int CompterDefenses(string titleId, int depuisSemaine) =>
+            _matches.Count(m => m.TitleId == titleId && m.Week >= depuisSemaine && !m.IsTitleChange);
 
-        public void CloreRegne(string reignId, int endWeek)
+        public void CloreRegne(int titleReignId, int semaineFin)
         {
-            if (_reigns.ContainsKey(reignId))
+            if (_reigns.ContainsKey(titleReignId))
             {
-                var reign = _reigns[reignId];
-                _reigns[reignId] = reign with { EndWeek = endWeek };
+                var reign = _reigns[titleReignId];
+                _reigns[titleReignId] = reign with { EndDate = semaineFin, IsCurrent = false };
             }
         }
 
-        public string CreerRegne(string titleId, string workerId, int startWeek)
+        public int CreerRegne(string titleId, string workerId, int semaineDebut)
         {
-            var reignId = $"REIGN-{Guid.NewGuid():N}";
-            _reigns[reignId] = new TitleReignData(reignId, titleId, workerId, startWeek, null);
+            var reignId = _nextReignId++;
+            _reigns[reignId] = new TitleReignDetail(reignId, titleId, workerId, semaineDebut, null, true);
             return reignId;
         }
 
-        public void MettreAJourChampion(string titleId, string workerId)
+        public void MettreAJourChampion(string titleId, string? workerId)
         {
             if (_titles.ContainsKey(titleId))
             {
@@ -329,7 +332,4 @@ public sealed class ShowDayOrchestratorTests
             }
         }
     }
-
-    private sealed record TitleData(string TitleId, string Nom, string? HolderWorkerId, int Prestige);
-    private sealed record TitleReignData(string TitleReignId, string TitleId, string WorkerId, int StartWeek, int? EndWeek);
 }

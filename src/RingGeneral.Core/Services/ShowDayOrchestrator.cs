@@ -22,7 +22,7 @@ public sealed class ShowDayOrchestrator
     {
         _showScheduler = showScheduler;
         _titleService = titleService;
-        _random = random ?? new SystemRandomProvider();
+        _random = random ?? new SeededRandomProvider((int)DateTime.Now.Ticks);
     }
 
     /// <summary>
@@ -35,8 +35,8 @@ public sealed class ShowDayOrchestrator
             return new ShowDayDetectionResult(false, null, "Scheduler non disponible");
         }
 
-        var shows = _showScheduler.ChargerShowsAVenir(companyId, currentWeek, currentWeek);
-        var show = shows.FirstOrDefault(s => s.Date.Year == currentWeek && s.Statut == ShowStatus.ABooker);
+        var shows = _showScheduler.ChargerShows(companyId);
+        var show = shows.FirstOrDefault(s => s.Statut == ShowStatus.ABooker);
 
         if (show is null)
         {
@@ -84,21 +84,21 @@ public sealed class ShowDayOrchestrator
                         continue;
                     }
 
-                    var championActuel = titre.HolderWorkerId;
+                    var championActuel = titre.DetenteurId;
                     var challengerId = segment.Participants
                         .FirstOrDefault(p => p != segment.VainqueurId);
 
                     var input = new TitleMatchInput(
                         segment.TitreId,
-                        context.Show.ShowId,
+                        challengerId ?? string.Empty,
+                        segment.VainqueurId,
                         context.Show.Semaine,
                         championActuel,
-                        challengerId,
-                        segment.VainqueurId);
+                        context.Show.ShowId);
 
                     var outcome = _titleService.EnregistrerMatch(input);
 
-                    if (outcome.TitleChange)
+                    if (outcome.TitleChanged)
                     {
                         var ancienChampion = context.Workers
                             .FirstOrDefault(w => w.WorkerId == championActuel);
