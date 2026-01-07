@@ -1,0 +1,328 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ================================= -->
+  <!-- RING GENERAL UNIFIED THEME (FM26) -->
+  <!-- ================================= -->
+
+  <!-- COLOR RESOURCES -->
+  <Styles.Resources>
+    <!-- Background Colors -->
+    <SolidColorBrush x:Key="BackgroundPrimary">#1a1a1a</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundSecondary">#1e1e1e</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundPanel">#2d2d2d</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundHover">#333333</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundActive">#3a3a3a</SolidColorBrush>
+
+    <!-- Border Colors -->
+    <SolidColorBrush x:Key="BorderPrimary">#3a3a3a</SolidColorBrush>
+    <SolidColorBrush x:Key="BorderSecondary">#4a4a4a</SolidColorBrush>
+    <SolidColorBrush x:Key="BorderFocus">#3b82f6</SolidColorBrush>
+
+    <!-- Text Colors -->
+    <SolidColorBrush x:Key="TextPrimary">#e0e0e0</SolidColorBrush>
+    <SolidColorBrush x:Key="TextSecondary">#b0b0b0</SolidColorBrush>
+    <SolidColorBrush x:Key="TextTertiary">#888888</SolidColorBrush>
+    <SolidColorBrush x:Key="TextDisabled">#666666</SolidColorBrush>
+
+    <!-- Semantic Colors -->
+    <SolidColorBrush x:Key="ColorSuccess">#10b981</SolidColorBrush>
+    <SolidColorBrush x:Key="ColorWarning">#f59e0b</SolidColorBrush>
+    <SolidColorBrush x:Key="ColorError">#ef4444</SolidColorBrush>
+    <SolidColorBrush x:Key="ColorInfo">#3b82f6</SolidColorBrush>
+
+    <!-- Accent Colors -->
+    <SolidColorBrush x:Key="AccentPrimary">#3b82f6</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentPrimaryHover">#4a91ff</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentPrimaryActive">#2563eb</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentPrimaryDisabled">#1e3a8a</SolidColorBrush>
+
+    <!-- Shadow -->
+    <SolidColorBrush x:Key="Shadow">#000000</SolidColorBrush>
+  </Styles.Resources>
+
+  <!-- ================================= -->
+  <!-- BUTTON STYLES -->
+  <!-- ================================= -->
+
+  <!-- Primary Button -->
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{StaticResource AccentPrimary}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="16,8"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Cursor" Value="Hand"/>
+  </Style>
+
+  <Style Selector="Button.primary:pointerover">
+    <Setter Property="Background" Value="{StaticResource AccentPrimaryHover}"/>
+  </Style>
+
+  <Style Selector="Button.primary:pressed">
+    <Setter Property="Background" Value="{StaticResource AccentPrimaryActive}"/>
+  </Style>
+
+  <Style Selector="Button.primary:disabled">
+    <Setter Property="Background" Value="{StaticResource AccentPrimaryDisabled}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextDisabled}"/>
+    <Setter Property="Cursor" Value="Arrow"/>
+  </Style>
+
+  <!-- Secondary Button -->
+  <Style Selector="Button.secondary">
+    <Setter Property="Background" Value="{StaticResource BackgroundPanel}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderPrimary}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="16,8"/>
+    <Setter Property="Cursor" Value="Hand"/>
+  </Style>
+
+  <Style Selector="Button.secondary:pointerover">
+    <Setter Property="Background" Value="{StaticResource BackgroundHover}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderSecondary}"/>
+  </Style>
+
+  <Style Selector="Button.secondary:pressed">
+    <Setter Property="Background" Value="{StaticResource BackgroundActive}"/>
+  </Style>
+
+  <!-- Danger Button -->
+  <Style Selector="Button.danger">
+    <Setter Property="Background" Value="{StaticResource ColorError}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="16,8"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Cursor" Value="Hand"/>
+  </Style>
+
+  <Style Selector="Button.danger:pointerover">
+    <Setter Property="Background" Value="#f87171"/>
+  </Style>
+
+  <!-- Success Button -->
+  <Style Selector="Button.success">
+    <Setter Property="Background" Value="{StaticResource ColorSuccess}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="16,8"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Cursor" Value="Hand"/>
+  </Style>
+
+  <Style Selector="Button.success:pointerover">
+    <Setter Property="Background" Value="#34d399"/>
+  </Style>
+
+  <!-- Icon Button -->
+  <Style Selector="Button.icon">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="8"/>
+    <Setter Property="Cursor" Value="Hand"/>
+  </Style>
+
+  <Style Selector="Button.icon:pointerover">
+    <Setter Property="Background" Value="{StaticResource BackgroundActive}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- TEXTBLOCK STYLES -->
+  <!-- ================================= -->
+
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="24"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+  </Style>
+
+  <Style Selector="TextBlock.h2">
+    <Setter Property="FontSize" Value="20"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+  </Style>
+
+  <Style Selector="TextBlock.h3">
+    <Setter Property="FontSize" Value="16"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+  </Style>
+
+  <Style Selector="TextBlock.body">
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+  </Style>
+
+  <Style Selector="TextBlock.caption">
+    <Setter Property="FontSize" Value="11"/>
+    <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+  </Style>
+
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
+  </Style>
+
+  <!-- Status Text -->
+  <Style Selector="TextBlock.success">
+    <Setter Property="Foreground" Value="{StaticResource ColorSuccess}"/>
+  </Style>
+
+  <Style Selector="TextBlock.warning">
+    <Setter Property="Foreground" Value="{StaticResource ColorWarning}"/>
+  </Style>
+
+  <Style Selector="TextBlock.error">
+    <Setter Property="Foreground" Value="{StaticResource ColorError}"/>
+  </Style>
+
+  <Style Selector="TextBlock.info">
+    <Setter Property="Foreground" Value="{StaticResource ColorInfo}"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- BORDER STYLES -->
+  <!-- ================================= -->
+
+  <Style Selector="Border.panel">
+    <Setter Property="Background" Value="{StaticResource BackgroundPanel}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderPrimary}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="16"/>
+  </Style>
+
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{StaticResource BackgroundSecondary}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderPrimary}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="Padding" Value="12"/>
+  </Style>
+
+  <Style Selector="Border.card:pointerover">
+    <Setter Property="Background" Value="{StaticResource BackgroundHover}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderSecondary}"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- TEXTBOX STYLES -->
+  <!-- ================================= -->
+
+  <Style Selector="TextBox">
+    <Setter Property="Background" Value="{StaticResource BackgroundSecondary}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderPrimary}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="8,6"/>
+  </Style>
+
+  <Style Selector="TextBox:focus">
+    <Setter Property="BorderBrush" Value="{StaticResource BorderFocus}"/>
+  </Style>
+
+  <Style Selector="TextBox:pointerover">
+    <Setter Property="BorderBrush" Value="{StaticResource BorderSecondary}"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- COMBOBOX STYLES -->
+  <!-- ================================= -->
+
+  <Style Selector="ComboBox">
+    <Setter Property="Background" Value="{StaticResource BackgroundSecondary}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderPrimary}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="8,6"/>
+  </Style>
+
+  <Style Selector="ComboBox:focus">
+    <Setter Property="BorderBrush" Value="{StaticResource BorderFocus}"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- CHECKBOX STYLES -->
+  <!-- ================================= -->
+
+  <Style Selector="CheckBox">
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- SCROLLBAR STYLES -->
+  <!-- ================================= -->
+
+  <Style Selector="ScrollBar">
+    <Setter Property="Background" Value="{StaticResource BackgroundSecondary}"/>
+  </Style>
+
+  <Style Selector="ScrollBar /template/ RepeatButton">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+
+  <Style Selector="ScrollBar /template/ Thumb">
+    <Setter Property="Background" Value="{StaticResource BackgroundActive}"/>
+  </Style>
+
+  <Style Selector="ScrollBar /template/ Thumb:pointerover">
+    <Setter Property="Background" Value="{StaticResource BorderSecondary}"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- TOOLTIP STYLES -->
+  <!-- ================================= -->
+
+  <Style Selector="ToolTip">
+    <Setter Property="Background" Value="{StaticResource BackgroundPanel}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource BorderPrimary}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="Padding" Value="8,6"/>
+  </Style>
+
+  <!-- ================================= -->
+  <!-- TRANSITIONS / ANIMATIONS -->
+  <!-- ================================= -->
+
+  <!-- Fade In Animation -->
+  <Style Selector="Border.fade-in">
+    <Style.Animations>
+      <Animation Duration="0:0:0.3">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="0"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- Slide In From Right -->
+  <Style Selector="Border.slide-in-right">
+    <Style.Animations>
+      <Animation Duration="0:0:0.3">
+        <KeyFrame Cue="0%">
+          <Setter Property="TranslateTransform.X" Value="50"/>
+          <Setter Property="Opacity" Value="0"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="TranslateTransform.X" Value="0"/>
+          <Setter Property="Opacity" Value="1"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+</Styles>
