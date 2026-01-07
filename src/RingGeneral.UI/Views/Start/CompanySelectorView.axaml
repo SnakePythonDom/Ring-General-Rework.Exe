@@ -100,8 +100,6 @@
                                         <!-- Bouton Sélectionner -->
                                         <Button Grid.Column="1"
                                                 Content="SÉLECTIONNER →"
-                                                Command="{Binding $parent[UserControl].((vm:CompanySelectorViewModel)DataContext).SelectCompanyCommand}"
-                                                CommandParameter="{Binding}"
                                                 Padding="25,12"
                                                 Background="#10b981"
                                                 Foreground="White"
