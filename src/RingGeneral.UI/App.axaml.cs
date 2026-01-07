@@ -42,7 +42,7 @@ public sealed class App : Application
         services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
 
         // ViewModels
-        services.AddSingleton<ShellViewModel>();
+        services.AddSingleton<ViewModels.Core.ShellViewModel>();
         services.AddTransient<BookingViewModel>();
 
         var provider = services.BuildServiceProvider();
@@ -51,7 +51,7 @@ public sealed class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow(
-                provider.GetRequiredService<ShellViewModel>()
+                provider.GetRequiredService<ViewModels.Core.ShellViewModel>()
             );
         }
 

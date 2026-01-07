@@ -5,7 +5,7 @@ namespace RingGeneral.UI.Services;
 
 public sealed class NavigationSpecMapper
 {
-    public IReadOnlyList<NavigationItemViewModel> ConstruireSidebar(NavigationSpec spec)
+    public IReadOnlyList<LegacyNavigationItemViewModel> ConstruireSidebar(NavigationSpec spec)
     {
         return spec.Sidebar.Sections.Select(ConstruireSection).ToList();
     }
@@ -24,9 +24,9 @@ public sealed class NavigationSpecMapper
             .ToList();
     }
 
-    private static NavigationItemViewModel ConstruireSection(NavigationSectionSpec section)
+    private static LegacyNavigationItemViewModel ConstruireSection(NavigationSectionSpec section)
     {
-        var item = new NavigationItemViewModel(section.Id, section.Libelle, section.Route, section.Icone);
+        var item = new LegacyNavigationItemViewModel(section.Id, section.Libelle, section.Route, section.Icone);
 
         foreach (var sousSection in section.SousSections)
         {

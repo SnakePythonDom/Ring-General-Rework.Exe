@@ -2,9 +2,12 @@ using System.Collections.ObjectModel;
 
 namespace RingGeneral.UI.ViewModels;
 
-public sealed class NavigationItemViewModel
+/// <summary>
+/// Legacy navigation item model used by NavigationSpecMapper
+/// </summary>
+public sealed class LegacyNavigationItemViewModel
 {
-    public NavigationItemViewModel(string id, string libelle, string? route, string? icone)
+    public LegacyNavigationItemViewModel(string id, string libelle, string? route, string? icone)
     {
         Id = id;
         Libelle = libelle;
@@ -16,6 +19,6 @@ public sealed class NavigationItemViewModel
     public string Libelle { get; }
     public string? Route { get; }
     public string? Icone { get; }
-    public ObservableCollection<NavigationItemViewModel> SousSections { get; } = [];
+    public ObservableCollection<LegacyNavigationItemViewModel> SousSections { get; } = [];
     public bool EstGroupe => SousSections.Count > 0;
 }

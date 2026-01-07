@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Validation;
+using RingGeneral.Core.Models;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.ViewModels.Core;
 using RingGeneral.UI.Services.Messaging;

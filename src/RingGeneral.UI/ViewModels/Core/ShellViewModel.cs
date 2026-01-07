@@ -68,7 +68,8 @@ public sealed class ShellViewModel : ViewModelBase
         get => _selectedNavigationItem;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _selectedNavigationItem, value) && value != null)
+            this.RaiseAndSetIfChanged(ref _selectedNavigationItem, value);
+            if (value != null)
             {
                 NavigateToItem(value);
             }
