@@ -218,6 +218,14 @@ public int MaxValue { get; set; } = 100
 
 **Dépendances** : Sprint 1 (composants terminé ✅)
 
+**📐 Design Document** : Voir [SPRINT_2_DESIGN.md](./SPRINT_2_DESIGN.md) pour les mockups UI détaillés
+
+**Nouveautés v2.0** :
+- ✅ Fiche personnage avec photo/avatar dans tab ATTRIBUTS
+- ✅ Système de Factions (Tag Team, Trio, Faction) dans tab RELATIONS
+- ✅ Spécialisations workers (Brawler, Technical, High-Flyer, etc.)
+- ✅ Géographie complète (naissance + résidence)
+
 #### Tâche 2.1 : ViewModels de Profil (Jours 1-2)
 
 **Fichiers à créer** :
@@ -259,10 +267,38 @@ public class ProfileViewModel : ViewModelBase
 
 **Tabs ViewModels** :
 
-1. **AttributesTabViewModel** :
+1. **AttributesTabViewModel** (avec fiche personnage) :
 ```csharp
 public class AttributesTabViewModel : ViewModelBase
 {
+    // FICHE PERSONNAGE (Header)
+    // Photo/Avatar
+    public string PhotoPath { get; set; }
+    public bool HasCustomPhoto { get; }
+    public ReactiveCommand<Unit, Unit> ChangePhotoCommand { get; }
+    public ReactiveCommand<Unit, Unit> GenerateAvatarCommand { get; }
+
+    // Identité
+    public string FullName { get; }
+    public string RingName { get; }
+
+    // Info Rapide
+    public string WorkerType { get; } // Main Eventer, Upper Mid-Carder, Mid-Carder, Lower Mid-Carder, Jobber
+    public string TvRole { get; } // Upper Card, Mid Card, Lower Card
+    public ObservableCollection<string> Specializations { get; } // Brawler, Technical, High-Flyer, Power, Hardcore, Submission, Showman
+
+    // Âge et Dates
+    public int Age { get; }
+    public DateTime BirthDate { get; }
+    public string BirthDateFormatted { get; } // "27 avril 1977"
+
+    // Géographie
+    public string Birthplace { get; } // Ville, Pays de naissance
+    public string BirthCountry { get; }
+    public string Residence { get; } // Ville, État, Pays de résidence
+    public string ResidenceCountry { get; }
+
+    // ATTRIBUTS (Body)
     // Universels
     public int ConditionPhysique { get; }
     public int Moral { get; }
@@ -334,25 +370,79 @@ public class GimmickTabViewModel : ViewModelBase
 }
 ```
 
-4. **RelationsTabViewModel** :
+4. **RelationsTabViewModel** (avec factions) :
 ```csharp
 public class RelationsTabViewModel : ViewModelBase
 {
+    // Relations 1-à-1
     public ObservableCollection<WorkerRelationViewModel> Relations { get; }
-
     public ReactiveCommand<Unit, Unit> AddRelationCommand { get; }
     public ReactiveCommand<WorkerRelationViewModel, Unit> EditRelationCommand { get; }
     public ReactiveCommand<WorkerRelationViewModel, Unit> DeleteRelationCommand { get; }
+
+    // Factions (1-à-plusieurs)
+    public ObservableCollection<FactionViewModel> Factions { get; }
+    public ReactiveCommand<Unit, Unit> CreateFactionCommand { get; }
 }
 
 public class WorkerRelationViewModel : ViewModelBase
 {
     public string RelatedWorkerId { get; }
     public string RelatedWorkerName { get; }
-    public string RelationType { get; } // Amitié, Couple, Fraternité, Rivalité
-    public int RelationStrength { get; } // 0-100
+    public RelationType RelationType { get; } // Amitié, Couple, Fraternité, Rivalité
+    public string RelationTypeIcon { get; } // 🤝 ❤ 👊 ⚔
+    public int RelationStrength { get; set; } // 0-100
+    public string RelationStrengthText { get; } // "Faible", "Moyen", "Fort", "Très Fort"
+    public bool IsStrongRelation { get; } // >= 70
+    public bool IsMediumRelation { get; } // 40-69
     public string Notes { get; set; }
     public bool IsPublic { get; set; } // Visible en kayfabe ou backstage only
+}
+
+public class FactionViewModel : ViewModelBase
+{
+    public string FactionId { get; }
+    public string FactionName { get; set; }
+    public FactionType FactionType { get; } // TagTeam, Trio, Faction
+    public string FactionTypeIcon { get; } // 🤜🤛 🎯 👊
+    public ObservableCollection<string> MemberIds { get; }
+    public ObservableCollection<string> MemberNames { get; }
+    public string MemberNamesText { get; } // "John Cena, Randy Orton, Edge"
+    public string LeaderId { get; set; }
+    public string LeaderName { get; }
+    public bool HasLeader { get; }
+    public FactionStatus Status { get; set; } // Active, Inactive, Disbanded
+    public string StatusColor { get; } // #10b981 (Active), #f59e0b (Inactive), #666666 (Disbanded)
+    public int CreatedWeek { get; }
+    public int CreatedYear { get; }
+    public string CreatedDateText { get; } // "Semaine 12/2023"
+
+    public ReactiveCommand<Unit, Unit> EditFactionCommand { get; }
+    public ReactiveCommand<Unit, Unit> DisbandFactionCommand { get; }
+    public ReactiveCommand<string, Unit> RemoveMemberCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddMemberCommand { get; }
+}
+
+public enum RelationType
+{
+    Amitie,      // 🤝 Friendship
+    Couple,      // ❤ Romantic
+    Fraternite,  // 👊 Brotherhood
+    Rivalite     // ⚔ Rivalry
+}
+
+public enum FactionType
+{
+    TagTeam,  // 🤜🤛 2 membres
+    Trio,     // 🎯 3 membres
+    Faction   // 👊 3+ membres (4-6 typiquement)
+}
+
+public enum FactionStatus
+{
+    Active,
+    Inactive,
+    Disbanded
 }
 ```
 

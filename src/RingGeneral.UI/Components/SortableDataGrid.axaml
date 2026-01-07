@@ -61,7 +61,6 @@
     <Style Selector="DataGrid">
       <Setter Property="Background" Value="#1e1e1e"/>
       <Setter Property="RowBackground" Value="#1e1e1e"/>
-      <Setter Property="AlternatingRowBackground" Value="#252525"/>
       <Setter Property="GridLinesVisibility" Value="Horizontal"/>
       <Setter Property="HorizontalGridLinesBrush" Value="#3a3a3a"/>
       <Setter Property="BorderThickness" Value="0"/>
@@ -70,6 +69,11 @@
       <Setter Property="CanUserSortColumns" Value="True"/>
       <Setter Property="IsReadOnly" Value="True"/>
       <Setter Property="SelectionMode" Value="Extended"/>
+    </Style>
+
+    <!-- Alternating row colors via DataGridRow selector -->
+    <Style Selector="DataGrid DataGridRow:nth-child(2n)">
+      <Setter Property="Background" Value="#252525"/>
     </Style>
 
     <Style Selector="DataGridColumnHeader">
