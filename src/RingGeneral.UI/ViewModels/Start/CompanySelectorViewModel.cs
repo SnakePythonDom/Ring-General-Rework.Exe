@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
+using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Models;
@@ -200,9 +201,9 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                 System.Console.WriteLine("[CompanySelectorViewModel] Sauvegarde créée avec succès");
             });
 
-            // Naviguer vers le Shell (tableau de bord) - sur le thread UI
-            _navigationService.NavigateTo<Core.ShellViewModel>();
-            System.Console.WriteLine("[CompanySelectorViewModel] Navigation vers Shell effectuée");
+            // Naviguer vers le Dashboard (tableau de bord) - sur le thread UI
+            _navigationService.NavigateTo<DashboardViewModel>();
+            System.Console.WriteLine("[CompanySelectorViewModel] Navigation vers Dashboard effectuée");
         }
         catch (Exception ex)
         {
