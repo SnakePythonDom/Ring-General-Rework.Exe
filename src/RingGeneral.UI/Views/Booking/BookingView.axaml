@@ -182,7 +182,7 @@
                 </ItemsControl>
 
                 <!-- Add Segment Placeholder -->
-                <Border Background="Transparent" BorderBrush="#3a3a3a" BorderThickness="2" BorderDashArray="6,4" Height="60" CornerRadius="8">
+                <Border Background="Transparent" BorderBrush="#3a3a3a" BorderThickness="2" Height="60" CornerRadius="8" Opacity="0.6">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
                         <TextBlock Text="➕" FontSize="20" Foreground="#666666"/>
                         <TextBlock Text="Ajouter un segment" FontSize="13" Foreground="#888888"/>
