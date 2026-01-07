@@ -130,24 +130,24 @@ public sealed class ImpactApplier : IImpactApplier
                 continue;
             }
 
-            var championActuel = titre.HolderWorkerId;
+            var championActuel = titre.DetenteurId;
             var challengerId = segmentDef.Participants
                 .FirstOrDefault(p => p != segmentDef.VainqueurId);
 
             var semaine = showContext.Show.Semaine;
             var input = new TitleMatchInput(
                 segmentDef.TitreId,
-                context.ShowId,
+                challengerId ?? string.Empty,
+                segmentDef.VainqueurId,
                 semaine,
                 championActuel,
-                challengerId,
-                segmentDef.VainqueurId);
+                context.ShowId);
 
             try
             {
                 var outcome = _titleService.EnregistrerMatch(input);
 
-                if (outcome.TitleChange)
+                if (outcome.TitleChanged)
                 {
                     var ancienNom = championActuel is not null
                         ? showContext.Workers.FirstOrDefault(w => w.WorkerId == championActuel)?.NomComplet ?? "Vacant"
