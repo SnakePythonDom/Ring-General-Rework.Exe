@@ -1,0 +1,259 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Roster.TitlesView"
+             x:DataType="vm:TitlesViewModel">
+
+    <Design.DataContext>
+        <vm:TitlesViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="30">
+        <Grid RowDefinitions="Auto,20,*">
+
+            <!-- En-tête -->
+            <StackPanel Grid.Row="0" Spacing="12">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="🏆 TITRES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                    <StackPanel Orientation="Horizontal" Spacing="20">
+                        <TextBlock FontSize="14" Foreground="#888888">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} titres au total">
+                                    <Binding Path="TotalTitles"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock FontSize="14" Foreground="#f59e0b" IsVisible="{Binding VacantTitles}">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} vacants">
+                                    <Binding Path="VacantTitles"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Barre de recherche -->
+                <TextBox Text="{Binding SearchText, Mode=TwoWay}"
+                         Watermark="🔍 Rechercher un titre..."
+                         Background="#1e293b"
+                         Foreground="#e0e0e0"
+                         Padding="12,8"/>
+            </StackPanel>
+
+            <!-- Layout FM26: Liste gauche + Détails droite -->
+            <Grid Grid.Row="2" ColumnDefinitions="2*,20,3*">
+
+                <!-- Liste des titres (gauche) -->
+                <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="0">
+                    <ListBox ItemsSource="{Binding Titles}"
+                             SelectedItem="{Binding SelectedTitle, Mode=TwoWay}"
+                             Background="Transparent"
+                             BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" Padding="16,12" Margin="0,0,0,1">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6">
+
+                                        <!-- Nom du titre -->
+                                        <TextBlock Grid.Row="0"
+                                                   Text="{Binding Name}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#e0e0e0"/>
+
+                                        <!-- Champion actuel -->
+                                        <TextBlock Grid.Row="1"
+                                                   FontSize="12"
+                                                   Foreground="{Binding IsVacant, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#f59e0b:#3b82f6}">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="Champion: {0}">
+                                                    <Binding Path="CurrentChampion"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <!-- Prestige et durée -->
+                                        <Grid Grid.Row="2" ColumnDefinitions="*,*">
+                                            <TextBlock Grid.Column="0" FontSize="11" Foreground="#64748b">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="Prestige: {0}">
+                                                        <Binding Path="Prestige"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding ReignDaysDisplay}"
+                                                       FontSize="11"
+                                                       Foreground="#64748b"
+                                                       IsVisible="{Binding !IsVacant}"/>
+                                        </Grid>
+
+                                        <!-- Nombre de règnes -->
+                                        <TextBlock Grid.Row="3"
+                                                   FontSize="10"
+                                                   Foreground="#475569"
+                                                   IsVisible="{Binding !IsVacant}">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="Règne #{0}">
+                                                    <Binding Path="ReignCount"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#1e293b"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#334155"/>
+                            </Style>
+                        </ListBox.Styles>
+                    </ListBox>
+                </Border>
+
+                <!-- Panneau de détails (droite) -->
+                <Border Grid.Column="2" Background="#1e293b" CornerRadius="8" Padding="20"
+                        IsVisible="{Binding SelectedTitle, Converter={StaticResource NullToBoolConverter}}">
+                    <ScrollViewer>
+                        <StackPanel Spacing="20">
+
+                            <!-- Informations du titre -->
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="{Binding SelectedTitle.Name}"
+                                           FontSize="20"
+                                           FontWeight="Bold"
+                                           Foreground="#e0e0e0"/>
+
+                                <!-- Carte du champion actuel -->
+                                <Border Background="#065f46" Padding="16" CornerRadius="8"
+                                        IsVisible="{Binding !SelectedTitle.IsVacant}">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="CHAMPION ACTUEL" FontSize="11" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding SelectedTitle.CurrentChampion}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="#34d399"/>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <TextBlock Grid.Column="0" FontSize="12" Foreground="#a7f3d0">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="Règne: {0} jours">
+                                                        <Binding Path="SelectedTitle.ReignDays"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock Grid.Column="1" FontSize="12" Foreground="#a7f3d0">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="Règne #{0}">
+                                                        <Binding Path="SelectedTitle.ReignCount"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Carte vacant -->
+                                <Border Background="#991b1b" Padding="16" CornerRadius="8"
+                                        IsVisible="{Binding SelectedTitle.IsVacant}">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="⚠️ TITRE VACANT" FontSize="14" Foreground="#fecaca" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Aucun champion actuel" FontSize="12" Foreground="#fca5a5" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Prestige -->
+                                <Border Background="#1e40af" Padding="16" CornerRadius="8">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="PRESTIGE" FontSize="11" Foreground="#bfdbfe" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding SelectedTitle.Prestige}"
+                                                   FontSize="32"
+                                                   FontWeight="Bold"
+                                                   Foreground="#93c5fd"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Historique des règnes -->
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="📜 HISTORIQUE DES RÈGNES" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+
+                                <ItemsControl ItemsSource="{Binding TitleHistory}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#0f172a" Padding="14,10" Margin="0,0,0,8" CornerRadius="6">
+                                                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+
+                                                    <!-- Champion -->
+                                                    <TextBlock Grid.Row="0"
+                                                               Text="{Binding Champion}"
+                                                               FontSize="13"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#e0e0e0"/>
+
+                                                    <!-- Période -->
+                                                    <TextBlock Grid.Row="1"
+                                                               Text="{Binding PeriodDisplay}"
+                                                               FontSize="11"
+                                                               Foreground="#94a3b8"/>
+
+                                                    <!-- Stats -->
+                                                    <Grid Grid.Row="2" ColumnDefinitions="*,*">
+                                                        <TextBlock Grid.Column="0" FontSize="10" Foreground="#64748b">
+                                                            <TextBlock.Text>
+                                                                <MultiBinding StringFormat="{}{0} jours">
+                                                                    <Binding Path="ReignDays"/>
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                        <TextBlock Grid.Column="1" FontSize="10" Foreground="#64748b">
+                                                            <TextBlock.Text>
+                                                                <MultiBinding StringFormat="{}{0} défenses">
+                                                                    <Binding Path="DefenseCount"/>
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                    </Grid>
+
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="Aucun historique disponible" FontSize="12" Foreground="#64748b" FontStyle="Italic"
+                                           IsVisible="{Binding !TitleHistory.Count}"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Message si aucun titre sélectionné -->
+                <Border Grid.Column="2" Background="#1e293b" CornerRadius="8"
+                        IsVisible="{Binding !SelectedTitle, Converter={StaticResource NullToBoolConverter}}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                        <TextBlock Text="🏆" FontSize="48" HorizontalAlignment="Center" Opacity="0.3"/>
+                        <TextBlock Text="Sélectionnez un titre" FontSize="14" Foreground="#64748b" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+
+        </Grid>
+    </Grid>
+
+</UserControl>

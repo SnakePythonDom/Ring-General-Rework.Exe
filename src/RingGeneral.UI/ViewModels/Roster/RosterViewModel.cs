@@ -66,51 +66,76 @@ public sealed class RosterViewModel : ViewModelBase
 
         if (_repository == null)
         {
-            // Données de placeholder si pas de repository
-            Workers.Add(new WorkerListItemViewModel
-            {
-                WorkerId = "W001",
-                Name = "John Cena",
-                Role = "Main Eventer",
-                Popularity = 95,
-                Status = "Actif",
-                Company = "WWE"
-            });
-            Workers.Add(new WorkerListItemViewModel
-            {
-                WorkerId = "W002",
-                Name = "Randy Orton",
-                Role = "Main Eventer",
-                Popularity = 92,
-                Status = "Actif",
-                Company = "WWE"
-            });
-            Workers.Add(new WorkerListItemViewModel
-            {
-                WorkerId = "W003",
-                Name = "CM Punk",
-                Role = "Upper Midcard",
-                Popularity = 88,
-                Status = "Blessé",
-                Company = "WWE"
-            });
+            LoadPlaceholderData();
             return;
         }
 
-        // TODO: Charger depuis le repository
-        // var workers = _repository.ChargerTousLesWorkers();
-        // foreach (var w in workers)
-        // {
-        //     Workers.Add(new WorkerListItemViewModel
-        //     {
-        //         WorkerId = w.WorkerId,
-        //         Name = w.FullName,
-        //         Role = w.Role,
-        //         Popularity = w.Popularity,
-        //         Status = w.Status,
-        //         Company = w.CompanyName
-        //     });
-        // }
+        try
+        {
+            // Charger tous les workers depuis la DB
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.CompanyId, c.Name as CompanyName
+                FROM Workers w
+                LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
+                ORDER BY w.Popularity DESC";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                Workers.Add(new WorkerListItemViewModel
+                {
+                    WorkerId = reader.GetString(0),
+                    Name = reader.GetString(1),
+                    Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
+                    Popularity = reader.GetInt32(3),
+                    Status = "Actif", // TODO: Calculer depuis blessures/fatigue
+                    Company = reader.IsDBNull(5) ? "Free Agent" : reader.GetString(5)
+                });
+            }
+
+            System.Console.WriteLine($"[RosterViewModel] {Workers.Count} workers chargés depuis la DB");
+        }
+        catch (Exception ex)
+        {
+            System.Console.Error.WriteLine($"[RosterViewModel] Erreur lors du chargement: {ex.Message}");
+            LoadPlaceholderData();
+        }
+    }
+
+    /// <summary>
+    /// Charge des données placeholder en cas d'erreur
+    /// </summary>
+    private void LoadPlaceholderData()
+    {
+        Workers.Add(new WorkerListItemViewModel
+        {
+            WorkerId = "W001",
+            Name = "John Cena",
+            Role = "Main Eventer",
+            Popularity = 95,
+            Status = "Actif",
+            Company = "WWE"
+        });
+        Workers.Add(new WorkerListItemViewModel
+        {
+            WorkerId = "W002",
+            Name = "Randy Orton",
+            Role = "Main Eventer",
+            Popularity = 92,
+            Status = "Actif",
+            Company = "WWE"
+        });
+        Workers.Add(new WorkerListItemViewModel
+        {
+            WorkerId = "W003",
+            Name = "CM Punk",
+            Role = "Upper Midcard",
+            Popularity = 88,
+            Status = "Blessé",
+            Company = "WWE"
+        });
     }
 
     /// <summary>

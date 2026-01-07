@@ -187,7 +187,7 @@ public sealed class ShellViewModel : ViewModelBase
             "roster.titles",
             "Titres",
             "  🏆",
-            null, // TODO: TitlesViewModel
+            typeof(TitlesViewModel),
             roster
         ) { Badge = "(5)" });
         roster.Children.Add(new NavigationItemViewModel(

@@ -37,6 +37,16 @@
             <roster:RosterView />
         </DataTemplate>
 
+        <!-- DataTemplate pour WorkerDetailViewModel -->
+        <DataTemplate DataType="vmRoster:WorkerDetailViewModel">
+            <roster:WorkerDetailView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour TitlesViewModel -->
+        <DataTemplate DataType="vmRoster:TitlesViewModel">
+            <roster:TitlesView />
+        </DataTemplate>
+
         <!-- TODO: Ajouter les autres DataTemplates quand vous créez les vues -->
     </Window.DataTemplates>
 

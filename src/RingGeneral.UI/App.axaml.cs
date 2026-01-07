@@ -48,6 +48,8 @@ public sealed class App : Application
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<BookingViewModel>();
         services.AddTransient<RosterViewModel>();
+        services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>();
+        services.AddTransient<ViewModels.Roster.TitlesViewModel>();
 
         var provider = services.BuildServiceProvider();
 
