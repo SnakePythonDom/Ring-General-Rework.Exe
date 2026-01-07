@@ -17,7 +17,7 @@
         <vm:ShellViewModel />
     </Design.DataContext>
 
-    <Window.Resources>
+    <Window.DataTemplates>
         <!-- DataTemplate pour BookingViewModel -->
         <DataTemplate DataType="vmBooking:BookingViewModel">
             <booking:BookingView />
@@ -27,7 +27,7 @@
         <!-- <DataTemplate DataType="vmRoster:RosterViewModel">
             <roster:RosterView />
         </DataTemplate> -->
-    </Window.Resources>
+    </Window.DataTemplates>
 
     <Grid>
         <!-- ==================== MAIN LAYOUT ==================== -->
