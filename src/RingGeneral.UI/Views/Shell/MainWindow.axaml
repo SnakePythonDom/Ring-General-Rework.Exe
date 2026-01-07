@@ -10,6 +10,7 @@
         xmlns:vmYouth="using:RingGeneral.UI.ViewModels.Youth"
         xmlns:vmFinance="using:RingGeneral.UI.ViewModels.Finance"
         xmlns:vmCalendar="using:RingGeneral.UI.ViewModels.Calendar"
+        xmlns:vmStart="using:RingGeneral.UI.ViewModels.Start"
         xmlns:dashboard="using:RingGeneral.UI.Views.Dashboard"
         xmlns:booking="using:RingGeneral.UI.Views.Booking"
         xmlns:roster="using:RingGeneral.UI.Views.Roster"
@@ -17,6 +18,7 @@
         xmlns:youth="using:RingGeneral.UI.Views.Youth"
         xmlns:finance="using:RingGeneral.UI.Views.Finance"
         xmlns:calendar="using:RingGeneral.UI.Views.Calendar"
+        xmlns:start="using:RingGeneral.UI.Views.Start"
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="RingGeneral.UI.Views.Shell.MainWindow"
         x:DataType="vm:ShellViewModel"
@@ -73,6 +75,21 @@
         <!-- DataTemplate pour CalendarViewModel -->
         <DataTemplate DataType="vmCalendar:CalendarViewModel">
             <calendar:CalendarView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour StartViewModel -->
+        <DataTemplate DataType="vmStart:StartViewModel">
+            <start:StartView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour CompanySelectorViewModel -->
+        <DataTemplate DataType="vmStart:CompanySelectorViewModel">
+            <start:CompanySelectorView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour ShellViewModel -->
+        <DataTemplate DataType="vm:ShellViewModel">
+            <ContentControl Content="{Binding}"/>
         </DataTemplate>
     </Window.DataTemplates>
 
