@@ -1,33 +1,31 @@
 using RingGeneral.Data.Database;
 
-static int Main(string[] args)
+// Top-level statements - this code executes as the program entry point
+if (args.Length < 2 || !string.Equals(args[0], "db", StringComparison.OrdinalIgnoreCase))
 {
-    if (args.Length < 2 || !string.Equals(args[0], "db", StringComparison.OrdinalIgnoreCase))
-    {
-        return AfficherAide();
-    }
+    return AfficherAide();
+}
 
-    var commande = args[1].ToLowerInvariant();
-    var options = args.Skip(2).ToArray();
+var commande = args[1].ToLowerInvariant();
+var options = args.Skip(2).ToArray();
 
-    var initializer = new DbInitializer();
-    var validator = new DbValidator();
+var initializer = new DbInitializer();
+var validator = new DbValidator();
 
-    try
+try
+{
+    return commande switch
     {
-        return commande switch
-        {
-            "create" => ExecuterCreate(options, initializer),
-            "validate" => ExecuterValidate(options, validator),
-            "upgrade" => ExecuterUpgrade(options, initializer),
-            _ => AfficherAide()
-        };
-    }
-    catch (Exception ex)
-    {
-        Console.Error.WriteLine($"Erreur : {ex.Message}");
-        return 1;
-    }
+        "create" => ExecuterCreate(options, initializer),
+        "validate" => ExecuterValidate(options, validator),
+        "upgrade" => ExecuterUpgrade(options, initializer),
+        _ => AfficherAide()
+    };
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Erreur : {ex.Message}");
+    return 1;
 }
 
 static int ExecuterCreate(string[] options, DbInitializer initializer)
