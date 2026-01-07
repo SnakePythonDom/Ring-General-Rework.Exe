@@ -1,7 +1,16 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using RingGeneral.UI.Views;
+using Microsoft.Extensions.DependencyInjection;
+using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.Services.Messaging;
+using RingGeneral.UI.ViewModels.Core;
+using RingGeneral.UI.ViewModels.Booking;
+using RingGeneral.UI.Views.Shell;
+using RingGeneral.Data.Database;
+using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Validation;
+using RingGeneral.UI.ViewModels;
 
 namespace RingGeneral.UI;
 
@@ -14,11 +23,55 @@ public sealed class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // Configuration DI
+        var services = new ServiceCollection();
+
+        // Services
+        services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IEventAggregator, EventAggregator>();
+
+        // Database & Repositories
+        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db");
+        var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
+        var repositories = RepositoryFactory.CreateRepositories(factory);
+        services.AddSingleton(repositories.GameRepository);
+        services.AddSingleton(repositories.ScoutingRepository);
+
+        // Core Services
+        services.AddSingleton<BookingValidator>();
+        services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
+
+        // ViewModels
+        services.AddSingleton<ShellViewModel>();
+        services.AddTransient<BookingViewModel>();
+
+        var provider = services.BuildServiceProvider();
+
+        // Lancer le Shell
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            desktop.MainWindow = new MainWindow(
+                provider.GetRequiredService<ShellViewModel>()
+            );
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static SegmentTypeCatalog ChargerSegmentTypes()
+    {
+        // Charger depuis les specs ou créer un catalogue par défaut
+        return new SegmentTypeCatalog(
+            new Dictionary<string, string>
+            {
+                ["match"] = "Match",
+                ["promo"] = "Promo",
+                ["angle"] = "Angle",
+                ["interview"] = "Interview"
+            },
+            new Dictionary<string, IReadOnlyList<string>>(),
+            new Dictionary<string, IReadOnlyList<string>>(),
+            new Dictionary<string, string>()
+        );
     }
 }

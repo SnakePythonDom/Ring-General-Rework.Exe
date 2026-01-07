@@ -1,0 +1,253 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:RingGeneral.UI.ViewModels.Core"
+        xmlns:vmBooking="using:RingGeneral.UI.ViewModels.Booking"
+        xmlns:booking="using:RingGeneral.UI.Views.Booking"
+        mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
+        x:Class="RingGeneral.UI.Views.Shell.MainWindow"
+        x:DataType="vm:ShellViewModel"
+        Title="Ring General"
+        Width="1600"
+        Height="900"
+        Background="#1a1a1a">
+
+    <Design.DataContext>
+        <vm:ShellViewModel />
+    </Design.DataContext>
+
+    <Window.Resources>
+        <!-- DataTemplate pour BookingViewModel -->
+        <DataTemplate DataType="vmBooking:BookingViewModel">
+            <booking:BookingView />
+        </DataTemplate>
+
+        <!-- TODO: Ajouter les autres DataTemplates quand vous créez les vues -->
+        <!-- <DataTemplate DataType="vmRoster:RosterViewModel">
+            <roster:RosterView />
+        </DataTemplate> -->
+    </Window.Resources>
+
+    <Grid>
+        <!-- ==================== MAIN LAYOUT ==================== -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="45"/>   <!-- Top Menu Bar -->
+            <RowDefinition Height="*"/>    <!-- Content Area -->
+            <RowDefinition Height="28"/>   <!-- Status Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- ==================== TOP MENU BAR ==================== -->
+        <Border Grid.Row="0" Background="#252525" BorderBrush="#3a3a3a" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Logo & Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="15,0" VerticalAlignment="Center" Spacing="12">
+                    <TextBlock Text="🎭" FontSize="22"/>
+                    <TextBlock Text="RING GENERAL" FontSize="14" FontWeight="Bold" Foreground="#e0e0e0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Center: Current Context -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+                    <Border Background="#2d2d2d" Padding="12,6" CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="📺" FontSize="14"/>
+                            <TextBlock Text="{Binding CurrentShowName}" FontSize="12" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#2d2d2d" Padding="12,6" CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="📅" FontSize="14"/>
+                            <TextBlock FontSize="12" Foreground="#e0e0e0" FontWeight="SemiBold">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="Semaine {0}/{1}">
+                                        <Binding Path="CurrentWeek"/>
+                                        <Binding Path="TotalWeeks"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#065f46" Padding="12,6" CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="💰" FontSize="14"/>
+                            <TextBlock Text="{Binding CurrentBudget}" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right: Actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="15,0" VerticalAlignment="Center" Spacing="8">
+                    <Button Content="🔍" Padding="8,4" Background="Transparent" Foreground="#888888" FontSize="14"
+                            Command="{Binding GlobalSearchCommand}"/>
+                    <Button Padding="10,4" Background="#ef4444" Foreground="White" CornerRadius="4" FontSize="11" FontWeight="Bold"
+                            Command="{Binding InboxCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="📥"/>
+                            <TextBlock Text="{Binding InboxCount}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Content="❓" Padding="8,4" Background="Transparent" Foreground="#888888" FontSize="14"
+                            Command="{Binding HelpCommand}"/>
+                    <Button Content="⚙️" Padding="8,4" Background="Transparent" Foreground="#888888" FontSize="14"
+                            Command="{Binding SettingsCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ==================== CONTENT AREA (3 colonnes) ==================== -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>    <!-- Left Navigation Tree -->
+                <ColumnDefinition Width="5"/>      <!-- Splitter -->
+                <ColumnDefinition Width="*"/>      <!-- Main Content -->
+                <ColumnDefinition Width="5"/>      <!-- Splitter -->
+                <ColumnDefinition Width="320"/>    <!-- Right Context Panel -->
+            </Grid.ColumnDefinitions>
+
+            <!-- ==================== LEFT NAVIGATION TREE ==================== -->
+            <Border Grid.Column="0" Background="#1e1e1e" BorderBrush="#2a2a2a" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Search Box -->
+                    <Border Grid.Row="0" Margin="12,12,12,8">
+                        <TextBox Watermark="Rechercher..." Background="#2d2d2d" BorderBrush="#3a3a3a" Foreground="#e0e0e0" Padding="10,8" CornerRadius="6"/>
+                    </Border>
+
+                    <!-- Navigation TreeView -->
+                    <ScrollViewer Grid.Row="1">
+                        <TreeView ItemsSource="{Binding NavigationItems}"
+                                  SelectedItem="{Binding SelectedNavigationItem}"
+                                  Background="Transparent"
+                                  Margin="8,0,8,20">
+                            <!-- Styles pour les items de navigation -->
+                            <TreeView.Styles>
+                                <Style Selector="TreeViewItem">
+                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                                </Style>
+                            </TreeView.Styles>
+
+                            <!-- Template pour chaque niveau -->
+                            <TreeView.ItemTemplate>
+                                <TreeDataTemplate ItemsSource="{Binding Children}">
+                                    <Border Padding="12,10" CornerRadius="6" Margin="4,2">
+                                        <Border.Styles>
+                                            <!-- Style normal -->
+                                            <Style Selector="Border">
+                                                <Setter Property="Background" Value="#2d2d2d"/>
+                                            </Style>
+                                            <!-- Style sélectionné -->
+                                            <Style Selector="TreeViewItem:selected > ContentPresenter > Border">
+                                                <Setter Property="Background" Value="#3b82f6"/>
+                                            </Style>
+                                            <!-- Style hover -->
+                                            <Style Selector="Border:pointerover">
+                                                <Setter Property="Background" Value="#374151"/>
+                                            </Style>
+                                        </Border.Styles>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding Icon}" FontSize="16" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Label}" FontSize="12" Foreground="#e0e0e0" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Badge}" FontSize="10" Foreground="#666666" VerticalAlignment="Center" IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                        </StackPanel>
+                                    </Border>
+                                </TreeDataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
+                    </ScrollViewer>
+
+                    <!-- Bottom Action Button -->
+                    <Border Grid.Row="2" Background="#252525" Padding="12" BorderBrush="#3a3a3a" BorderThickness="0,1,0,0">
+                        <Button Content="🔄 Passer à la semaine suivante" Padding="0,12" Background="#10b981" Foreground="White" CornerRadius="6" FontWeight="Bold" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Splitter Gauche -->
+            <GridSplitter Grid.Column="1" Background="#2a2a2a" ResizeDirection="Columns"/>
+
+            <!-- ==================== MAIN CONTENT PANEL ==================== -->
+            <Border Grid.Column="2" Background="#1a1a1a">
+                <!-- ContentControl pour afficher le ViewModel actuel -->
+                <ContentControl Content="{Binding CurrentContentViewModel}">
+                    <!-- TODO: Ajouter les DataTemplates pour chaque ViewModel -->
+                    <!-- Pour l'instant, placeholder -->
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="Zone de contenu principal"
+                                       FontSize="24"
+                                       Foreground="#666666"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
+            </Border>
+
+            <!-- Splitter Droit -->
+            <GridSplitter Grid.Column="3" Background="#2a2a2a" ResizeDirection="Columns"/>
+
+            <!-- ==================== RIGHT CONTEXT PANEL ==================== -->
+            <Border Grid.Column="4" Background="#1e1e1e" BorderBrush="#2a2a2a" BorderThickness="1,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Panel Header -->
+                    <Border Grid.Row="0" Background="#242424" Padding="20,15" BorderBrush="#3a3a3a" BorderThickness="0,0,0,1">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="PANNEAU DE CONTEXTE" FontSize="12" Foreground="#888888" FontWeight="SemiBold"/>
+                            <TextBlock Text="Détails" FontSize="16" Foreground="#e0e0e0" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Panel Content -->
+                    <ScrollViewer Grid.Row="1">
+                        <!-- ContentControl pour le contexte -->
+                        <ContentControl Content="{Binding CurrentContextViewModel}" Margin="20">
+                            <!-- Placeholder -->
+                            <ContentControl.ContentTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="Sélectionnez un élément pour voir les détails"
+                                               FontSize="13"
+                                               Foreground="#666666"
+                                               TextWrapping="Wrap"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </ContentControl.ContentTemplate>
+                        </ContentControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ==================== STATUS BAR ==================== -->
+        <Border Grid.Row="2" Background="#252525" BorderBrush="#3a3a3a" BorderThickness="0,1,0,0">
+            <Grid Margin="15,0">
+                <StackPanel Orientation="Horizontal" Spacing="15">
+                    <TextBlock Text="💾 Sauvegarde automatique" FontSize="10" Foreground="#666666" VerticalAlignment="Center"/>
+                    <TextBlock Text="•" FontSize="10" Foreground="#444444" VerticalAlignment="Center"/>
+                    <TextBlock Text="Dernière sauvegarde : 14:32" FontSize="10" Foreground="#666666" VerticalAlignment="Center"/>
+                    <TextBlock Text="•" FontSize="10" Foreground="#444444" VerticalAlignment="Center"/>
+                    <TextBlock Text="ringgeneral.db" FontSize="10" Foreground="#666666" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="Ring General v1.0.0 • Build 2024.01" FontSize="10" Foreground="#444444" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
