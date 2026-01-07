@@ -4,7 +4,6 @@ using ReactiveUI;
 using RingGeneral.UI.Services.Navigation;
 using NavigationItemViewModel = RingGeneral.UI.ViewModels.Shared.Navigation.NavigationItemViewModel;
 using RingGeneral.UI.ViewModels.Booking;
-using RingGeneral.UI.ViewModels;
 // TODO: Uncomment when ViewModels are created
 // using RingGeneral.UI.ViewModels.Roster;
 // using RingGeneral.UI.ViewModels.Storyline;
