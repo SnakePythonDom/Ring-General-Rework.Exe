@@ -1,0 +1,135 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Start"
+             mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
+             x:Class="RingGeneral.UI.Views.Start.CompanySelectorView"
+             x:DataType="vm:CompanySelectorViewModel">
+
+    <Design.DataContext>
+        <vm:CompanySelectorViewModel />
+    </Design.DataContext>
+
+    <Grid Background="#0a0a0a">
+        <Grid RowDefinitions="Auto,*,Auto" Margin="60">
+
+            <!-- En-tête -->
+            <StackPanel Grid.Row="0" Spacing="12" Margin="0,0,0,40">
+                <Button Content="← Retour"
+                        Command="{Binding BackCommand}"
+                        Padding="15,8"
+                        Background="#334155"
+                        Foreground="#e0e0e0"
+                        HorizontalAlignment="Left"/>
+
+                <TextBlock Text="SÉLECTION DE COMPAGNIE" FontSize="48" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Choisissez la compagnie que vous souhaitez diriger" FontSize="18" Foreground="#888888"/>
+            </StackPanel>
+
+            <!-- Liste des compagnies -->
+            <ScrollViewer Grid.Row="1">
+                <StackPanel Spacing="15">
+
+                    <!-- Bouton Créer Nouvelle Compagnie -->
+                    <Border Background="#1e40af"
+                            CornerRadius="8"
+                            Padding="30,20"
+                            Cursor="Hand">
+                        <Border.Styles>
+                            <Style Selector="Border:pointerover">
+                                <Setter Property="Background" Value="#2563eb"/>
+                            </Style>
+                        </Border.Styles>
+
+                        <Button Command="{Binding CreateNewCompanyCommand}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Padding="0">
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <TextBlock Text="➕" FontSize="36" VerticalAlignment="Center"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="CRÉER UNE NOUVELLE COMPAGNIE" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                                    <TextBlock Text="Démarrez avec une promotion personnalisée" FontSize="14" Foreground="#bfdbfe"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Button>
+                    </Border>
+
+                    <!-- Liste des compagnies existantes -->
+                    <ItemsControl ItemsSource="{Binding Companies}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#1e293b"
+                                        CornerRadius="8"
+                                        Padding="30,20"
+                                        Margin="0,0,0,10"
+                                        Cursor="Hand">
+                                    <Border.Styles>
+                                        <Style Selector="Border:pointerover">
+                                            <Setter Property="Background" Value="#334155"/>
+                                        </Style>
+                                    </Border.Styles>
+
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <!-- Info compagnie -->
+                                        <StackPanel Grid.Column="0" Spacing="8">
+                                            <TextBlock Text="{Binding Name}" FontSize="24" FontWeight="Bold" Foreground="#e0e0e0"/>
+
+                                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="🌍" FontSize="14"/>
+                                                    <TextBlock Text="{Binding Region}" FontSize="14" Foreground="#94a3b8"/>
+                                                </StackPanel>
+
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="★" FontSize="14" Foreground="#fbbf24"/>
+                                                    <TextBlock Text="{Binding Prestige}" FontSize="14" Foreground="#94a3b8"/>
+                                                    <TextBlock Text="/100" FontSize="14" Foreground="#64748b"/>
+                                                </StackPanel>
+
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="💰" FontSize="14"/>
+                                                    <TextBlock Text="{Binding TreasuryFormatted}" FontSize="14" Foreground="#94a3b8"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- Bouton Sélectionner -->
+                                        <Button Grid.Column="1"
+                                                Content="SÉLECTIONNER →"
+                                                Command="{Binding $parent[UserControl].((vm:CompanySelectorViewModel)DataContext).SelectCompanyCommand}"
+                                                CommandParameter="{Binding}"
+                                                Padding="25,12"
+                                                Background="#10b981"
+                                                Foreground="White"
+                                                FontWeight="Bold"
+                                                CornerRadius="6"
+                                                VerticalAlignment="Center"
+                                                Click="OnCompanySelected"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Aide en bas -->
+            <Border Grid.Row="2" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,20,0,0">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="💡 ASTUCE" FontSize="14" FontWeight="Bold" Foreground="#3b82f6"/>
+                    <TextBlock Text="Les compagnies avec un prestige élevé ont déjà une base de fans solide mais peuvent avoir moins de marge de progression. Les compagnies moins prestigieuses offrent un défi plus grand mais aussi plus de satisfactions."
+                              FontSize="13"
+                              Foreground="#94a3b8"
+                              TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </Grid>
+
+</UserControl>

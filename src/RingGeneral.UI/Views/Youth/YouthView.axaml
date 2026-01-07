@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Youth"
+             xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Youth.YouthView"
+             x:DataType="vm:YouthViewModel">
+
+    <Design.DataContext>
+        <vm:YouthViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,*">
+
+        <!-- En-tête -->
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="🎓 YOUTH DEVELOPMENT" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+            <TextBlock FontSize="14" Foreground="#888888">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0} trainees au total">
+                        <Binding Path="TotalTrainees"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Stats Youth -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
+            <Border Grid.Column="0" Background="#065f46" Padding="20" CornerRadius="8" Margin="0,0,8,0">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="💰 BUDGET" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding BudgetFormatted}" FontSize="24" FontWeight="Bold" Foreground="#34d399"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="#1e40af" Padding="20" CornerRadius="8" Margin="8,0,8,0">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="👥 TRAINEES" FontSize="12" Foreground="#bfdbfe" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TotalTrainees}" FontSize="24" FontWeight="Bold" Foreground="#93c5fd"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Background="#713f12" Padding="20" CornerRadius="8" Margin="8,0,0,0">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="👨‍🏫 COACH" FontSize="12" Foreground="#fde68a" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding CoachName, FallbackValue=Non assigné}" FontSize="16" FontWeight="Bold" Foreground="#fbbf24"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Liste des trainees -->
+        <Border Grid.Row="4" Background="#1e293b" CornerRadius="8" Padding="0">
+            <controls:DataGrid ItemsSource="{Binding Trainees}"
+                              AutoGenerateColumns="False"
+                              CanUserSortColumns="True"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              IsReadOnly="True"
+                              Background="#1e293b"
+                              BorderThickness="0">
+
+                <controls:DataGrid.Columns>
+                    <controls:DataGridTextColumn Header="NOM" Binding="{Binding Name}" Width="2*"/>
+                    <controls:DataGridTextColumn Header="ÂGE" Binding="{Binding AgeDisplay}" Width="*"/>
+                    <controls:DataGridTextColumn Header="POTENTIEL" Binding="{Binding Potential}" Width="*"/>
+                    <controls:DataGridTextColumn Header="PROGRESSION" Binding="{Binding ProgressDisplay}" Width="*"/>
+                </controls:DataGrid.Columns>
+
+                <controls:DataGrid.Styles>
+                    <Style Selector="DataGridRow">
+                        <Setter Property="Background" Value="#0f172a"/>
+                        <Setter Property="Foreground" Value="#cbd5e1"/>
+                    </Style>
+                    <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+                        <Setter Property="Fill" Value="#1e293b"/>
+                    </Style>
+                    <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+                        <Setter Property="Fill" Value="#334155"/>
+                    </Style>
+                    <Style Selector="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#334155"/>
+                        <Setter Property="Foreground" Value="#e0e0e0"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="Padding" Value="12,8"/>
+                    </Style>
+                    <Style Selector="DataGridCell">
+                        <Setter Property="Padding" Value="12,8"/>
+                    </Style>
+                </controls:DataGrid.Styles>
+
+            </controls:DataGrid>
+        </Border>
+
+    </Grid>
+
+</UserControl>

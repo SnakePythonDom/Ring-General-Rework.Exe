@@ -5,7 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.Services.Messaging;
 using RingGeneral.UI.ViewModels.Core;
+using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.ViewModels.Booking;
+using RingGeneral.UI.ViewModels.Roster;
+using RingGeneral.UI.ViewModels.Storylines;
+using RingGeneral.UI.ViewModels.Youth;
+using RingGeneral.UI.ViewModels.Finance;
+using RingGeneral.UI.ViewModels.Calendar;
+using RingGeneral.UI.ViewModels.Start;
 using RingGeneral.UI.Views.Shell;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
@@ -41,21 +48,73 @@ public sealed class App : Application
         services.AddSingleton<BookingValidator>();
         services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
 
-        // ViewModels
+        // ViewModels - Core
         services.AddSingleton<ViewModels.Core.ShellViewModel>();
+
+        // ViewModels - Start
+        services.AddTransient<StartViewModel>();
+        services.AddTransient<CompanySelectorViewModel>();
+        services.AddTransient<CreateCompanyViewModel>();
+
+        // ViewModels - Game
+        services.AddTransient<DashboardViewModel>();
         services.AddTransient<BookingViewModel>();
+        services.AddTransient<RosterViewModel>();
+        services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>();
+        services.AddTransient<ViewModels.Roster.TitlesViewModel>();
+        services.AddTransient<StorylinesViewModel>();
+        services.AddTransient<YouthViewModel>();
+        services.AddTransient<FinanceViewModel>();
+        services.AddTransient<CalendarViewModel>();
 
         var provider = services.BuildServiceProvider();
 
-        // Lancer le Shell
+        // Déterminer le ViewModel de démarrage
+        ViewModelBase initialViewModel;
+
+        // Vérifier si une partie est déjà en cours
+        var hasActiveSave = CheckForActiveSave(repositories.GameRepository);
+
+        if (hasActiveSave)
+        {
+            // Charger directement le Shell si une partie existe
+            System.Console.WriteLine("[App] Partie active détectée, chargement du Shell...");
+            initialViewModel = provider.GetRequiredService<ViewModels.Core.ShellViewModel>();
+        }
+        else
+        {
+            // Sinon, afficher le menu de démarrage
+            System.Console.WriteLine("[App] Aucune partie active, affichage du menu de démarrage...");
+            initialViewModel = provider.GetRequiredService<StartViewModel>();
+        }
+
+        // Lancer la fenêtre principale
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow(
-                provider.GetRequiredService<ViewModels.Core.ShellViewModel>()
-            );
+            desktop.MainWindow = new MainWindow(initialViewModel);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Vérifie si une partie active existe dans la base de données
+    /// </summary>
+    private static bool CheckForActiveSave(GameRepository repository)
+    {
+        try
+        {
+            using var connection = repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM SaveGames WHERE IsActive = 1";
+            var count = Convert.ToInt32(cmd.ExecuteScalar());
+            return count > 0;
+        }
+        catch (Exception ex)
+        {
+            System.Console.Error.WriteLine($"[App] Erreur lors de la vérification de sauvegarde: {ex.Message}");
+            return false;
+        }
     }
 
     private static SegmentTypeCatalog ChargerSegmentTypes()

@@ -66,6 +66,9 @@ public sealed class DbInitializer
 
             transaction.Commit();
         }
+
+        // Seed des données de démonstration si la DB est vide
+        DbSeeder.SeedIfEmpty(connexion);
     }
 
     private static void ActiverForeignKeys(SqliteConnection connexion)

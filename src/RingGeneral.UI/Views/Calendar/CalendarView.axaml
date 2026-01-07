@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Calendar"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Calendar.CalendarView"
+             x:DataType="vm:CalendarViewModel">
+
+    <Design.DataContext>
+        <vm:CalendarViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="30" RowDefinitions="Auto,20,*">
+
+        <!-- En-tête -->
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="📅 SHOW CALENDAR" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+            <TextBlock FontSize="14" Foreground="#888888">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}Current Week: {0}">
+                        <Binding Path="CurrentWeek"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Contenu Principal (2 colonnes) -->
+        <Grid Grid.Row="2" ColumnDefinitions="2*,15,3*">
+
+            <!-- COLONNE GAUCHE: Upcoming Shows -->
+            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto,15,*">
+                    <TextBlock Grid.Row="0" Text="UPCOMING SHOWS" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding UpcomingShows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                        <Grid RowDefinitions="Auto,8,Auto,8,Auto">
+                                            <!-- Name + Week -->
+                                            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+                                                <TextBlock Grid.Column="0" Text="{Binding ShowTypeIcon}" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="2" Background="#334155" CornerRadius="4" Padding="6,3">
+                                                    <TextBlock Text="{Binding WeekDisplay}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Location -->
+                                            <TextBlock Grid.Row="2" Text="{Binding Location}" FontSize="12" Foreground="#94a3b8"/>
+
+                                            <!-- Broadcast + Status -->
+                                            <Grid Grid.Row="4" ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="{Binding Broadcast}" FontSize="12" Foreground="#64748b" FontStyle="Italic"/>
+                                                <Border Grid.Column="1" Background="{Binding StatusColor}" CornerRadius="4" Padding="8,3">
+                                                    <TextBlock Text="{Binding StatusDisplay}" FontSize="11" Foreground="#ffffff" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- COLONNE DROITE: Calendar Entries -->
+            <Border Grid.Column="2" Background="#1e293b" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto,15,*">
+                    <TextBlock Grid.Row="0" Text="CALENDAR ENTRIES" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding CalendarEntries}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                        <Grid RowDefinitions="Auto,8,Auto" ColumnDefinitions="Auto,*">
+                                            <!-- Icon -->
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Text="{Binding TypeIcon}" FontSize="24" VerticalAlignment="Top" Margin="0,0,12,0"/>
+
+                                            <!-- Date + Type -->
+                                            <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                                                <Border Grid.Column="1" Background="#334155" CornerRadius="4" Padding="6,3">
+                                                    <TextBlock Text="{Binding EntryType}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Date -->
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Date}" FontSize="12" Foreground="#64748b"/>
+
+                                            <!-- Notes -->
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Notes}" FontSize="12" Foreground="#94a3b8" TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</UserControl>

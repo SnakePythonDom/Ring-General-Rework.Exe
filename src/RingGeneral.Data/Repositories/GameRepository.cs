@@ -71,6 +71,15 @@ public sealed class GameRepository
     }
 
     /// <summary>
+    /// Crée et ouvre une nouvelle connexion à la base de données
+    /// </summary>
+    /// <returns>Connexion SQLite ouverte</returns>
+    public SqliteConnection CreateConnection()
+    {
+        return _factory.OuvrirConnexion();
+    }
+
+    /// <summary>
     /// Initialise la base de données avec les tables nécessaires.
     /// </summary>
     /// <remarks>

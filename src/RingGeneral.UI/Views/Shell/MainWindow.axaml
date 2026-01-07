@@ -3,8 +3,22 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RingGeneral.UI.ViewModels.Core"
+        xmlns:vmDashboard="using:RingGeneral.UI.ViewModels.Dashboard"
         xmlns:vmBooking="using:RingGeneral.UI.ViewModels.Booking"
+        xmlns:vmRoster="using:RingGeneral.UI.ViewModels.Roster"
+        xmlns:vmStorylines="using:RingGeneral.UI.ViewModels.Storylines"
+        xmlns:vmYouth="using:RingGeneral.UI.ViewModels.Youth"
+        xmlns:vmFinance="using:RingGeneral.UI.ViewModels.Finance"
+        xmlns:vmCalendar="using:RingGeneral.UI.ViewModels.Calendar"
+        xmlns:vmStart="using:RingGeneral.UI.ViewModels.Start"
+        xmlns:dashboard="using:RingGeneral.UI.Views.Dashboard"
         xmlns:booking="using:RingGeneral.UI.Views.Booking"
+        xmlns:roster="using:RingGeneral.UI.Views.Roster"
+        xmlns:storylines="using:RingGeneral.UI.Views.Storylines"
+        xmlns:youth="using:RingGeneral.UI.Views.Youth"
+        xmlns:finance="using:RingGeneral.UI.Views.Finance"
+        xmlns:calendar="using:RingGeneral.UI.Views.Calendar"
+        xmlns:start="using:RingGeneral.UI.Views.Start"
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="RingGeneral.UI.Views.Shell.MainWindow"
         x:DataType="vm:ShellViewModel"
@@ -18,15 +32,70 @@
     </Design.DataContext>
 
     <Window.DataTemplates>
+        <!-- DataTemplate pour DashboardViewModel -->
+        <DataTemplate DataType="vmDashboard:DashboardViewModel">
+            <dashboard:DashboardView />
+        </DataTemplate>
+
         <!-- DataTemplate pour BookingViewModel -->
         <DataTemplate DataType="vmBooking:BookingViewModel">
             <booking:BookingView />
         </DataTemplate>
 
-        <!-- TODO: Ajouter les autres DataTemplates quand vous créez les vues -->
-        <!-- <DataTemplate DataType="vmRoster:RosterViewModel">
+        <!-- DataTemplate pour RosterViewModel -->
+        <DataTemplate DataType="vmRoster:RosterViewModel">
             <roster:RosterView />
-        </DataTemplate> -->
+        </DataTemplate>
+
+        <!-- DataTemplate pour WorkerDetailViewModel -->
+        <DataTemplate DataType="vmRoster:WorkerDetailViewModel">
+            <roster:WorkerDetailView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour TitlesViewModel -->
+        <DataTemplate DataType="vmRoster:TitlesViewModel">
+            <roster:TitlesView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour StorylinesViewModel -->
+        <DataTemplate DataType="vmStorylines:StorylinesViewModel">
+            <storylines:StorylinesView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour YouthViewModel -->
+        <DataTemplate DataType="vmYouth:YouthViewModel">
+            <youth:YouthView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour FinanceViewModel -->
+        <DataTemplate DataType="vmFinance:FinanceViewModel">
+            <finance:FinanceView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour CalendarViewModel -->
+        <DataTemplate DataType="vmCalendar:CalendarViewModel">
+            <calendar:CalendarView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour StartViewModel -->
+        <DataTemplate DataType="vmStart:StartViewModel">
+            <start:StartView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour CompanySelectorViewModel -->
+        <DataTemplate DataType="vmStart:CompanySelectorViewModel">
+            <start:CompanySelectorView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour CreateCompanyViewModel -->
+        <DataTemplate DataType="vmStart:CreateCompanyViewModel">
+            <start:CreateCompanyView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour ShellViewModel -->
+        <DataTemplate DataType="vm:ShellViewModel">
+            <ContentControl Content="{Binding}"/>
+        </DataTemplate>
     </Window.DataTemplates>
 
     <Grid>
