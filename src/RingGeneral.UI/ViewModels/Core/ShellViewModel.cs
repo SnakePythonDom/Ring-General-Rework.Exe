@@ -10,6 +10,7 @@ using RingGeneral.UI.ViewModels.Storylines;
 using RingGeneral.UI.ViewModels.Youth;
 using RingGeneral.UI.ViewModels.Finance;
 using RingGeneral.UI.ViewModels.Calendar;
+using RingGeneral.UI.ViewModels.Start;
 
 namespace RingGeneral.UI.ViewModels.Core;
 
@@ -23,6 +24,7 @@ public sealed class ShellViewModel : ViewModelBase
     private NavigationItemViewModel? _selectedNavigationItem;
     private ViewModelBase? _currentContentViewModel;
     private ViewModelBase? _currentContextViewModel;
+    private bool _isInGameMode = false;
 
     public ShellViewModel(INavigationService navigationService)
     {
@@ -35,6 +37,7 @@ public sealed class ShellViewModel : ViewModelBase
         _navigationService.CurrentViewModelObservable
             .Subscribe(vm =>
             {
+                System.Console.WriteLine($"[ShellViewModel] CurrentViewModel changé: {vm?.GetType().Name ?? "null"}");
                 CurrentContentViewModel = vm;
                 // Mettre à jour le context panel selon le contenu
                 UpdateContextPanel(vm);
@@ -47,11 +50,21 @@ public sealed class ShellViewModel : ViewModelBase
         HelpCommand = ReactiveCommand.Create(OpenHelp);
         SettingsCommand = ReactiveCommand.Create(OpenSettings);
 
-        // Sélectionner l'accueil par défaut
-        var homeItem = NavigationItems.FirstOrDefault();
-        if (homeItem != null)
+        // Synchroniser le CurrentViewModel du NavigationService s'il existe déjà
+        if (_navigationService.CurrentViewModel != null)
         {
-            NavigateToItem(homeItem);
+            System.Console.WriteLine($"[ShellViewModel] ViewModel initial depuis NavigationService: {_navigationService.CurrentViewModel.GetType().Name}");
+            CurrentContentViewModel = _navigationService.CurrentViewModel;
+        }
+        else
+        {
+            // Sélectionner l'accueil par défaut seulement si pas de ViewModel initial
+            var homeItem = NavigationItems.FirstOrDefault();
+            if (homeItem != null)
+            {
+                System.Console.WriteLine($"[ShellViewModel] Navigation vers l'accueil par défaut");
+                NavigateToItem(homeItem);
+            }
         }
     }
 
@@ -82,7 +95,22 @@ public sealed class ShellViewModel : ViewModelBase
     public ViewModelBase? CurrentContentViewModel
     {
         get => _currentContentViewModel;
-        private set => this.RaiseAndSetIfChanged(ref _currentContentViewModel, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _currentContentViewModel, value);
+            // Mettre à jour IsInGameMode en fonction du ViewModel actuel
+            IsInGameMode = value != null && value is not Start.StartViewModel && value is not Start.CompanySelectorViewModel && value is not Start.CreateCompanyViewModel;
+        }
+    }
+
+    /// <summary>
+    /// Indique si l'application est en mode jeu (vs mode menu de démarrage)
+    /// Utilisé pour cacher/montrer les éléments du Shell
+    /// </summary>
+    public bool IsInGameMode
+    {
+        get => _isInGameMode;
+        private set => this.RaiseAndSetIfChanged(ref _isInGameMode, value);
     }
 
     /// <summary>

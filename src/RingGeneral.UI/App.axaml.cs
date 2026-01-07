@@ -69,8 +69,8 @@ public sealed class App : Application
 
         var provider = services.BuildServiceProvider();
 
-        // Déterminer le ViewModel de démarrage
-        ViewModelBase initialViewModel;
+        // Obtenir le NavigationService
+        var navigationService = provider.GetRequiredService<INavigationService>();
 
         // Vérifier si une partie est déjà en cours
         var hasActiveSave = CheckForActiveSave(repositories.GameRepository);
@@ -78,20 +78,27 @@ public sealed class App : Application
         if (hasActiveSave)
         {
             // Charger directement le Shell si une partie existe
-            System.Console.WriteLine("[App] Partie active détectée, chargement du Shell...");
-            initialViewModel = provider.GetRequiredService<ViewModels.Core.ShellViewModel>();
+            System.Console.WriteLine("[App] Partie active détectée, chargement du Dashboard...");
+            // Le ShellViewModel naviguera automatiquement vers DashboardViewModel
         }
         else
         {
             // Sinon, afficher le menu de démarrage
             System.Console.WriteLine("[App] Aucune partie active, affichage du menu de démarrage...");
-            initialViewModel = provider.GetRequiredService<StartViewModel>();
+
+            // Initialiser le NavigationService avec StartViewModel AVANT de créer le Shell
+            navigationService.NavigateTo<StartViewModel>();
+            System.Console.WriteLine($"[App] Navigation vers StartViewModel effectuée");
         }
 
-        // Lancer la fenêtre principale
+        // Créer le ShellViewModel (qui observera le NavigationService)
+        var shellViewModel = provider.GetRequiredService<ViewModels.Core.ShellViewModel>();
+        System.Console.WriteLine($"[App] ShellViewModel créé, CurrentContentViewModel = {shellViewModel.CurrentContentViewModel?.GetType().Name ?? "null"}");
+
+        // Lancer la fenêtre principale avec le ShellViewModel
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow(initialViewModel);
+            desktop.MainWindow = new MainWindow(shellViewModel);
         }
 
         base.OnFrameworkInitializationCompleted();
