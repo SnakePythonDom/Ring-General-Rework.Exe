@@ -15,7 +15,6 @@ namespace RingGeneral.UI.ViewModels.Calendar;
 public sealed class CalendarViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
-    private ShowContext? _context;
     private int _currentWeek = 1;
     private CalendarEntryItemViewModel? _selectedEntry;
     private ShowScheduleItemViewModel? _selectedShow;

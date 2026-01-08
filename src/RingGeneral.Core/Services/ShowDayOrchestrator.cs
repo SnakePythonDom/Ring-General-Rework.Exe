@@ -159,7 +159,7 @@ public sealed class ShowDayOrchestrator
                         .FirstOrDefault(p => p != segment.VainqueurId);
 
                     var input = new TitleMatchInput(
-                        titreId,
+                        segment.TitreId!,
                         challengerId ?? string.Empty,
                         segment.VainqueurId,
                         context.Show.Semaine,
@@ -176,7 +176,7 @@ public sealed class ShowDayOrchestrator
                             .FirstOrDefault(w => w.WorkerId == segment.VainqueurId);
 
                         titresChanges.Add(new TitleChangeInfo(
-                            segment.TitreId,
+                            segment.TitreId!,
                             titre.Nom,
                             ancienChampion?.NomComplet ?? "Vacant",
                             nouveauChampion?.NomComplet ?? "Unknown",

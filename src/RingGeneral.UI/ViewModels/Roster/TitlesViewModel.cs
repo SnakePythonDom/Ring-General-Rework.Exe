@@ -17,7 +17,6 @@ namespace RingGeneral.UI.ViewModels.Roster;
 public sealed class TitlesViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
-    private ShowContext? _context;
     private TitleListItemViewModel? _selectedTitle;
     private string _searchText = string.Empty;
     private readonly List<TitleListItemViewModel> _allTitles = new List<TitleListItemViewModel>();

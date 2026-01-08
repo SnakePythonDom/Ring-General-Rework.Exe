@@ -16,7 +16,6 @@ namespace RingGeneral.UI.ViewModels.Finance;
 public sealed class FinanceViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
-    private ShowContext? _context;
     private decimal _currentBalance = 10_000_000m;
     private decimal _weeklyRevenue;
     private decimal _weeklyExpenses;

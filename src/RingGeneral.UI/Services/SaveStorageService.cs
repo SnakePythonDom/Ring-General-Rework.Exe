@@ -64,7 +64,7 @@ public sealed class SaveStorageService
         var chemin = ObtenirCheminUnique(nomFinal);
         new DbInitializer().CreateDatabaseIfMissing(chemin);
         var factory = new SqliteConnectionFactory($"Data Source={chemin}");
-        var repository = RepositoryFactory.CreateGameRepository(factory);
+        RepositoryFactory.CreateRepositories(factory);
         return ConstruireInfo(chemin);
     }
 

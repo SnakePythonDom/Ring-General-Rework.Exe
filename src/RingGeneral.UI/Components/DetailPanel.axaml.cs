@@ -29,7 +29,7 @@ public partial class DetailPanel : UserControl
             defaultValue: false,
             defaultBindingMode: BindingMode.OneWay);
 
-    public static readonly StyledProperty<object?> ContentProperty =
+    public static new readonly StyledProperty<object?> ContentProperty =
         AvaloniaProperty.Register<DetailPanel, object?>(
             nameof(Content),
             defaultValue: null,
