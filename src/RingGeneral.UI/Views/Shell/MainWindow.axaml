@@ -11,6 +11,8 @@
         xmlns:vmFinance="using:RingGeneral.UI.ViewModels.Finance"
         xmlns:vmCalendar="using:RingGeneral.UI.ViewModels.Calendar"
         xmlns:vmStart="using:RingGeneral.UI.ViewModels.Start"
+        xmlns:vmInbox="using:RingGeneral.UI.ViewModels.Inbox"
+        xmlns:vmSettings="using:RingGeneral.UI.ViewModels.Settings"
         xmlns:dashboard="using:RingGeneral.UI.Views.Dashboard"
         xmlns:booking="using:RingGeneral.UI.Views.Booking"
         xmlns:roster="using:RingGeneral.UI.Views.Roster"
@@ -19,6 +21,8 @@
         xmlns:finance="using:RingGeneral.UI.Views.Finance"
         xmlns:calendar="using:RingGeneral.UI.Views.Calendar"
         xmlns:start="using:RingGeneral.UI.Views.Start"
+        xmlns:inbox="using:RingGeneral.UI.Views.Inbox"
+        xmlns:settings="using:RingGeneral.UI.Views.Settings"
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="RingGeneral.UI.Views.Shell.MainWindow"
         x:DataType="vm:ShellViewModel"
@@ -92,6 +96,31 @@
         <!-- DataTemplate pour CreateCompanyViewModel -->
         <DataTemplate DataType="vmStart:CreateCompanyViewModel">
             <start:CreateCompanyView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour InjuriesViewModel -->
+        <DataTemplate DataType="vmRoster:InjuriesViewModel">
+            <roster:InjuriesView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour InboxViewModel -->
+        <DataTemplate DataType="vmInbox:InboxViewModel">
+            <inbox:InboxView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour LibraryViewModel -->
+        <DataTemplate DataType="vmBooking:LibraryViewModel">
+            <booking:LibraryView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour ShowHistoryPageViewModel -->
+        <DataTemplate DataType="vmBooking:ShowHistoryPageViewModel">
+            <booking:ShowHistoryPageView />
+        </DataTemplate>
+
+        <!-- DataTemplate pour SettingsViewModel -->
+        <DataTemplate DataType="vmSettings:SettingsViewModel">
+            <settings:SettingsView />
         </DataTemplate>
 
         <!-- DataTemplate pour ShellViewModel -->

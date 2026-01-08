@@ -115,6 +115,10 @@ public sealed class App : Application
         services.AddTransient<FinanceViewModel>();
         services.AddTransient<CalendarViewModel>();
 
+        // Inbox & Settings ViewModels
+        services.AddTransient<ViewModels.Inbox.InboxViewModel>();
+        services.AddTransient<ViewModels.Settings.SettingsViewModel>();
+
         var provider = services.BuildServiceProvider();
 
         // Obtenir le NavigationService

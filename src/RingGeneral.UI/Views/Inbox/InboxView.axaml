@@ -1,0 +1,222 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Inbox"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Inbox.InboxView"
+             x:DataType="vm:InboxViewModel">
+
+    <Design.DataContext>
+        <vm:InboxViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Liste des messages (gauche) -->
+        <Border Grid.Column="0" Background="#1e1e1e" BorderBrush="#2a2a2a" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- En-tête -->
+                <Border Grid.Row="0" Background="#242424" Padding="20,15" BorderBrush="#3a3a3a" BorderThickness="0,0,0,1">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="📥 INBOX" FontSize="22" FontWeight="Bold" Foreground="#e0e0e0"/>
+                        <StackPanel Orientation="Horizontal" Spacing="15">
+                            <TextBlock FontSize="12" Foreground="#888888">
+                                <Run Text="{Binding TotalMessages}"/>
+                                <Run Text="messages"/>
+                            </TextBlock>
+                            <TextBlock FontSize="12" Foreground="#ef4444" FontWeight="SemiBold">
+                                <Run Text="{Binding UnreadCount}"/>
+                                <Run Text="non lus"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Filtres -->
+                <Border Grid.Row="1" Padding="15" Background="#1e1e1e">
+                    <ComboBox ItemsSource="{Binding FilterCategories}"
+                            SelectedItem="{Binding FilterCategory}"
+                            Background="#2d2d2d"
+                            BorderBrush="#3a3a3a"
+                            Foreground="#e0e0e0"
+                            HorizontalAlignment="Stretch"/>
+                </Border>
+
+                <!-- Liste des messages -->
+                <ScrollViewer Grid.Row="2">
+                    <ItemsControl ItemsSource="{Binding Messages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Background="Transparent"
+                                      Padding="0"
+                                      HorizontalAlignment="Stretch"
+                                      HorizontalContentAlignment="Stretch"
+                                      Command="{Binding $parent[UserControl].DataContext.MarkAsReadCommand}"
+                                      CommandParameter="{Binding}">
+                                    <Border Padding="15,12"
+                                          Margin="8,4"
+                                          CornerRadius="6">
+                                        <Border.Styles>
+                                            <Style Selector="Border">
+                                                <Setter Property="Background" Value="#242424"/>
+                                            </Style>
+                                            <Style Selector="Button:pointerover > Border">
+                                                <Setter Property="Background" Value="#2d2d2d"/>
+                                            </Style>
+                                        </Border.Styles>
+
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <!-- Indicateur non lu -->
+                                            <Border Grid.Column="0"
+                                                  Width="8"
+                                                  Height="8"
+                                                  CornerRadius="4"
+                                                  Background="#ef4444"
+                                                  VerticalAlignment="Top"
+                                                  Margin="0,6,12,0"
+                                                  IsVisible="{Binding !IsRead}"/>
+
+                                            <!-- Contenu -->
+                                            <StackPanel Grid.Column="1" Spacing="6">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{Binding PriorityIcon}" FontSize="14"/>
+                                                    <TextBlock Text="{Binding Title}"
+                                                             FontSize="13"
+                                                             Foreground="#e0e0e0"
+                                                             FontWeight="{Binding IsRead, Converter={StaticResource BoolToWeightConverter}}"
+                                                             TextTrimming="CharacterEllipsis"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Content}"
+                                                         FontSize="11"
+                                                         Foreground="#888888"
+                                                         TextTrimming="CharacterEllipsis"
+                                                         MaxLines="2"/>
+                                                <TextBlock Text="{Binding TimestampFormatted}"
+                                                         FontSize="10"
+                                                         Foreground="#666666"/>
+                                            </StackPanel>
+
+                                            <!-- Catégorie badge -->
+                                            <Border Grid.Column="2"
+                                                  Background="#3b82f6"
+                                                  Padding="8,4"
+                                                  CornerRadius="4"
+                                                  VerticalAlignment="Top">
+                                                <TextBlock Text="{Binding Category}"
+                                                         FontSize="9"
+                                                         Foreground="White"
+                                                         FontWeight="Bold"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Actions -->
+                <Border Grid.Row="3" Background="#242424" Padding="15" BorderBrush="#3a3a3a" BorderThickness="0,1,0,0">
+                    <Button Content="✅ Tout marquer comme lu"
+                          Command="{Binding MarkAllAsReadCommand}"
+                          Padding="0,10"
+                          Background="#10b981"
+                          Foreground="White"
+                          CornerRadius="6"
+                          FontWeight="Bold"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Détail du message (droite) -->
+        <Border Grid.Column="1" Background="#1a1a1a">
+            <ScrollViewer>
+                <StackPanel Margin="40" Spacing="20">
+                    <Panel IsVisible="{Binding SelectedMessage, Converter={x:Static ObjectConverters.IsNull}}">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="15">
+                            <TextBlock Text="📬"
+                                     FontSize="64"
+                                     HorizontalAlignment="Center"
+                                     Foreground="#3a3a3a"/>
+                            <TextBlock Text="Sélectionnez un message pour voir les détails"
+                                     FontSize="14"
+                                     Foreground="#666666"
+                                     HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Panel>
+
+                    <StackPanel Spacing="20" IsVisible="{Binding SelectedMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <!-- En-tête message -->
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{Binding SelectedMessage.PriorityIcon}" FontSize="24"/>
+                                <TextBlock Text="{Binding SelectedMessage.Title}"
+                                         FontSize="24"
+                                         FontWeight="Bold"
+                                         Foreground="#e0e0e0"
+                                         TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <Border Background="#3b82f6" Padding="10,6" CornerRadius="4">
+                                    <TextBlock Text="{Binding SelectedMessage.Category}"
+                                             FontSize="11"
+                                             Foreground="White"
+                                             FontWeight="Bold"/>
+                                </Border>
+                                <TextBlock Text="{Binding SelectedMessage.TimestampFormatted}"
+                                         FontSize="12"
+                                         Foreground="#888888"
+                                         VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Contenu message -->
+                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                            <TextBlock Text="{Binding SelectedMessage.Content}"
+                                     FontSize="14"
+                                     Foreground="#cbd5e1"
+                                     TextWrapping="Wrap"
+                                     LineHeight="24"/>
+                        </Border>
+
+                        <!-- Actions -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="✅ Marquer comme lu"
+                                  Command="{Binding MarkAsReadCommand}"
+                                  CommandParameter="{Binding SelectedMessage}"
+                                  Padding="15,10"
+                                  Background="#10b981"
+                                  Foreground="White"
+                                  CornerRadius="6"
+                                  FontWeight="SemiBold"/>
+                            <Button Content="🗑️ Supprimer"
+                                  Command="{Binding DeleteMessageCommand}"
+                                  CommandParameter="{Binding SelectedMessage}"
+                                  Padding="15,10"
+                                  Background="#ef4444"
+                                  Foreground="White"
+                                  CornerRadius="6"
+                                  FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+
+</UserControl>

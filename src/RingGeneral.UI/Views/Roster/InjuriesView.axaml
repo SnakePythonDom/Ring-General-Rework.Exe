@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Roster.InjuriesView"
+             x:DataType="vm:InjuriesViewModel">
+
+    <Design.DataContext>
+        <vm:InjuriesViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25">
+            <!-- En-tête -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="🏥 BLESSURES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Gestion des blessures et récupération" FontSize="14" Foreground="#888888"/>
+            </StackPanel>
+
+            <!-- Statistiques -->
+            <Grid ColumnDefinitions="*,*,*">
+                <Border Grid.Column="0" Background="#1e293b" Padding="20" CornerRadius="8" Margin="0,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🤕 TOTAL" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TotalInjuries}" FontSize="32" FontWeight="Bold" Foreground="#3b82f6"/>
+                        <TextBlock Text="Blessures actives" FontSize="11" Foreground="#94a3b8"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="#7f1d1d" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="⚠️ CRITIQUES" FontSize="12" Foreground="#fecaca" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding CriticalInjuries}" FontSize="32" FontWeight="Bold" Foreground="#ef4444"/>
+                        <TextBlock Text="Nécessitent attention" FontSize="11" Foreground="#fca5a5"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="#065f46" Padding="20" CornerRadius="8" Margin="6,0,0,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="✅ EN RÉTABLISSEMENT" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                        <TextBlock Text="3" FontSize="32" FontWeight="Bold" Foreground="#34d399"/>
+                        <TextBlock Text="Retour imminent" FontSize="11" Foreground="#a7f3d0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Barre de recherche -->
+            <Border Background="#1e293b" Padding="15" CornerRadius="8">
+                <TextBox Watermark="🔍 Rechercher un worker..."
+                         Text="{Binding FilterText}"
+                         Background="#0f172a"
+                         BorderBrush="#334155"
+                         Foreground="#e0e0e0"
+                         Padding="12,10"
+                         CornerRadius="6"/>
+            </Border>
+
+            <!-- Liste des blessures -->
+            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="📋 LISTE DES BLESSURES" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+
+                    <ItemsControl ItemsSource="{Binding Injuries}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" Padding="16" Margin="0,0,0,8" CornerRadius="6">
+                                    <Grid ColumnDefinitions="2*,*,*,*,Auto">
+                                        <!-- Worker -->
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="{Binding WorkerName}" FontSize="14" Foreground="#e0e0e0" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding InjuryType}" FontSize="12" Foreground="#94a3b8"/>
+                                        </StackPanel>
+
+                                        <!-- Sévérité -->
+                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="Sévérité" FontSize="10" Foreground="#64748b"/>
+                                            <TextBlock Text="{Binding Severity}" FontSize="12" Foreground="#f59e0b" FontWeight="SemiBold"/>
+                                        </StackPanel>
+
+                                        <!-- Durée restante -->
+                                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="Semaines restantes" FontSize="10" Foreground="#64748b"/>
+                                            <TextBlock Text="{Binding WeeksRemaining}" FontSize="14" Foreground="#3b82f6" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <!-- Progression -->
+                                        <StackPanel Grid.Column="3" Spacing="6" VerticalAlignment="Center">
+                                            <TextBlock Text="Récupération" FontSize="10" Foreground="#64748b"/>
+                                            <ProgressBar Value="{Binding RecoveryProgress}"
+                                                       Minimum="0"
+                                                       Maximum="100"
+                                                       Height="8"
+                                                       CornerRadius="4"
+                                                       Foreground="#10b981"/>
+                                            <TextBlock Text="{Binding RecoveryProgress, StringFormat={}{0}%}"
+                                                     FontSize="11"
+                                                     Foreground="#94a3b8"
+                                                     HorizontalAlignment="Center"/>
+                                        </StackPanel>
+
+                                        <!-- Actions -->
+                                        <Button Grid.Column="4"
+                                              Content="Voir détails"
+                                              Padding="12,6"
+                                              Background="#3b82f6"
+                                              Foreground="White"
+                                              CornerRadius="4"
+                                              FontSize="11"
+                                              Margin="10,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>
