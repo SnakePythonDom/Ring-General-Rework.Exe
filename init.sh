@@ -21,9 +21,11 @@ BAKI_DB="${BAKI_DB:-data/BAKI1.1.db}"
 SCHEMA_FILE="sql/schema.sql"
 SEED_COUNTRIES_FILE="sql/seed_countries.sql"
 SEED_REGIONS_FILE="sql/seed_regions.sql"
+SEED_COUNTRY_ALIASES_FILE="sql/seed_country_aliases.sql"
 SEED_STYLES_FILE="sql/seed_styles.sql"
 IMPORT_COMPANIES_FILE="sql/import_companies.sql"
 IMPORT_WORKERS_FILE="sql/import_workers.sql"
+MAP_COMPANIES_FILE="sql/map_companies.sql"
 MAP_WORKERS_FILE="sql/map_workers.sql"
 MAP_WORKERS_COMPANY_FILE="sql/map_workers_company.sql"
 VALIDATE_FILE="sql/validate.sql"
@@ -93,6 +95,7 @@ check_file "$SCHEMA_FILE"
 check_file "$SEED_STYLES_FILE"
 check_file "$IMPORT_COMPANIES_FILE"
 check_file "$IMPORT_WORKERS_FILE"
+check_file "$MAP_COMPANIES_FILE"
 check_file "$MAP_WORKERS_FILE"
 check_file "$MAP_WORKERS_COMPANY_FILE"
 check_file "$VALIDATE_FILE"
@@ -123,12 +126,14 @@ print_step "4/7 Generating reference data from legacy DB..."
 python3 "$REFERENCE_BUILDER" --legacy-db "$BAKI_DB" --output-dir "sql"
 check_file "$SEED_COUNTRIES_FILE"
 check_file "$SEED_REGIONS_FILE"
+check_file "$SEED_COUNTRY_ALIASES_FILE"
 print_success "Reference data generated"
 
 # Step 5: Seed structure tables (countries, regions, styles)
 print_step "5/7 Seeding structure tables..."
 run_sql_file "$DB_NAME" "$SEED_COUNTRIES_FILE"
 run_sql_file "$DB_NAME" "$SEED_REGIONS_FILE"
+run_sql_file "$DB_NAME" "$SEED_COUNTRY_ALIASES_FILE"
 run_sql_file "$DB_NAME" "$SEED_STYLES_FILE"
 print_success "Structure tables seeded"
 
@@ -140,6 +145,7 @@ ATTACH DATABASE '$BAKI_DB' AS legacy;
 ATTACH DATABASE '$BAKI_DB' AS baki;
 .read $IMPORT_COMPANIES_FILE
 .read $IMPORT_WORKERS_FILE
+.read $MAP_COMPANIES_FILE
 .read $MAP_WORKERS_FILE
 .read $MAP_WORKERS_COMPANY_FILE
 DETACH DATABASE legacy;

@@ -1,36 +1,43 @@
 -- ============================================================================
--- Import promotions from legacy BAKI database into Ring General Companies
+-- Import promotions from legacy BAKI database into a staging table
 -- ============================================================================
 
 PRAGMA foreign_keys = ON;
 
-INSERT INTO Companies (
-    CompanyId,
+DROP TABLE IF EXISTS LegacyCompanies;
+CREATE TABLE LegacyCompanies (
+    LegacyPromotionId INTEGER PRIMARY KEY,
+    Name TEXT NOT NULL,
+    RawCountry TEXT,
+    Prestige REAL,
+    Treasury REAL,
+    AverageAudience INTEGER,
+    Reach INTEGER,
+    FoundedYear INTEGER,
+    StyleName TEXT
+);
+
+INSERT INTO LegacyCompanies (
     LegacyPromotionId,
     Name,
-    CountryId,
-    RegionId,
-    Prestige
+    RawCountry,
+    Prestige,
+    Treasury,
+    AverageAudience,
+    Reach,
+    FoundedYear,
+    StyleName
 )
 SELECT
-    'COMP_' || p.promotionID,
     p.promotionID,
     p.fullName,
-    c.CountryId,
-    COALESCE(
-        (
-            SELECT r.RegionId
-            FROM Regions r
-            WHERE r.CountryId = c.CountryId
-            ORDER BY r.Name
-            LIMIT 1
-        ),
-        'REGION_DEFAULT'
-    ),
-    p.prestige
+    COALESCE(legacy_country.countryName, NULLIF(TRIM(p.basedIn), '')),
+    p.prestige,
+    p.money,
+    NULL,
+    NULL,
+    p.founded,
+    p.style
 FROM legacy.promotions p
-LEFT JOIN Countries c ON c.Name = p.basedInCountry
-ON CONFLICT(LegacyPromotionId) DO NOTHING;
-
-INSERT OR IGNORE INTO Companies (CompanyId, Name, CountryId, RegionId, Prestige)
-VALUES ('0', 'Free Agent', 'COUNTRY_DEFAULT', 'REGION_DEFAULT', 0);
+LEFT JOIN legacy.countries legacy_country
+    ON legacy_country.countryID = p.basedInCountry;
