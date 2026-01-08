@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Core.Models;
@@ -23,6 +24,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private readonly IOwnerRepository _ownerRepository;
     private readonly IBookerRepository _bookerRepository;
     private readonly ICatchStyleRepository _catchStyleRepository;
+    private readonly IRegionRepository _regionRepository;
 
     private string _companyName = string.Empty;
     private RegionInfo? _selectedRegion;
@@ -31,56 +33,58 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private double _startingTreasury = 100000.0;
     private int _foundedYear = 2024;
     private string? _errorMessage;
+    private double _stylePrestigeMultiplier = 1.0;
+    private double _styleTreasuryMultiplier = 1.0;
 
     public CreateCompanyViewModel(
         GameRepository? repository = null,
         INavigationService? navigationService = null,
         IOwnerRepository? ownerRepository = null,
         IBookerRepository? bookerRepository = null,
-        ICatchStyleRepository? catchStyleRepository = null)
+        ICatchStyleRepository? catchStyleRepository = null,
+        IRegionRepository? regionRepository = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _ownerRepository = ownerRepository ?? throw new ArgumentNullException(nameof(ownerRepository));
         _bookerRepository = bookerRepository ?? throw new ArgumentNullException(nameof(bookerRepository));
         _catchStyleRepository = catchStyleRepository ?? throw new ArgumentNullException(nameof(catchStyleRepository));
+        _regionRepository = regionRepository ?? throw new ArgumentNullException(nameof(regionRepository));
 
         // Initialiser les données de sélection
         AvailableRegions = new ObservableCollection<RegionInfo>();
         AvailableCatchStyles = new ObservableCollection<CatchStyle>();
-        LoadRegionsFromDatabase();
+        LoadRegionsFromRepository();
         LoadCatchStylesFromDatabase();
 
         // Commandes
-        CreateCompanyCommand = ReactiveCommand.Create(CreateCompany);
+        var canContinue = this.WhenAnyValue(
+            vm => vm.CompanyName,
+            vm => vm.SelectedRegion,
+            vm => vm.FoundedYear,
+            (name, region, year) =>
+                !string.IsNullOrWhiteSpace(name) &&
+                region != null &&
+                year is >= 1950 and <= 2100);
+        ContinueCommand = ReactiveCommand.Create(CreateCompany, canContinue);
         CancelCommand = ReactiveCommand.Create(Cancel);
+
+        this.WhenAnyValue(vm => vm.SelectedCatchStyle)
+            .Where(style => style != null)
+            .Subscribe(style => ApplyStyleModifiers(style!));
     }
 
     /// <summary>
     /// Charge les régions depuis la base de données
     /// </summary>
-    private void LoadRegionsFromDatabase()
+    private async void LoadRegionsFromRepository()
     {
         try
         {
-            using var connection = _repository.CreateConnection();
-
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT r.RegionId, r.Name, c.Name as CountryName
-                FROM Regions r
-                INNER JOIN Countries c ON c.CountryId = r.CountryId
-                ORDER BY c.Name, r.Name
-                LIMIT 500";
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            var regions = await _regionRepository.GetAllAsync();
+            foreach (var region in regions)
             {
-                var regionId = reader.GetString(0);
-                var regionName = reader.GetString(1);
-                var countryName = reader.GetString(2);
-
-                AvailableRegions.Add(new RegionInfo(regionId, regionName, countryName));
+                AvailableRegions.Add(region);
             }
 
             // Sélectionner la première région par défaut
@@ -209,9 +213,9 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     public ObservableCollection<CatchStyle> AvailableCatchStyles { get; }
 
     /// <summary>
-    /// Commande pour créer la compagnie
+    /// Commande pour continuer la création de la compagnie
     /// </summary>
-    public ReactiveCommand<Unit, Unit> CreateCompanyCommand { get; }
+    public ReactiveCommand<Unit, Unit> ContinueCommand { get; }
 
     /// <summary>
     /// Commande pour annuler et retourner
@@ -419,12 +423,47 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     {
         _navigationService.NavigateTo<StartViewModel>();
     }
-}
 
-/// <summary>
-/// Informations sur une région pour la sélection
-/// </summary>
-public sealed record RegionInfo(string RegionId, string RegionName, string CountryName)
-{
-    public override string ToString() => $"{RegionName}, {CountryName}";
+    public void ApplyDefaultTemplate()
+    {
+        var template = new CompanyTemplate("World Federation", 50, 1_000_000);
+        CompanyName = template.Name;
+        StartingPrestige = template.Prestige;
+        StartingTreasury = template.Treasury;
+
+        if (AvailableRegions.Count > 0)
+        {
+            SelectedRegion = AvailableRegions[0];
+        }
+    }
+
+    private void ApplyStyleModifiers(CatchStyle style)
+    {
+        var newMultiplier = style.CatchStyleId switch
+        {
+            "STYLE_HARDCORE" => 0.8,
+            "STYLE_PURE_WRESTLING" => 1.2,
+            _ => style.Name switch
+            {
+                "Hardcore" or "Hardcore Wrestling" => 0.8,
+                "Pure Wrestling" => 1.2,
+                _ => 1.0
+            }
+        };
+
+        var basePrestige = _stylePrestigeMultiplier == 0
+            ? StartingPrestige
+            : StartingPrestige / _stylePrestigeMultiplier;
+        var baseTreasury = _styleTreasuryMultiplier == 0
+            ? StartingTreasury
+            : StartingTreasury / _styleTreasuryMultiplier;
+
+        _stylePrestigeMultiplier = newMultiplier;
+        _styleTreasuryMultiplier = newMultiplier;
+
+        StartingPrestige = (int)Math.Round(basePrestige * newMultiplier);
+        StartingTreasury = Math.Round(baseTreasury * newMultiplier, 2);
+    }
+
+    private sealed record CompanyTemplate(string Name, int Prestige, double Treasury);
 }

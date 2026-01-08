@@ -24,6 +24,7 @@ public sealed class RepositoryContainer
     public IOwnerRepository OwnerRepository { get; }
     public IBookerRepository BookerRepository { get; }
     public ICatchStyleRepository CatchStyleRepository { get; }
+    public IRegionRepository RegionRepository { get; }
 
     public RepositoryContainer(
         GameRepository gameRepository,
@@ -40,7 +41,8 @@ public sealed class RepositoryContainer
         IWorkerAttributesRepository workerAttributesRepository,
         IOwnerRepository ownerRepository,
         IBookerRepository bookerRepository,
-        ICatchStyleRepository catchStyleRepository)
+        ICatchStyleRepository catchStyleRepository,
+        IRegionRepository regionRepository)
     {
         GameRepository = gameRepository;
         ShowRepository = showRepository;
@@ -57,6 +59,7 @@ public sealed class RepositoryContainer
         OwnerRepository = ownerRepository;
         BookerRepository = bookerRepository;
         CatchStyleRepository = catchStyleRepository;
+        RegionRepository = regionRepository;
     }
 }
 
@@ -87,6 +90,7 @@ public static class RepositoryFactory
         var ownerRepository = new OwnerRepository(connectionString);
         var bookerRepository = new BookerRepository(connectionString);
         var catchStyleRepository = new CatchStyleRepository(factory);
+        var regionRepository = new RegionRepository(factory);
 
         var gameRepository = new GameRepository(
             factory,
@@ -114,7 +118,8 @@ public static class RepositoryFactory
             workerAttributesRepository,
             ownerRepository,
             bookerRepository,
-            catchStyleRepository);
+            catchStyleRepository,
+            regionRepository);
     }
 
     /// <summary>

@@ -83,6 +83,7 @@
                        Foreground="#e2e8f0"/>
             <ComboBox ItemsSource="{Binding AvailableRegions}"
                       SelectedItem="{Binding SelectedRegion}"
+                      DisplayMemberBinding="{Binding CountryName}"
                       FontSize="18"
                       Padding="12"
                       Background="#0f172a"
@@ -218,7 +219,7 @@
                     Command="{Binding CancelCommand}"/>
 
             <Button Grid.Column="1"
-                    Content="Créer la compagnie"
+                    Content="Continuer"
                     Background="#3b82f6"
                     Foreground="White"
                     Padding="0,15"
@@ -228,7 +229,8 @@
                     HorizontalContentAlignment="Center"
                     CornerRadius="6"
                     Margin="10,0,0,0"
-                    Command="{Binding CreateCompanyCommand}">
+                    Command="{Binding ContinueCommand}"
+                    IsEnabled="{Binding ContinueCommand.CanExecute}">
               <Button.Styles>
                 <Style Selector="Button:pointerover">
                   <Setter Property="Background" Value="#2563eb"/>

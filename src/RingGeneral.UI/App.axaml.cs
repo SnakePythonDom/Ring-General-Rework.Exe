@@ -64,6 +64,7 @@ public sealed class App : Application
         services.AddSingleton(repositories.OwnerRepository);
         services.AddSingleton(repositories.BookerRepository);
         services.AddSingleton(repositories.CatchStyleRepository);
+        services.AddSingleton(repositories.RegionRepository);
 
         // Core Services
         services.AddSingleton<BookingValidator>();
