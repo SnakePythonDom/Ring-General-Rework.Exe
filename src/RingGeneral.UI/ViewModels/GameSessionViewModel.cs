@@ -51,7 +51,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             : new ConsoleLoggingService(LogLevel.Info);
 
         var cheminFinal = string.IsNullOrWhiteSpace(cheminDb)
-            ? Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db")
+            ? Path.Combine(Directory.GetCurrentDirectory(), "ring_general.db")
             : cheminDb;
 
         try
