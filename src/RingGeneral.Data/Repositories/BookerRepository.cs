@@ -99,6 +99,32 @@ public sealed class BookerRepository : IBookerRepository
         return bookers;
     }
 
+    public async Task<Booker?> GetActiveBookerAsync(string companyId)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT BookerId, CompanyId, Name, CreativityScore, LogicScore, BiasResistance,
+                   PreferredStyle, LikesUnderdog, LikesVeteran, LikesFastRise, LikesSlowBurn,
+                   IsAutoBookingEnabled, EmploymentStatus, HireDate, CreatedAt
+            FROM Bookers
+            WHERE CompanyId = @CompanyId AND EmploymentStatus = 'Active'
+            ORDER BY Name
+            LIMIT 1";
+
+        command.Parameters.AddWithValue("@CompanyId", companyId);
+
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return MapBooker(reader);
+        }
+
+        return null;
+    }
+
     public async Task<List<Booker>> GetAllBookersByCompanyIdAsync(string companyId)
     {
         using var connection = new SqliteConnection(_connectionString);
@@ -360,6 +386,23 @@ public sealed class BookerRepository : IBookerRepository
         }
 
         return memories;
+    }
+
+    public async Task<int> CountMemoriesAsync(string bookerId)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT COUNT(*)
+            FROM BookerMemory
+            WHERE BookerId = @BookerId";
+
+        command.Parameters.AddWithValue("@BookerId", bookerId);
+
+        var result = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(result);
     }
 
     public async Task UpdateBookerMemoryAsync(BookerMemory memory)
