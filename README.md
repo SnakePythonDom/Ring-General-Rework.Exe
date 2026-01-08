@@ -4,6 +4,7 @@
 
 **Version actuelle :** Phase 2 - ~35% complété
 **Dernière mise à jour architecture :** 7 janvier 2026
+**Dernière réorganisation :** 8 janvier 2026 - Fichiers triés et organisés dans docs/, data/, _archived_files/
 
 ### 📊 Statut Développement
 - ✅ **Architecture MVVM** : Core, Repositories, Services en place
@@ -15,10 +16,10 @@
 
 ### 📚 Documentation Clé
 Pour comprendre l'état actuel du projet, consultez **dans cet ordre** :
-1. **[RECAPITULATIF_TECHNIQUE.md](RECAPITULATIF_TECHNIQUE.md)** - État actuel et problèmes critiques
-2. **[ROADMAP_MISE_A_JOUR.md](ROADMAP_MISE_A_JOUR.md)** - Plan de développement (Phases 1-5, Release Avril 2026)
+1. **[docs/RECAPITULATIF_TECHNIQUE.md](docs/RECAPITULATIF_TECHNIQUE.md)** - État actuel et problèmes critiques
+2. **[docs/ROADMAP_MISE_A_JOUR.md](docs/ROADMAP_MISE_A_JOUR.md)** - Plan de développement (Phases 1-5, Release Avril 2026)
 3. **[docs/ARCHITECTURE_REVIEW_FR.md](docs/ARCHITECTURE_REVIEW_FR.md)** - Analyse architecture détaillée (1100+ lignes)
-4. **[RAPPORT_IMPLEMENTATION_FINALE.md](RAPPORT_IMPLEMENTATION_FINALE.md)** - Dernière implémentation (7 Jan 2026)
+4. **[docs/RAPPORT_IMPLEMENTATION_FINALE.md](docs/RAPPORT_IMPLEMENTATION_FINALE.md)** - Dernière implémentation (7 Jan 2026)
 
 ### 🎯 Prochaines Étapes (Phase 3 - Janvier 2026)
 - Créer les Views manquantes pour tous les ViewModels
@@ -41,10 +42,38 @@ Merci de vous référer aux fichiers JSON en français de ce dossier pour toute 
 - [Guide base SQLite (FR)](docs/DATABASE_GUIDE_FR.md)
 - [Guide import SQLite (FR)](docs/IMPORT_GUIDE_FR.md)
 
+## 📁 Structure du Projet
+
+```
+Ring-General-Rework.Exe/
+├── .claude/              # Configuration Claude Code & sub-agents
+├── .github/              # GitHub Actions & CI/CD
+├── data/                 # Données & assets
+│   ├── assets/          # Fichiers binaires (Drapeaux.7z, etc.)
+│   └── BAKI1.1.db       # Base de données de test BAKI
+├── docs/                 # Documentation complète
+│   ├── planning/        # Documents de planification
+│   ├── sprints/         # Documents de sprint
+│   └── *.md             # Guides techniques & utilisateur
+├── specs/                # Spécifications JSON (source de vérité)
+├── src/                  # Code source C# (.NET)
+│   ├── RingGeneral.Core/
+│   ├── RingGeneral.Data/
+│   ├── RingGeneral.Specs/
+│   ├── RingGeneral.Tools.*/
+│   └── RingGeneral.UI/
+├── tests/                # Tests unitaires & intégration
+├── _archived_files/      # Fichiers obsolètes archivés
+├── .clauderules          # Règles pour Chef de Projet Claude
+├── README.md             # Ce fichier
+└── RingGeneral.sln       # Solution Visual Studio
+```
+
 ## Sauvegardes & base SQLite
 - **Emplacement des saves (Windows)** : `%APPDATA%/RingGeneral/Saves/`
 - **Créer une base vierge** : via l'écran \"Nouvelle partie\" (bouton *Créer une base vierge*).
 - **Importer une base existante** : via l'écran \"Importer\" (bouton *Importer une base*).
+- **Base de test BAKI** : [data/BAKI1.1.db](data/BAKI1.1.db)
 - **Guides** : [DATABASE_GUIDE_FR.md](docs/DATABASE_GUIDE_FR.md) pour le remplissage, [IMPORT_GUIDE_FR.md](docs/IMPORT_GUIDE_FR.md) pour l'import.
 
 ## 1) Vision produit (TEW/PWS + FM26)
