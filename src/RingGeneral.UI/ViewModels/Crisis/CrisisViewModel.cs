@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
@@ -434,7 +435,7 @@ public sealed class CrisisItemViewModel : ViewModelBase
     /// <summary>
     /// Label de sévérité
     /// </summary>
-    public string SeverityLabel => new string('🔴', Severity);
+    public string SeverityLabel => string.Concat(Enumerable.Repeat("🔴", Severity));
 
     /// <summary>
     /// Date formatée
