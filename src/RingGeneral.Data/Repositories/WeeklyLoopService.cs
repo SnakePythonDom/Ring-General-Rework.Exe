@@ -72,6 +72,9 @@ public sealed class WeeklyLoopService
         // Déclin des mémoires du booker (Phase 4)
         ProgresserMemoiresBooker(semaine, showId);
 
+        // Auto-booking des shows 1-2 semaines à l'avance (Phase 4)
+        inboxItems.AddRange(ProcesserAutoBooking(semaine, showId));
+
         foreach (var item in inboxItems)
         {
             _repository.AjouterInboxItem(item);
@@ -621,6 +624,128 @@ public sealed class WeeklyLoopService
                 Console.Error.WriteLine($"[WeeklyLoopService] Erreur déclin mémoires booker: {ex.Message}");
             }
         }
+    }
+
+    /// <summary>
+    /// Traite l'auto-booking des shows 1-2 semaines à l'avance (Phase 4)
+    /// </summary>
+    private IEnumerable<InboxItem> ProcesserAutoBooking(int semaine, string showId)
+    {
+        var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
+        if (string.IsNullOrWhiteSpace(compagnieId))
+        {
+            return Array.Empty<InboxItem>();
+        }
+
+        var items = new List<InboxItem>();
+
+        if (_bookerAIEngine is null)
+        {
+            return items;
+        }
+
+        try
+        {
+            // Récupérer tous les shows à venir
+            var upcomingShows = _repository.ChargerShowsAVenir(compagnieId, semaine);
+
+            // Filtrer les shows dans la fenêtre 1-2 semaines (semaines 7-14 à l'avance)
+            var showsToAutoBook = upcomingShows
+                .Where(show => show.Semaine >= semaine + 7 && show.Semaine <= semaine + 14)
+                .ToList();
+
+            if (showsToAutoBook.Count == 0)
+            {
+                return items;
+            }
+
+            // Charger le roster disponible
+            var roster = _repository.ChargerBackstageRoster(compagnieId);
+            if (roster.Count < 2)
+            {
+                Console.WriteLine($"[WeeklyLoopService] Auto-booking impossible: roster insuffisant ({roster.Count} workers)");
+                return items;
+            }
+
+            var availableWorkerIds = roster.Select(w => w.WorkerId).ToList();
+
+            foreach (var show in showsToAutoBook)
+            {
+                // Vérifier si le show a déjà des segments (déjà booké)
+                var showContext = _repository.ChargerShowContext(show.ShowId);
+                if (showContext?.Segments.Count > 0)
+                {
+                    continue; // Show déjà booké, passer au suivant
+                }
+
+                // Déterminer l'importance du show (basé sur la durée)
+                var showImportance = Math.Clamp(show.DureeMinutes / 2, 30, 90);
+
+                // Proposer un main event via l'AI du booker
+                var mainEventProposal = _bookerAIEngine.ProposeMainEvent(
+                    compagnieId,  // Utiliser companyId comme bookerId (simplifié)
+                    availableWorkerIds,
+                    showImportance);
+
+                if (mainEventProposal is null)
+                {
+                    Console.WriteLine($"[WeeklyLoopService] Auto-booking: aucune proposition pour {show.Nom} (S{show.Semaine})");
+                    continue;
+                }
+
+                // Créer un segment main event avec les workers proposés
+                var segmentId = Guid.NewGuid().ToString("N");
+                var participants = new List<string> { mainEventProposal.Value.Worker1Id, mainEventProposal.Value.Worker2Id };
+
+                var segment = new SegmentDefinition(
+                    segmentId,
+                    "Match",
+                    participants,
+                    30, // Durée du main event: 30 minutes
+                    EstMainEvent: true,
+                    StorylineId: null,
+                    TitreId: null,
+                    Intensite: 75,
+                    VainqueurId: null, // Non déterminé avant simulation
+                    PerdantId: null);
+
+                // Ajouter le segment au show
+                _repository.AjouterSegment(show.ShowId, segment, 1);
+
+                // Récupérer les noms des workers pour la notification
+                var worker1Name = roster.FirstOrDefault(w => w.WorkerId == mainEventProposal.Value.Worker1Id)?.Nom ?? "Worker 1";
+                var worker2Name = roster.FirstOrDefault(w => w.WorkerId == mainEventProposal.Value.Worker2Id)?.Nom ?? "Worker 2";
+
+                // Créer notification inbox
+                items.Add(new InboxItem(
+                    "auto-booking",
+                    "📅 Auto-Booking Effectué",
+                    $"Show '{show.Nom}' (S{show.Semaine}) - Main Event booké: {worker1Name} vs {worker2Name}",
+                    semaine));
+
+                Console.WriteLine($"[WeeklyLoopService] Auto-booking: {show.Nom} (S{show.Semaine}) - {worker1Name} vs {worker2Name}");
+            }
+
+            if (items.Count > 0)
+            {
+                items.Add(new InboxItem(
+                    "auto-booking",
+                    "✅ Résumé Auto-Booking",
+                    $"{items.Count} show(s) booké(s) automatiquement pour les semaines à venir.",
+                    semaine));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[WeeklyLoopService] Erreur auto-booking: {ex.Message}");
+            items.Add(new InboxItem(
+                "auto-booking",
+                "⚠️ Erreur Auto-Booking",
+                $"Une erreur est survenue lors de l'auto-booking: {ex.Message}",
+                semaine));
+        }
+
+        return items;
     }
 
 }
