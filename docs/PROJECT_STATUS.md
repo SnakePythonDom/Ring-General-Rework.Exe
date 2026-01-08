@@ -2,9 +2,9 @@
 
 **Document de référence unique** - Status consolidé du projet
 
-**Dernière mise à jour** : 8 janvier 2026 (Phase 9 : Flux Show Day - Match Day)
-**Version actuelle** : Phase 1.9 - ~50-55% complété
-**Branche active** : `claude/implement-match-day-flow-NDU2A`
+**Dernière mise à jour** : 8 janvier 2026 (Phase 9 : Flux Show Day + Auto-Booking IA)
+**Version actuelle** : Phase 1.9+ - ~50-55% complété
+**Branche active** : `claude/finalize-show-day-flow-PDxSi` & `claude/update-docs-auto-booking-feature`
 
 ---
 
@@ -34,6 +34,10 @@
 - ✅ **Système de Personnalité** : 25+ profils automatiquement détectés
 - ✅ **Flux Show Day** : Simulation complète de bout en bout ✨ **NOUVEAU (8 jan 2026)**
 - ✅ **Moral Post-Show** : Gestion automatique du moral des workers non utilisés ✨ **NOUVEAU**
+- ✅ **Auto-Booking IA** : Génération automatique de cartes par le Booker 🤖 **NOUVEAU (8 jan 2026)**
+  - 5 styles de produit (Hardcore, Puroresu, Technical, Entertainment, Balanced)
+  - Contraintes Owner personnalisables
+  - Utilisation du système de mémoire pour cohérence
 - ✅ **ViewModels** : 48 ViewModels créés (+ AttributesTabVM, PersonalityTabVM)
 - ✅ **ProfileView** : Vue complète avec onglets (Aperçu, Attributs, Personnalité, etc.)
 - ⚠️ **Views** : 14/20 Views créées et câblées (+ ProfileView)
