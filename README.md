@@ -16,10 +16,10 @@
 
 ### 📚 Documentation Clé
 Pour comprendre l'état actuel du projet, consultez **dans cet ordre** :
-1. **[docs/RECAPITULATIF_TECHNIQUE.md](docs/RECAPITULATIF_TECHNIQUE.md)** - État actuel et problèmes critiques
+1. **[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)** - ⭐ État consolidé du projet (document unique de référence)
 2. **[docs/ROADMAP_MISE_A_JOUR.md](docs/ROADMAP_MISE_A_JOUR.md)** - Plan de développement (Phases 1-5, Release Avril 2026)
 3. **[docs/ARCHITECTURE_REVIEW_FR.md](docs/ARCHITECTURE_REVIEW_FR.md)** - Analyse architecture détaillée (1100+ lignes)
-4. **[docs/RAPPORT_IMPLEMENTATION_FINALE.md](docs/RAPPORT_IMPLEMENTATION_FINALE.md)** - Dernière implémentation (7 Jan 2026)
+4. **[docs/INDEX.md](docs/INDEX.md)** - Index complet de la documentation
 
 ### 🎯 Prochaines Étapes (Phase 3 - Janvier 2026)
 - Créer les Views manquantes pour tous les ViewModels

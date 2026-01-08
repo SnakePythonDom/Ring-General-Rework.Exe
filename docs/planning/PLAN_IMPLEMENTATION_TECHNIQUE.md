@@ -11,8 +11,8 @@
 Ce document représente un **plan aspirationnel** détaillant la vision complète du projet Ring General sur 12-18 mois.
 
 **Pour l'état FACTUEL et ACTUEL du projet**, consultez plutôt :
-- 📊 **[CURRENT_STATE.md](./CURRENT_STATE.md)** - État réel basé sur audit du code (7 jan 2026)
-- 🗺️ **[ROADMAP_MISE_A_JOUR.md](./ROADMAP_MISE_A_JOUR.md)** - Roadmap court terme mise à jour
+- 📊 **[PROJECT_STATUS.md](../PROJECT_STATUS.md)** - État consolidé du projet (8 jan 2026)
+- 🗺️ **[ROADMAP_MISE_A_JOUR.md](../ROADMAP_MISE_A_JOUR.md)** - Roadmap court terme mise à jour
 
 **Découverte Clé (7 jan 2026)** : Suite à un audit exhaustif, le projet est **plus avancé que prévu** :
 - ViewModels : **92%** complétés (pas 20%)

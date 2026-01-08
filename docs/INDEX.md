@@ -9,11 +9,14 @@ Bienvenue dans la documentation complète du projet Ring General. Ce document vo
 
 ## 📊 État du Projet
 
-### Documents de Référence Principaux
-1. **[RECAPITULATIF_TECHNIQUE.md](RECAPITULATIF_TECHNIQUE.md)** - État actuel et problèmes critiques
-2. **[CURRENT_STATE.md](CURRENT_STATE.md)** - État détaillé du projet
-3. **[ROADMAP_MISE_A_JOUR.md](ROADMAP_MISE_A_JOUR.md)** - Plan de développement (Phases 1-5, Release Avril 2026)
-4. **[RAPPORT_IMPLEMENTATION_FINALE.md](RAPPORT_IMPLEMENTATION_FINALE.md)** - Dernière implémentation (7 Jan 2026)
+### 📌 Document de Référence Principal
+**[PROJECT_STATUS.md](PROJECT_STATUS.md)** - ⭐ **État consolidé du projet** (document unique de référence)
+> Fusionne CURRENT_STATE + RECAPITULATIF_TECHNIQUE pour éliminer la redondance.
+> Mis à jour le 8 janvier 2026.
+
+### Autres Documents de Référence
+1. **[ROADMAP_MISE_A_JOUR.md](ROADMAP_MISE_A_JOUR.md)** - Plan de développement (Phases 1-5, Release Avril 2026)
+2. **[ARCHITECTURE_REVIEW_FR.md](ARCHITECTURE_REVIEW_FR.md)** - Analyse architecture détaillée (1100+ lignes)
 
 ### Architecture & Technique
 - **[ARCHITECTURE_REVIEW_FR.md](ARCHITECTURE_REVIEW_FR.md)** - Analyse architecture détaillée (1100+ lignes)
@@ -21,7 +24,6 @@ Bienvenue dans la documentation complète du projet Ring General. Ce document vo
 - **[FULLSCREEN_MODE.md](FULLSCREEN_MODE.md)** - Documentation mode plein écran
 - **[SCHEMA_MIGRATION_STRATEGY.md](SCHEMA_MIGRATION_STRATEGY.md)** - Stratégie de migration de schéma
 - **[PERFORMANCE_FR.md](PERFORMANCE_FR.md)** - Guide des performances
-- **[MODIFICATIONS_EFFECTUEES.md](MODIFICATIONS_EFFECTUEES.md)** - Journal des modifications
 
 ## 📋 Planification & Sprints
 
@@ -70,13 +72,25 @@ docs/
 
 ### Développement
 - [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)
-- [MODIFICATIONS_EFFECTUEES.md](MODIFICATIONS_EFFECTUEES.md)
 - [planning/PLAN_IMPLEMENTATION_TECHNIQUE.md](planning/PLAN_IMPLEMENTATION_TECHNIQUE.md)
 
 ### Planification Projet
 - [ROADMAP_MISE_A_JOUR.md](ROADMAP_MISE_A_JOUR.md)
 - [sprints/](sprints/)
 - [planning/](planning/)
+
+---
+
+## 📦 Fichiers Archivés
+
+Les documents suivants ont été archivés dans `/_archived_files/` car ils étaient redondants ou obsolètes:
+
+- **CURRENT_STATE.md** - Fusionné dans PROJECT_STATUS.md
+- **RECAPITULATIF_TECHNIQUE.md** - Fusionné dans PROJECT_STATUS.md
+- **RAPPORT_IMPLEMENTATION_FINALE.md** - Rapport ponctuel du 7 jan 2026 (archivé)
+- **MODIFICATIONS_EFFECTUEES.md** - Changelog du 7 jan 2026 (archivé)
+
+Ces fichiers restent accessibles pour consultation historique.
 
 ---
 

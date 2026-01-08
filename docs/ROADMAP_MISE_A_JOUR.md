@@ -11,7 +11,7 @@
 **Phase actuelle**: **Phase 1 - Fondations UI/UX (40% complété)**
 **Sprint actuel**: **Sprint 1 - Composants UI Réutilisables** (Démarré 7 janvier 2026)
 
-⚠️ **MISE À JOUR IMPORTANTE** : Suite à un audit complet du code source, il s'avère que le projet est **significativement plus avancé** que ce que la documentation précédente indiquait. Voir [CURRENT_STATE.md](./CURRENT_STATE.md) pour l'état détaillé.
+⚠️ **MISE À JOUR IMPORTANTE** : Suite à un audit complet du code source, il s'avère que le projet est **significativement plus avancé** que ce que la documentation précédente indiquait. Voir [PROJECT_STATUS.md](./PROJECT_STATUS.md) pour l'état consolidé du projet.
 
 ---
 
@@ -27,7 +27,7 @@
 | Configurer le DI correctement | ✅ FAIT | 🔴 CRITIQUE | App.axaml.cs OK |
 | Créer le système de navigation | ✅ FAIT | 🔴 CRITIQUE | ShellViewModel + NavigationService |
 | Supprimer les fichiers obsolètes | ✅ FAIT | 🟡 MOYENNE | Archivés dans _archived_files/ |
-| Documenter l'architecture | ✅ FAIT | 🟡 MOYENNE | RECAPITULATIF_TECHNIQUE.md |
+| Documenter l'architecture | ✅ FAIT | 🟡 MOYENNE | PROJECT_STATUS.md |
 | Créer les ViewModels manquants | ✅ FAIT | 🔴 HAUTE | **12/12 créés** (100%) |
 | Créer les Views correspondantes | ✅ FAIT | 🔴 HAUTE | **13/13 créées** (100%) |
 | Peupler la DB avec données de test | ✅ FAIT | 🔴 HAUTE | **DbSeeder implémenté** avec import BAKI |
@@ -415,10 +415,9 @@ Views/
 
 ## 🔗 RÉFÉRENCES
 
-- 🆕 [**CURRENT_STATE.md**](./CURRENT_STATE.md) - **État factuel complet basé sur audit du code** (7 jan 2026)
-- [RECAPITULATIF_TECHNIQUE.md](./RECAPITULATIF_TECHNIQUE.md) - Récapitulatif technique (antérieur)
-- [PLAN_IMPLEMENTATION_TECHNIQUE.md](./PLAN_IMPLEMENTATION_TECHNIQUE.md) - Plan long terme (vision)
-- [COMPARAISON_ET_PROCHAINES_ETAPES.md](./COMPARAISON_ET_PROCHAINES_ETAPES.md) - Comparaison des plans
+- 🆕 [**PROJECT_STATUS.md**](./PROJECT_STATUS.md) - **État consolidé du projet** (8 jan 2026)
+- [planning/PLAN_IMPLEMENTATION_TECHNIQUE.md](./planning/PLAN_IMPLEMENTATION_TECHNIQUE.md) - Plan long terme (vision)
+- [planning/COMPARAISON_ET_PROCHAINES_ETAPES.md](./planning/COMPARAISON_ET_PROCHAINES_ETAPES.md) - Comparaison des plans
 - [README.md](./README.md) - Documentation principale
 - [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md) - Guide de démarrage
 - [specs/roadmap.fr.json](./specs/roadmap.fr.json) - Roadmap JSON
