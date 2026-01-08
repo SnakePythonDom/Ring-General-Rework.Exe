@@ -25,7 +25,11 @@ public sealed class ShowDayOrchestrator
         IShowSchedulerStore? showScheduler = null,
         TitleService? titleService = null,
         IRandomProvider? random = null,
-        IBookerAIEngine? bookerAIEngine = null)
+        IBookerAIEngine? bookerAIEngine = null,
+        IImpactApplier? impactApplier = null,
+        IMoraleEngine? moraleEngine = null,
+        Func<string, ShowContext?>? contextLoader = null,
+        Action<string, ShowStatus>? statusUpdater = null)
     {
         _showScheduler = showScheduler;
         _titleService = titleService;
