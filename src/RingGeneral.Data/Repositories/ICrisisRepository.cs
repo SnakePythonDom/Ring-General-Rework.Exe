@@ -54,6 +54,11 @@ public interface ICrisisRepository
     /// </summary>
     Task<int> CountActiveCrisesAsync(string companyId);
 
+    /// <summary>
+    /// Compte le nombre de crises résolues
+    /// </summary>
+    Task<int> GetResolvedCrisesCountAsync(string companyId);
+
     // ====================================================================
     // COMMUNICATION OPERATIONS
     // ====================================================================

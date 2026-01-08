@@ -7,7 +7,7 @@ using RingGeneral.UI.ViewModels;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Models.Crisis;
 using RingGeneral.Core.Services;
-using RingGeneral.Core.Interfaces;
+using CrisisModel = RingGeneral.Core.Models.Crisis.Crisis;
 
 namespace RingGeneral.UI.ViewModels.Crisis;
 
@@ -27,7 +27,7 @@ public sealed class CrisisViewModel : ViewModelBase
     private int _criticalCrisesCount = 0;
     private int _totalCrisesResolved = 0;
     private double _communicationSuccessRate = 0.0;
-    private Core.Models.Crisis.Crisis? _selectedCrisis = null;
+    private CrisisModel? _selectedCrisis = null;
     private bool _isCommuncationDialogOpen = false;
 
     // Communication dialog properties
@@ -107,7 +107,7 @@ public sealed class CrisisViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _communicationSuccessRate, value);
     }
 
-    public Core.Models.Crisis.Crisis? SelectedCrisis
+    public CrisisModel? SelectedCrisis
     {
         get => _selectedCrisis;
         set
@@ -376,9 +376,9 @@ public sealed class CrisisViewModel : ViewModelBase
 /// </summary>
 public sealed class CrisisItemViewModel : ViewModelBase
 {
-    public Core.Models.Crisis.Crisis? Crisis { get; }
+    public CrisisModel? Crisis { get; }
 
-    public CrisisItemViewModel(Core.Models.Crisis.Crisis crisis)
+    public CrisisItemViewModel(CrisisModel crisis)
     {
         Crisis = crisis;
     }
