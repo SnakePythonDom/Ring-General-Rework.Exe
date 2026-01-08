@@ -16,6 +16,8 @@ public sealed class WeeklyLoopService
     private readonly IScoutingRepository _scoutingRepository;
     private readonly IMoraleEngine? _moraleEngine;
     private readonly IRumorEngine? _rumorEngine;
+    private readonly ICrisisEngine? _crisisEngine;
+    private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly SeededRandomProvider _random = new(42);
     private readonly SpecsReader _specsReader = new();
 
@@ -23,12 +25,16 @@ public sealed class WeeklyLoopService
         GameRepository repository,
         IScoutingRepository scoutingRepository,
         IMoraleEngine? moraleEngine = null,
-        IRumorEngine? rumorEngine = null)
+        IRumorEngine? rumorEngine = null,
+        ICrisisEngine? crisisEngine = null,
+        IBookerAIEngine? bookerAIEngine = null)
     {
         _repository = repository;
         _scoutingRepository = scoutingRepository;
         _moraleEngine = moraleEngine;
         _rumorEngine = rumorEngine;
+        _crisisEngine = crisisEngine;
+        _bookerAIEngine = bookerAIEngine;
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -59,6 +65,12 @@ public sealed class WeeklyLoopService
 
         // Progression du moral et des rumeurs (Phase 3)
         inboxItems.AddRange(ProgresserMoraleEtRumeurs(semaine, showId));
+
+        // Progression des crises (Phase 5)
+        inboxItems.AddRange(ProgresserCrises(semaine, showId));
+
+        // Déclin des mémoires du booker (Phase 4)
+        ProgresserMemoiresBooker(semaine, showId);
 
         foreach (var item in inboxItems)
         {
@@ -519,6 +531,96 @@ public sealed class WeeklyLoopService
         }
 
         return items;
+    }
+
+    /// <summary>
+    /// Progresse toutes les crises actives (Phase 5)
+    /// </summary>
+    private IEnumerable<InboxItem> ProgresserCrises(int semaine, string showId)
+    {
+        var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
+        if (string.IsNullOrWhiteSpace(compagnieId))
+        {
+            return Array.Empty<InboxItem>();
+        }
+
+        var items = new List<InboxItem>();
+
+        if (_crisisEngine is not null)
+        {
+            try
+            {
+                // Détecter déclenchement de nouvelles crises basé sur le moral
+                var companyMorale = _moraleEngine?.CalculateCompanyMorale(compagnieId);
+                var moraleScore = companyMorale?.GlobalMoraleScore ?? 70;
+                var activeRumorsCount = _rumorEngine?.GetActiveRumors(compagnieId).Count ?? 0;
+
+                if (_crisisEngine.ShouldTriggerCrisis(compagnieId, moraleScore, activeRumorsCount))
+                {
+                    var triggerReason = moraleScore < 30
+                        ? "Effondrement moral dans les vestiaires"
+                        : activeRumorsCount >= 5
+                            ? "Rumeurs incontrôlables backstage"
+                            : "Tensions backstage grandissantes";
+
+                    var severity = moraleScore < 30 ? 4 : activeRumorsCount >= 5 ? 3 : 2;
+                    var newCrisis = _crisisEngine.CreateCrisis(compagnieId, triggerReason, severity);
+
+                    items.Add(new InboxItem(
+                        "crise",
+                        "🔥 Nouvelle Crise Détectée",
+                        $"Une crise de type {newCrisis.CrisisType} est apparue: {newCrisis.Description}",
+                        semaine));
+                }
+
+                // Progresser les crises existantes
+                _crisisEngine.ProgressCrises(compagnieId);
+
+                // Notifier les crises critiques
+                var criticalCrises = _crisisEngine.GetCriticalCrises(compagnieId);
+                foreach (var crisis in criticalCrises.Take(2)) // Max 2 notifications par semaine
+                {
+                    items.Add(new InboxItem(
+                        "crise",
+                        "⚠️ Crise Critique",
+                        $"{crisis.CrisisType}: {crisis.Description} (Stage: {crisis.Stage}, Escalade: {crisis.EscalationScore}/100)",
+                        semaine));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[WeeklyLoopService] Erreur progression crises: {ex.Message}");
+            }
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// Applique le déclin naturel des mémoires du booker (Phase 4)
+    /// </summary>
+    private void ProgresserMemoiresBooker(int semaine, string showId)
+    {
+        var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
+        if (string.IsNullOrWhiteSpace(compagnieId))
+        {
+            return;
+        }
+
+        if (_bookerAIEngine is not null)
+        {
+            try
+            {
+                // Appliquer le déclin d'une semaine sur toutes les mémoires
+                _bookerAIEngine.ApplyMemoryDecay(compagnieId, weeksPassed: 1);
+
+                Console.WriteLine($"[WeeklyLoopService] Déclin des mémoires booker appliqué pour {compagnieId}");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[WeeklyLoopService] Erreur déclin mémoires booker: {ex.Message}");
+            }
+        }
     }
 
 }
