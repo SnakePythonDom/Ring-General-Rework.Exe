@@ -194,14 +194,16 @@ public sealed class TableViewViewModel : ViewModelBase
         // Ajouter la compagnie
         Items.Add(new TableViewItemViewModel(
             context.Compagnie.CompagnieId,
-            "Compagnie",
             context.Compagnie.Nom,
+            "Compagnie",
             context.Compagnie.Nom,
             "-",
             $"Prestige {context.Compagnie.Prestige}",
-            context.Compagnie.Popularite,
+            0, // CompanyState n'a pas de Popularite, utiliser 0
             0,
-            0));
+            0,
+            $"Prestige {context.Compagnie.Prestige}",
+            Array.Empty<string>()));
 
         // Ajouter les workers
         foreach (var worker in context.Workers)
@@ -209,14 +211,16 @@ public sealed class TableViewViewModel : ViewModelBase
             var note = (int)Math.Round((worker.InRing + worker.Entertainment + worker.Story) / 3.0);
             Items.Add(new TableViewItemViewModel(
                 worker.WorkerId,
-                "Worker",
                 worker.NomComplet,
+                "Worker",
                 context.Compagnie.Nom,
                 worker.RoleTv,
                 string.IsNullOrWhiteSpace(worker.Blessure) ? "Actif" : "Blessé",
                 worker.Popularite,
                 worker.Momentum,
-                note));
+                note,
+                $"{worker.RoleTv} • Pop {worker.Popularite} • Note {note}",
+                Array.Empty<string>()));
         }
 
         // Ajouter les titres
@@ -224,32 +228,38 @@ public sealed class TableViewViewModel : ViewModelBase
         {
             var detenteur = context.Workers.FirstOrDefault(w => w.WorkerId == titre.DetenteurId);
             var statut = detenteur is null ? "Vacant" : "Défendu";
+            var detenteurNom = detenteur?.NomComplet ?? "Vacant";
             Items.Add(new TableViewItemViewModel(
                 titre.TitreId,
-                "Titre",
                 titre.Nom,
+                "Titre",
                 "-",
                 "-",
                 statut,
                 titre.Prestige,
                 0,
-                0));
+                0,
+                $"Détenteur: {detenteurNom}",
+                Array.Empty<string>()));
         }
 
         // Ajouter les storylines
         foreach (var storyline in context.Storylines)
         {
             var statut = GetStatusLabel(storyline.Status);
+            var participantsCount = storyline.Participants.Count;
             Items.Add(new TableViewItemViewModel(
                 storyline.StorylineId,
-                "Storyline",
                 storyline.Nom,
+                "Storyline",
                 "-",
                 "-",
                 statut,
                 0,
                 0,
-                0));
+                0,
+                $"{participantsCount} participant(s) • {statut}",
+                Array.Empty<string>()));
         }
 
         UpdateResultsResume();
@@ -383,10 +393,10 @@ public sealed class TableViewViewModel : ViewModelBase
             }
 
             // Load column order
-            if (settings.OrdreColonnes?.Any() == true)
+            if (settings.ColonnesOrdre?.Any() == true)
             {
                 var mapping = Columns.ToDictionary(c => c.Id, StringComparer.OrdinalIgnoreCase);
-                var newOrder = settings.OrdreColonnes
+                var newOrder = settings.ColonnesOrdre
                     .Select(id => mapping.TryGetValue(id, out var col) ? col : null)
                     .Where(col => col is not null)
                     .Select(col => col!)
@@ -447,8 +457,8 @@ public sealed class TableViewViewModel : ViewModelBase
         return status switch
         {
             StorylineStatus.Active => "Actif",
-            StorylineStatus.OnHold => "En pause",
-            StorylineStatus.Terminee => "Terminée",
+            StorylineStatus.Suspended => "En pause",
+            StorylineStatus.Completed => "Terminée",
             _ => "Inconnue"
         };
     }
