@@ -120,6 +120,9 @@ public sealed class App : Application
         services.AddTransient<FinanceViewModel>();
         services.AddTransient<CalendarViewModel>();
 
+        // Company Hub ViewModels
+        services.AddTransient<ViewModels.CompanyHub.CompanyHubViewModel>();
+
         var provider = services.BuildServiceProvider();
 
         // Obtenir le NavigationService

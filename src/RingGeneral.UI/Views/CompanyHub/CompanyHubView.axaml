@@ -1,0 +1,325 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.CompanyHub"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="RingGeneral.UI.Views.CompanyHub.CompanyHubView"
+             x:DataType="vm:CompanyHubViewModel">
+
+  <Grid Background="#0a0a0a" RowDefinitions="Auto,*">
+
+    <!-- Header avec switch Ma Compagnie / Rivales -->
+    <Border Grid.Row="0"
+            Background="#1e293b"
+            Padding="30,20"
+            BorderBrush="#334155"
+            BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="*,Auto">
+
+        <!-- Titre et infos compagnie -->
+        <StackPanel Grid.Column="0" Spacing="10">
+          <TextBlock Text="🏢 COMPANY HUB"
+                     FontSize="32"
+                     FontWeight="Bold"
+                     Foreground="White"/>
+          <TextBlock IsVisible="{Binding CurrentCompany, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Run Text="{Binding CurrentCompany.Nom}" FontSize="20" FontWeight="SemiBold" Foreground="#3b82f6"/>
+            <Run Text=" • " Foreground="#64748b"/>
+            <Run Text="{Binding CurrentCompany.CurrentEra}" FontSize="16" Foreground="#94a3b8"/>
+          </TextBlock>
+        </StackPanel>
+
+        <!-- Bouton switch -->
+        <Button Grid.Column="1"
+                Content="{Binding SwitchButtonText}"
+                Background="#3b82f6"
+                Foreground="White"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Padding="20,12"
+                CornerRadius="8"
+                Command="{Binding SwitchToRivalsCommand}"
+                IsVisible="{Binding !IsViewingRival}">
+          <Button.Styles>
+            <Style Selector="Button:pointerover">
+              <Setter Property="Background" Value="#2563eb"/>
+            </Style>
+          </Button.Styles>
+        </Button>
+
+        <Button Grid.Column="1"
+                Content="{Binding SwitchButtonText}"
+                Background="#374151"
+                Foreground="White"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Padding="20,12"
+                CornerRadius="8"
+                Command="{Binding SwitchToMyCompanyCommand}"
+                IsVisible="{Binding IsViewingRival}">
+          <Button.Styles>
+            <Style Selector="Button:pointerover">
+              <Setter Property="Background" Value="#4b5563"/>
+            </Style>
+          </Button.Styles>
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Tabs content -->
+    <TabControl Grid.Row="1"
+                SelectedIndex="{Binding SelectedTabIndex}"
+                Background="#0a0a0a"
+                Padding="20">
+
+      <!-- Tab 1: Profil -->
+      <TabItem Header="📊 PROFIL">
+        <ScrollViewer>
+          <StackPanel Margin="20" Spacing="30">
+
+            <!-- Header Company -->
+            <Border Background="#1e293b"
+                    CornerRadius="12"
+                    Padding="30"
+                    BoxShadow="0 4 16 #00000040">
+              <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+
+                <!-- Logo -->
+                <Border Grid.Column="0"
+                        Grid.RowSpan="2"
+                        Width="100"
+                        Height="100"
+                        CornerRadius="12"
+                        Background="#3b82f6"
+                        VerticalAlignment="Center">
+                  <TextBlock Text="{Binding CurrentStyle.IconName}"
+                             FontSize="48"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Nom et pays -->
+                <StackPanel Grid.Column="1"
+                            Grid.Row="0"
+                            Margin="25,0,0,0"
+                            VerticalAlignment="Center"
+                            Spacing="8">
+                  <TextBlock Text="{Binding CurrentCompany.Nom}"
+                             FontSize="32"
+                             FontWeight="Bold"
+                             Foreground="White"/>
+                  <StackPanel Orientation="Horizontal" Spacing="15">
+                    <TextBlock Text="{Binding CurrentCompany.Region}"
+                               FontSize="16"
+                               Foreground="#94a3b8"/>
+                    <TextBlock Text="•" Foreground="#64748b"/>
+                    <TextBlock FontSize="16" Foreground="#94a3b8">
+                      <Run Text="Fondée en "/>
+                      <Run Text="{Binding CurrentCompany.FoundedYear}" FontWeight="SemiBold"/>
+                    </TextBlock>
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- Stats rapides -->
+                <StackPanel Grid.Column="2"
+                            Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Spacing="10"
+                            VerticalAlignment="Center">
+                  <Border Background="#0f172a" CornerRadius="8" Padding="15,10">
+                    <StackPanel Spacing="5">
+                      <TextBlock Text="TRÉSORERIE" FontSize="12" Foreground="#64748b"/>
+                      <TextBlock Text="{Binding CurrentCompany.Tresorerie, StringFormat='${0:N0}'}"
+                                 FontSize="20"
+                                 FontWeight="Bold"
+                                 Foreground="#10b981"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Background="#0f172a" CornerRadius="8" Padding="15,10">
+                    <StackPanel Spacing="5">
+                      <TextBlock Text="PRESTIGE" FontSize="12" Foreground="#64748b"/>
+                      <TextBlock FontSize="20" FontWeight="Bold" Foreground="#3b82f6">
+                        <Run Text="{Binding CurrentCompany.Prestige}"/>
+                        <Run Text="/100" FontSize="14" Foreground="#94a3b8"/>
+                      </TextBlock>
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+
+                <!-- Era -->
+                <Border Grid.Column="1"
+                        Grid.Row="1"
+                        Margin="25,10,0,0"
+                        Background="#8b5cf6"
+                        CornerRadius="6"
+                        Padding="12,6"
+                        HorizontalAlignment="Left">
+                  <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White">
+                    <Run Text="🎭 "/>
+                    <Run Text="{Binding CurrentCompany.CurrentEra}"/>
+                  </TextBlock>
+                </Border>
+              </Grid>
+            </Border>
+
+            <!-- Direction (Owner + Booker) -->
+            <StackPanel Spacing="15">
+              <TextBlock Text="👔 DIRECTION"
+                         FontSize="20"
+                         FontWeight="Bold"
+                         Foreground="White"
+                         Margin="0,0,0,10"/>
+
+              <WrapPanel>
+                <!-- Owner Card -->
+                <Border Background="#1e293b"
+                        CornerRadius="12"
+                        Padding="25"
+                        Width="400"
+                        Margin="0,0,20,0"
+                        BoxShadow="0 2 8 #00000020">
+                  <StackPanel Spacing="12">
+                    <TextBlock Text="OWNER" FontSize="14" FontWeight="SemiBold" Foreground="#64748b"/>
+                    <TextBlock Text="{Binding CurrentOwner.Name}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               IsVisible="{Binding CurrentOwner, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <TextBlock Text="(Aucun owner)"
+                               FontSize="20"
+                               Foreground="#64748b"
+                               FontStyle="Italic"
+                               IsVisible="{Binding CurrentOwner, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding CurrentOwner, Converter={x:Static ObjectConverters.IsNotNull}}">
+                      <TextBlock FontSize="14">
+                        <Run Text="Vision: " Foreground="#94a3b8"/>
+                        <Run Text="{Binding CurrentOwner.VisionType}" Foreground="White" FontWeight="SemiBold"/>
+                      </TextBlock>
+                      <TextBlock FontSize="14">
+                        <Run Text="Product: " Foreground="#94a3b8"/>
+                        <Run Text="{Binding CurrentOwner.PreferredProductType}" Foreground="White" FontWeight="SemiBold"/>
+                      </TextBlock>
+                      <TextBlock FontSize="14">
+                        <Run Text="Risk Tolerance: " Foreground="#94a3b8"/>
+                        <Run Text="{Binding CurrentOwner.RiskTolerance}" Foreground="#3b82f6" FontWeight="Bold"/>
+                        <Run Text="/100" Foreground="#64748b"/>
+                      </TextBlock>
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+
+                <!-- Booker Card -->
+                <Border Background="#1e293b"
+                        CornerRadius="12"
+                        Padding="25"
+                        Width="400"
+                        BoxShadow="0 2 8 #00000020">
+                  <StackPanel Spacing="12">
+                    <TextBlock Text="HEAD BOOKER" FontSize="14" FontWeight="SemiBold" Foreground="#64748b"/>
+                    <TextBlock Text="{Binding CurrentBooker.Name}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               IsVisible="{Binding CurrentBooker, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <TextBlock Text="(Aucun booker)"
+                               FontSize="20"
+                               Foreground="#64748b"
+                               FontStyle="Italic"
+                               IsVisible="{Binding CurrentBooker, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding CurrentBooker, Converter={x:Static ObjectConverters.IsNotNull}}">
+                      <TextBlock FontSize="14">
+                        <Run Text="Creativity: " Foreground="#94a3b8"/>
+                        <Run Text="{Binding CurrentBooker.CreativityScore}" Foreground="#8b5cf6" FontWeight="Bold"/>
+                        <Run Text="/100" Foreground="#64748b"/>
+                      </TextBlock>
+                      <TextBlock FontSize="14">
+                        <Run Text="Logic: " Foreground="#94a3b8"/>
+                        <Run Text="{Binding CurrentBooker.LogicScore}" Foreground="#10b981" FontWeight="Bold"/>
+                        <Run Text="/100" Foreground="#64748b"/>
+                      </TextBlock>
+                      <TextBlock FontSize="14">
+                        <Run Text="Style: " Foreground="#94a3b8"/>
+                        <Run Text="{Binding CurrentBooker.PreferredStyle}" Foreground="White" FontWeight="SemiBold"/>
+                      </TextBlock>
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </WrapPanel>
+            </StackPanel>
+
+            <!-- Style de Catch -->
+            <Border Background="#1e293b"
+                    CornerRadius="12"
+                    Padding="25"
+                    IsVisible="{Binding CurrentStyle, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="🎭 CATCH STYLE" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="15">
+                  <TextBlock Text="{Binding CurrentStyle.IconName}" FontSize="32" VerticalAlignment="Center"/>
+                  <StackPanel>
+                    <TextBlock Text="{Binding CurrentStyle.Name}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               Foreground="White"/>
+                    <TextBlock Text="{Binding CurrentStyle.Description}"
+                               FontSize="14"
+                               Foreground="#94a3b8"
+                               TextWrapping="Wrap"
+                               MaxWidth="600"/>
+                  </StackPanel>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Tab 2-5: Placeholder pour les autres onglets -->
+      <TabItem Header="👥 STAFF">
+        <Border Background="#1e293b" CornerRadius="12" Margin="20" Padding="40">
+          <TextBlock Text="📋 Staff Tab - À implémenter"
+                     FontSize="24"
+                     Foreground="#64748b"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="🥋 ROSTER">
+        <Border Background="#1e293b" CornerRadius="12" Margin="20" Padding="40">
+          <TextBlock Text="📋 Roster Tab - À implémenter"
+                     FontSize="24"
+                     Foreground="#64748b"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="👥 TEAMS">
+        <Border Background="#1e293b" CornerRadius="12" Margin="20" Padding="40">
+          <TextBlock Text="📋 Teams Tab - À implémenter"
+                     FontSize="24"
+                     Foreground="#64748b"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+        </Border>
+      </TabItem>
+
+      <TabItem Header="🏆 HISTOIRE">
+        <Border Background="#1e293b" CornerRadius="12" Margin="20" Padding="40">
+          <TextBlock Text="📋 Histoire Tab - À implémenter"
+                     FontSize="24"
+                     Foreground="#64748b"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+        </Border>
+      </TabItem>
+
+    </TabControl>
+
+  </Grid>
+</UserControl>
