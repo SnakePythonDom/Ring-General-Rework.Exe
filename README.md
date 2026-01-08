@@ -2,15 +2,18 @@
 
 ## ⚠️ État Actuel du Projet (Janvier 2026)
 
-**Version actuelle :** Phase 2 - ~35% complété
-**Dernière mise à jour architecture :** 7 janvier 2026
+**Version actuelle :** Phase 1.5+ - ~45-50% complété
+**Dernière mise à jour architecture :** 8 janvier 2026 (Vérification complète)
 **Dernière réorganisation :** 8 janvier 2026 - Fichiers triés et organisés dans docs/, data/, _archived_files/
 
 ### 📊 Statut Développement
-- ✅ **Architecture MVVM** : Core, Repositories, Services en place
+- ✅ **Architecture MVVM** : **Exemplaire** - 23+ repositories spécialisés créés
+- ✅ **Refactoring majeur** : GameRepository réduit de 75% (3,874 → 977 lignes)
+- ✅ **Systèmes backstage avancés** : Moral, Rumeurs, Népotisme, Crises, IA Booker/Propriétaire
 - ✅ **Navigation** : Prototype D (FM26 dual-pane) implémenté
-- ✅ **ViewModels créés** : 17 ViewModels (Dashboard, Booking, Roster, Finance, Youth, Calendar, etc.)
+- ✅ **ViewModels créés** : 48+ ViewModels (Dashboard, Booking, Roster, Finance, Youth, Calendar, etc.)
 - ✅ **Base de données** : SQLite avec DbSeeder automatique
+- ✅ **Attributs & Personnalité** : 40 attributs détaillés, 25+ profils de personnalité
 - ⏳ **UI** : Interface partiellement fonctionnelle (en cours)
 - ⏳ **Gameplay** : Boucle de base en développement
 
@@ -21,11 +24,13 @@ Pour comprendre l'état actuel du projet, consultez **dans cet ordre** :
 3. **[docs/ARCHITECTURE_REVIEW_FR.md](docs/ARCHITECTURE_REVIEW_FR.md)** - Analyse architecture détaillée (1100+ lignes)
 4. **[docs/INDEX.md](docs/INDEX.md)** - Index complet de la documentation
 
-### 🎯 Prochaines Étapes (Phase 3 - Janvier 2026)
+### 🎯 Prochaines Étapes (Phase 2 - Janvier 2026)
 - Créer les Views manquantes pour tous les ViewModels
 - Compléter l'intégration BAKI1.1.db
 - Implémenter la recherche globale
 - Finaliser le système de validation du booking
+- Documenter les nouveaux systèmes backstage
+- Connecter la boucle de jeu end-to-end
 
 **Le reste de ce document décrit la vision produit complète (objectif final).**
 
