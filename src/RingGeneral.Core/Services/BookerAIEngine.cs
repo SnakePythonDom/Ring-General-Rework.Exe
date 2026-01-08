@@ -1,4 +1,5 @@
 using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Booker;
 using System;
 using System.Collections.Generic;
@@ -303,5 +304,423 @@ public sealed class BookerAIEngine : IBookerAIEngine
         }
 
         return Math.Clamp(baseScore, 0, 100);
+    }
+
+    public List<SegmentDefinition> GenerateAutoBooking(
+        string bookerId,
+        ShowContext showContext,
+        List<SegmentDefinition>? existingSegments = null,
+        AutoBookingConstraints? constraints = null)
+    {
+        if (_bookerRepository == null)
+            return new List<SegmentDefinition>();
+
+        var booker = _bookerRepository.GetBookerByIdAsync(bookerId).Result;
+        if (booker == null || !booker.CanAutoBook())
+            return new List<SegmentDefinition>();
+
+        // Initialiser les contraintes par défaut
+        constraints ??= new AutoBookingConstraints();
+        existingSegments ??= new List<SegmentDefinition>();
+
+        // Récupérer les mémoires influentes
+        var memories = GetInfluentialMemories(bookerId);
+
+        // Filtrer les workers disponibles selon les contraintes
+        var availableWorkers = FilterAvailableWorkers(showContext, constraints, existingSegments);
+
+        // Calculer la durée restante à remplir
+        var existingDuration = existingSegments.Sum(s => s.DureeMinutes);
+        var targetDuration = constraints.TargetDuration ?? showContext.Show.DureeMinutes;
+        var remainingDuration = targetDuration - existingDuration;
+
+        // Générer les segments
+        var generatedSegments = new List<SegmentDefinition>();
+        var usedWorkerIds = new HashSet<string>(
+            existingSegments.SelectMany(s => s.Participants)
+        );
+
+        // Vérifier si un main event existe déjà
+        var hasMainEvent = existingSegments.Any(s => s.EstMainEvent);
+
+        // 1. Créer le main event si nécessaire et si durée suffisante
+        if (!hasMainEvent && constraints.RequireMainEvent && remainingDuration >= 20)
+        {
+            var mainEvent = CreateMainEvent(booker, showContext, availableWorkers, usedWorkerIds, memories, constraints);
+            if (mainEvent != null)
+            {
+                generatedSegments.Add(mainEvent);
+                remainingDuration -= mainEvent.DureeMinutes;
+
+                if (constraints.ForbidMultipleAppearances)
+                {
+                    foreach (var participantId in mainEvent.Participants)
+                    {
+                        usedWorkerIds.Add(participantId);
+                    }
+                }
+            }
+        }
+
+        // 2. Utiliser les storylines actives si priorité
+        if (constraints.PrioritizeActiveStorylines)
+        {
+            var storylineSegments = CreateStorylineSegments(
+                booker, showContext, availableWorkers, usedWorkerIds, memories, constraints, remainingDuration);
+
+            foreach (var segment in storylineSegments)
+            {
+                if (remainingDuration < 10) break;
+
+                generatedSegments.Add(segment);
+                remainingDuration -= segment.DureeMinutes;
+
+                if (constraints.ForbidMultipleAppearances)
+                {
+                    foreach (var participantId in segment.Participants)
+                    {
+                        usedWorkerIds.Add(participantId);
+                    }
+                }
+            }
+        }
+
+        // 3. Remplir avec des segments basés sur les préférences du booker
+        while (remainingDuration >= 10 && generatedSegments.Count < constraints.MaxSegments)
+        {
+            var segment = CreateSegmentBasedOnPreferences(
+                booker, showContext, availableWorkers, usedWorkerIds, memories, constraints, remainingDuration);
+
+            if (segment == null)
+                break;
+
+            generatedSegments.Add(segment);
+            remainingDuration -= segment.DureeMinutes;
+
+            if (constraints.ForbidMultipleAppearances)
+            {
+                foreach (var participantId in segment.Participants)
+                {
+                    usedWorkerIds.Add(participantId);
+                }
+            }
+        }
+
+        return generatedSegments;
+    }
+
+    // ====================================================================
+    // HELPER METHODS FOR AUTO-BOOKING
+    // ====================================================================
+
+    /// <summary>
+    /// Filtre les workers disponibles selon les contraintes
+    /// </summary>
+    private List<WorkerSnapshot> FilterAvailableWorkers(
+        ShowContext context,
+        AutoBookingConstraints constraints,
+        List<SegmentDefinition> existingSegments)
+    {
+        var workers = context.Workers.ToList();
+
+        // Exclure les workers bannis
+        workers = workers.Where(w => !constraints.BannedWorkers.Contains(w.WorkerId)).ToList();
+
+        // Exclure les workers blessés si interdit
+        if (constraints.ForbidInjuredWorkers)
+        {
+            workers = workers.Where(w => string.IsNullOrEmpty(w.Blessure) || w.Blessure == "Aucune").ToList();
+        }
+
+        // Exclure les workers avec fatigue trop élevée
+        workers = workers.Where(w => w.Fatigue <= constraints.MaxFatigueLevel).ToList();
+
+        // Exclure les workers déjà utilisés si ForbidMultipleAppearances
+        if (constraints.ForbidMultipleAppearances)
+        {
+            var usedWorkerIds = existingSegments.SelectMany(s => s.Participants).ToHashSet();
+            workers = workers.Where(w => !usedWorkerIds.Contains(w.WorkerId)).ToList();
+        }
+
+        return workers;
+    }
+
+    /// <summary>
+    /// Crée un main event basé sur les préférences du booker
+    /// </summary>
+    private SegmentDefinition? CreateMainEvent(
+        Booker booker,
+        ShowContext context,
+        List<WorkerSnapshot> availableWorkers,
+        HashSet<string> usedWorkerIds,
+        List<BookerMemory> memories,
+        AutoBookingConstraints constraints)
+    {
+        // Filtrer les workers non utilisés
+        var candidates = availableWorkers
+            .Where(w => !usedWorkerIds.Contains(w.WorkerId))
+            .OrderByDescending(w => w.Popularite)
+            .Take(10)
+            .ToList();
+
+        if (candidates.Count < 2)
+            return null;
+
+        // Sélectionner les deux meilleurs workers
+        var worker1 = candidates[0];
+        var worker2 = candidates[1];
+
+        // Déterminer la durée selon PreferredProductType
+        var duration = booker.PreferredProductType switch
+        {
+            "Puroresu" => 30, // Matchs longs
+            "Hardcore" => 25,
+            "Technical" => 25,
+            _ => 20
+        };
+
+        // Déterminer l'intensité selon PreferredProductType
+        var intensity = booker.PreferredProductType switch
+        {
+            "Hardcore" => 90, // Très intense
+            "Puroresu" => 80,
+            "Technical" => 70,
+            "Entertainment" => 60,
+            _ => 75
+        };
+
+        // Chercher un titre disponible
+        string? titreId = null;
+        if (constraints.UseTitles)
+        {
+            var availableTitle = context.Titres.FirstOrDefault(t =>
+                t.DetenteurId != null &&
+                (t.DetenteurId == worker1.WorkerId || t.DetenteurId == worker2.WorkerId));
+            titreId = availableTitle?.TitreId;
+        }
+
+        return new SegmentDefinition(
+            $"SEG-AUTO-{Guid.NewGuid():N}".ToUpperInvariant(),
+            "match",
+            new List<string> { worker1.WorkerId, worker2.WorkerId },
+            duration,
+            true, // EstMainEvent
+            null, // StorylineId (sera défini si nécessaire)
+            titreId,
+            intensity,
+            null, // VainqueurId (sera déterminé lors de la simulation)
+            null, // PerdantId
+            new Dictionary<string, string>()
+        );
+    }
+
+    /// <summary>
+    /// Crée des segments basés sur les storylines actives
+    /// </summary>
+    private List<SegmentDefinition> CreateStorylineSegments(
+        Booker booker,
+        ShowContext context,
+        List<WorkerSnapshot> availableWorkers,
+        HashSet<string> usedWorkerIds,
+        List<BookerMemory> memories,
+        AutoBookingConstraints constraints,
+        int remainingDuration)
+    {
+        var segments = new List<SegmentDefinition>();
+
+        // Filtrer les storylines actives
+        var activeStorylines = context.Storylines
+            .Where(s => s.Status == StorylineStatus.Active)
+            .OrderByDescending(s => s.Heat)
+            .ToList();
+
+        foreach (var storyline in activeStorylines)
+        {
+            if (remainingDuration < 10 || segments.Count >= 3)
+                break;
+
+            // Vérifier si les participants de la storyline sont disponibles
+            var storylineWorkerIds = storyline.Participants.Select(p => p.WorkerId).ToList();
+            var availableStorylineWorkers = storylineWorkerIds
+                .Where(wId => !usedWorkerIds.Contains(wId))
+                .Where(wId => availableWorkers.Any(w => w.WorkerId == wId))
+                .Take(2)
+                .ToList();
+
+            if (availableStorylineWorkers.Count < 2)
+                continue;
+
+            // Déterminer le type de segment selon PreferredProductType
+            var segmentType = booker.PreferredProductType == "Entertainment" ? "promo" : "match";
+            var duration = segmentType == "promo" ? 10 : 15;
+
+            segments.Add(new SegmentDefinition(
+                $"SEG-AUTO-{Guid.NewGuid():N}".ToUpperInvariant(),
+                segmentType,
+                availableStorylineWorkers,
+                duration,
+                false,
+                storyline.StorylineId,
+                null,
+                segmentType == "match" ? 70 : 0,
+                null,
+                null,
+                new Dictionary<string, string>()
+            ));
+
+            remainingDuration -= duration;
+
+            if (constraints.ForbidMultipleAppearances)
+            {
+                foreach (var wId in availableStorylineWorkers)
+                {
+                    usedWorkerIds.Add(wId);
+                }
+            }
+        }
+
+        return segments;
+    }
+
+    /// <summary>
+    /// Crée un segment basé sur les préférences du booker
+    /// </summary>
+    private SegmentDefinition? CreateSegmentBasedOnPreferences(
+        Booker booker,
+        ShowContext context,
+        List<WorkerSnapshot> availableWorkers,
+        HashSet<string> usedWorkerIds,
+        List<BookerMemory> memories,
+        AutoBookingConstraints constraints,
+        int remainingDuration)
+    {
+        // Filtrer les workers non utilisés
+        var candidates = availableWorkers
+            .Where(w => !usedWorkerIds.Contains(w.WorkerId))
+            .ToList();
+
+        if (candidates.Count < 2)
+            return null;
+
+        // Déterminer le type de segment selon PreferredProductType
+        string segmentType;
+        int duration;
+        int intensity;
+        int participantCount;
+
+        switch (booker.PreferredProductType)
+        {
+            case "Hardcore":
+                segmentType = "match";
+                duration = Math.Min(20, remainingDuration);
+                intensity = 85;
+                participantCount = 2;
+                break;
+
+            case "Puroresu":
+                segmentType = "match";
+                duration = Math.Min(25, remainingDuration);
+                intensity = 75;
+                participantCount = 2;
+                break;
+
+            case "Technical":
+                segmentType = "match";
+                duration = Math.Min(20, remainingDuration);
+                intensity = 70;
+                participantCount = 2;
+                break;
+
+            case "Entertainment":
+                // Alterner entre promos et matchs
+                segmentType = _random.Next(2) == 0 ? "promo" : "match";
+                duration = segmentType == "promo" ? 10 : 15;
+                intensity = segmentType == "match" ? 60 : 0;
+                participantCount = segmentType == "promo" ? _random.Next(1, 3) : 2;
+                break;
+
+            default: // Balanced
+                segmentType = _random.Next(4) == 0 ? "promo" : "match";
+                duration = segmentType == "promo" ? 10 : 15;
+                intensity = segmentType == "match" ? 70 : 0;
+                participantCount = 2;
+                break;
+        }
+
+        // Sélectionner les participants selon les préférences
+        var participants = SelectParticipants(booker, candidates, participantCount, memories);
+
+        if (participants.Count < participantCount)
+            return null;
+
+        return new SegmentDefinition(
+            $"SEG-AUTO-{Guid.NewGuid():N}".ToUpperInvariant(),
+            segmentType,
+            participants.Select(p => p.WorkerId).ToList(),
+            duration,
+            false,
+            null,
+            null,
+            intensity,
+            null,
+            null,
+            new Dictionary<string, string>()
+        );
+    }
+
+    /// <summary>
+    /// Sélectionne les participants basé sur les préférences du booker
+    /// </summary>
+    private List<WorkerSnapshot> SelectParticipants(
+        Booker booker,
+        List<WorkerSnapshot> candidates,
+        int count,
+        List<BookerMemory> memories)
+    {
+        var scored = new List<(WorkerSnapshot worker, int score)>();
+
+        foreach (var worker in candidates)
+        {
+            var score = 50; // Score de base
+
+            // Appliquer les préférences du booker
+            if (booker.LikesUnderdog && worker.Popularite < 40)
+                score += 20;
+
+            if (booker.LikesVeteran && worker.InRing >= 75)
+                score += 20;
+
+            if (booker.LikesFastRise && worker.Momentum > 60)
+                score += 15;
+
+            // Bonus pour popularité et skills
+            score += worker.Popularite / 5;
+            score += (worker.InRing + worker.Entertainment + worker.Story) / 15;
+
+            // Bonus si mémoires positives
+            var workerMemories = memories
+                .Where(m => m.EventDescription.Contains(worker.WorkerId))
+                .ToList();
+
+            if (workerMemories.Any())
+            {
+                var avgImpact = workerMemories.Average(m => m.ImpactScore);
+                score += (int)(avgImpact / 10);
+            }
+
+            // Aléatoire pour créativité
+            if (booker.CreativityScore >= 70)
+            {
+                score += _random.Next(-15, 25);
+            }
+
+            scored.Add((worker, score));
+        }
+
+        return scored
+            .OrderByDescending(s => s.score)
+            .Take(count)
+            .Select(s => s.worker)
+            .ToList();
     }
 }
