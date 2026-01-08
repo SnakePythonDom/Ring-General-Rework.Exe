@@ -92,6 +92,68 @@
                       HorizontalAlignment="Stretch"/>
           </StackPanel>
 
+          <!-- Catch Style -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Style de Catch *"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#e2e8f0"/>
+            <ComboBox ItemsSource="{Binding AvailableCatchStyles}"
+                      SelectedItem="{Binding SelectedCatchStyle}"
+                      FontSize="18"
+                      Padding="12"
+                      Background="#0f172a"
+                      Foreground="White"
+                      BorderBrush="#475569"
+                      BorderThickness="1"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding IconName}" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Name}" FontSize="16" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding SelectedCatchStyle.Description}"
+                       FontSize="13"
+                       Foreground="#94a3b8"
+                       FontStyle="Italic"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding SelectedCatchStyle, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+          </StackPanel>
+
+          <!-- Founded Year -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Année de fondation"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#e2e8f0"/>
+            <TextBox Text="{Binding FoundedYear}"
+                     Watermark="2024"
+                     FontSize="18"
+                     Padding="12"
+                     Background="#0f172a"
+                     Foreground="White"
+                     BorderBrush="#475569"
+                     BorderThickness="1"
+                     CaretBrush="White">
+              <TextBox.Styles>
+                <Style Selector="TextBox">
+                  <Setter Property="Foreground" Value="White"/>
+                </Style>
+                <Style Selector="TextBox:focus">
+                  <Setter Property="Foreground" Value="White"/>
+                </Style>
+              </TextBox.Styles>
+            </TextBox>
+            <TextBlock Text="L'année de lancement de votre compagnie (1950-2100)"
+                       FontSize="13"
+                       Foreground="#94a3b8"
+                       FontStyle="Italic"/>
+          </StackPanel>
+
           <!-- Starting Prestige -->
           <StackPanel Spacing="8">
             <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#e2e8f0">
