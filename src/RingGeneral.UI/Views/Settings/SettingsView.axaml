@@ -156,24 +156,24 @@
                 <StackPanel Spacing="15">
                     <TextBlock Text="ℹ️ À PROPOS" FontSize="16" Foreground="#64748b" FontWeight="Bold"/>
 
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnGap="15" RowGap="10">
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontSize="13" Foreground="#888888"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="1.0.0 Beta" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontSize="13" Foreground="#888888" Margin="0,0,15,10"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="1.0.0 Beta" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Build:" FontSize="13" Foreground="#888888"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="2024.01.08" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Build:" FontSize="13" Foreground="#888888" Margin="0,0,15,10"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="2024.01.08" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Base de données:" FontSize="13" Foreground="#888888"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="ringgeneral.db" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Base de données:" FontSize="13" Foreground="#888888" Margin="0,0,15,10"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="ringgeneral.db" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Framework:" FontSize="13" Foreground="#888888"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Framework:" FontSize="13" Foreground="#888888" Margin="0,0,15,0"/>
                         <TextBlock Grid.Row="3" Grid.Column="1" Text="Avalonia UI 11.0" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold"/>
                     </Grid>
                 </StackPanel>
             </Border>
 
             <!-- Boutons d'action -->
-            <Grid ColumnDefinitions="*,*" ColumnGap="15">
+            <Grid ColumnDefinitions="*,*">
                 <Button Grid.Column="0"
                       Content="💾 Sauvegarder"
                       Command="{Binding SaveSettingsCommand}"
@@ -183,6 +183,7 @@
                       CornerRadius="6"
                       FontWeight="Bold"
                       FontSize="14"
+                      Margin="0,0,7,0"
                       HorizontalAlignment="Stretch"
                       HorizontalContentAlignment="Center"/>
 
@@ -195,6 +196,7 @@
                       CornerRadius="6"
                       FontWeight="Bold"
                       FontSize="14"
+                      Margin="8,0,0,0"
                       HorizontalAlignment="Stretch"
                       HorizontalContentAlignment="Center"/>
             </Grid>
