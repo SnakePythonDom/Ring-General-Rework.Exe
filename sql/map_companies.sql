@@ -69,12 +69,12 @@ normalized_companies AS (
                     '9',
                     ' '
                 ),
-                    '  ',
-                    ' '
-                ),
                 '  ',
                 ' '
-            )
+            ),
+            '  ',
+            ' '
+        )
         ) AS RawCountryNorm
     FROM LegacyCompanies lc
 ),
@@ -158,12 +158,12 @@ worker_countries AS (
                     '9',
                     ' '
                 ),
-                    '  ',
-                    ' '
-                ),
                 '  ',
                 ' '
-            )
+            ),
+            '  ',
+            ' '
+        )
         ) AS WorkerCountryNorm
     FROM linked_workers lw
     JOIN legacy.workers w ON w.workerID = lw.workerID
