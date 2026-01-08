@@ -390,6 +390,8 @@ public sealed class CalendarViewModel : ViewModelBase
             Notes = "Major PPV event"
         });
     }
+
+    #endregion
 }
 
 public sealed class ShowScheduleItemViewModel : ViewModelBase
