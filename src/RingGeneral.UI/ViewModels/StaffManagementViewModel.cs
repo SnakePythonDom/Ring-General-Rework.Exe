@@ -464,7 +464,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log("Loading staff management data...");
+            Logger.Info("Loading staff management data...");
 
             // Charger tout le staff
             var allStaffMembers = await _staffRepository.GetStaffByCompanyIdAsync(_companyId);
@@ -526,12 +526,12 @@ public sealed class StaffManagementViewModel : ViewModelBase
             TotalStaffCount = allStaffMembers.Count;
             MonthlyStaffCost = await _staffRepository.CalculateMonthlyStaffCostAsync(_companyId);
 
-            Logger.Log($"Loaded {TotalStaffCount} staff members (Creative: {CreativeStaff.Count}, " +
+            Logger.Info($"Loaded {TotalStaffCount} staff members (Creative: {CreativeStaff.Count}, " +
                       $"Structural: {StructuralStaff.Count}, Trainers: {Trainers.Count})");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error loading staff data: {ex.Message}");
+            Logger.Error($"Error loading staff data: {ex.Message}", ex);
         }
     }
 
@@ -539,7 +539,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log($"Loading compatibilities for booker {bookerId}...");
+            Logger.Info($"Loading compatibilities for booker {bookerId}...");
 
             var compatibilityModels = await _compatibilityRepository.GetCompatibilitiesByBookerIdAsync(bookerId);
             Compatibilities.Clear();
@@ -549,15 +549,15 @@ public sealed class StaffManagementViewModel : ViewModelBase
                 var staff = await _staffRepository.GetStaffMemberByIdAsync(compat.StaffId);
                 if (staff != null)
                 {
-                    Compatibilities.Add(MapCompatibilityToViewModel(compat, staff.FullName));
+                    Compatibilities.Add(MapCompatibilityToViewModel(compat, staff.Name));
                 }
             }
 
-            Logger.Log($"Loaded {Compatibilities.Count} compatibilities");
+            Logger.Info($"Loaded {Compatibilities.Count} compatibilities");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error loading compatibilities: {ex.Message}");
+            Logger.Error($"Error loading compatibilities: {ex.Message}", ex);
         }
     }
 
@@ -569,7 +569,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log($"Hiring new staff: {parameters.Member.FullName}...");
+            Logger.Info($"Hiring new staff: {parameters.Member.Name}...");
 
             await _staffRepository.SaveStaffMemberAsync(parameters.Member);
 
@@ -589,11 +589,11 @@ public sealed class StaffManagementViewModel : ViewModelBase
 
             await LoadDataAsync();
 
-            Logger.Log($"Staff hired: {parameters.Member.FullName} ({parameters.Member.Role})");
+            Logger.Info($"Staff hired: {parameters.Member.Name} ({parameters.Member.Role})");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error hiring staff: {ex.Message}");
+            Logger.Error($"Error hiring staff: {ex.Message}", ex);
         }
     }
 
@@ -601,17 +601,17 @@ public sealed class StaffManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log($"Terminating staff: {staffId}...");
+            Logger.Info($"Terminating staff: {staffId}...");
 
             await _staffRepository.DeleteStaffMemberAsync(staffId);
 
             await LoadDataAsync();
 
-            Logger.Log("Staff terminated successfully");
+            Logger.Info("Staff terminated successfully");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error terminating staff: {ex.Message}");
+            Logger.Error($"Error terminating staff: {ex.Message}", ex);
         }
     }
 
@@ -619,17 +619,17 @@ public sealed class StaffManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log($"Calculating compatibility between staff {parameters.StaffId} and booker {parameters.BookerId}...");
+            Logger.Info($"Calculating compatibility between staff {parameters.StaffId} and booker {parameters.BookerId}...");
 
             // Note: Cette méthode nécessiterait d'avoir accès au Booker
             // Pour l'instant, elle est un placeholder
             // TODO: Implémenter le calcul complet avec IBookerRepository
 
-            Logger.Log("Compatibility calculated");
+            Logger.Info("Compatibility calculated");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error calculating compatibility: {ex.Message}");
+            Logger.Error($"Error calculating compatibility: {ex.Message}", ex);
         }
     }
 
@@ -637,18 +637,18 @@ public sealed class StaffManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log("Recalculating all compatibilities...");
+            Logger.Info("Recalculating all compatibilities...");
 
             var needingRecalc = await _compatibilityRepository.GetCompatibilitiesNeedingRecalculationAsync();
 
-            Logger.Log($"Found {needingRecalc.Count} compatibilities needing recalculation");
+            Logger.Info($"Found {needingRecalc.Count} compatibilities needing recalculation");
 
             // TODO: Implémenter le recalcul en batch
 
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error recalculating compatibilities: {ex.Message}");
+            Logger.Error($"Error recalculating compatibilities: {ex.Message}", ex);
         }
     }
 
@@ -660,20 +660,21 @@ public sealed class StaffManagementViewModel : ViewModelBase
     {
         // Cette méthode serait utilisée pour filtrer la vue en fonction du département sélectionné
         // L'implémentation complète nécessiterait un système de filtre plus sophistiqué
-        Logger.Log($"Filtering staff by department: {SelectedDepartment}");
+        Logger.Info($"Filtering staff by department: {SelectedDepartment}");
     }
 
     private static StaffMemberListItemViewModel MapStaffMemberToViewModel(StaffMember staff)
     {
+        var monthlySalary = (decimal)(staff.AnnualSalary / 12.0);
         return new StaffMemberListItemViewModel(
             staff.StaffId,
-            staff.FullName,
+            staff.Name,
             staff.Role.ToString(),
             staff.Department.ToString(),
             staff.SkillScore,
             staff.YearsOfExperience,
             staff.EmploymentStatus,
-            staff.MonthlySalary,
+            monthlySalary,
             staff.HireDate,
             staff.ContractEndDate);
     }
@@ -731,7 +732,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
             compatibility.BiasAlignmentScore,
             compatibility.RiskToleranceScore,
             compatibility.PersonalChemistryScore,
-            compatibility.TotalCollaborations,
+            compatibility.SuccessfulCollaborations + compatibility.FailedCollaborations,
             compatibility.SuccessfulCollaborations,
             compatibility.LastCalculatedAt);
     }

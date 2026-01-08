@@ -318,7 +318,7 @@ public sealed class BrandManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log("Loading brand management data...");
+            Logger.Info("Loading brand management data...");
 
             // Charger la hiérarchie
             var hierarchyModel = await _brandRepository.GetHierarchyByCompanyIdAsync(_companyId);
@@ -340,11 +340,11 @@ public sealed class BrandManagementViewModel : ViewModelBase
             // Détecter les conflits
             await DetectConflictsAsync(brandModels);
 
-            Logger.Log($"Loaded {Brands.Count} brands, hierarchy: {Hierarchy?.HierarchyType ?? "Unknown"}");
+            Logger.Info($"Loaded {Brands.Count} brands, hierarchy: {Hierarchy?.HierarchyType ?? "Unknown"}");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error loading brand data: {ex.Message}");
+            Logger.Error($"Error loading brand data: {ex.Message}", ex);
         }
     }
 
@@ -356,13 +356,13 @@ public sealed class BrandManagementViewModel : ViewModelBase
     {
         if (!CanCreateBrand)
         {
-            Logger.Log("Cannot create brand: hierarchy does not allow it");
+            Logger.Warning("Cannot create brand: hierarchy does not allow it");
             return;
         }
 
         try
         {
-            Logger.Log($"Creating new brand: {parameters.Name}...");
+            Logger.Info($"Creating new brand: {parameters.Name}...");
 
             var brand = _brandService.CreateBrand(
                 _companyId,
@@ -375,11 +375,11 @@ public sealed class BrandManagementViewModel : ViewModelBase
 
             await LoadDataAsync();
 
-            Logger.Log($"Brand created: {parameters.Name} ({parameters.Objective})");
+            Logger.Info($"Brand created: {parameters.Name} ({parameters.Objective})");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error creating brand: {ex.Message}");
+            Logger.Error($"Error creating brand: {ex.Message}", ex);
         }
     }
 
@@ -387,17 +387,17 @@ public sealed class BrandManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log($"Closing brand: {brandId}...");
+            Logger.Info($"Closing brand: {brandId}...");
 
             await _brandRepository.DeleteBrandAsync(brandId);
 
             await LoadDataAsync();
 
-            Logger.Log("Brand closed successfully");
+            Logger.Info("Brand closed successfully");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error closing brand: {ex.Message}");
+            Logger.Error($"Error closing brand: {ex.Message}", ex);
         }
     }
 
@@ -405,7 +405,7 @@ public sealed class BrandManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log($"Updating brand: {brandViewModel.Name}...");
+            Logger.Info($"Updating brand: {brandViewModel.Name}...");
 
             var brandModel = await _brandRepository.GetBrandByIdAsync(brandViewModel.BrandId);
             if (brandModel != null)
@@ -418,12 +418,12 @@ public sealed class BrandManagementViewModel : ViewModelBase
 
                 await _brandRepository.UpdateBrandAsync(updatedBrand);
 
-                Logger.Log("Brand updated successfully");
+                Logger.Info("Brand updated successfully");
             }
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error updating brand: {ex.Message}");
+            Logger.Error($"Error updating brand: {ex.Message}", ex);
         }
     }
 
@@ -431,13 +431,13 @@ public sealed class BrandManagementViewModel : ViewModelBase
     {
         if (Hierarchy == null || Hierarchy.HierarchyType == "MultiBrand")
         {
-            Logger.Log("Already in MultiBrand hierarchy or no hierarchy found");
+            Logger.Warning("Already in MultiBrand hierarchy or no hierarchy found");
             return;
         }
 
         try
         {
-            Logger.Log("Switching to MultiBrand hierarchy...");
+            Logger.Info("Switching to MultiBrand hierarchy...");
 
             var hierarchyModel = await _brandRepository.GetHierarchyByCompanyIdAsync(_companyId);
             if (hierarchyModel != null)
@@ -452,12 +452,12 @@ public sealed class BrandManagementViewModel : ViewModelBase
 
                 await LoadDataAsync();
 
-                Logger.Log("Switched to MultiBrand hierarchy - assign Head Booker to complete setup");
+                Logger.Info("Switched to MultiBrand hierarchy - assign Head Booker to complete setup");
             }
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error switching hierarchy: {ex.Message}");
+            Logger.Error($"Error switching hierarchy: {ex.Message}", ex);
         }
     }
 

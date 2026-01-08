@@ -220,7 +220,7 @@ public sealed class EraManagementViewModel : ViewModelBase
     {
         try
         {
-            Logger.Log("Loading era management data...");
+            Logger.Info("Loading era management data...");
 
             // Charger l'ère actuelle
             var currentEraModel = await _eraRepository.GetCurrentEraAsync(_companyId);
@@ -253,11 +253,11 @@ public sealed class EraManagementViewModel : ViewModelBase
                 IsTransitioning = false;
             }
 
-            Logger.Log($"Loaded {EraHistory.Count} eras, current: {CurrentEra?.Type ?? "None"}");
+            Logger.Info($"Loaded {EraHistory.Count} eras, current: {CurrentEra?.Type ?? "None"}");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error loading era data: {ex.Message}");
+            Logger.Error($"Error loading era data: {ex.Message}", ex);
         }
     }
 
@@ -269,18 +269,18 @@ public sealed class EraManagementViewModel : ViewModelBase
     {
         if (CurrentEra == null || IsTransitioning)
         {
-            Logger.Log("Cannot initiate transition: no current era or transition already in progress");
+            Logger.Warning("Cannot initiate transition: no current era or transition already in progress");
             return;
         }
 
         try
         {
-            Logger.Log($"Initiating era transition to {targetEraType}...");
+            Logger.Info($"Initiating era transition to {targetEraType}...");
 
             var currentEraModel = await _eraRepository.GetEraByIdAsync(CurrentEra.EraId);
             if (currentEraModel == null)
             {
-                Logger.Log("Error: Current era not found");
+                Logger.Error("Error: Current era not found");
                 return;
             }
 
@@ -292,16 +292,16 @@ public sealed class EraManagementViewModel : ViewModelBase
                 bookerId: null);
 
             // Sauvegarder la transition
-            await _eraRepository.SaveTransitionAsync(transition);
+            await _eraRepository.SaveEraTransitionAsync(transition);
 
             // Recharger les données
             await LoadDataAsync();
 
-            Logger.Log($"Era transition initiated: {CurrentEra.Type} → {targetEraType}");
+            Logger.Info($"Era transition initiated: {CurrentEra.Type} → {targetEraType}");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error initiating transition: {ex.Message}");
+            Logger.Error($"Error initiating transition: {ex.Message}", ex);
         }
     }
 
@@ -309,13 +309,13 @@ public sealed class EraManagementViewModel : ViewModelBase
     {
         if (ActiveTransition == null)
         {
-            Logger.Log("No active transition to accelerate");
+            Logger.Warning("No active transition to accelerate");
             return;
         }
 
         try
         {
-            Logger.Log("Accelerating era transition...");
+            Logger.Info("Accelerating era transition...");
 
             // Augmenter la progression de 10%
             var newProgress = Math.Min(ActiveTransition.ProgressPercentage + 10, 100);
@@ -337,14 +337,14 @@ public sealed class EraManagementViewModel : ViewModelBase
                     MoraleImpact = newMoraleImpact,
                     AudienceImpact = newAudienceImpact
                 };
-                await _eraRepository.UpdateTransitionAsync(updatedTransition);
+                await _eraRepository.UpdateEraTransitionAsync(updatedTransition);
             }
 
-            Logger.Log($"Transition accelerated to {newProgress}%");
+            Logger.Info($"Transition accelerated to {newProgress}%");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error accelerating transition: {ex.Message}");
+            Logger.Error($"Error accelerating transition: {ex.Message}", ex);
         }
     }
 
@@ -352,24 +352,24 @@ public sealed class EraManagementViewModel : ViewModelBase
     {
         if (ActiveTransition == null)
         {
-            Logger.Log("No active transition to cancel");
+            Logger.Warning("No active transition to cancel");
             return;
         }
 
         try
         {
-            Logger.Log("Cancelling era transition...");
+            Logger.Info("Cancelling era transition...");
 
             await _eraRepository.CancelTransitionAsync(ActiveTransition.TransitionId);
 
             ActiveTransition = null;
             IsTransitioning = false;
 
-            Logger.Log("Era transition cancelled");
+            Logger.Info("Era transition cancelled");
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error cancelling transition: {ex.Message}");
+            Logger.Error($"Error cancelling transition: {ex.Message}", ex);
         }
     }
 
