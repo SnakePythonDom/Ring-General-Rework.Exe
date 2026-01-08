@@ -147,7 +147,6 @@
         <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}"/>
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}"/>
         <Setter Property="Foreground" Value="{StaticResource TextSubtleBrush}"/>
-        <Setter Property="TextTransform" Value="Uppercase"/>
     </Style>
 
     <!-- Button Styles -->

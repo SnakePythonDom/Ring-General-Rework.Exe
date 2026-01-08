@@ -21,7 +21,6 @@
       <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="Foreground" Value="#64748b"/>
       <Setter Property="Margin" Value="0,0,0,15"/>
-      <Setter Property="TextTransform" Value="Uppercase"/>
       <Setter Property="LetterSpacing" Value="1"/>
     </Style>
 
