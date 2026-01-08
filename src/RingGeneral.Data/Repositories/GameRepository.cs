@@ -378,10 +378,10 @@ public sealed class GameRepository
         => _workerRepository.ChargerMorale(workerId);
 
     public void EnregistrerBackstageIncident(BackstageIncident incident)
-        => _backstageRepository.EnregistrerBackstageIncident(incident);
+        => _backstageRepository.AjouterIncident(incident);
 
     public void EnregistrerDisciplinaryAction(DisciplinaryAction action)
-        => _backstageRepository.EnregistrerDisciplinaryAction(action);
+        => _backstageRepository.AjouterActionDisciplinaire(action);
 
     public IReadOnlyList<MoraleHistoryEntry> AppliquerMoraleImpacts(IReadOnlyList<BackstageMoraleImpact> impacts, int week)
         => _backstageRepository.AppliquerMoraleImpacts(impacts, week);

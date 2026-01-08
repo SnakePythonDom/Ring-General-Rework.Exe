@@ -27,8 +27,8 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private readonly IRegionRepository _regionRepository;
 
     private string _companyName = string.Empty;
-    private RegionInfo? _selectedRegion;
-    private CatchStyle? _selectedCatchStyle;
+    private RegionInfo _selectedRegion;
+    private CatchStyle _selectedCatchStyle;
     private int _startingPrestige = 50;
     private double _startingTreasury = 100000.0;
     private int _foundedYear = 2024;
@@ -54,6 +54,17 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         // Initialiser les données de sélection
         AvailableRegions = new ObservableCollection<RegionInfo>();
         AvailableCatchStyles = new ObservableCollection<CatchStyle>();
+        _selectedRegion = new RegionInfo("REGION_PENDING", "Chargement...", "World");
+        _selectedCatchStyle = new CatchStyle(
+            "STYLE_PENDING",
+            "Chargement...",
+            null,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0,
+            1.0, 1.0,
+            "⏳", "#9CA3AF", false);
+        LoadRegionsFromDatabase();
+        LoadCatchStylesFromDatabase();
 
         // Commandes
         var canCreateCompany = this.WhenAnyValue(
@@ -152,7 +163,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// <summary>
     /// Région sélectionnée
     /// </summary>
-    public RegionInfo? SelectedRegion
+    public RegionInfo SelectedRegion
     {
         get => _selectedRegion;
         set => this.RaiseAndSetIfChanged(ref _selectedRegion, value);
@@ -161,7 +172,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// <summary>
     /// Style de catch sélectionné
     /// </summary>
-    public CatchStyle? SelectedCatchStyle
+    public CatchStyle SelectedCatchStyle
     {
         get => _selectedCatchStyle;
         set => this.RaiseAndSetIfChanged(ref _selectedCatchStyle, value);
@@ -287,18 +298,6 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             return;
         }
 
-        if (SelectedRegion == null)
-        {
-            ErrorMessage = "Veuillez sélectionner une région.";
-            return;
-        }
-
-        if (SelectedCatchStyle == null)
-        {
-            ErrorMessage = "Veuillez sélectionner un style de catch.";
-            return;
-        }
-
         try
         {
             using var connection = _repository.CreateConnection();
@@ -407,7 +406,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private async System.Threading.Tasks.Task CreateDefaultOwner(string companyId, string ownerId)
     {
         // Mapper le CatchStyle vers PreferredProductType de l'Owner
-        var productType = SelectedCatchStyle!.Name switch
+        var productType = SelectedCatchStyle.Name switch
         {
             "Pure Wrestling" or "Strong Style" => "Technical",
             "Sports Entertainment" or "Family-Friendly" => "Entertainment",
