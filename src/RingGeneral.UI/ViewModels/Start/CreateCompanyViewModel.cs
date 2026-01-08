@@ -24,6 +24,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private readonly IOwnerRepository _ownerRepository;
     private readonly IBookerRepository _bookerRepository;
     private readonly ICatchStyleRepository _catchStyleRepository;
+    private readonly IRegionRepository _regionRepository;
 
     private string _companyName = string.Empty;
     private RegionInfo? _selectedRegion;
@@ -40,33 +41,38 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         INavigationService? navigationService = null,
         IOwnerRepository? ownerRepository = null,
         IBookerRepository? bookerRepository = null,
-        ICatchStyleRepository? catchStyleRepository = null)
+        ICatchStyleRepository? catchStyleRepository = null,
+        IRegionRepository? regionRepository = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _ownerRepository = ownerRepository ?? throw new ArgumentNullException(nameof(ownerRepository));
         _bookerRepository = bookerRepository ?? throw new ArgumentNullException(nameof(bookerRepository));
         _catchStyleRepository = catchStyleRepository ?? throw new ArgumentNullException(nameof(catchStyleRepository));
+        _regionRepository = regionRepository ?? throw new ArgumentNullException(nameof(regionRepository));
 
         // Initialiser les données de sélection
         AvailableRegions = new ObservableCollection<RegionInfo>();
         AvailableCatchStyles = new ObservableCollection<CatchStyle>();
-        LoadRegionsFromDatabase();
-        LoadCatchStylesFromDatabase();
 
         // Commandes
         var canCreateCompany = this.WhenAnyValue(
             vm => vm.CompanyName,
             vm => vm.SelectedRegion,
-            vm => vm.SelectedCatchStyle,
-            (name, region, style) => !string.IsNullOrWhiteSpace(name)
-                                     && name.Trim().Length >= 3
-                                     && region != null
-                                     && style != null);
+            vm => vm.FoundedYear,
+            (name, region, year) => !string.IsNullOrWhiteSpace(name)
+                                    && region != null
+                                    && year is >= 1950 and <= 2100);
 
-        CreateCompanyCommand = ReactiveCommand.Create(CreateCompany, canCreateCompany);
-        ContinueCommand = CreateCompanyCommand;
+        ContinueCommand = ReactiveCommand.Create(CreateCompany, canCreateCompany);
+        CreateCompanyCommand = ContinueCommand;
         CancelCommand = ReactiveCommand.Create(Cancel);
+
+        this.WhenAnyValue(vm => vm.SelectedCatchStyle)
+            .Subscribe(ApplyStyleModifiers);
+
+        LoadRegionsFromDatabase();
+        LoadCatchStylesFromDatabase();
     }
 
     /// <summary>
@@ -76,24 +82,10 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     {
         try
         {
-            using var connection = _repository.CreateConnection();
-
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT r.RegionId, r.Name, c.Name as CountryName
-                FROM Regions r
-                INNER JOIN Countries c ON c.CountryId = r.CountryId
-                ORDER BY c.Name, r.Name
-                LIMIT 500";
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            var regions = _regionRepository.GetRegions();
+            foreach (var region in regions)
             {
-                var regionId = reader.GetString(0);
-                var regionName = reader.GetString(1);
-                var countryName = reader.GetString(2);
-
-                AvailableRegions.Add(new RegionInfo(regionId, regionName, countryName));
+                AvailableRegions.Add(new RegionInfo(region.RegionId, region.RegionName, region.CountryName));
             }
 
             // Sélectionner la première région par défaut
@@ -172,11 +164,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     public CatchStyle? SelectedCatchStyle
     {
         get => _selectedCatchStyle;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _selectedCatchStyle, value);
-            UpdateStartingValuesForStyle(value);
-        }
+        set => this.RaiseAndSetIfChanged(ref _selectedCatchStyle, value);
     }
 
     /// <summary>
@@ -240,18 +228,43 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// </summary>
     public ReactiveCommand<Unit, Unit> CancelCommand { get; }
 
-    private void UpdateStartingValuesForStyle(CatchStyle? style)
+    public void ApplyDefaultTemplate()
     {
-        if (style == null)
+        CompanyName = "Nouvelle Compagnie";
+        FoundedYear = 2024;
+        StartingPrestige = _baseStartingPrestige;
+        StartingTreasury = _baseStartingTreasury;
+
+        if (AvailableRegions.Count > 0 && SelectedRegion == null)
         {
-            StartingPrestige = _baseStartingPrestige;
-            StartingTreasury = _baseStartingTreasury;
-            return;
+            SelectedRegion = AvailableRegions[0];
         }
 
-        var adjustedPrestige = (int)Math.Round(_baseStartingPrestige * style.MatchRatingMultiplier);
+        if (AvailableCatchStyles.Count > 0 && SelectedCatchStyle == null)
+        {
+            SelectedCatchStyle = AvailableCatchStyles[0];
+        }
+    }
+
+    private void ApplyStyleModifiers(CatchStyle? style)
+    {
+        var prestigeMultiplier = 1.0;
+        var treasuryMultiplier = 1.0;
+
+        if (style?.Name == "Hardcore")
+        {
+            prestigeMultiplier = 0.8;
+            treasuryMultiplier = 1.2;
+        }
+        else if (style?.Name == "Pure Wrestling")
+        {
+            prestigeMultiplier = 1.2;
+            treasuryMultiplier = 0.9;
+        }
+
+        var adjustedPrestige = (int)Math.Round(_baseStartingPrestige * prestigeMultiplier);
         StartingPrestige = Math.Clamp(adjustedPrestige, 0, 100);
-        StartingTreasury = Math.Max(0, _baseStartingTreasury * style.PromoRatingMultiplier);
+        StartingTreasury = Math.Max(0, _baseStartingTreasury * treasuryMultiplier);
     }
 
     /// <summary>
