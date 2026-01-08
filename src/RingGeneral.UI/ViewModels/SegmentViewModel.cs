@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using ReactiveUI;
+using RingGeneral.Core.Models;
+using RingGeneral.Specs.Models;
 
 namespace RingGeneral.UI.ViewModels;
 
@@ -36,6 +40,27 @@ public sealed class SegmentViewModel : ReactiveObject
         Participants = new ObservableCollection<ParticipantViewModel>(participants);
         Consignes = new ObservableCollection<SegmentConsigneViewModel>();
         RechargerConsignes(settings);
+    }
+
+    /// <summary>
+    /// Constructeur à partir d'une SegmentDefinition.
+    /// Utilisé pour charger les segments depuis le contexte du show.
+    /// </summary>
+    public SegmentViewModel(SegmentDefinition segment)
+        : this(
+            segment.SegmentId,
+            segment.TypeSegment,
+            segment.DureeMinutes,
+            segment.EstMainEvent,
+            new SegmentTypeCatalog(),
+            Array.Empty<ParticipantViewModel>(),
+            segment.StorylineId,
+            segment.TitreId,
+            segment.Intensite,
+            segment.VainqueurId,
+            segment.PerdantId,
+            segment.Settings)
+    {
     }
 
     public string SegmentId { get; }

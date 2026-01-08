@@ -1,7 +1,10 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Repositories;
@@ -295,7 +298,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
         try
         {
-            var plan = _builder.BuildBookingPlan(_showId, Segments);
+            var plan = BuildBookingPlan();
             var result = _validator.ValiderBooking(plan);
 
             ValidationIssues.Clear();
@@ -346,7 +349,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
         try
         {
-            var plan = _builder.BuildBookingPlan(_showId, Segments);
+            var plan = BuildBookingPlan();
             var engine = new SimulationEngine();
             var result = engine.SimulerShow(plan, _context);
 
@@ -369,6 +372,32 @@ public sealed class ShowBookingViewModel : ViewModelBase
     #endregion
 
     #region Private Methods
+
+    /// <summary>
+    /// Construit un BookingPlan à partir des segments actuels.
+    /// </summary>
+    private BookingPlan BuildBookingPlan()
+    {
+        if (string.IsNullOrWhiteSpace(_showId))
+        {
+            throw new InvalidOperationException("ShowId non défini");
+        }
+
+        var segmentContexts = Segments.Select(seg => new SegmentSimulationContext(
+            seg.SegmentId,
+            seg.TypeSegment,
+            seg.Participants.Select(p => p.WorkerId).ToList(),
+            seg.DureeMinutes,
+            seg.EstMainEvent,
+            seg.StorylineId,
+            seg.TitreId,
+            seg.Intensite,
+            seg.VainqueurId,
+            seg.PerdantId
+        )).ToList();
+
+        return new BookingPlan(_showId, segmentContexts);
+    }
 
     private void LoadSegmentTypes()
     {

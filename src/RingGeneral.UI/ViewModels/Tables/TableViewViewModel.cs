@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Avalonia.Controls.Models.TreeDataGrid;
+using System.Linq;
 using ReactiveUI;
 using RingGeneral.Core.Models;
+using RingGeneral.Data.Models;
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Tables;
@@ -325,14 +328,14 @@ public sealed class TableViewViewModel : ViewModelBase
     public void SortByColumn(string columnId, bool ascending)
     {
         _sortSettings.Clear();
-        _sortSettings.Add(new TableSortSetting(columnId, ascending));
+        _sortSettings.Add(new TableSortSetting(columnId, ascending ? TableSortDirection.Ascending : TableSortDirection.Descending));
         ApplySort();
         SavePreferences();
     }
 
     public void AddSecondarySort(string columnId, bool ascending)
     {
-        _sortSettings.Add(new TableSortSetting(columnId, ascending));
+        _sortSettings.Add(new TableSortSetting(columnId, ascending ? TableSortDirection.Ascending : TableSortDirection.Descending));
         ApplySort();
         SavePreferences();
     }
@@ -448,5 +451,47 @@ public sealed class TableViewViewModel : ViewModelBase
             StorylineStatus.Terminee => "Terminée",
             _ => "Inconnue"
         };
+    }
+}
+
+/// <summary>
+/// Wrapper pour ObservableCollection avec support du filtrage.
+/// Fournit une vue filtrée d'une collection source.
+/// </summary>
+public sealed class DataGridCollectionView
+{
+    private readonly ObservableCollection<TableViewItemViewModel> _source;
+    private int _cachedCount;
+
+    public DataGridCollectionView(ObservableCollection<TableViewItemViewModel> source)
+    {
+        _source = source ?? throw new ArgumentNullException(nameof(source));
+        Filter = null;
+        _cachedCount = _source.Count;
+    }
+
+    /// <summary>
+    /// Prédicat de filtrage appliqué aux éléments.
+    /// </summary>
+    public Predicate<object?>? Filter { get; set; }
+
+    /// <summary>
+    /// Nombre d'éléments après application du filtre.
+    /// </summary>
+    public int Count => _cachedCount;
+
+    /// <summary>
+    /// Recalcule le filtre et met à jour le compteur.
+    /// </summary>
+    public void Refresh()
+    {
+        if (Filter is null)
+        {
+            _cachedCount = _source.Count;
+        }
+        else
+        {
+            _cachedCount = _source.Count(item => Filter(item));
+        }
     }
 }
