@@ -354,9 +354,8 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
         try
         {
-            var plan = BuildBookingPlan();
-            var engine = new SimulationEngine();
-            var result = engine.SimulerShow(plan, _context);
+            var orchestrator = new ShowDayOrchestrator(null, null);
+            var result = orchestrator.SimulerShow(_context);
 
             Results.Clear();
             var workerNames = _context.Workers.ToDictionary(w => w.WorkerId, w => w.NomComplet);
@@ -367,7 +366,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
             UpdateAnalysis(result);
 
-            Logger.Info($"Simulation terminée : Note globale {result.NoteGlobale}/100");
+            Logger.Info($"Simulation terminée : Note globale {result.RapportShow.NoteGlobale}/100");
         }
         catch (Exception ex)
         {
@@ -462,25 +461,25 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
     private void UpdateAnalysis(ShowSimulationResult result)
     {
+        // TODO: Les propriétés WhyNote, Tips, Guidelines n'existent pas encore sur ShowSimulationResult
+        // Pour l'instant, on vide les collections
         WhyNote.Clear();
-        foreach (var reason in result.WhyNote ?? Array.Empty<string>())
-        {
-            WhyNote.Add(reason);
-        }
-
         Tips.Clear();
-        foreach (var tip in result.Tips ?? Array.Empty<string>())
-        {
-            Tips.Add(tip);
-        }
-
         BookingGuidelines.Clear();
-        if (result.Guidelines is not null)
+
+        // Placeholder: Ajouter des analyses basiques basées sur la note globale
+        var noteGlobale = result.RapportShow.NoteGlobale;
+        if (noteGlobale >= 80)
         {
-            foreach (var guideline in result.Guidelines)
-            {
-                BookingGuidelines.Add(guideline);
-            }
+            WhyNote.Add("Excellent show avec une note globale élevée");
+        }
+        else if (noteGlobale >= 60)
+        {
+            WhyNote.Add("Show correct avec des points à améliorer");
+        }
+        else
+        {
+            WhyNote.Add("Show décevant nécessitant des ajustements");
         }
     }
 
