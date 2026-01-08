@@ -59,7 +59,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             _scoutingRepository = repositories.ScoutingRepository;
             _medicalRepository = new MedicalRepository(factory);
             _injuryService = new InjuryService(new MedicalRecommendations());
-            _repository.Initialiser();
+            // DbInitializer.CreateDatabaseIfMissing already created all tables via migrations
         }
         catch (Exception ex)
         {

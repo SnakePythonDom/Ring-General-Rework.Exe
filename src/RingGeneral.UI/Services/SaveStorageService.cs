@@ -62,9 +62,9 @@ public sealed class SaveStorageService
             ? $"Sauvegarde {DateTime.Now:yyyy-MM-dd HHmm}"
             : nom;
         var chemin = ObtenirCheminUnique(nomFinal);
+        new DbInitializer().CreateDatabaseIfMissing(chemin);
         var factory = new SqliteConnectionFactory($"Data Source={chemin}");
         var repository = RepositoryFactory.CreateGameRepository(factory);
-        repository.Initialiser();
         return ConstruireInfo(chemin);
     }
 

@@ -17,9 +17,9 @@ public sealed class ScoutingServiceTests
         var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-{Guid.NewGuid():N}.db");
         try
         {
+            new DbInitializer().CreateDatabaseIfMissing(dbPath);
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
             var repositories = RepositoryFactory.CreateRepositories(factory);
-            repositories.GameRepository.Initialiser();
             var scoutingRepo = repositories.ScoutingRepository;
 
             InsererFreeAgent(factory, "FA-TEST-001", "Nina", "Libre", "FR");
@@ -50,9 +50,9 @@ public sealed class ScoutingServiceTests
         var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-{Guid.NewGuid():N}.db");
         try
         {
+            new DbInitializer().CreateDatabaseIfMissing(dbPath);
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
             var repositories = RepositoryFactory.CreateRepositories(factory);
-            repositories.GameRepository.Initialiser();
             var scoutingRepo = repositories.ScoutingRepository;
 
             var mission = new ScoutMission("MS-TEST-001", "Observer les free agents", "FR", "free_agents", 0, 10, "active", 1, 1);
