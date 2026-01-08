@@ -9,7 +9,6 @@ PRAGMA foreign_keys = ON;
 .read data/migrations/002_backstage.sql
 .read data/migrations/002_booking_segments.sql
 .read data/migrations/002_broadcast.sql
-.read data/migrations/002_broadcast_v1.sql
 .read data/migrations/002_contracts_v1.sql
 .read data/migrations/002_finances.sql
 .read data/migrations/002_game_state.sql
@@ -23,7 +22,6 @@ PRAGMA foreign_keys = ON;
 .read data/migrations/002_titles.sql
 .read data/migrations/002_youth.sql
 .read data/migrations/002_youth_v1.sql
-.read data/migrations/003_consolidate_schema.sql
 .read data/migrations/004_owner_booker_governance.sql
 .read data/migrations/005_company_identity.sql
 .read data/migrations/006_catch_styles.sql
