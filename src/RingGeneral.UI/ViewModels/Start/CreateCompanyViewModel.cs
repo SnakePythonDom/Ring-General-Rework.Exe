@@ -139,13 +139,23 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
             // Créer un style par défaut en cas d'erreur (fallback)
             var defaultStyle = new CatchStyle(
-                "STYLE_HYBRID",
-                "Hybrid Wrestling",
-                "Style équilibré par défaut",
-                60, 60, 20, 30, 30,  // Characteristics
-                65, 65, 60, 65,      // Fan Expectations
-                1.0, 1.0,            // Multipliers
-                "🌐", "#607D8B", true);
+                CatchStyleId: "STYLE_HYBRID",
+                Name: "Hybrid Wrestling",
+                Description: "Style équilibré par défaut",
+                WrestlingPurity: 60,
+                EntertainmentFocus: 60,
+                HardcoreIntensity: 20,
+                LuchaInfluence: 30,
+                StrongStyleInfluence: 30,
+                FanExpectationMatchQuality: 65,
+                FanExpectationStorylines: 65,
+                FanExpectationPromos: 60,
+                FanExpectationSpectacle: 65,
+                MatchRatingMultiplier: 1.0,
+                PromoRatingMultiplier: 1.0,
+                IconName: "🌐",
+                AccentColor: "#607D8B",
+                IsActive: true);
             AvailableCatchStyles.Add(defaultStyle);
             SelectedCatchStyle = defaultStyle;
         }
