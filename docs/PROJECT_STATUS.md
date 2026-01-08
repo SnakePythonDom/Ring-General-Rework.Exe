@@ -441,17 +441,15 @@ Booking, UI/Navigation, Show/Calendar, Finance/Broadcasting, Storylines, Youth, 
 
 ### Documents de Planning
 - **[planning/PLAN_IMPLEMENTATION_TECHNIQUE.md](planning/PLAN_IMPLEMENTATION_TECHNIQUE.md)** - Plan technique
-- **[planning/COMPARAISON_ET_PROCHAINES_ETAPES.md](planning/COMPARAISON_ET_PROCHAINES_ETAPES.md)** - Comparaison et étapes
 
 ### Documents de Sprint
 - **[sprints/SPRINT_1_SUMMARY.md](sprints/SPRINT_1_SUMMARY.md)** - Résumé Sprint 1
 - **[sprints/SPRINT_2_DESIGN.md](sprints/SPRINT_2_DESIGN.md)** - Design Sprint 2
 
 ### Guides Utilisateur
-- **[JEU_GUIDE_FR.md](JEU_GUIDE_FR.md)** - Guide du jeu
-- **[DEV_GUIDE_FR.md](DEV_GUIDE_FR.md)** - Guide de développement
+- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Guide de démarrage rapide (inclut guide joueur)
+- **[DEV_GUIDE_FR.md](DEV_GUIDE_FR.md)** - Guide de développement & modding
 - **[DATABASE_GUIDE_FR.md](DATABASE_GUIDE_FR.md)** - Guide base de données
-- **[MODDING_GUIDE_FR.md](MODDING_GUIDE_FR.md)** - Guide de modding
 
 ---
 
