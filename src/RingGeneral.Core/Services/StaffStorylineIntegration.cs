@@ -39,7 +39,7 @@ public sealed class StaffStorylineIntegration
     /// <summary>
     /// Génère une proposition créative d'un staff pour modifier une storyline existante.
     /// </summary>
-    public async Task<CreativeProposal?> GenerateStorylineProposalAsync(
+    public async Task<StaffProposalService.CreativeProposal?> GenerateStorylineProposalAsync(
         string staffId,
         string bookerId,
         StorylineInfo currentStoryline)
@@ -48,22 +48,31 @@ public sealed class StaffStorylineIntegration
         if (staff == null)
             return null;
 
-        // Générer une proposition basée sur le staff
-        var proposal = new CreativeProposal
+        var staffMember = await _staffRepository.GetStaffMemberByIdAsync(staffId);
+        if (staffMember == null)
+            return null;
+
+        // Générer une proposition basée sur le staff en utilisant le service
+        var targetWorkerIds = currentStoryline.Participants
+            .Select(p => p.WorkerId)
+            .ToList();
+
+        var proposal = new StaffProposalService.CreativeProposal
         {
             ProposalId = Guid.NewGuid().ToString(),
             StaffId = staffId,
             BookerId = bookerId,
-            ProposalType = "StorylineModification",
-            TargetEntityId = currentStoryline.StorylineId,
+            ProposalType = "Storyline",
             Title = GenerateProposalTitle(staff, currentStoryline),
             Description = GenerateProposalDescription(staff, currentStoryline),
-            QualityScore = await CalculateProposalQualityAsync(staff),
+            QualityScore = await CalculateProposalQualityAsync(staff, staffMember),
             Originality = staff.CreativityScore,
             RiskLevel = CalculateProposalRisk(staff),
-            WorkerTypeBias = staff.WorkerBias,
-            CreatedAt = DateTime.Now,
-            Status = "Pending"
+            TargetWorkers = string.Join(",", targetWorkerIds),
+            ProposedAt = DateTime.Now,
+            BookerResponse = "Pending",
+            RejectionReason = null,
+            BookerCompatibilityImpact = 0
         };
 
         return proposal;
@@ -75,7 +84,7 @@ public sealed class StaffStorylineIntegration
     /// </summary>
     public async Task<(bool IsAccepted, StorylineInfo? UpdatedStoryline, string Reason)>
         EvaluateAndApplyProposalAsync(
-            CreativeProposal proposal,
+            StaffProposalService.CreativeProposal proposal,
             StorylineInfo currentStoryline,
             string bookerId,
             IBookerRepository bookerRepository)
@@ -182,13 +191,13 @@ public sealed class StaffStorylineIntegration
     /// Génère automatiquement des propositions pour tous les staff créatifs actifs.
     /// À appeler périodiquement (ex: chaque semaine de jeu).
     /// </summary>
-    public async Task<List<CreativeProposal>> GenerateAutomaticProposalsAsync(
+    public async Task<List<StaffProposalService.CreativeProposal>> GenerateAutomaticProposalsAsync(
         string companyId,
         string bookerId,
         List<StorylineInfo> activeStorylines)
     {
         var creativeStaff = await _staffRepository.GetCreativeStaffByCompanyIdAsync(companyId);
-        var proposals = new List<CreativeProposal>();
+        var proposals = new List<StaffProposalService.CreativeProposal>();
         var random = new System.Random();
 
         foreach (var staff in creativeStaff)
@@ -255,13 +264,8 @@ public sealed class StaffStorylineIntegration
     /// <summary>
     /// Calcule la qualité d'une proposition basée sur le staff.
     /// </summary>
-    private async Task<int> CalculateProposalQualityAsync(CreativeStaff staff)
+    private async Task<int> CalculateProposalQualityAsync(CreativeStaff staff, StaffMember staffMember)
     {
-        // Récupérer le StaffMember pour avoir le SkillScore
-        var staffMember = await _staffRepository.GetStaffMemberByIdAsync(staff.StaffId);
-        if (staffMember == null)
-            return 50; // Score par défaut si non trouvé
-
         // Formule: 60% skill + 25% creativity + 15% consistency
         return (int)(
             staffMember.SkillScore * 0.60 +
@@ -286,7 +290,7 @@ public sealed class StaffStorylineIntegration
     /// Applique une proposition acceptée à une storyline.
     /// </summary>
     private StorylineInfo ApplyProposalToStoryline(
-        CreativeProposal proposal,
+        StaffProposalService.CreativeProposal proposal,
         StorylineInfo currentStoryline,
         int acceptanceScore)
     {
@@ -319,24 +323,4 @@ public sealed class StaffStorylineIntegration
             await _compatibilityRepository.IncrementCollaborationAsync(compatibility.CompatibilityId, successful: false);
         }
     }
-}
-
-/// <summary>
-/// Modèle pour une proposition créative du staff.
-/// </summary>
-public sealed record CreativeProposal
-{
-    public required string ProposalId { get; init; }
-    public required string StaffId { get; init; }
-    public required string BookerId { get; init; }
-    public required string ProposalType { get; init; } // "StorylineModification", "AngleIdea", "GimmickChange"
-    public required string TargetEntityId { get; init; } // StorylineId, WorkerId, etc.
-    public required string Title { get; init; }
-    public required string Description { get; init; }
-    public required int QualityScore { get; init; } // 0-100
-    public required int Originality { get; init; } // 0-100
-    public required int RiskLevel { get; init; } // 0-100
-    public required WorkerTypeBias WorkerTypeBias { get; init; }
-    public required DateTime CreatedAt { get; init; }
-    public required string Status { get; init; } // "Pending", "Accepted", "Rejected"
 }
