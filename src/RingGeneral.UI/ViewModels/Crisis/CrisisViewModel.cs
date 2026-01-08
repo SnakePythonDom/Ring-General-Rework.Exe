@@ -8,6 +8,7 @@ using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Models.Crisis;
 using RingGeneral.Core.Services;
 using CrisisModel = RingGeneral.Core.Models.Crisis.Crisis;
+using ICrisisRepository = RingGeneral.Data.Repositories.ICrisisRepository;
 
 namespace RingGeneral.UI.ViewModels.Crisis;
 
