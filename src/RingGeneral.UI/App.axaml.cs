@@ -120,8 +120,9 @@ public sealed class App : Application
         services.AddTransient<FinanceViewModel>();
         services.AddTransient<CalendarViewModel>();
 
-        // Company Hub ViewModels
-        services.AddTransient<ViewModels.CompanyHub.CompanyHubViewModel>();
+        // Inbox & Settings ViewModels
+        services.AddTransient<ViewModels.Inbox.InboxViewModel>();
+        services.AddTransient<ViewModels.Settings.SettingsViewModel>();
 
         var provider = services.BuildServiceProvider();
 

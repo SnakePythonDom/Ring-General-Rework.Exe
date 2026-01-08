@@ -13,6 +13,8 @@ using RingGeneral.UI.ViewModels.Calendar;
 using RingGeneral.UI.ViewModels.Start;
 using RingGeneral.UI.ViewModels.OwnerBooker;
 using RingGeneral.UI.ViewModels.Crisis;
+using RingGeneral.UI.ViewModels.Inbox;
+using RingGeneral.UI.ViewModels.Settings;
 
 namespace RingGeneral.UI.ViewModels.Core;
 
@@ -376,8 +378,8 @@ public sealed class ShellViewModel : ViewModelBase
     private void OpenInbox()
     {
         // Ouvrir l'inbox des notifications
-        // TODO: Créer InboxViewModel et l'afficher en overlay
-        System.Diagnostics.Debug.WriteLine("Opening inbox...");
+        _navigationService.NavigateTo<InboxViewModel>();
+        Logger.Info("Navigation vers InboxViewModel");
     }
 
     private void OpenHelp()
@@ -390,7 +392,7 @@ public sealed class ShellViewModel : ViewModelBase
     private void OpenSettings()
     {
         // Ouvrir les paramètres globaux de l'application
-        // TODO: Créer SettingsViewModel et l'afficher en modal
-        System.Diagnostics.Debug.WriteLine("Opening settings...");
+        _navigationService.NavigateTo<SettingsViewModel>();
+        Logger.Info("Navigation vers SettingsViewModel");
     }
 }

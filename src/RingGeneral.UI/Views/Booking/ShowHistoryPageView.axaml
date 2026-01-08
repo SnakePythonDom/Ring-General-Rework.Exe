@@ -1,0 +1,237 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Booking"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Booking.ShowHistoryPageView"
+             x:DataType="vm:ShowHistoryPageViewModel">
+
+    <Design.DataContext>
+        <vm:ShowHistoryPageViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25">
+            <!-- En-tête -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="📊 HISTORIQUE DES SHOWS" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Consultez les performances et résultats de vos shows passés" FontSize="14" Foreground="#888888"/>
+            </StackPanel>
+
+            <!-- Statistiques globales -->
+            <Grid ColumnDefinitions="*,*,*,*">
+                <Border Grid.Column="0" Background="#1e293b" Padding="20" CornerRadius="8" Margin="0,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="📺 SHOWS" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="24" FontSize="32" FontWeight="Bold" Foreground="#3b82f6"/>
+                        <TextBlock Text="Total réalisés" FontSize="11" Foreground="#94a3b8"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="#065f46" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="⭐ NOTE MOY." FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                        <TextBlock Text="78.5" FontSize="32" FontWeight="Bold" Foreground="#34d399"/>
+                        <TextBlock Text="Sur 100" FontSize="11" Foreground="#a7f3d0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="#7c2d12" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="👥 AUDIENCE" FontSize="12" Foreground="#fed7aa" FontWeight="SemiBold"/>
+                        <TextBlock Text="12.5K" FontSize="32" FontWeight="Bold" Foreground="#fb923c"/>
+                        <TextBlock Text="Moyenne" FontSize="11" Foreground="#fdba74"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="3" Background="#065f46" Padding="20" CornerRadius="8" Margin="6,0,0,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="💰 REVENUS" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                        <TextBlock Text="$2.4M" FontSize="32" FontWeight="Bold" Foreground="#34d399"/>
+                        <TextBlock Text="Total générés" FontSize="11" Foreground="#a7f3d0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Filtres -->
+            <Border Background="#1e293b" Padding="15" CornerRadius="8">
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                    <TextBox Grid.Column="0"
+                           Watermark="🔍 Rechercher un show..."
+                           Background="#0f172a"
+                           BorderBrush="#334155"
+                           Foreground="#e0e0e0"
+                           Padding="12,10"
+                           CornerRadius="6"
+                           Margin="0,0,10,0"/>
+
+                    <ComboBox Grid.Column="1"
+                            Background="#0f172a"
+                            BorderBrush="#334155"
+                            Foreground="#e0e0e0"
+                            Padding="12,10"
+                            MinWidth="150"
+                            Margin="0,0,10,0">
+                        <ComboBoxItem Content="Tous les shows"/>
+                        <ComboBoxItem Content="Dernier mois"/>
+                        <ComboBoxItem Content="Dernière année"/>
+                    </ComboBox>
+
+                    <Button Grid.Column="2"
+                          Content="🔄 Actualiser"
+                          Padding="12,10"
+                          Background="#3b82f6"
+                          Foreground="White"
+                          CornerRadius="6"
+                          FontWeight="SemiBold"/>
+                </Grid>
+            </Border>
+
+            <!-- Liste des shows -->
+            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="📋 SHOWS PASSÉS" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+
+                    <!-- Exemple de shows (données fictives) -->
+                    <Border Background="#0f172a" Padding="16" Margin="0,0,0,8" CornerRadius="6">
+                        <Grid ColumnDefinitions="Auto,2*,*,*,*,Auto">
+                            <!-- Date -->
+                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,15,0">
+                                <TextBlock Text="S24" FontSize="18" Foreground="#3b82f6" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="2024" FontSize="10" Foreground="#64748b" HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Nom du show -->
+                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Monday Night Raw" FontSize="14" Foreground="#e0e0e0" FontWeight="Bold"/>
+                                <TextBlock Text="Madison Square Garden" FontSize="11" Foreground="#94a3b8"/>
+                            </StackPanel>
+
+                            <!-- Note -->
+                            <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Note globale" FontSize="10" Foreground="#64748b"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="85" FontSize="18" Foreground="#10b981" FontWeight="Bold"/>
+                                    <TextBlock Text="/100" FontSize="12" Foreground="#94a3b8" VerticalAlignment="Bottom"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Audience -->
+                            <StackPanel Grid.Column="3" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Audience" FontSize="10" Foreground="#64748b"/>
+                                <TextBlock Text="15,234" FontSize="14" Foreground="#3b82f6" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <!-- Revenus -->
+                            <StackPanel Grid.Column="4" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Revenus" FontSize="10" Foreground="#64748b"/>
+                                <TextBlock Text="$125K" FontSize="14" Foreground="#10b981" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <!-- Action -->
+                            <Button Grid.Column="5"
+                                  Content="Voir détails"
+                                  Padding="12,6"
+                                  Background="#3b82f6"
+                                  Foreground="White"
+                                  CornerRadius="4"
+                                  FontSize="11"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Background="#0f172a" Padding="16" Margin="0,0,0,8" CornerRadius="6">
+                        <Grid ColumnDefinitions="Auto,2*,*,*,*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,15,0">
+                                <TextBlock Text="S23" FontSize="18" Foreground="#3b82f6" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="2024" FontSize="10" Foreground="#64748b" HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="SmackDown" FontSize="14" Foreground="#e0e0e0" FontWeight="Bold"/>
+                                <TextBlock Text="Staples Center" FontSize="11" Foreground="#94a3b8"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Note globale" FontSize="10" Foreground="#64748b"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="72" FontSize="18" Foreground="#f59e0b" FontWeight="Bold"/>
+                                    <TextBlock Text="/100" FontSize="12" Foreground="#94a3b8" VerticalAlignment="Bottom"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Audience" FontSize="10" Foreground="#64748b"/>
+                                <TextBlock Text="10,892" FontSize="14" Foreground="#3b82f6" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Revenus" FontSize="10" Foreground="#64748b"/>
+                                <TextBlock Text="$98K" FontSize="14" Foreground="#10b981" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="5"
+                                  Content="Voir détails"
+                                  Padding="12,6"
+                                  Background="#3b82f6"
+                                  Foreground="White"
+                                  CornerRadius="4"
+                                  FontSize="11"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Background="#0f172a" Padding="16" Margin="0,0,0,8" CornerRadius="6">
+                        <Grid ColumnDefinitions="Auto,2*,*,*,*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,15,0">
+                                <TextBlock Text="S22" FontSize="18" Foreground="#3b82f6" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="2024" FontSize="10" Foreground="#64748b" HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="NXT TakeOver" FontSize="14" Foreground="#e0e0e0" FontWeight="Bold"/>
+                                <TextBlock Text="Full Sail University" FontSize="11" Foreground="#94a3b8"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Note globale" FontSize="10" Foreground="#64748b"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="91" FontSize="18" Foreground="#10b981" FontWeight="Bold"/>
+                                    <TextBlock Text="/100" FontSize="12" Foreground="#94a3b8" VerticalAlignment="Bottom"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Audience" FontSize="10" Foreground="#64748b"/>
+                                <TextBlock Text="18,567" FontSize="14" Foreground="#3b82f6" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Revenus" FontSize="10" Foreground="#64748b"/>
+                                <TextBlock Text="$156K" FontSize="14" Foreground="#10b981" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="5"
+                                  Content="Voir détails"
+                                  Padding="12,6"
+                                  Background="#3b82f6"
+                                  Foreground="White"
+                                  CornerRadius="4"
+                                  FontSize="11"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Message vide si aucun show -->
+                    <!--
+                    <StackPanel Spacing="15" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,40">
+                        <TextBlock Text="📺" FontSize="64" HorizontalAlignment="Center" Foreground="#3a3a3a"/>
+                        <TextBlock Text="Aucun show dans l'historique" FontSize="14" Foreground="#666666" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Les shows complétés apparaîtront ici" FontSize="12" Foreground="#444444" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    -->
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>
