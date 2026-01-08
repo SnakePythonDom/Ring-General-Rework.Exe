@@ -1,6 +1,5 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Booker;
-using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace RingGeneral.Core.Services;
 public sealed class BookerAIEngine : IBookerAIEngine
 {
     private readonly IBookerRepository? _bookerRepository;
-    private readonly Random _random = new();
+    private readonly System.Random _random = new();
 
     public BookerAIEngine(IBookerRepository? bookerRepository = null)
     {

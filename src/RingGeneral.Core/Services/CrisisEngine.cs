@@ -1,6 +1,5 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Crisis;
-using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace RingGeneral.Core.Services;
 public sealed class CrisisEngine : ICrisisEngine
 {
     private readonly ICrisisRepository? _crisisRepository;
-    private readonly Random _random = new();
+    private readonly System.Random _random = new();
 
     public CrisisEngine(ICrisisRepository? crisisRepository = null)
     {

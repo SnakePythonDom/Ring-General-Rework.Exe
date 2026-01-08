@@ -1,6 +1,5 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Crisis;
-using RingGeneral.Data.Repositories;
 using System;
 
 namespace RingGeneral.Core.Services;
@@ -12,7 +11,7 @@ namespace RingGeneral.Core.Services;
 public sealed class CommunicationEngine : ICommunicationEngine
 {
     private readonly ICrisisRepository? _crisisRepository;
-    private readonly Random _random = new();
+    private readonly System.Random _random = new();
 
     public CommunicationEngine(ICrisisRepository? crisisRepository = null)
     {

@@ -1,3 +1,4 @@
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Enums;
 using System;
@@ -12,7 +13,7 @@ namespace RingGeneral.Core.Services;
 /// </summary>
 public class PersonalityEngine : IPersonalityEngine
 {
-    private readonly Random _random = new();
+    private readonly System.Random _random = new();
 
     public string CalculatePersonalityLabel(MentalAttributes attributes)
     {

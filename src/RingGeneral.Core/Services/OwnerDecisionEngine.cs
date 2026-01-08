@@ -1,6 +1,5 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Owner;
-using RingGeneral.Data.Repositories;
 using System;
 
 namespace RingGeneral.Core.Services;

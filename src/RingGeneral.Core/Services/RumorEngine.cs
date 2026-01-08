@@ -1,5 +1,5 @@
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Morale;
-using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ namespace RingGeneral.Core.Services;
 public class RumorEngine : IRumorEngine
 {
     private readonly IRumorRepository? _repository;
-    private readonly Random _random = new();
+    private readonly System.Random _random = new();
 
     public RumorEngine(IRumorRepository? repository = null)
     {

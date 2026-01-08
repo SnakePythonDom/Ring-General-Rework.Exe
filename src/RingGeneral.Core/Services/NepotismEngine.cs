@@ -1,5 +1,5 @@
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Relations;
-using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
