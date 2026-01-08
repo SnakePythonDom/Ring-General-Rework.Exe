@@ -139,9 +139,9 @@ public sealed class ContractNegotiationTests
     private static (IContractRepository ContractRepository, GameRepository GameRepository, string DbPath) CreerRepository()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-tests-{Guid.NewGuid():N}.db");
+        new DbInitializer().CreateDatabaseIfMissing(dbPath);
         var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
         var repositories = RepositoryFactory.CreateRepositories(factory);
-        repositories.GameRepository.Initialiser();
         return (repositories.ContractRepository, repositories.GameRepository, dbPath);
     }
 }

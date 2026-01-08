@@ -79,7 +79,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
     private async Task LoadCompaniesAsync()
     {
         IsLoading = true;
-        System.Console.WriteLine("[CompanySelectorViewModel] Début du chargement des compagnies...");
+        Logger.Info("Début du chargement des compagnies...");
 
         try
         {
@@ -131,12 +131,11 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                 Companies.Add(company);
             }
 
-            System.Console.WriteLine($"[CompanySelectorViewModel] {Companies.Count} compagnies chargées avec succès");
+            Logger.Info($"{Companies.Count} compagnies chargées avec succès");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Erreur lors du chargement: {ex.Message}");
-            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Stack trace: {ex.StackTrace}");
+            Logger.Error("Erreur lors du chargement", ex);
 
             // Ajouter une compagnie par défaut en cas d'erreur
             Companies.Clear();
@@ -162,11 +161,11 @@ public sealed class CompanySelectorViewModel : ViewModelBase
     {
         if (SelectedCompany == null)
         {
-            System.Console.WriteLine("[CompanySelectorViewModel] Aucune compagnie sélectionnée");
+            Logger.Info("Aucune compagnie sélectionnée");
             return;
         }
 
-        System.Console.WriteLine($"[CompanySelectorViewModel] Démarrage avec {SelectedCompany.Name}...");
+        Logger.Info($"Démarrage avec {SelectedCompany.Name}...");
         IsLoading = true;
 
         try
@@ -198,17 +197,16 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                     insertCmd.ExecuteNonQuery();
                 }
 
-                System.Console.WriteLine("[CompanySelectorViewModel] Sauvegarde créée avec succès");
+                Logger.Info("Sauvegarde créée avec succès");
             });
 
             // Naviguer vers le Dashboard (tableau de bord) - sur le thread UI
             _navigationService.NavigateTo<DashboardViewModel>();
-            System.Console.WriteLine("[CompanySelectorViewModel] Navigation vers Dashboard effectuée");
+            Logger.Info("Navigation vers Dashboard effectuée");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Erreur lors de la création: {ex.Message}");
-            System.Console.Error.WriteLine($"[CompanySelectorViewModel] Stack trace: {ex.StackTrace}");
+            Logger.Error("Erreur lors de la création", ex);
         }
         finally
         {
@@ -221,7 +219,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
     /// </summary>
     private void CreateNewCompany()
     {
-        System.Console.WriteLine("[CompanySelectorViewModel] Création d'une nouvelle compagnie...");
+        Logger.Info("Création d'une nouvelle compagnie...");
         _navigationService.NavigateTo<CreateCompanyViewModel>();
     }
 

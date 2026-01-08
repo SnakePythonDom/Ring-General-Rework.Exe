@@ -167,14 +167,14 @@ public sealed class HistoryTabViewModel : ViewModelBase
     private void ViewMatchDetails()
     {
         if (SelectedMatch == null) return;
-        System.Console.WriteLine($"[HistoryTab] View match {SelectedMatch.Id}");
+        Logger.Info($"[HistoryTab] View match {SelectedMatch.Id}");
         // TODO: Show match details dialog
     }
 
     private void ViewReignDetails()
     {
         if (SelectedReign == null) return;
-        System.Console.WriteLine($"[HistoryTab] View reign {SelectedReign.Id}");
+        Logger.Info($"[HistoryTab] View reign {SelectedReign.Id}");
         // TODO: Show reign details dialog
     }
 }

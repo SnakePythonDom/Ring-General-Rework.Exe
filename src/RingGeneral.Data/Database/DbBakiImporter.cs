@@ -1,7 +1,5 @@
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.IO;
+using RingGeneral.Core.Services;
 
 namespace RingGeneral.Data.Database;
 
@@ -10,6 +8,10 @@ namespace RingGeneral.Data.Database;
 /// </summary>
 public static class DbBakiImporter
 {
+    private static ILoggingService? _logger;
+
+    public static void SetLogger(ILoggingService logger) => _logger = logger;
+
     /// <summary>
     /// Importe les données depuis BAKI1.1.db vers la base Ring General
     /// </summary>
@@ -17,11 +19,11 @@ public static class DbBakiImporter
     {
         if (!File.Exists(bakiDbPath))
         {
-            Console.WriteLine($"[DbBakiImporter] Fichier BAKI1.1.db introuvable: {bakiDbPath}");
+            Log(LogLevel.Warning, $"BAKI1.1.db not found: {bakiDbPath}");
             return;
         }
 
-        Console.WriteLine($"[DbBakiImporter] Démarrage de l'import depuis {bakiDbPath}");
+        Log(LogLevel.Info, $"Starting import from {bakiDbPath}");
 
         using var transaction = targetConnection.BeginTransaction();
 
@@ -36,25 +38,25 @@ public static class DbBakiImporter
 
             // 1. Importer les countries
             var countriesImported = ImportCountries(targetConnection);
-            Console.WriteLine($"[DbBakiImporter] {countriesImported} pays importés");
+            Log(LogLevel.Info, $"{countriesImported} pays importés");
 
             // 2. Importer les regions
             var regionsImported = ImportRegions(targetConnection);
-            Console.WriteLine($"[DbBakiImporter] {regionsImported} régions importées");
+            Log(LogLevel.Info, $"{regionsImported} régions importées");
 
             // 3. Importer les compagnies (promotions)
             var companiesImported = ImportCompanies(targetConnection);
-            Console.WriteLine($"[DbBakiImporter] {companiesImported} compagnies importées");
+            Log(LogLevel.Info, $"{companiesImported} compagnies importées");
 
             // 4. Importer les workers avec leurs contrats
             var (workersImported, contractsImported, freeAgents) = ImportWorkersAndContracts(targetConnection);
-            Console.WriteLine($"[DbBakiImporter] {workersImported} workers importés");
-            Console.WriteLine($"[DbBakiImporter] {contractsImported} contrats importés");
-            Console.WriteLine($"[DbBakiImporter] {freeAgents} free agents (sans contrat)");
+            Log(LogLevel.Info, $"{workersImported} workers importés");
+            Log(LogLevel.Info, $"{contractsImported} contrats importés");
+            Log(LogLevel.Info, $"{freeAgents} free agents (sans contrat)");
 
             // 5. Importer les titres
             var titlesImported = ImportTitles(targetConnection);
-            Console.WriteLine($"[DbBakiImporter] {titlesImported} titres importés");
+            Log(LogLevel.Info, $"{titlesImported} titres importés");
 
             // Détacher la base BAKI
             using (var detachCmd = targetConnection.CreateCommand())
@@ -64,13 +66,13 @@ public static class DbBakiImporter
             }
 
             transaction.Commit();
-            Console.WriteLine("[DbBakiImporter] Import terminé avec succès");
+            Log(LogLevel.Info, "Import terminé avec succès");
         }
         catch (Exception ex)
         {
             transaction.Rollback();
-            Console.Error.WriteLine($"[DbBakiImporter] Erreur lors de l'import: {ex.Message}");
-            Console.Error.WriteLine($"[DbBakiImporter] Stack trace: {ex.StackTrace}");
+            Log(LogLevel.Error, $"Erreur lors de l'import: {ex.Message}");
+            Log(LogLevel.Error, $"Stack trace: {ex.StackTrace}");
             throw;
         }
     }
@@ -80,7 +82,7 @@ public static class DbBakiImporter
     /// </summary>
     private static int ImportCountries(SqliteConnection connection)
     {
-        Console.WriteLine("[DbBakiImporter] Import des countries...");
+        Log(LogLevel.Info, "Import des countries...");
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
@@ -100,7 +102,7 @@ public static class DbBakiImporter
     /// </summary>
     private static int ImportRegions(SqliteConnection connection)
     {
-        Console.WriteLine("[DbBakiImporter] Import des regions...");
+        Log(LogLevel.Info, "Import des regions...");
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
@@ -121,7 +123,7 @@ public static class DbBakiImporter
     /// </summary>
     private static int ImportCompanies(SqliteConnection connection)
     {
-        Console.WriteLine("[DbBakiImporter] Import des companies...");
+        Log(LogLevel.Info, "Import des companies...");
 
         // Récupérer les promotions avec leurs pays et régions
         using var selectCmd = connection.CreateCommand();
@@ -219,7 +221,7 @@ public static class DbBakiImporter
     /// <returns>Tuple (workers importés, contrats importés, free agents)</returns>
     private static (int workers, int contracts, int freeAgents) ImportWorkersAndContracts(SqliteConnection connection)
     {
-        Console.WriteLine("[DbBakiImporter] Import des workers et contrats...");
+        Log(LogLevel.Info, "Import des workers et contrats...");
 
         // Vérifier si les tables existent dans BAKI
         using (var checkCmd = connection.CreateCommand())
@@ -229,7 +231,7 @@ public static class DbBakiImporter
 
             if (!tableExists)
             {
-                Console.WriteLine("[DbBakiImporter] Table workers absente dans BAKI");
+                Log(LogLevel.Info, "Table workers absente dans BAKI");
                 return (0, 0, 0);
             }
         }
@@ -404,7 +406,7 @@ public static class DbBakiImporter
     /// </summary>
     private static int ImportTitles(SqliteConnection connection)
     {
-        Console.WriteLine("[DbBakiImporter] Import des titles...");
+        Log(LogLevel.Info, "Import des titles...");
 
         // Vérifier si la table existe dans BAKI
         using (var checkCmd = connection.CreateCommand())
@@ -414,7 +416,7 @@ public static class DbBakiImporter
 
             if (!tableExists)
             {
-                Console.WriteLine("[DbBakiImporter] Table titles absente dans BAKI");
+                Log(LogLevel.Info, "Table titles absente dans BAKI");
                 return 0;
             }
         }
@@ -433,7 +435,7 @@ public static class DbBakiImporter
 
         if (firstCompanyId == null)
         {
-            Console.WriteLine("[DbBakiImporter] Aucune compagnie disponible pour associer les titres");
+            Log(LogLevel.Info, "Aucune compagnie disponible pour associer les titres");
             return 0;
         }
 
@@ -452,5 +454,38 @@ public static class DbBakiImporter
         cmd.Parameters.AddWithValue("@companyId", firstCompanyId);
 
         return cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Helper pour logger avec fallback vers Console si pas de logger configuré
+    /// </summary>
+    private static void Log(LogLevel level, string message)
+    {
+        if (_logger != null)
+        {
+            switch (level)
+            {
+                case LogLevel.Debug:
+                    _logger.Debug(message);
+                    break;
+                case LogLevel.Info:
+                    _logger.Info(message);
+                    break;
+                case LogLevel.Warning:
+                    _logger.Warning(message);
+                    break;
+                case LogLevel.Error:
+                    _logger.Error(message);
+                    break;
+                case LogLevel.Fatal:
+                    _logger.Fatal(message);
+                    break;
+            }
+        }
+        else
+        {
+            // Fallback to Console if no logger configured
+            Console.WriteLine($"[DbBakiImporter] [{level}] {message}");
+        }
     }
 }

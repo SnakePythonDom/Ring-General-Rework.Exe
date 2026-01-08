@@ -1,7 +1,5 @@
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.IO;
+using RingGeneral.Core.Services;
 
 namespace RingGeneral.Data.Database;
 
@@ -10,6 +8,13 @@ namespace RingGeneral.Data.Database;
 /// </summary>
 public static class DbSeeder
 {
+    private static ILoggingService? _logger;
+
+    /// <summary>
+    /// Configure le logger pour DbSeeder (optionnel)
+    /// </summary>
+    public static void SetLogger(ILoggingService logger) => _logger = logger;
+
     /// <summary>
     /// Seed la base de données si elle est vide
     /// </summary>
@@ -17,39 +22,39 @@ public static class DbSeeder
     {
         if (!IsDatabaseEmpty(connection))
         {
-            Console.WriteLine("[DbSeeder] Base de données déjà peuplée. Seed ignoré.");
+            Log(LogLevel.Debug, "Base de données déjà peuplée. Seed ignoré.");
             return;
         }
 
-        Console.WriteLine("[DbSeeder] Base de données vide détectée. Démarrage du seed...");
+        Log(LogLevel.Info, "Base de données vide détectée. Démarrage du seed...");
 
         // Chercher BAKI1.1.db dans plusieurs emplacements possibles
         string? bakiDbPath = FindBakiDatabase();
 
         if (bakiDbPath != null)
         {
-            Console.WriteLine($"[DbSeeder] BAKI1.1.db trouvé à: {bakiDbPath}");
-            Console.WriteLine("[DbSeeder] Import des données réelles depuis BAKI1.1.db...");
+            Log(LogLevel.Info, $"BAKI1.1.db trouvé à: {bakiDbPath}");
+            Log(LogLevel.Info, "Import des données réelles depuis BAKI1.1.db...");
 
             try
             {
                 DbBakiImporter.ImportFromBaki(connection, bakiDbPath);
-                Console.WriteLine("[DbSeeder] Import BAKI terminé avec succès");
+                Log(LogLevel.Info, "Import BAKI terminé avec succès");
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"[DbSeeder] Erreur lors de l'import BAKI: {ex.Message}");
-                Console.WriteLine("[DbSeeder] Fallback vers données de démonstration...");
+                Log(LogLevel.Error, $"Erreur lors de l'import BAKI: {ex.Message}");
+                Log(LogLevel.Warning, "Fallback vers données de démonstration...");
                 SeedDemoData(connection);
             }
         }
         else
         {
-            Console.WriteLine("[DbSeeder] BAKI1.1.db introuvable, utilisation des données de démonstration");
+            Log(LogLevel.Info, "BAKI1.1.db introuvable, utilisation des données de démonstration");
             SeedDemoData(connection);
         }
 
-        Console.WriteLine("[DbSeeder] Seed terminé avec succès.");
+        Log(LogLevel.Info, "Seed terminé avec succès.");
     }
 
     /// <summary>
@@ -115,22 +120,22 @@ public static class DbSeeder
         {
             // 1. Créer une compagnie
             var companyId = SeedCompany(connection);
-            Console.WriteLine($"[DbSeeder] Compagnie créée: {companyId}");
+            Log(LogLevel.Debug, $"Compagnie créée: {companyId}");
 
             // 2. Créer des workers
             var workerIds = SeedWorkers(connection, companyId);
-            Console.WriteLine($"[DbSeeder] {workerIds.Count} workers créés");
+            Log(LogLevel.Debug, $"{workerIds.Count} workers créés");
 
             // 3. Créer des titres
             var titleIds = SeedTitles(connection, companyId, workerIds);
-            Console.WriteLine($"[DbSeeder] {titleIds.Count} titres créés");
+            Log(LogLevel.Debug, $"{titleIds.Count} titres créés");
 
             // 4. Créer un show
             var showId = SeedShow(connection, companyId);
-            Console.WriteLine($"[DbSeeder] Show créé: {showId}");
+            Log(LogLevel.Debug, $"Show créé: {showId}");
 
             transaction.Commit();
-            Console.WriteLine("[DbSeeder] Transaction committée.");
+            Log(LogLevel.Debug, "Transaction committée.");
         }
         catch (Exception ex)
         {
@@ -297,5 +302,38 @@ public static class DbSeeder
         cmd.ExecuteNonQuery();
 
         return showId;
+    }
+
+    /// <summary>
+    /// Helper pour logger avec fallback vers Console si pas de logger configuré
+    /// </summary>
+    private static void Log(LogLevel level, string message)
+    {
+        if (_logger != null)
+        {
+            switch (level)
+            {
+                case LogLevel.Debug:
+                    _logger.Debug(message);
+                    break;
+                case LogLevel.Info:
+                    _logger.Info(message);
+                    break;
+                case LogLevel.Warning:
+                    _logger.Warning(message);
+                    break;
+                case LogLevel.Error:
+                    _logger.Error(message);
+                    break;
+                case LogLevel.Fatal:
+                    _logger.Fatal(message);
+                    break;
+            }
+        }
+        else
+        {
+            // Fallback to Console if no logger configured
+            Console.WriteLine($"[DbSeeder] [{level}] {message}");
+        }
     }
 }

@@ -143,7 +143,7 @@ public sealed class RosterViewModel : ViewModelBase
                 Workers.Add(worker);
             }
 
-            System.Console.WriteLine($"[RosterViewModel] {Workers.Count}/{TotalWorkersInDatabase} workers chargés (pagination)");
+            Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés (pagination)");
         }
         catch (Exception ex)
         {
@@ -193,7 +193,7 @@ public sealed class RosterViewModel : ViewModelBase
                 Workers.Add(worker);
             }
 
-            System.Console.WriteLine($"[RosterViewModel] {Workers.Count}/{TotalWorkersInDatabase} workers chargés");
+            Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés");
             this.RaisePropertyChanged(nameof(HasMoreWorkers));
         }
         catch (Exception ex)
@@ -251,17 +251,17 @@ public sealed class RosterViewModel : ViewModelBase
     {
         if (_navigationService == null)
         {
-            System.Console.WriteLine("[RosterViewModel] NavigationService non disponible");
+            Logger.Info("NavigationService non disponible");
             return;
         }
 
         if (string.IsNullOrEmpty(workerId))
         {
-            System.Console.WriteLine("[RosterViewModel] WorkerId invalide");
+            Logger.Info("WorkerId invalide");
             return;
         }
 
-        System.Console.WriteLine($"[RosterViewModel] Navigation vers WorkerDetail: {workerId}");
+        Logger.Info($"Navigation vers WorkerDetail: {workerId}");
         _navigationService.NavigateTo<WorkerDetailViewModel>(workerId);
     }
 

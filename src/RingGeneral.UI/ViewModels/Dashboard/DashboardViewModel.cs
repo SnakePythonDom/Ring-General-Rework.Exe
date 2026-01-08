@@ -226,7 +226,7 @@ public sealed class DashboardViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                System.Console.Error.WriteLine($"[DashboardViewModel] Erreur chargement compagnie: {ex.Message}");
+                Logger.Error($"[DashboardViewModel] Erreur chargement compagnie: {ex.Message}");
             }
 
             // Détecter si un show est prévu cette semaine
@@ -243,11 +243,11 @@ public sealed class DashboardViewModel : ViewModelBase
                 RecentActivity.Add($"📺 Show à préparer: {UpcomingShowName}");
             }
 
-            System.Console.WriteLine($"[DashboardViewModel] Dashboard chargé: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
+            Logger.Info($"Dashboard chargé: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[DashboardViewModel] Erreur lors du chargement: {ex.Message}");
+            Logger.Error($"[DashboardViewModel] Erreur lors du chargement: {ex.Message}");
             LatestNews = $"⚠️ Erreur de chargement: {ex.Message}";
         }
     }
@@ -291,7 +291,7 @@ public sealed class DashboardViewModel : ViewModelBase
         LoadDashboardData();
 
         RecentActivity.Insert(0, $"⏭️ Passage à la semaine {CurrentWeek}");
-        System.Console.WriteLine($"[DashboardViewModel] Avancé à la semaine {CurrentWeek}");
+        Logger.Info($"Avancé à la semaine {CurrentWeek}");
     }
 
     /// <summary>
@@ -308,6 +308,6 @@ public sealed class DashboardViewModel : ViewModelBase
         // _navigationService.NavigateTo<BookingViewModel>();
 
         RecentActivity.Insert(0, $"📋 Préparation du show: {UpcomingShowName}");
-        System.Console.WriteLine($"[DashboardViewModel] Navigation vers le booking pour: {UpcomingShowName}");
+        Logger.Info($"Navigation vers le booking pour: {UpcomingShowName}");
     }
 }

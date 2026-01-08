@@ -186,6 +186,20 @@ public sealed class ShowRepository : RepositoryBase
         transaction.Commit();
     }
 
+    public void MettreAJourOrdreSegment(string segmentId, int ordre)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE ShowSegments
+            SET OrderIndex = $ordre
+            WHERE ShowSegmentId = $segmentId;
+            """;
+        command.Parameters.AddWithValue("$ordre", ordre);
+        command.Parameters.AddWithValue("$segmentId", segmentId);
+        command.ExecuteNonQuery();
+    }
+
     public IReadOnlyList<SegmentTemplate> ChargerSegmentTemplates()
     {
         using var connexion = OpenConnection();

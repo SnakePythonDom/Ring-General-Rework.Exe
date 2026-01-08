@@ -1,7 +1,12 @@
+using System.Collections.Generic;
+
 namespace RingGeneral.UI.ViewModels;
 
 public sealed class SegmentTypeCatalog
 {
+    /// <summary>
+    /// Constructeur complet avec tous les dictionnaires.
+    /// </summary>
     public SegmentTypeCatalog(
         IReadOnlyDictionary<string, string> labels,
         IReadOnlyDictionary<string, IReadOnlyList<string>> consignesParType,
@@ -12,6 +17,18 @@ public sealed class SegmentTypeCatalog
         ConsignesParType = consignesParType;
         ConsigneOptions = consigneOptions;
         ConsigneLabels = consigneLabels;
+    }
+
+    /// <summary>
+    /// Constructeur par défaut avec dictionnaires vides.
+    /// </summary>
+    public SegmentTypeCatalog()
+        : this(
+            new Dictionary<string, string>(),
+            new Dictionary<string, IReadOnlyList<string>>(),
+            new Dictionary<string, IReadOnlyList<string>>(),
+            new Dictionary<string, string>())
+    {
     }
 
     public IReadOnlyDictionary<string, string> Labels { get; }

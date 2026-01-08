@@ -31,6 +31,8 @@ public sealed class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var logger = ApplicationServices.Logger;
+
         // Configuration DI
         var services = new ServiceCollection();
 
@@ -105,22 +107,22 @@ public sealed class App : Application
         if (hasActiveSave)
         {
             // Charger directement le Shell si une partie existe
-            System.Console.WriteLine("[App] Partie active détectée, chargement du Dashboard...");
+            logger.Info("Partie active détectée, chargement du Dashboard...");
             // Le ShellViewModel naviguera automatiquement vers DashboardViewModel
         }
         else
         {
             // Sinon, afficher le menu de démarrage
-            System.Console.WriteLine("[App] Aucune partie active, affichage du menu de démarrage...");
+            logger.Info("Aucune partie active, affichage du menu de démarrage...");
 
             // Initialiser le NavigationService avec StartViewModel AVANT de créer le Shell
             navigationService.NavigateTo<StartViewModel>();
-            System.Console.WriteLine($"[App] Navigation vers StartViewModel effectuée");
+            logger.Debug("Navigation vers StartViewModel effectuée");
         }
 
         // Créer le ShellViewModel (qui observera le NavigationService)
         var shellViewModel = provider.GetRequiredService<ViewModels.Core.ShellViewModel>();
-        System.Console.WriteLine($"[App] ShellViewModel créé, CurrentContentViewModel = {shellViewModel.CurrentContentViewModel?.GetType().Name ?? "null"}");
+        logger.Debug($"ShellViewModel créé, CurrentContentViewModel = {shellViewModel.CurrentContentViewModel?.GetType().Name ?? "null"}");
 
         // Lancer la fenêtre principale avec le ShellViewModel
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -146,7 +148,7 @@ public sealed class App : Application
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[App] Erreur lors de la vérification de sauvegarde: {ex.Message}");
+            ApplicationServices.Logger.Error($"Erreur lors de la vérification de sauvegarde: {ex.Message}", ex);
             return false;
         }
     }

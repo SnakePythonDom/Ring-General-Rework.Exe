@@ -119,14 +119,14 @@ public sealed class RelationsTabViewModel : ViewModelBase
 
     private void AddRelation()
     {
-        System.Console.WriteLine("[RelationsTab] Add relation dialog");
+        Logger.Info("Add relation dialog");
         // TODO: Show add relation dialog
     }
 
     private void EditRelation()
     {
         if (SelectedRelation == null) return;
-        System.Console.WriteLine($"[RelationsTab] Edit relation {SelectedRelation.Id}");
+        Logger.Info($"[RelationsTab] Edit relation {SelectedRelation.Id}");
         // TODO: Show edit relation dialog
     }
 
@@ -139,7 +139,7 @@ public sealed class RelationsTabViewModel : ViewModelBase
 
     private void AddToFaction()
     {
-        System.Console.WriteLine("[RelationsTab] Add to faction dialog");
+        Logger.Info("Add to faction dialog");
         // TODO: Show add to faction dialog
     }
 

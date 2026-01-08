@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
+using RingGeneral.Core.Services;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.UI.ViewModels.Core;
 
@@ -14,13 +15,15 @@ public sealed class NavigationService : INavigationService
     private readonly IServiceProvider _serviceProvider;
     private readonly BehaviorSubject<ViewModelBase?> _currentViewModelSubject;
     private readonly Stack<ViewModelBase> _navigationStack;
+    private readonly ILoggingService _logger;
 
     public NavigationService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
         _currentViewModelSubject = new BehaviorSubject<ViewModelBase?>(null);
         _navigationStack = new Stack<ViewModelBase>();
-        System.Console.WriteLine("[NavigationService] Service initialisé");
+        _logger = ApplicationServices.Logger;
+        _logger.Debug("NavigationService initialized");
     }
 
     public ViewModelBase? CurrentViewModel => _currentViewModelSubject.Value;
@@ -78,7 +81,7 @@ public sealed class NavigationService : INavigationService
 
     private void NavigateToViewModel(ViewModelBase viewModel)
     {
-        System.Console.WriteLine($"[NavigationService] Navigation vers {viewModel.GetType().Name}");
+        _logger.Debug($"Navigating to {viewModel.GetType().Name}");
         _navigationStack.Push(viewModel);
         _currentViewModelSubject.OnNext(viewModel);
     }

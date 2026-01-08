@@ -15,9 +15,9 @@ public sealed class BookingTests
         var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral_{Guid.NewGuid():N}.db");
         try
         {
+            new DbInitializer().CreateDatabaseIfMissing(dbPath);
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
             var repository = RepositoryFactory.CreateGameRepository(factory);
-            repository.Initialiser();
 
             var context = repository.ChargerShowContext("SHOW-001");
             Assert.NotNull(context);

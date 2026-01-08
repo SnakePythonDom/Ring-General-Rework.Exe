@@ -175,9 +175,9 @@ public sealed class WorkerGenerationServiceTests
         var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral-{Guid.NewGuid():N}.db");
         try
         {
+            new DbInitializer().CreateDatabaseIfMissing(dbPath);
             var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
             var repository = RepositoryFactory.CreateGameRepository(factory);
-            repository.Initialiser();
 
             var options = repository.ChargerParametresGeneration();
             var show = repository.ChargerShowDefinition("SHOW-001");

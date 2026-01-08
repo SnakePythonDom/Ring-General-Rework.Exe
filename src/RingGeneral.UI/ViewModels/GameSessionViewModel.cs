@@ -16,6 +16,7 @@ using RingGeneral.Data.Repositories;
 using RingGeneral.Specs.Models;
 using RingGeneral.Specs.Services;
 using RingGeneral.UI.Services;
+using LogLevel = RingGeneral.Core.Services.LogLevel;
 
 namespace RingGeneral.UI.ViewModels;
 
@@ -26,6 +27,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     private IScoutingRepository? _scoutingRepository;
     private readonly MedicalRepository? _medicalRepository;
     private readonly InjuryService? _injuryService;
+    private readonly ILoggingService _logger;
     private readonly BookingValidator _validator = new();
     private readonly IReadOnlyDictionary<string, string> _segmentLabels = new Dictionary<string, string>();
     private readonly TemplateService _templateService = new();
@@ -41,14 +43,21 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly List<TableSortSetting> _tableSortSettings = new();
     private bool _suspendTablePreferences;
 
-    public GameSessionViewModel(string? cheminDb = null)
+    public GameSessionViewModel(string? cheminDb = null, ServiceContainer? services = null)
     {
+        // Initialize logger from service container or use default
+        _logger = services?.IsRegistered<ILoggingService>() == true
+            ? services.Resolve<ILoggingService>()
+            : new ConsoleLoggingService(LogLevel.Info);
+
         var cheminFinal = string.IsNullOrWhiteSpace(cheminDb)
             ? Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db")
             : cheminDb;
 
         try
         {
+            _logger.Info($"Initializing GameSession with database: {cheminFinal}");
+
             // Apply database migrations first to ensure all tables exist
             var initializer = new DbInitializer();
             initializer.CreateDatabaseIfMissing(cheminFinal);
@@ -59,18 +68,14 @@ public sealed class GameSessionViewModel : ViewModelBase
             _scoutingRepository = repositories.ScoutingRepository;
             _medicalRepository = new MedicalRepository(factory);
             _injuryService = new InjuryService(new MedicalRecommendations());
-            _repository.Initialiser();
+
+            _logger.Info("GameSession initialized successfully");
         }
         catch (Exception ex)
         {
             // En cas d'échec d'initialisation, l'application continue en mode lecture seule
             // L'utilisateur sera notifié via l'interface qu'aucune sauvegarde n'est chargée
-            Console.WriteLine("FATAL ERROR: Impossible de charger la base de données.");
-            Console.WriteLine($"Chemin tenté : {cheminFinal}");
-            Console.WriteLine($"Erreur : {ex.Message}");
-            Console.WriteLine($"Type d'erreur : {ex.GetType().Name}");
-            System.Diagnostics.Debug.WriteLine($"Échec initialisation base de données ({cheminFinal}): {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            _logger.Fatal("Failed to initialize database", ex);
             _repository = null;
             _scoutingRepository = null;
         }
@@ -2003,7 +2008,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         if (_repository is null)
         {
             System.Diagnostics.Debug.WriteLine("InitialiserBibliotheque abandonnée : Repository est null.");
-            Console.WriteLine("AVERTISSEMENT: InitialiserBibliotheque ne peut pas s'exécuter car la base de données n'est pas chargée.");
+            Logger.Warning("InitialiserBibliotheque ne peut pas s'exécuter car la base de données n'est pas chargée.");
             return;
         }
 

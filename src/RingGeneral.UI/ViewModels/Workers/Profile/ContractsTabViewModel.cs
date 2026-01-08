@@ -111,14 +111,14 @@ public sealed class ContractsTabViewModel : ViewModelBase
 
     private void AddContract()
     {
-        System.Console.WriteLine("[ContractsTab] Add contract dialog");
+        Logger.Info("Add contract dialog");
         // TODO: Show add contract dialog
     }
 
     private void EditContract()
     {
         if (SelectedContract == null) return;
-        System.Console.WriteLine($"[ContractsTab] Edit contract {SelectedContract.Id}");
+        Logger.Info($"[ContractsTab] Edit contract {SelectedContract.Id}");
         // TODO: Show edit contract dialog
     }
 
