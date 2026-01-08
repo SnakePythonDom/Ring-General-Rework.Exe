@@ -69,6 +69,10 @@ public sealed class App : Application
         // Nepotism System Services (Phase 2)
         services.AddSingleton<INepotismEngine, NepotismEngine>();
 
+        // Morale & Rumors System Services (Phase 3)
+        services.AddSingleton<IMoraleEngine, MoraleEngine>();
+        services.AddSingleton<IRumorEngine, RumorEngine>();
+
         // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
         services.AddSingleton<AgentReportGeneratorService>();
