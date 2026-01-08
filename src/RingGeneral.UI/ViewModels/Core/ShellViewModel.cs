@@ -11,6 +11,7 @@ using RingGeneral.UI.ViewModels.Youth;
 using RingGeneral.UI.ViewModels.Finance;
 using RingGeneral.UI.ViewModels.Calendar;
 using RingGeneral.UI.ViewModels.Start;
+using RingGeneral.UI.ViewModels.OwnerBooker;
 
 namespace RingGeneral.UI.ViewModels.Core;
 
@@ -252,6 +253,15 @@ public sealed class ShellViewModel : ViewModelBase
             typeof(FinanceViewModel)
         );
         root.Add(finance);
+
+        // 👔 OWNER & BOOKER
+        var ownerBooker = new NavigationItemViewModel(
+            "ownerbooker",
+            "OWNER & BOOKER",
+            "👔",
+            typeof(OwnerBookerViewModel)
+        );
+        root.Add(ownerBooker);
 
         // 📆 CALENDRIER
         var calendar = new NavigationItemViewModel(
