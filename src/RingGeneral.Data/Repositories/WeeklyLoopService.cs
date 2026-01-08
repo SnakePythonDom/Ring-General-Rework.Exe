@@ -3,6 +3,7 @@ using System.Text.Json;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
+using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
 using RingGeneral.Specs.Models;
 using RingGeneral.Specs.Services;
@@ -13,13 +14,21 @@ public sealed class WeeklyLoopService
 {
     private readonly GameRepository _repository;
     private readonly IScoutingRepository _scoutingRepository;
+    private readonly IMoraleEngine? _moraleEngine;
+    private readonly IRumorEngine? _rumorEngine;
     private readonly SeededRandomProvider _random = new(42);
     private readonly SpecsReader _specsReader = new();
 
-    public WeeklyLoopService(GameRepository repository, IScoutingRepository scoutingRepository)
+    public WeeklyLoopService(
+        GameRepository repository,
+        IScoutingRepository scoutingRepository,
+        IMoraleEngine? moraleEngine = null,
+        IRumorEngine? rumorEngine = null)
     {
         _repository = repository;
         _scoutingRepository = scoutingRepository;
+        _moraleEngine = moraleEngine;
+        _rumorEngine = rumorEngine;
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -47,6 +56,9 @@ public sealed class WeeklyLoopService
         {
             inboxItems.Add(scouting);
         }
+
+        // Progression du moral et des rumeurs (Phase 3)
+        inboxItems.AddRange(ProgresserMoraleEtRumeurs(semaine, showId));
 
         foreach (var item in inboxItems)
         {
@@ -446,6 +458,64 @@ public sealed class WeeklyLoopService
             var nom = noms.TryGetValue(offre.WorkerId, out var workerNom) ? workerNom : offre.WorkerId;
             var contenu = $"L'offre contractuelle pour {nom} a expiré.";
             items.Add(new InboxItem("contrat", "Offre expirée", contenu, semaine));
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// Progresse le moral et les rumeurs chaque semaine (Phase 3)
+    /// </summary>
+    private IEnumerable<InboxItem> ProgresserMoraleEtRumeurs(int semaine, string showId)
+    {
+        var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
+        if (string.IsNullOrWhiteSpace(compagnieId))
+        {
+            return Array.Empty<InboxItem>();
+        }
+
+        var items = new List<InboxItem>();
+
+        // Progresser les rumeurs (amplification naturelle, résolution, etc.)
+        if (_rumorEngine is not null)
+        {
+            try
+            {
+                _rumorEngine.ProgressRumors(compagnieId);
+
+                // Récupérer les rumeurs widespread pour notifications
+                var widespreadRumors = _rumorEngine.GetWidespreadRumors(compagnieId);
+                foreach (var rumor in widespreadRumors.Take(3)) // Max 3 notifications par semaine
+                {
+                    var titre = $"⚠️ Rumeur répandue: {rumor.RumorType}";
+                    var contenu = rumor.RumorText;
+                    items.Add(new InboxItem("rumeur", titre, contenu, semaine));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[WeeklyLoopService] Erreur progression rumeurs: {ex.Message}");
+            }
+        }
+
+        // Détecter les signaux faibles de moral
+        if (_moraleEngine is not null)
+        {
+            try
+            {
+                var weakSignals = _moraleEngine.DetectWeakSignals(compagnieId);
+                foreach (var signal in weakSignals.Take(2)) // Max 2 signaux par semaine
+                {
+                    items.Add(new InboxItem("moral", "Signal Moral", signal, semaine));
+                }
+
+                // Recalculer le moral de compagnie
+                _moraleEngine.CalculateCompanyMorale(compagnieId);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[WeeklyLoopService] Erreur détection moral: {ex.Message}");
+            }
         }
 
         return items;

@@ -18,6 +18,7 @@ public sealed class DashboardViewModel : ViewModelBase
     private readonly GameRepository? _repository;
     private readonly ShowDayOrchestrator? _showDayOrchestrator;
     private readonly IShowSchedulerStore? _showSchedulerStore;
+    private readonly IMoraleEngine? _moraleEngine;
     private string _companyName = "Ma Compagnie";
     private string _companyId = string.Empty;
     private int _currentWeek = 1;
@@ -28,15 +29,21 @@ public sealed class DashboardViewModel : ViewModelBase
     private string _latestNews = "Bienvenue dans Ring General !";
     private bool _hasUpcomingShow;
     private string _upcomingShowName = string.Empty;
+    private int _moraleScore = 70;
+    private string _moraleTrend = "Stable";
+    private string _moraleLabel = "Good";
+    private string _trendIcon = "➡️";
 
     public DashboardViewModel(
         GameRepository? repository = null,
         IShowSchedulerStore? showSchedulerStore = null,
-        ShowDayOrchestrator? showDayOrchestrator = null)
+        ShowDayOrchestrator? showDayOrchestrator = null,
+        IMoraleEngine? moraleEngine = null)
     {
         _repository = repository;
         _showSchedulerStore = showSchedulerStore;
         _showDayOrchestrator = showDayOrchestrator;
+        _moraleEngine = moraleEngine;
 
         // Données par défaut (seront remplacées par les vraies données)
         TotalWorkers = 0;
@@ -161,6 +168,42 @@ public sealed class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Score de moral de la compagnie (0-100)
+    /// </summary>
+    public int MoraleScore
+    {
+        get => _moraleScore;
+        set => this.RaiseAndSetIfChanged(ref _moraleScore, value);
+    }
+
+    /// <summary>
+    /// Tendance du moral (Improving, Stable, Declining)
+    /// </summary>
+    public string MoraleTrend
+    {
+        get => _moraleTrend;
+        set => this.RaiseAndSetIfChanged(ref _moraleTrend, value);
+    }
+
+    /// <summary>
+    /// Label descriptif du moral (Excellent, Good, Average, Low, Critical)
+    /// </summary>
+    public string MoraleLabel
+    {
+        get => _moraleLabel;
+        set => this.RaiseAndSetIfChanged(ref _moraleLabel, value);
+    }
+
+    /// <summary>
+    /// Icône de tendance (📈, ➡️, 📉)
+    /// </summary>
+    public string TrendIcon
+    {
+        get => _trendIcon;
+        set => this.RaiseAndSetIfChanged(ref _trendIcon, value);
+    }
+
+    /// <summary>
     /// Label du bouton principal (dynamique)
     /// </summary>
     public string MainButtonLabel => HasUpcomingShow ? "📺 Préparer le Show" : "▶️ Continuer";
@@ -232,6 +275,9 @@ public sealed class DashboardViewModel : ViewModelBase
             // Détecter si un show est prévu cette semaine
             DetectUpcomingShow();
 
+            // Charger les données de moral
+            LoadMoraleData();
+
             // Mettre à jour l'activité récente
             RecentActivity.Clear();
             RecentActivity.Add($"✅ Données chargées avec succès");
@@ -269,6 +315,58 @@ public sealed class DashboardViewModel : ViewModelBase
 
         // Notifier le changement du label du bouton
         this.RaisePropertyChanged(nameof(MainButtonLabel));
+    }
+
+    /// <summary>
+    /// Charge les données de moral de la compagnie
+    /// </summary>
+    private void LoadMoraleData()
+    {
+        if (_moraleEngine is null || string.IsNullOrEmpty(_companyId))
+        {
+            // Valeurs par défaut
+            MoraleScore = 70;
+            MoraleTrend = "Stable";
+            MoraleLabel = "Good";
+            TrendIcon = "➡️";
+            return;
+        }
+
+        try
+        {
+            var companyMorale = _moraleEngine.CalculateCompanyMorale(_companyId);
+
+            if (companyMorale != null)
+            {
+                MoraleScore = companyMorale.GlobalMoraleScore;
+                MoraleTrend = companyMorale.Trend;
+
+                // Déterminer le label basé sur le score
+                MoraleLabel = MoraleScore switch
+                {
+                    >= 80 => "Excellent",
+                    >= 60 => "Good",
+                    >= 40 => "Average",
+                    >= 20 => "Low",
+                    _ => "Critical"
+                };
+
+                // Déterminer l'icône de tendance
+                TrendIcon = companyMorale.Trend switch
+                {
+                    "Improving" => "📈",
+                    "Declining" => "📉",
+                    _ => "➡️"
+                };
+
+                System.Console.WriteLine($"[DashboardViewModel] Moral chargé: {MoraleScore} ({MoraleLabel}), Tendance: {MoraleTrend}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.Error.WriteLine($"[DashboardViewModel] Erreur chargement moral: {ex.Message}");
+            // Garder les valeurs par défaut en cas d'erreur
+        }
     }
 
     /// <summary>
