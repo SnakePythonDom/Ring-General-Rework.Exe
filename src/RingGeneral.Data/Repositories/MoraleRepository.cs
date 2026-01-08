@@ -81,6 +81,32 @@ public class MoraleRepository : RepositoryBase, IMoraleRepository
         });
     }
 
+    public async Task UpdateBackstageMoraleAsync(BackstageMorale morale)
+    {
+        await Task.Run(() =>
+        {
+            using var connexion = OpenConnection();
+            using var command = connexion.CreateCommand();
+
+            command.CommandText = @"
+                UPDATE BackstageMorale
+                SET EntityType = $entityType,
+                    MoraleScore = $moraleScore,
+                    PreviousMoraleScore = $previousMoraleScore,
+                    LastUpdated = $lastUpdated
+                WHERE EntityId = $entityId AND CompanyId = $companyId;";
+
+            AjouterParametre(command, "$entityId", morale.EntityId);
+            AjouterParametre(command, "$entityType", morale.EntityType);
+            AjouterParametre(command, "$companyId", morale.CompanyId);
+            AjouterParametre(command, "$moraleScore", morale.MoraleScore);
+            AjouterParametre(command, "$previousMoraleScore", morale.PreviousMoraleScore);
+            AjouterParametre(command, "$lastUpdated", morale.LastUpdated.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            command.ExecuteNonQuery();
+        });
+    }
+
     public async Task<List<BackstageMorale>> GetLowMoraleEntitiesAsync(string companyId, int threshold = 40)
     {
         return await Task.Run(() =>

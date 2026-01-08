@@ -221,6 +221,44 @@ public class RumorRepository : RepositoryBase, IRumorRepository
         });
     }
 
+    public async Task<int> GetActiveRumorCountAsync(string companyId)
+    {
+        return await Task.Run(() =>
+        {
+            using var connexion = OpenConnection();
+            using var command = connexion.CreateCommand();
+
+            command.CommandText = @"
+                SELECT COUNT(*)
+                FROM Rumors
+                WHERE CompanyId = $companyId
+                  AND Stage NOT IN ('Resolved', 'Ignored');";
+
+            AjouterParametre(command, "$companyId", companyId);
+
+            var result = command.ExecuteScalar();
+            return Convert.ToInt32(result);
+        });
+    }
+
+    public async Task ResolveRumorAsync(int rumorId)
+    {
+        await Task.Run(() =>
+        {
+            using var connexion = OpenConnection();
+            using var command = connexion.CreateCommand();
+
+            command.CommandText = @"
+                UPDATE Rumors
+                SET Stage = 'Resolved'
+                WHERE Id = $rumorId;";
+
+            AjouterParametre(command, "$rumorId", rumorId);
+
+            command.ExecuteNonQuery();
+        });
+    }
+
     public async Task CleanupOldRumorsAsync(string companyId, int daysToKeep = 90)
     {
         await Task.Run(() =>
