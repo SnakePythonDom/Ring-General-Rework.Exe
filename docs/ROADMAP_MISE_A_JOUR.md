@@ -417,7 +417,6 @@ Views/
 
 - 🆕 [**PROJECT_STATUS.md**](./PROJECT_STATUS.md) - **État consolidé du projet** (8 jan 2026)
 - [planning/PLAN_IMPLEMENTATION_TECHNIQUE.md](./planning/PLAN_IMPLEMENTATION_TECHNIQUE.md) - Plan long terme (vision)
-- [planning/COMPARAISON_ET_PROCHAINES_ETAPES.md](./planning/COMPARAISON_ET_PROCHAINES_ETAPES.md) - Comparaison des plans
 - [README.md](./README.md) - Documentation principale
 - [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md) - Guide de démarrage
 - [specs/roadmap.fr.json](./specs/roadmap.fr.json) - Roadmap JSON
