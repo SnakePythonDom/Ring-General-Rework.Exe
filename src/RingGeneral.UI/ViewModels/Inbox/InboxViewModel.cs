@@ -141,11 +141,11 @@ public sealed class InboxItemViewModel : ViewModelBase
 
     public InboxItemViewModel(InboxItem item)
     {
-        Id = item.Id;
+        Id = $"{item.Type}_{item.Semaine}_{Guid.NewGuid():N}";
         Type = item.Type;
         Titre = item.Titre;
-        Message = item.Message;
-        Date = item.Date;
+        Message = item.Contenu;
+        Semaine = item.Semaine;
         _isRead = false;
     }
 
@@ -153,18 +153,25 @@ public sealed class InboxItemViewModel : ViewModelBase
     public string Type { get; }
     public string Titre { get; }
     public string Message { get; }
-    public DateTime Date { get; }
+    public int Semaine { get; }
 
     public bool IsRead
     {
         get => _isRead;
-        set => this.RaiseAndSetIfChanged(ref _isRead, value);
+        set
+        {
+            if (_isRead != value)
+            {
+                _isRead = value;
+                this.RaisePropertyChanged(nameof(IsRead));
+            }
+        }
     }
 
     /// <summary>
     /// Date formatée pour l'affichage.
     /// </summary>
-    public string FormattedDate => Date.ToString("dd/MM/yyyy HH:mm");
+    public string FormattedDate => $"Semaine {Semaine}";
 
     /// <summary>
     /// Icône basée sur le type d'élément.

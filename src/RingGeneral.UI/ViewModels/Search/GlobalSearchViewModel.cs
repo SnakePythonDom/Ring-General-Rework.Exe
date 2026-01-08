@@ -142,7 +142,7 @@ public sealed class GlobalSearchViewModel : ViewModelBase
         foreach (var storyline in context.Storylines)
         {
             var participants = storyline.Participants
-                .Select(pid => context.Workers.FirstOrDefault(w => w.WorkerId == pid)?.NomComplet)
+                .Select(p => context.Workers.FirstOrDefault(w => w.WorkerId == p.WorkerId)?.NomComplet)
                 .Where(nom => nom is not null)
                 .Select(nom => nom!)
                 .Take(3);

@@ -124,11 +124,9 @@ public sealed class TableViewViewModel : ViewModelBase
         get => _searchText;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _searchText, value))
-            {
-                ApplyFilter();
-                SavePreferences();
-            }
+            this.RaiseAndSetIfChanged(ref _searchText, value);
+            ApplyFilter();
+            SavePreferences();
         }
     }
 
@@ -140,11 +138,9 @@ public sealed class TableViewViewModel : ViewModelBase
         get => _selectedTypeFilter;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _selectedTypeFilter, value))
-            {
-                ApplyFilter();
-                SavePreferences();
-            }
+            this.RaiseAndSetIfChanged(ref _selectedTypeFilter, value);
+            ApplyFilter();
+            SavePreferences();
         }
     }
 
@@ -156,11 +152,9 @@ public sealed class TableViewViewModel : ViewModelBase
         get => _selectedStatusFilter;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _selectedStatusFilter, value))
-            {
-                ApplyFilter();
-                SavePreferences();
-            }
+            this.RaiseAndSetIfChanged(ref _selectedStatusFilter, value);
+            ApplyFilter();
+            SavePreferences();
         }
     }
 
