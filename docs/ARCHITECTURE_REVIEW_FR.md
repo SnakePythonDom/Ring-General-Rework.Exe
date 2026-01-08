@@ -1,8 +1,8 @@
 # Ring General - Revue Architecture Complète
 
-**Date**: 2026-01-06
-**Version**: 2.1
-**Statut**: En développement actif
+**Date**: 2026-01-08
+**Version**: 2.2
+**Statut**: En développement actif - Phase 8 complète
 **Langage**: C# / .NET 8.0
 
 ---
@@ -24,10 +24,12 @@
 | Fichiers de migration | 16 |
 | Packages NuGet externes | 10 |
 
-### Notation Globale: **7.5/10**
+### Notation Globale: **8.0/10** (+0.5)
 
-**Points forts**: Architecture modulaire, modèles immuables, couverture tests solide, dépendances minimales, début de refactoring repositories avec interfaces
-**Points à améliorer**: Repository principal toujours monolithique (3874 lignes), absence de DI container, logging structuré manquant, ViewModels trop larges, dette technique schéma DB
+**Points forts**: Architecture modulaire, système d'attributs professionnel (30 attributs), système de personnalité FM-like (25+ profils), composants UI réutilisables (AttributeBar), modèles immuables, couverture tests solide
+**Points à améliorer**: Repository principal toujours monolithique (3874 lignes), absence de DI container complet, logging structuré manquant, ViewModels trop larges, dette technique schéma DB
+
+**🎉 Nouveautés (Phase 8 - 8 janvier 2026)** : Système d'attributs de performance complet + Système de personnalité automatique
 
 ---
 
@@ -214,6 +216,268 @@ public sealed record GameStateDelta(
     IReadOnlyDictionary<string, int> TitrePrestigeDelta,
     IReadOnlyList<FinanceTransaction> Finances);
 ```
+
+---
+
+### 🎭 2.2.5 NOUVEAU : Système d'Attributs de Performance (Phase 8)
+
+**Implémenté** : 8 janvier 2026
+
+Le système d'attributs a été complètement refondu pour passer d'un modèle simplifié à un système professionnel en **4 dimensions** avec **40 attributs** au total.
+
+#### A. Attributs IN-RING (10 attributs, échelle 0-100)
+
+**Localisation** : `src/RingGeneral.Core/Models/Attributes/WorkerInRingAttributes.cs`
+
+```csharp
+public class WorkerInRingAttributes
+{
+    public int WorkerId { get; set; }
+
+    // Styles de Combat (4)
+    public int Striking { get; set; } = 50;        // Précision coups
+    public int Grappling { get; set; } = 50;       // Maîtrise sol
+    public int HighFlying { get; set; } = 50;      // Acrobaties
+    public int Powerhouse { get; set; } = 50;      // Force brute
+
+    // Exécution Technique (3)
+    public int Timing { get; set; } = 50;          // Précision chirurgicale
+    public int Selling { get; set; } = 50;         // Rendre coups crédibles
+    public int Psychology { get; set; } = 50;      // Storytelling in-ring
+
+    // Physique (3)
+    public int Stamina { get; set; } = 50;         // Endurance 30+ min
+    public int Safety { get; set; } = 50;          // Protection partenaire
+    public int HardcoreBrawl { get; set; } = 50;  // Objets & hardcore
+
+    // Moyenne calculée automatiquement
+    public int InRingAvg => (Striking + Grappling + ... ) / 10;
+}
+```
+
+**Méthodes** :
+- `GetAttributeValue(string)` - Accès dynamique
+- `SetAttributeValue(string, int)` - Modification avec validation
+- `Validate()` - Vérifie que tous les attributs sont dans 0-100
+
+#### B. Attributs ENTERTAINMENT (10 attributs, échelle 0-100)
+
+**Localisation** : `src/RingGeneral.Core/Models/Attributes/WorkerEntertainmentAttributes.cs`
+
+```csharp
+public class WorkerEntertainmentAttributes
+{
+    public int WorkerId { get; set; }
+
+    // Présence & Charisme (4)
+    public int Charisma { get; set; } = 50;           // Magnétisme naturel
+    public int MicWork { get; set; } = 50;            // Promos verbales
+    public int Acting { get; set; } = 50;             // Jeu d'acteur
+    public int CrowdConnection { get; set; } = 50;    // Réactions foule
+
+    // Star Power (3)
+    public int StarPower { get; set; } = 50;          // Aura Main Event
+    public int Improvisation { get; set; } = 50;      // Réaction imprévus
+    public int Entrance { get; set; } = 50;           // Impact visuel
+
+    // Marketabilité (3)
+    public int SexAppeal { get; set; } = 50;          // Attrait esthétique
+    public int MerchandiseAppeal { get; set; } = 50;  // Potentiel produits
+    public int CrossoverPotential { get; set; } = 50; // Attrait hors-catch
+
+    public int EntertainmentAvg => (...) / 10;
+}
+```
+
+#### C. Attributs STORY (10 attributs, échelle 0-100)
+
+**Localisation** : `src/RingGeneral.Core/Models/Attributes/WorkerStoryAttributes.cs`
+
+**Profondeur narrative & polyvalence de personnage** :
+- CharacterDepth (Complexité personnage)
+- Consistency (Fidélité au personnage)
+- HeelPerformance (Efficacité antagoniste)
+- BabyfacePerformance (Efficacité héros)
+- StorytellingLongTerm (Porter rivalités)
+- EmotionalRange (Générer émotions)
+- Adaptability (Changer gimmick)
+- RivalryChemistry (Créer étincelles)
+- CreativeInput (Implication storylines)
+- MoralAlignment (Jouer Tweener)
+
+#### D. Attributs MENTAUX (10 attributs, échelle 0-20) 🔒 **CACHÉS**
+
+**Localisation** : `src/RingGeneral.Core/Models/Attributes/WorkerMentalAttributes.cs`
+
+**Différence clé** : Échelle 0-20 (style Football Manager), **cachés par défaut** jusqu'à scouting.
+
+```csharp
+public class WorkerMentalAttributes
+{
+    public int WorkerId { get; set; }
+
+    // Ambition & Drive (2)
+    public int Ambition { get; set; } = 10;          // 0-20
+    public int Détermination { get; set; } = 10;
+
+    // Loyauté & Professionnalisme (3)
+    public int Loyauté { get; set; } = 10;
+    public int Professionnalisme { get; set; } = 10;
+    public int Sportivité { get; set; } = 10;
+
+    // Pression & Tempérament (2)
+    public int Pression { get; set; } = 10;          // Performance big moments
+    public int Tempérament { get; set; } = 10;       // Contrôle émotionnel
+
+    // Égo & Adaptabilité (2)
+    public int Égoïsme { get; set; } = 10;
+    public int Adaptabilité { get; set; } = 10;
+
+    // Influence (1)
+    public int Influence { get; set; } = 10;         // Pouvoir backstage
+
+    // Métadonnées de révélation
+    public bool IsRevealed { get; set; } = false;
+    public int ScoutingLevel { get; set; } = 0;      // 0, 1 (basique), 2 (complet)
+
+    // 4 Piliers calculés pour rapports d'agent
+    public double ProfessionnalismeScore => (Professionnalisme + Sportivité + Loyauté) / 3.0;
+    public double PressionScore => (Pression + Détermination) / 2.0;
+    public double ÉgoïsmeScore => Égoïsme;
+    public double InfluenceScore => (Influence + Tempérament) / 2.0;
+}
+```
+
+**Système de révélation** :
+- ScoutingLevel 0 : Tous cachés
+- ScoutingLevel 1 : 4 piliers visibles
+- ScoutingLevel 2 : Tous les 10 attributs visibles
+
+#### Repository d'Attributs
+
+**Localisation** : `src/RingGeneral.Data/Repositories/WorkerAttributesRepository.cs`
+
+```csharp
+public interface IWorkerAttributesRepository
+{
+    Task<WorkerInRingAttributes?> GetInRingAttributesAsync(int workerId);
+    Task<WorkerEntertainmentAttributes?> GetEntertainmentAttributesAsync(int workerId);
+    Task<WorkerStoryAttributes?> GetStoryAttributesAsync(int workerId);
+    Task<WorkerMentalAttributes?> GetMentalAttributesAsync(int workerId);
+
+    Task SaveInRingAttributesAsync(WorkerInRingAttributes attributes);
+    Task SaveEntertainmentAttributesAsync(WorkerEntertainmentAttributes attributes);
+    Task SaveStoryAttributesAsync(WorkerStoryAttributes attributes);
+    Task SaveMentalAttributesAsync(WorkerMentalAttributes attributes);
+
+    Task RevealMentalAttributesAsync(int workerId, int scoutingLevel);
+}
+```
+
+---
+
+### 🎭 2.2.6 NOUVEAU : Système de Personnalité (Phase 8)
+
+**Implémenté** : 8 janvier 2026
+**Inspiration** : Football Manager
+
+#### PersonalityProfile Enum (25+ profils)
+
+**Localisation** : `src/RingGeneral.Core/Models/PersonalityProfile.cs`
+
+```csharp
+public enum PersonalityProfile
+{
+    // LES ÉLITES (Professionalism High, Pressure High)
+    ProfessionnelExemplaire,    // ⭐ Professionnalisme 17+, Sportivité 15+
+    CitoyenModele,              // 🏆 Loyauté 17+, Égoïsme <6
+    Déterminé,                  // 💪 Détermination 17+, Pression 15+
+
+    // LES STARS À ÉGO (Ambition High, Égoïsme High)
+    Ambitieux,                  // 🚀 Ambition 17+, Détermination 13+
+    LeaderDeVestiaire,          // 👑 Influence 17+, Professionnalisme 13+
+    Mercenaire,                 // 💰 Loyauté <6, Ambition 13+
+
+    // LES INSTABLES (Tempérament Low or Pression Low)
+    TempéramentDeFeu,           // 🔥 Tempérament <6, Professionnalisme >10
+    FrancTireur,                // 🎲 Adaptabilité 15+, Tempérament <8
+    Inconstant,                 // 📉 Pression <8, Détermination <8
+
+    // LES TOXIQUES (Égoïsme High, Professionalism Low)
+    Égoïste,                    // 😈 Égoïsme 17+, Sportivité <6
+    Diva,                       // 👸 Égoïsme 17+, Tempérament <6
+    Paresseux,                  // 💤 Professionnalisme <6, Détermination <6
+
+    // LES STRATÈGES (Experience traits)
+    VétéranRusé,                // 🦊 Adaptabilité 15+, Influence 13+
+    MaîtreDuStorytelling,       // 📖 Adaptabilité 17+, Professionnalisme 13+
+    Politicien,                 // 🎭 Influence 17+, Égoïsme 13+
+
+    // LES BÊTES DE COMPÉTITION (Determination + Professionalism)
+    AccroAuRing,                // 🥊 Détermination 17+, Professionnalisme 15+
+    PilierFiable,               // 🛡️ Loyauté 17+, Pression 15+
+    MachineDeGuerre,            // ⚙️ Détermination 18+, Pression 17+
+
+    // LES CRÉATURES MÉDIATIQUES (Ambition, Variable Prof)
+    ObsédéParLImage,            // 📸 Ambition 15+, Égoïsme 15+
+    CharismatiqueImprévisible,  // ⚡ Adaptabilité 15+, Tempérament <8
+    AimantÀPublic,              // 🌟 Sportivité 17+, Professionnalisme 15+
+
+    // LES PROFILS DANGEREUX (Red Flags)
+    SaboteurPassif,             // 🐍 Sportivité <5, Égoïsme 15+
+    InstableChronique,          // 💥 Tempérament <5, Pression <5
+    PoidsMort,                  // ⚠️ Professionnalisme <5, Détermination <5
+
+    // DÉFAUT
+    Équilibré,                  // 📊 Tous attributs 8-13
+    NonDéterminé                // ❓ Pas encore analysé
+}
+```
+
+#### PersonalityDetectorService
+
+**Localisation** : `src/RingGeneral.Core/Services/PersonalityDetectorService.cs`
+
+```csharp
+public class PersonalityDetectorService
+{
+    public PersonalityProfile DetectPersonality(WorkerMentalAttributes mental)
+    {
+        // Algorithme de détection par ordre de priorité
+        // 1. Vérifier profils spécifiques (plus de critères = plus spécifique)
+        // 2. Vérifier profils généraux
+        // 3. Retourner Équilibré ou NonDéterminé
+    }
+
+    public AgentReport GenerateAgentReport(Worker worker, PersonalityProfile profile)
+    {
+        // Génère rapport textuel basé sur:
+        // - Profil personnalité
+        // - 4 Piliers (Professionnalisme/Pression/Égo/Influence)
+        // - Recommandations booking
+        // - Risques potentiels
+    }
+}
+```
+
+#### AgentReport Model
+
+**Localisation** : `src/RingGeneral.Core/Models/AgentReport.cs`
+
+```csharp
+public class AgentReport
+{
+    public string WorkerId { get; set; }
+    public PersonalityProfile Profile { get; set; }
+    public string Summary { get; set; }              // Texte narratif
+    public List<string> Strengths { get; set; }      // Points forts
+    public List<string> Weaknesses { get; set; }     // Points faibles
+    public List<string> BookingTips { get; set; }    // Recommandations
+    public List<string> Risks { get; set; }          // Risques (backstage, contrats)
+}
+```
+
+---
 
 ### 2.3 Services Métier
 
