@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.UI.ViewModels.Dashboard;
@@ -27,7 +28,9 @@ public sealed class CompanySelectorViewModel : ViewModelBase
         Companies = new ObservableCollection<CompanyListItem>();
 
         // Commandes (async)
-        SelectCompanyCommand = ReactiveCommand.CreateFromTask(StartGameWithSelectedCompanyAsync);
+        var canSelectCompany = this.WhenAnyValue(x => x.SelectedCompany)
+            .Select(company => company is not null);
+        SelectCompanyCommand = ReactiveCommand.CreateFromTask(StartGameWithSelectedCompanyAsync, canSelectCompany);
         CreateNewCompanyCommand = ReactiveCommand.Create(CreateNewCompany);
         BackCommand = ReactiveCommand.Create(GoBack);
 
