@@ -90,7 +90,6 @@ dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
 | **UI Framework** | Avalonia | 11.0.6 |
 | **Reactive UI** | ReactiveUI | (via Avalonia) |
 | **Base de données** | SQLite | 8.0.0 |
-| **Tests** | xUnit | 2.6.2 |
 
 ### Architecture
 
@@ -130,7 +129,7 @@ Ring-General-Rework.Exe/
 ├── specs/                  # 78 fichiers JSON (source de vérité)
 ├── docs/                   # Documentation complète (10 docs actifs)
 ├── data/                   # Assets & base de test (BAKI1.1.db)
-├── tests/                  # Tests unitaires xUnit (18 fichiers)
+├── tests/                  # Projet vide
 └── _archived_files/        # Archives (30+ docs obsolètes)
 ```
 
@@ -193,7 +192,6 @@ Les contributions sont les bienvenues ! Consultez :
 - Immutable records pour les modèles du domaine
 - MVVM avec ReactiveUI
 - Naming conventions en français (cohérent avec le projet)
-- Tests unitaires requis pour nouvelle logique métier
 
 ---
 

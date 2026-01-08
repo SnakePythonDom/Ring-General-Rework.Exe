@@ -18,7 +18,7 @@
 | Projets dans la solution | 7 |
 | **Repositories spécialisés** | **23+** ⬆️ |
 | Fichiers C# sources | 130+ |
-| Fichiers de tests | 18 |
+| Fichiers de tests | 0 |
 | Framework | .NET 8.0 LTS |
 | UI Framework | Avalonia 11.0.6 |
 | Base de données | SQLite 8.0.0 |
@@ -27,7 +27,7 @@
 
 ### Notation Globale: **8.5/10** (+1.0)
 
-**Points forts**: Architecture modulaire exemplaire, **23+ repositories spécialisés**, **GameRepository refactoré (-75%)**, système d'attributs professionnel (40 attributs), système de personnalité FM-like (25+ profils), **systèmes backstage avancés** (Moral, Rumeurs, Népotisme, Crises, IA Booker/Propriétaire), modèles immuables, couverture tests solide
+**Points forts**: Architecture modulaire exemplaire, **23+ repositories spécialisés**, **GameRepository refactoré (-75%)**, système d'attributs professionnel (40 attributs), système de personnalité FM-like (25+ profils), **systèmes backstage avancés** (Moral, Rumeurs, Népotisme, Crises, IA Booker/Propriétaire), modèles immuables
 **Points à améliorer**: Duplication schéma DB (en cours), absence de DI container complet, logging structuré manquant, ViewModels à optimiser
 
 **🎉 Nouveautés (Phase 8 - 8 janvier 2026)** :
@@ -78,7 +78,7 @@ RingGeneral.sln (7 projets)
 │   └── RingGeneral.Tools.DbManager (Utilitaires DB)
 │
 └── Tests
-    └── RingGeneral.Tests (18 fichiers xUnit)
+    └── RingGeneral.Tests (projet vide)
 ```
 
 ### 1.2 Graphe de Dépendances
@@ -923,54 +923,9 @@ dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj \
 
 ---
 
-## 6. Tests & Qualité
+## 6. Qualité & Gestion des Erreurs
 
-### 6.1 Framework de Tests: xUnit 2.6.2
-
-**Couverture Tests** (18 fichiers):
-
-| Fichier de Test | Couverture |
-|----------------|------------|
-| `BookingTests` | CRUD segments & warnings validation |
-| `SimulationEngineTests` | Calculs de ratings |
-| `WorkerGenerationServiceTests` | Logique génération workers |
-| `TitleServiceTests` | Gestion titres |
-| `FinanceEngineTests` | Calculs revenus/dépenses |
-| `MedicalFlowTests` / `MedicalWorkflowTests` | Système blessures |
-| `ContractNegotiationTests` | Flux négociation contrats |
-| `ScoutingServiceTests` | Logique missions scouting |
-| `YouthProgressionServiceTests` | Développement trainees |
-| `BackstageFlowTests` | Incidents backstage |
-| `WorldSimSchedulerTests` | Simulation compagnies non-joueur |
-| `SeededRandomProviderTests` | Random déterministe |
-| `BakiAttributeConversionTests` | Conversion import |
-| `TemplateServiceTests` | Templates booking |
-| `HelpSpecsTests` | Validation contenu aide |
-| `ContractSpecsTests` | Configuration contrats |
-| `ShowSchedulerServiceTests` | Scheduling shows |
-
-**Pattern de Test Exemple**:
-```csharp
-[Fact]
-public void CrudSegment_Persist_And_Reload()
-{
-    var dbPath = Path.Combine(Path.GetTempPath(), $"ringgeneral_{Guid.NewGuid():N}.db");
-    try
-    {
-        var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
-        var repository = new GameRepository(factory);
-        repository.Initialiser();
-        // ... opérations de test
-    }
-    finally
-    {
-        if (File.Exists(dbPath))
-            File.Delete(dbPath);
-    }
-}
-```
-
-### 6.2 Gestion des Erreurs
+### 6.1 Gestion des Erreurs
 
 **Pattern**: Lancement d'exceptions traditionnel avec validation d'entrée
 
@@ -1039,7 +994,6 @@ public ValidationResult ValiderBooking(BookingPlan plan)
 **4. Architecture Testable**
 - Services acceptent dépendances via constructeur
 - Interfaces repository permettent mocking
-- 18 fichiers de tests avec bonne couverture
 - Provider random déterministe pour simulations reproductibles
 
 **5. Design Piloté par Spécifications**
@@ -1393,7 +1347,7 @@ RingGeneral/
 | Métrique | Valeur | Mise à jour |
 |----------|--------|-------------|
 | Total fichiers C# sources | 130 | (8 jan 2026) |
-| Fichiers de tests | 18 | |
+| Fichiers de tests | 0 | |
 | Projets dans solution | 7 | ✅ |
 | Namespaces core | 20+ | |
 | Modèles domaine (sealed records) | 40+ | |
@@ -1408,7 +1362,6 @@ RingGeneral/
 | Packages NuGet externes | 10 | ✅ |
 | Version .NET | 8.0 LTS | ✅ |
 | Framework UI | Avalonia 11.0.6 | ✅ |
-| Framework Tests | xUnit 2.6.2 | ✅ |
 
 ---
 
@@ -1421,7 +1374,6 @@ Ring General démontre une **architecture en couches exemplaire** avec modélisa
 **Points Forts Clés**:
 - ✅ Immuabilité des modèles
 - ✅ Séparation des responsabilités excellente
-- ✅ Couverture tests solide
 - ✅ Dépendances minimales
 - ✅ **23+ repositories spécialisés** créés et fonctionnels
 - ✅ **GameRepository refactoré** (-75%, 977 lignes)

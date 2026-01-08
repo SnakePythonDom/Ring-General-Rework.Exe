@@ -55,7 +55,6 @@ Le projet est **significativement plus avancé** que ce que la documentation pr�
 | UI Framework | Avalonia | 11.0.6 |
 | Reactive UI | ReactiveUI | (via Avalonia) |
 | Base de données | SQLite | 8.0.0 |
-| Tests | xUnit | Latest |
 | Langage | C# 12 | French naming |
 
 ### Structure des Projets (7 projets)
@@ -68,7 +67,7 @@ RingGeneral.sln
 ├── RingGeneral.Specs                    # Configuration JSON
 ├── RingGeneral.Tools.BakiImporter       # Outil d'import BAKI DB
 ├── RingGeneral.Tools.DbManager          # Utilitaires DB
-└── RingGeneral.Tests                    # Tests unitaires (xUnit)
+└── RingGeneral.Tests                    # Projet vide
 ```
 
 ### Pattern MVVM
@@ -510,14 +509,13 @@ Booking, UI/Navigation, Show/Calendar, Finance/Broadcasting, Storylines, Youth, 
 3. ✅ ~~**GameRepository trop large**~~ : **RÉSOLU** - Refactoré à 977 lignes (-75%)
 
 ### Moyenne
-4. Tests unitaires désynchronisés (certains fichiers)
-5. Context panel (colonne droite) non implémenté
-6. Duplication schéma DB (code vs migrations)
+4. Context panel (colonne droite) non implémenté
+5. Duplication schéma DB (code vs migrations)
 
 ### Basse
-7. ViewModels monolithiques à découper
-8. DataTemplates manquants pour certains ViewModels
-9. Tooltips incomplets
+6. ViewModels monolithiques à découper
+7. DataTemplates manquants pour certains ViewModels
+8. Tooltips incomplets
 
 ---
 
@@ -540,8 +538,7 @@ Booking, UI/Navigation, Show/Calendar, Finance/Broadcasting, Storylines, Youth, 
 1. **Composants UI manquants** : Bloque le développement rapide
 2. **Boucle de jeu** : Critique pour rendre le jeu jouable
 3. **Services manquants** : Beaucoup de services documentés n'existent pas encore
-4. **Tests** : Couverture incomplète, certains désynchronisés
-5. **Documentation** : À maintenir à jour avec les changements
+4. **Documentation** : À maintenir à jour avec les changements
 
 ---
 
