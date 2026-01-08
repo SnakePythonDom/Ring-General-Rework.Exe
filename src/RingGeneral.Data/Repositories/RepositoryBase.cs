@@ -58,7 +58,7 @@ public abstract class RepositoryBase
         }
     }
 
-    protected static void AjouterParametre(SqliteCommand commande, string nom, object valeur)
+    protected static void AjouterParametre(SqliteCommand commande, string nom, object? valeur)
     {
         commande.Parameters.AddWithValue(nom, valeur ?? DBNull.Value);
     }

@@ -466,7 +466,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             }
         }
     }
-    private TableFilterOptionViewModel _tableSelectedTypeFilter;
+    private TableFilterOptionViewModel _tableSelectedTypeFilter = new("tous", "Tous");
 
     public TableFilterOptionViewModel TableSelectedStatusFilter
     {
@@ -481,7 +481,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             }
         }
     }
-    private TableFilterOptionViewModel _tableSelectedStatusFilter;
+    private TableFilterOptionViewModel _tableSelectedStatusFilter = new("tous", "Tous");
 
     public string? TableResultatsResume
     {

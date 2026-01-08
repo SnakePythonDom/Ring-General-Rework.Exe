@@ -51,7 +51,7 @@ public sealed class SaveManagerViewModel : ViewModelBase
         get => _statutCouleur;
         private set => this.RaiseAndSetIfChanged(ref _statutCouleur, value);
     }
-    private IBrush _statutCouleur;
+    private IBrush _statutCouleur = Brushes.Transparent;
 
     public void Initialiser()
     {
