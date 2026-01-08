@@ -125,11 +125,11 @@ public sealed class StorylinesViewModel : ViewModelBase
                     CompletedStorylines.Add(storyline);
             }
 
-            System.Console.WriteLine($"[StorylinesViewModel] {ActiveStorylines.Count} storylines actives chargées");
+            Logger.Info($"{ActiveStorylines.Count} storylines actives chargées");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[StorylinesViewModel] Erreur: {ex.Message}");
+            Logger.Error($"[StorylinesViewModel] Erreur: {ex.Message}");
             LoadPlaceholderData();
         }
     }

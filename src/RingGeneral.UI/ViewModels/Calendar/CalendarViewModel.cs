@@ -114,11 +114,11 @@ public sealed class CalendarViewModel : ViewModelBase
                 }
             }
 
-            System.Console.WriteLine($"[CalendarViewModel] Week {CurrentWeek}, {UpcomingShows.Count} shows à venir, {CalendarEntries.Count} entrées");
+            Logger.Info($"Week {CurrentWeek}, {UpcomingShows.Count} shows à venir, {CalendarEntries.Count} entrées");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[CalendarViewModel] Erreur: {ex.Message}");
+            Logger.Error($"[CalendarViewModel] Erreur: {ex.Message}");
             LoadPlaceholderData();
         }
     }

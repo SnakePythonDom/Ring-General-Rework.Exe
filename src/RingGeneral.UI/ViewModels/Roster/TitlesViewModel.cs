@@ -126,11 +126,11 @@ public sealed class TitlesViewModel : ViewModelBase
                 Titles.Add(title);
             }
 
-            System.Console.WriteLine($"[TitlesViewModel] {Titles.Count} titres chargés depuis la DB");
+            Logger.Info($"{Titles.Count} titres chargés depuis la DB");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[TitlesViewModel] Erreur lors du chargement: {ex.Message}");
+            Logger.Error($"[TitlesViewModel] Erreur lors du chargement: {ex.Message}");
             LoadPlaceholderTitles();
         }
     }

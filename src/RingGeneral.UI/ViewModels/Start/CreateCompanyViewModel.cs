@@ -76,7 +76,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[CreateCompanyViewModel] Erreur lors du chargement des régions: {ex.Message}");
+            Logger.Error($"[CreateCompanyViewModel] Erreur lors du chargement des régions: {ex.Message}");
 
             // Ajouter une région par défaut en cas d'erreur
             AvailableRegions.Add(new RegionInfo("REGION_DEFAULT", "Global", "World"));
@@ -207,7 +207,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
             insertCmd.ExecuteNonQuery();
 
-            System.Console.WriteLine($"[CreateCompanyViewModel] Compagnie créée: {CompanyName} ({companyId})");
+            Logger.Info($"Compagnie créée: {CompanyName} ({companyId})");
 
             // Créer la sauvegarde
             CreateSaveGame(connection, companyId);
@@ -218,8 +218,8 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         catch (Exception ex)
         {
             ErrorMessage = $"Erreur lors de la création: {ex.Message}";
-            System.Console.Error.WriteLine($"[CreateCompanyViewModel] Erreur: {ex.Message}");
-            System.Console.Error.WriteLine($"[CreateCompanyViewModel] Stack: {ex.StackTrace}");
+            Logger.Error($"[CreateCompanyViewModel] Erreur: {ex.Message}");
+            Logger.Error($"[CreateCompanyViewModel] Stack: {ex.StackTrace}");
         }
     }
 
@@ -248,7 +248,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
         insertCmd.ExecuteNonQuery();
 
-        System.Console.WriteLine("[CreateCompanyViewModel] Sauvegarde créée avec succès");
+        Logger.Info("Sauvegarde créée avec succès");
     }
 
     /// <summary>

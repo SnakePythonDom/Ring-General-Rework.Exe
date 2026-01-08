@@ -133,11 +133,11 @@ public sealed class FinanceViewModel : ViewModelBase
                 }
             }
 
-            System.Console.WriteLine($"[FinanceViewModel] Balance: ${CurrentBalance:N0}, Revenus: ${WeeklyRevenue:N0}, Dépenses: ${WeeklyExpenses:N0}");
+            Logger.Info($"Balance: ${CurrentBalance:N0}, Revenus: ${WeeklyRevenue:N0}, Dépenses: ${WeeklyExpenses:N0}");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[FinanceViewModel] Erreur: {ex.Message}");
+            Logger.Error($"[FinanceViewModel] Erreur: {ex.Message}");
             LoadPlaceholderData();
         }
     }

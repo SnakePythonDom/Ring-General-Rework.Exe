@@ -92,7 +92,7 @@ public sealed class StartViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[StartViewModel] Erreur lors de la vérification de sauvegarde: {ex.Message}");
+            Logger.Error($"[StartViewModel] Erreur lors de la vérification de sauvegarde: {ex.Message}");
             HasActiveSave = false;
         }
     }
@@ -102,7 +102,7 @@ public sealed class StartViewModel : ViewModelBase
     /// </summary>
     private void StartNewGame()
     {
-        System.Console.WriteLine("[StartViewModel] Démarrage d'une nouvelle partie...");
+        Logger.Info("Démarrage d'une nouvelle partie...");
 
         // Naviguer vers le sélecteur de compagnie
         _navigationService.NavigateTo<CompanySelectorViewModel>();
@@ -113,7 +113,7 @@ public sealed class StartViewModel : ViewModelBase
     /// </summary>
     private void LoadExistingGame()
     {
-        System.Console.WriteLine("[StartViewModel] Chargement de la partie existante...");
+        Logger.Info("Chargement de la partie existante...");
 
         // TODO: Pour l'instant, on charge directement la sauvegarde active
         // Plus tard: afficher une liste de sauvegardes
@@ -129,7 +129,7 @@ public sealed class StartViewModel : ViewModelBase
     /// </summary>
     private void ExitApplication()
     {
-        System.Console.WriteLine("[StartViewModel] Fermeture de l'application...");
+        Logger.Info("Fermeture de l'application...");
         System.Environment.Exit(0);
     }
 }

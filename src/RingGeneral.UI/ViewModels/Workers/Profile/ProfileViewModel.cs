@@ -150,7 +150,7 @@ public sealed class ProfileViewModel : ViewModelBase
     {
         // TODO: Load worker from repository
         // For now, this is a placeholder
-        System.Console.WriteLine($"[ProfileViewModel] Loading worker ID: {workerId}");
+        Logger.Info($"Loading worker ID: {workerId}");
     }
 
     /// <summary>
@@ -194,7 +194,7 @@ public sealed class ProfileViewModel : ViewModelBase
     private void CloseProfile()
     {
         // Close profile view (handled by navigation service)
-        System.Console.WriteLine("[ProfileViewModel] Closing profile");
+        Logger.Info("Closing profile");
     }
 
     // ====================================================================

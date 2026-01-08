@@ -77,11 +77,11 @@ public sealed class YouthViewModel : ViewModelBase
                 TotalTrainees = Convert.ToInt32(cmd.ExecuteScalar());
             }
 
-            System.Console.WriteLine($"[YouthViewModel] {TotalTrainees} trainees, Budget: ${Budget:N0}");
+            Logger.Info($"{TotalTrainees} trainees, Budget: ${Budget:N0}");
         }
         catch (Exception ex)
         {
-            System.Console.Error.WriteLine($"[YouthViewModel] Erreur: {ex.Message}");
+            Logger.Error($"[YouthViewModel] Erreur: {ex.Message}");
             LoadPlaceholderData();
         }
     }

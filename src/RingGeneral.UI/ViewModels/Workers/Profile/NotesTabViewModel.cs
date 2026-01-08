@@ -146,7 +146,7 @@ public sealed class NotesTabViewModel : ViewModelBase
     private void EditNote()
     {
         if (SelectedNote == null) return;
-        System.Console.WriteLine($"[NotesTab] Edit note {SelectedNote.Id}");
+        Logger.Info($"[NotesTab] Edit note {SelectedNote.Id}");
         // TODO: Show edit note dialog
     }
 

@@ -37,7 +37,7 @@ public sealed class ShellViewModel : ViewModelBase
         _navigationService.CurrentViewModelObservable
             .Subscribe(vm =>
             {
-                System.Console.WriteLine($"[ShellViewModel] CurrentViewModel changé: {vm?.GetType().Name ?? "null"}");
+                Logger.Info($"CurrentViewModel changé: {vm?.GetType().Name ?? "null"}");
                 CurrentContentViewModel = vm;
                 // Mettre à jour le context panel selon le contenu
                 UpdateContextPanel(vm);
@@ -53,7 +53,7 @@ public sealed class ShellViewModel : ViewModelBase
         // Synchroniser le CurrentViewModel du NavigationService s'il existe déjà
         if (_navigationService.CurrentViewModel != null)
         {
-            System.Console.WriteLine($"[ShellViewModel] ViewModel initial depuis NavigationService: {_navigationService.CurrentViewModel.GetType().Name}");
+            Logger.Info($"ViewModel initial depuis NavigationService: {_navigationService.CurrentViewModel.GetType().Name}");
             CurrentContentViewModel = _navigationService.CurrentViewModel;
         }
         else
@@ -62,7 +62,7 @@ public sealed class ShellViewModel : ViewModelBase
             var homeItem = NavigationItems.FirstOrDefault();
             if (homeItem != null)
             {
-                System.Console.WriteLine($"[ShellViewModel] Navigation vers l'accueil par défaut");
+                Logger.Info($"Navigation vers l'accueil par défaut");
                 NavigateToItem(homeItem);
             }
         }

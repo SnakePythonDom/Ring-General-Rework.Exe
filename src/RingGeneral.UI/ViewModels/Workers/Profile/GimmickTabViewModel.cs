@@ -89,7 +89,7 @@ public sealed class GimmickTabViewModel : ViewModelBase
 
     private void AddSpecialization()
     {
-        System.Console.WriteLine("[GimmickTab] Add specialization dialog");
+        Logger.Info("Add specialization dialog");
         // TODO: Show add specialization dialog
     }
 
