@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Workers.Profile"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="RingGeneral.UI.ViewModels.Workers.Profile.ProfileView"
+             x:DataType="vm:ProfileViewModel">
+
+    <Design.DataContext>
+        <vm:ProfileViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*" Margin="20">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1e293b" Padding="25" CornerRadius="12" Margin="0,0,0,20">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Photo -->
+                <Border Grid.Column="0" Width="80" Height="80" CornerRadius="40" Background="#334155" Margin="0,0,20,0">
+                    <TextBlock Text="👤" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Info -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="8">
+                    <TextBlock Text="{Binding CurrentWorker.Name}" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                    <TextBlock Text="{Binding CurrentWorker.GetBioSummary}" FontSize="14" Foreground="#94a3b8"/>
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock Text="{Binding CurrentWorker.AlignmentIcon}" FontSize="16"/>
+                        <TextBlock Text="{Binding CurrentWorker.AlignmentDisplayName}" FontSize="13" Foreground="#cbd5e1"/>
+                        <TextBlock Text="{Binding CurrentWorker.PushLevelIcon}" FontSize="16"/>
+                        <TextBlock Text="{Binding CurrentWorker.PushLevelDisplayName}" FontSize="13" Foreground="#cbd5e1"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Button Content="🔄 Rafraîchir" Command="{Binding RefreshCommand}" Padding="12,8" Background="#334155" Foreground="#e0e0e0"/>
+                    <Button Content="✖ Fermer" Command="{Binding CloseProfileCommand}" Padding="12,8" Background="#991b1b" Foreground="#e0e0e0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Tabs Content -->
+        <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
+            <!-- Tab 1: Attributs -->
+            <TabItem Header="📊 ATTRIBUTS">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="25">
+                        <!-- Overall Rating Card -->
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="ÉVALUATION GLOBALE" FontSize="14" FontWeight="Bold" Foreground="#94a3b8"/>
+                                    <TextBlock Text="{Binding AttributesTab.OverallAverage}" FontSize="48" FontWeight="Bold" Foreground="#3b82f6"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                    <Button Content="✏ Modifier" Command="{Binding AttributesTab.ToggleEditModeCommand}" Padding="10,6" Background="#0ea5e9"/>
+                                    <Button Content="💾 Sauvegarder" Command="{Binding AttributesTab.SaveAttributesCommand}" Padding="10,6" Background="#10b981" IsEnabled="{Binding AttributesTab.IsEditMode}"/>
+                                    <Button Content="✖ Annuler" Command="{Binding AttributesTab.CancelEditCommand}" Padding="10,6" Background="#ef4444" IsEnabled="{Binding AttributesTab.IsEditMode}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- In-Ring Attributes -->
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="🥊 IN-RING ATTRIBUTES (Moyenne: {Binding AttributesTab.InRingAttributes.InRingAvg})" FontSize="16" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Striking" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Striking}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Grappling" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Grappling}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="High-Flying" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.HighFlying}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Powerhouse" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Powerhouse}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Timing" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Timing}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Selling" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Selling}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Psychology" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Psychology}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Stamina" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Stamina}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+                                        <TextBlock Text="Safety" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Safety}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                                        <TextBlock Text="Hardcore/Brawl" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.HardcoreBrawl}" FontSize="18" FontWeight="Bold" Foreground="#60a5fa"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Entertainment Attributes -->
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="🎤 ENTERTAINMENT ATTRIBUTES (Moyenne: {Binding AttributesTab.EntertainmentAttributes.EntertainmentAvg})" FontSize="16" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                <TextBlock Text="[10 Entertainment attributes displayed here]" FontSize="14" Foreground="#94a3b8"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Story Attributes -->
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="📖 STORY ATTRIBUTES (Moyenne: {Binding AttributesTab.StoryAttributes.StoryAvg})" FontSize="16" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                <TextBlock Text="[10 Story attributes displayed here]" FontSize="14" Foreground="#94a3b8"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 2: Contrats -->
+            <TabItem Header="📄 CONTRATS">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="CONTRATS" FontSize="24" FontWeight="Bold" Foreground="#e0e0e0"/>
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <TextBlock Text="[Contract management UI - Current contract + History]" FontSize="14" Foreground="#94a3b8"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 3: Gimmick -->
+            <TabItem Header="🎭 GIMMICK">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="GIMMICK & PUSH" FontSize="24" FontWeight="Bold" Foreground="#e0e0e0"/>
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <TextBlock Text="[Gimmick, Alignment, Push Level, Specializations]" FontSize="14" Foreground="#94a3b8"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 4: Relations -->
+            <TabItem Header="👥 RELATIONS">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="RELATIONS & FACTIONS" FontSize="24" FontWeight="Bold" Foreground="#e0e0e0"/>
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <TextBlock Text="[Relations + Faction memberships]" FontSize="14" Foreground="#94a3b8"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 5: Historique -->
+            <TabItem Header="📜 HISTORIQUE">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="HISTORIQUE" FontSize="24" FontWeight="Bold" Foreground="#e0e0e0"/>
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Match Stats:" FontSize="16" FontWeight="Bold" Foreground="#cbd5e1"/>
+                                <TextBlock Text="{Binding HistoryTab.TotalMatches, StringFormat='Total: {0}'}" FontSize="14" Foreground="#94a3b8"/>
+                                <TextBlock Text="{Binding HistoryTab.TotalWins, StringFormat='Wins: {0}'}" FontSize="14" Foreground="#10b981"/>
+                                <TextBlock Text="{Binding HistoryTab.TotalLosses, StringFormat='Losses: {0}'}" FontSize="14" Foreground="#ef4444"/>
+                                <TextBlock Text="{Binding HistoryTab.WinPercentage, StringFormat='Win %: {0:F1}%'}" FontSize="14" Foreground="#3b82f6"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 6: Notes -->
+            <TabItem Header="📝 NOTES">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="NOTES DU BOOKER" FontSize="24" FontWeight="Bold" Foreground="#e0e0e0"/>
+                        <Border Background="#1e293b" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBox Text="{Binding NotesTab.NewNoteText}" Watermark="Nouvelle note..." MinHeight="100" TextWrapping="Wrap"/>
+                                <Button Content="➕ Ajouter Note" Command="{Binding NotesTab.AddNoteCommand}" Padding="10,6" Background="#10b981"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>
