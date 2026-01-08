@@ -225,6 +225,24 @@ public sealed class CrisisRepository : ICrisisRepository
         return Convert.ToInt32(result);
     }
 
+    public async Task<int> GetResolvedCrisesCountAsync(string companyId)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT COUNT(*)
+            FROM Crises
+            WHERE CompanyId = @CompanyId
+              AND Stage = 'Resolved'";
+
+        command.Parameters.AddWithValue("@CompanyId", companyId);
+
+        var result = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(result);
+    }
+
     // ====================================================================
     // COMMUNICATION OPERATIONS
     // ====================================================================
