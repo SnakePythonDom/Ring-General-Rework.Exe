@@ -1,7 +1,7 @@
 # Plan Sprint Révisé - Ring General
 
 **Date** : 7 janvier 2026
-**Basé sur** : Audit exhaustif du code + État réel documenté dans CURRENT_STATE.md
+**Basé sur** : Audit exhaustif du code + État réel documenté dans PROJECT_STATUS.md
 **Statut Projet** : Phase 0 Complète (95%), Phase 1 En Cours (40%)
 
 ---
