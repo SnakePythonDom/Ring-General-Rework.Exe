@@ -26,12 +26,272 @@ Voir section "État Actuel Révisé" ci-dessous pour les corrections.
 
 ## Table des Matières
 
-1. [Vue d'Ensemble](#vue-densemble)
-2. [État Actuel du Projet](#état-actuel-du-projet)
-3. [Phase 1 : Le Socle Jouable](#phase-1--le-socle-jouable)
-4. [Phase 2 : La Profondeur Stratégique](#phase-2--la-profondeur-stratégique)
-5. [Dépendances et Ordre d'Implémentation](#dépendances-et-ordre-dimplémentation)
-6. [Critères de Validation](#critères-de-validation)
+1. [🎯 Vision & Design Conceptuel - Version Verrouillée](#-vision--design-conceptuel---version-verrouillée)
+2. [Vue d'Ensemble](#vue-densemble)
+3. [État Actuel du Projet](#état-actuel-du-projet)
+4. [Phase 1 : Le Socle Jouable](#phase-1--le-socle-jouable)
+5. [Phase 2 : La Profondeur Stratégique](#phase-2--la-profondeur-stratégique)
+6. [Dépendances et Ordre d'Implémentation](#dépendances-et-ordre-dimplémentation)
+7. [Critères de Validation](#critères-de-validation)
+
+---
+
+## 🎯 VISION & DESIGN CONCEPTUEL - VERSION VERROUILLÉE
+
+**Date de validation** : 8 janvier 2026
+**Statut** : 🔒 VERROUILLÉ - Document de référence conceptuelle unique
+
+---
+
+Ce document synthétise l'intégralité des décisions de design validées au fil de la conversation. Il ne contient que les versions finales, sans alternatives ni brouillons. Il sert de référence conceptuelle unique pour tous les développements futurs.
+
+---
+
+### 1. Vision Fondamentale
+
+**Ring General est une simulation humaine, organisationnelle et historique du catch mondial.**
+
+**Principes clés** :
+- ✅ Le monde évolue avec ou sans le joueur
+- ✅ Aucune mécanique punitive artificielle
+- ✅ Les fédérations de niche sont viables à vie
+- ✅ Le seul vrai game over est la faillite, et même celle‑ci peut être évitée par adaptation
+
+---
+
+### 2. Owner System
+
+**L'Owner est le décideur stratégique et économique.**
+
+**Responsabilités** :
+- Surveiller : trésorerie, burn rate, TV deals, sponsors
+- Fixer le périmètre naturel de la compagnie (local → mondial)
+- Réagir graduellement aux crises, jamais de décisions instantanées irréalistes
+- Recruter ou licencier les bookers
+- Valider ou bloquer les changements d'era
+
+---
+
+### 3. Booker System
+
+**Le Booker est un membre du staff non définitif.**
+
+**Caractéristiques** :
+- Joueur et IA peuvent le recruter, le virer ou le remplacer
+- Le joueur peut choisir :
+  - **Booking manuel** (contrôle total)
+  - **Let the Booker Decide** (semi‑automatique optionnel)
+- ⚠️ **Aucune pénalité si le joueur choisit de tout booker lui‑même**
+
+---
+
+### 4. Booker Memory System (Persistant)
+
+**Chaque Booker possède une mémoire portable qui le suit toute sa carrière.**
+
+**Éléments de mémoire** :
+- **Biais créatifs** : stars vs jeunes, stabilité vs chaos, prudence vs risque
+- **Traumatismes** : push raté, scandale, crise
+- **Succès marquants** qu'il tente de reproduire
+- **Relations héritées** : protégés, rancunes
+
+➡️ **Impact** : Un Booker licencié importe ses obsessions dans une autre fédération.
+
+---
+
+### 5. Préférences de Produit du Booker
+
+**Chaque Booker a des affinités naturelles pour un type de catch.**
+
+**Styles disponibles** :
+- **Lucha** → trios, tags, rythme élevé
+- **Puroresu** → singles longs, workrate
+- **Entertainment** → segments, promos, angles
+- **Hardcore** → stipulations, chaos
+- **Old‑school** → simplicité, finishes protégés
+
+➡️ Ces préférences influencent fortement l'IA uniquement (ou l'auto‑booking).
+
+---
+
+### 6. Eras de Compagnies
+
+**Les compagnies traversent des eras naturelles (créatives, économiques, médiatiques).**
+
+**Une era définit** :
+- Structure des shows
+- Types de matchs dominants
+- Attentes du public
+
+**Règles** :
+- ⚠️ Aucun changement instantané : transitions lentes et parfois conflictuelles
+- Les Bookers transportent leur vision d'era d'une compagnie à l'autre
+
+---
+
+### 7. Hiérarchie (Mono‑brand / Multi‑brand)
+
+**Mono‑brand** :
+```
+Owner → Booker → Staff
+```
+
+**Multi‑brand** :
+```
+Owner → Head Booker → Booker / GM par brand
+```
+
+**Règles** :
+- Le Head Booker n'existe que si plusieurs brands existent
+- Chaque brand peut avoir des objectifs différents (ex : stars vs développement)
+
+---
+
+### 8. Staff Global
+
+**Staff créatif** (compatibilité directe avec le Booker) :
+- Road Agents / Producers
+- Commentateurs
+- Créatifs (storylines & gimmicks)
+
+**Staff structurel** (transversal) :
+- Médical
+- PR / Marketing
+- Financier
+- Scouting & Relations
+- Psychologue / Bien‑être
+
+**Trainers** :
+- Uniquement liés aux infrastructures (écoles, dojos, performance centers)
+- Aucun lien direct avec le booking
+- Impact long terme uniquement
+
+---
+
+### 9. Creative Staff (Storylines & Gimmicks)
+
+**Responsables des angles, gimmicks et arcs narratifs.**
+
+**Caractéristiques** :
+- Travaillent sous l'autorité du Booker
+- Ont leurs propres personnalités et biais
+- **Compatibilité avec le Booker cruciale**
+- Peuvent sublimer ou ruiner une storyline
+
+---
+
+### 10. Attributs Mentaux & Personnalités
+
+**Système hybride pour workers et staff** :
+
+**Attributs cachés** :
+- 10 attributs mentaux (0–20)
+- Jamais affichés au joueur
+
+**Personnalités visibles** :
+- Un label de personnalité visible (FM‑like)
+- Labels interprétatifs, incomplets et évolutifs
+- Le joueur ne voit jamais les chiffres
+
+---
+
+### 11. Relations & Népotisme
+
+**Types de relations possibles** :
+- Familiale
+- Mentorat
+- Favoritisme
+- Rivalité
+
+**Impact** :
+- Chaque relation a une intensité cachée
+- Les relations biaisent les décisions (push, sanctions, protection)
+
+**Exemples** :
+- Booker fils de l'Owner → sécurité d'emploi accrue
+- Road Agent poussant son fils → favoritisme in‑ring
+
+⚠️ **Jamais d'immunité totale, seulement un retard de sanction.**
+
+---
+
+### 12. Backstage Morale
+
+**Indicateur global et individuel.**
+
+**Caractéristiques** :
+- Premier signal de dysfonctionnement interne
+- Impacté par injustice perçue, favoritisme, conflits
+- ⚠️ **Jamais expliqué explicitement**
+
+---
+
+### 13. Rumeurs de Vestiaire
+
+**Les rumeurs sont des interprétations collectives, pas des faits.**
+
+**Fonctionnement** :
+- Naissent du moral, des patterns et des décisions incohérentes
+- Amplifiées par les talents influents
+- Peuvent disparaître, stagner ou devenir des crises
+
+---
+
+### 14. Communication du Joueur
+
+**Le joueur peut intervenir humainement** :
+
+**Types d'intervention** :
+- Discussions individuelles
+- Réunions de vestiaire
+- Communication publique
+- Médiation indirecte via staff ou leaders
+
+➡️ **Aucune option magique, effets dépendants des personnalités, relations et timing.**
+
+---
+
+### 15. UX Invisible
+
+**Aucun chiffre caché affiché.**
+
+**Tout passe par** :
+- Morale backstage
+- News feed
+- Rapports d'agents
+- Patterns observables
+
+➡️ **Le joueur observe, interprète et décide.**
+
+---
+
+### 16. Gestion des Crises
+
+**Types** : PR, financières, sportives, internes.
+
+**Pipeline graduel obligatoire** :
+1. ✅ Signaux faibles
+2. ⚠️ Rumeurs
+3. 🔴 Crise déclarée
+4. 🎯 Décisions humaines
+5. 📊 Conséquences long terme
+
+---
+
+### 17. Compagnies IA & Monde Vivant
+
+**IA soumise aux mêmes règles que le joueur.**
+
+**Caractéristiques** :
+- Owners et Bookers évolutifs
+- Styles reconnaissables
+- Histoire émergente du catch sur plusieurs décennies
+
+---
+
+## 🎯 Conclusion Vision Conceptuelle
+
+Ring General est un **simulateur humain du catch**, où les biais, les relations, les erreurs et les compromis façonnent naturellement l'histoire du monde. Le joueur n'est pas omniscient : il lit les signaux, fait des choix imparfaits et vit avec leurs conséquences.
 
 ---
 

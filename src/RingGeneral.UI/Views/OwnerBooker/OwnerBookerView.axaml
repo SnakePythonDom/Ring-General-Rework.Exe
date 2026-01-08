@@ -1,0 +1,282 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.OwnerBooker"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.OwnerBooker.OwnerBookerView"
+             x:DataType="vm:OwnerBookerViewModel">
+
+    <Design.DataContext>
+        <vm:OwnerBookerViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25">
+            <!-- En-tête -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="👔 PROPRIÉTAIRE &amp; BOOKER" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Gestion stratégique et décisions créatives" FontSize="14" Foreground="#888888"/>
+            </StackPanel>
+
+            <!-- Section Owner & Booker (2 colonnes) -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
+                <!-- Carte Owner (Colonne gauche) -->
+                <Border Grid.Column="0" Background="#1e293b" Padding="25" CornerRadius="8" Margin="0,0,10,0">
+                    <StackPanel Spacing="16">
+                        <!-- Titre -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="👔 PROPRIÉTAIRE" FontSize="16" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding OwnerName}" FontSize="24" FontWeight="Bold" Foreground="#3b82f6"/>
+                        </StackPanel>
+
+                        <!-- Vision Type -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="VISION" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <Border Background="#0f172a" Padding="12,8" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding VisionType}" FontSize="14" FontWeight="SemiBold" Foreground="#60a5fa"/>
+                                    <TextBlock Text="•" Foreground="#475569"/>
+                                    <TextBlock Text="{Binding PreferredProductType}" FontSize="12" Foreground="#94a3b8"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Risk Tolerance -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="TOLÉRANCE AU RISQUE" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <Border Background="#0f172a" Padding="12,10" CornerRadius="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <ProgressBar Grid.Column="0" Value="{Binding RiskTolerance}" Maximum="100"
+                                                 Height="8" Foreground="#f59e0b" Background="#1e293b"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding RiskTolerance}" FontSize="14"
+                                               FontWeight="Bold" Foreground="#f59e0b" Margin="12,0,0,0"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Priorités -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="PRIORITÉS STRATÉGIQUES" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <Border Background="#0f172a" Padding="12" CornerRadius="6">
+                                <StackPanel Spacing="10">
+                                    <!-- Talent Development -->
+                                    <StackPanel Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="Développement Talent" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding TalentDevelopmentFocus}" FontSize="12" FontWeight="Bold" Foreground="#8b5cf6"/>
+                                        </Grid>
+                                        <ProgressBar Value="{Binding TalentDevelopmentFocus}" Maximum="100"
+                                                     Height="4" Foreground="#8b5cf6" Background="#1e293b"/>
+                                    </StackPanel>
+
+                                    <!-- Financial Priority -->
+                                    <StackPanel Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="Priorité Financière" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding FinancialPriority}" FontSize="12" FontWeight="Bold" Foreground="#10b981"/>
+                                        </Grid>
+                                        <ProgressBar Value="{Binding FinancialPriority}" Maximum="100"
+                                                     Height="4" Foreground="#10b981" Background="#1e293b"/>
+                                    </StackPanel>
+
+                                    <!-- Fan Satisfaction -->
+                                    <StackPanel Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="Satisfaction Fans" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding FanSatisfactionPriority}" FontSize="12" FontWeight="Bold" Foreground="#06b6d4"/>
+                                        </Grid>
+                                        <ProgressBar Value="{Binding FanSatisfactionPriority}" Maximum="100"
+                                                     Height="4" Foreground="#06b6d4" Background="#1e293b"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Priorité Dominante -->
+                        <Border Background="#065f46" Padding="12,10" CornerRadius="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="🎯" FontSize="16"/>
+                                <TextBlock Text="Focus:" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding DominantPriority}" FontSize="12" FontWeight="Bold" Foreground="#34d399"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Carte Booker (Colonne droite) -->
+                <Border Grid.Column="1" Background="#1e293b" Padding="25" CornerRadius="8" Margin="10,0,0,0">
+                    <StackPanel Spacing="16">
+                        <!-- Titre -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="📋 BOOKER" FontSize="16" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding BookerName}" FontSize="24" FontWeight="Bold" Foreground="#f59e0b"/>
+                        </StackPanel>
+
+                        <!-- Statut Auto-Booking -->
+                        <Border Padding="12,10" CornerRadius="6" Background="#0f172a">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{Binding AutoBookingStatusIcon}" FontSize="16"/>
+                                <TextBlock Text="{Binding AutoBookingStatusLabel}" FontSize="13" FontWeight="Bold" Foreground="#94a3b8"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Profil Créatif -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="PROFIL CRÉATIF" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <Border Background="#0f172a" Padding="12" CornerRadius="6">
+                                <StackPanel Spacing="10">
+                                    <!-- Creativity Score -->
+                                    <StackPanel Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="💡 Créativité" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding CreativityScore}" FontSize="12" FontWeight="Bold" Foreground="#f59e0b"/>
+                                        </Grid>
+                                        <ProgressBar Value="{Binding CreativityScore}" Maximum="100"
+                                                     Height="4" Foreground="#f59e0b" Background="#1e293b"/>
+                                    </StackPanel>
+
+                                    <!-- Logic Score -->
+                                    <StackPanel Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="🧠 Logique" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding LogicScore}" FontSize="12" FontWeight="Bold" Foreground="#3b82f6"/>
+                                        </Grid>
+                                        <ProgressBar Value="{Binding LogicScore}" Maximum="100"
+                                                     Height="4" Foreground="#3b82f6" Background="#1e293b"/>
+                                    </StackPanel>
+
+                                    <!-- Bias Resistance -->
+                                    <StackPanel Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="⚖️ Résistance aux Biais" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding BiasResistance}" FontSize="12" FontWeight="Bold" Foreground="#8b5cf6"/>
+                                        </Grid>
+                                        <ProgressBar Value="{Binding BiasResistance}" Maximum="100"
+                                                     Height="4" Foreground="#8b5cf6" Background="#1e293b"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Préférences -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="PRÉFÉRENCES DE BOOKING" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <Border Background="#0f172a" Padding="12,10" CornerRadius="6">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{Binding PreferredStyle}" FontSize="13" FontWeight="SemiBold" Foreground="#60a5fa"/>
+                                    <WrapPanel>
+                                        <Border IsVisible="{Binding LikesUnderdog}" Background="#334155" Padding="8,4" Margin="0,0,4,4" CornerRadius="4">
+                                            <TextBlock Text="🥊 Underdog Stories" FontSize="10" Foreground="#cbd5e1"/>
+                                        </Border>
+                                        <Border IsVisible="{Binding LikesVeteran}" Background="#334155" Padding="8,4" Margin="0,0,4,4" CornerRadius="4">
+                                            <TextBlock Text="⭐ Veterans" FontSize="10" Foreground="#cbd5e1"/>
+                                        </Border>
+                                        <Border IsVisible="{Binding LikesFastRise}" Background="#334155" Padding="8,4" Margin="0,0,4,4" CornerRadius="4">
+                                            <TextBlock Text="🚀 Fast Rise" FontSize="10" Foreground="#cbd5e1"/>
+                                        </Border>
+                                        <Border IsVisible="{Binding LikesSlowBurn}" Background="#334155" Padding="8,4" Margin="0,0,4,4" CornerRadius="4">
+                                            <TextBlock Text="🔥 Slow Burn" FontSize="10" Foreground="#cbd5e1"/>
+                                        </Border>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Informations Emploi -->
+                        <Border Background="#0f172a" Padding="12,10" CornerRadius="6">
+                            <Grid ColumnDefinitions="*,*">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="STATUT" FontSize="10" Foreground="#64748b"/>
+                                    <TextBlock Text="{Binding EmploymentStatus}" FontSize="12" FontWeight="SemiBold" Foreground="#10b981"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Text="EMBAUCHÉ LE" FontSize="10" Foreground="#64748b"/>
+                                    <TextBlock Text="{Binding HireDateFormatted}" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Bouton Toggle Auto-Booking -->
+                        <Button Command="{Binding ToggleAutoBookingCommand}"
+                                Padding="14,12"
+                                Background="#3b82f6"
+                                Foreground="White"
+                                CornerRadius="6"
+                                HorizontalAlignment="Stretch"
+                                FontWeight="SemiBold"
+                                FontSize="13">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <TextBlock Text="🔄 Toggle Auto-Booking" Foreground="White"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Historique des Mémoires du Booker -->
+            <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                <StackPanel Spacing="16">
+                    <!-- En-tête mémoires -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="🧠 MÉMOIRES DU BOOKER" FontSize="16" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <TextBlock FontSize="12" Foreground="#94a3b8">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} mémoires au total, {1} fortes">
+                                        <Binding Path="TotalMemories"/>
+                                        <Binding Path="StrongMemories"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                        <Button Grid.Column="1" Command="{Binding RefreshDataCommand}"
+                                Content="🔄 Rafraîchir"
+                                Padding="10,8"
+                                Background="#334155"
+                                Foreground="White"
+                                CornerRadius="6"/>
+                    </Grid>
+
+                    <!-- Liste des mémoires -->
+                    <ItemsControl ItemsSource="{Binding BookerMemories}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" Padding="14,12" Margin="0,0,0,8" CornerRadius="6">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                                        <!-- Type d'événement -->
+                                        <TextBlock Grid.Column="0" Text="{Binding EventTypeIcon}" FontSize="18" Margin="0,0,12,0"/>
+
+                                        <!-- Description -->
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <TextBlock Text="{Binding EventDescription}" FontSize="13" Foreground="#cbd5e1" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding DateFormatted}" FontSize="10" Foreground="#64748b"/>
+                                        </StackPanel>
+
+                                        <!-- Impact Score -->
+                                        <Border Grid.Column="2" Padding="8,4" Margin="12,0,0,0" CornerRadius="4" VerticalAlignment="Center" Background="#334155">
+                                            <TextBlock Text="{Binding ImpactFormatted}" FontSize="12" FontWeight="Bold" Foreground="{Binding ImpactColor}"/>
+                                        </Border>
+
+                                        <!-- Recall Strength -->
+                                        <StackPanel Grid.Column="3" Spacing="2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding RecallStrength}" FontSize="11" FontWeight="SemiBold" Foreground="#8b5cf6" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding RecallStrengthBar}" FontSize="8" Foreground="#8b5cf6" FontFamily="Consolas"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Message si aucune mémoire -->
+                    <Border IsVisible="{Binding !BookerMemories.Count}" Background="#0f172a" Padding="20" CornerRadius="6">
+                        <TextBlock Text="Aucune mémoire enregistrée pour le moment" FontSize="13" Foreground="#64748b" HorizontalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

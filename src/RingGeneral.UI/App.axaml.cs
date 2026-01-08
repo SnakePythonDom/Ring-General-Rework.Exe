@@ -63,7 +63,25 @@ public sealed class App : Application
         services.AddSingleton<BookingValidator>();
         services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
 
-        // Personality System Services
+        // Personality System Services (Phase 1)
+        services.AddSingleton<IPersonalityEngine, PersonalityEngine>();
+        services.AddSingleton<IPersonalityRepository>(sp =>
+            new PersonalityRepository(factory, sp.GetRequiredService<IPersonalityEngine>()));
+
+        // Nepotism System Services (Phase 2)
+        services.AddSingleton<INepotismRepository>(sp => new NepotismRepository(factory));
+        services.AddSingleton<INepotismEngine>(sp =>
+            new NepotismEngine(sp.GetRequiredService<INepotismRepository>()));
+
+        // Morale & Rumors System Services (Phase 3)
+        services.AddSingleton<IMoraleRepository>(sp => new MoraleRepository(factory));
+        services.AddSingleton<IMoraleEngine>(sp =>
+            new MoraleEngine(sp.GetRequiredService<IMoraleRepository>()));
+        services.AddSingleton<IRumorRepository>(sp => new RumorRepository(factory));
+        services.AddSingleton<IRumorEngine>(sp =>
+            new RumorEngine(sp.GetRequiredService<IRumorRepository>()));
+
+        // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
         services.AddSingleton<AgentReportGeneratorService>();
 

@@ -79,6 +79,35 @@ namespace RingGeneral.Core.Models.Relations
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         // ====================================================================
+        // NEPOTISM TRACKING (Phase 2)
+        // ====================================================================
+
+        /// <summary>
+        /// Is this relationship hidden from public view?
+        /// Hidden relationships can still influence decisions (népotisme backstage)
+        /// </summary>
+        public bool IsHidden { get; set; } = false;
+
+        /// <summary>
+        /// Bias strength - how much this relationship influences decisions (0-100)
+        /// - 0-39: Low bias
+        /// - 40-69: Moderate bias
+        /// - 70-100: Strong bias (obvious favoritism/nepotism)
+        /// </summary>
+        public int BiasStrength { get; set; } = 0;
+
+        /// <summary>
+        /// Event that created this relation (e.g., "FamilyTie", "MentorshipStart")
+        /// </summary>
+        public string? OriginEvent { get; set; }
+
+        /// <summary>
+        /// Description of the last observable impact
+        /// e.g., "Protected from firing", "Pushed despite low morale"
+        /// </summary>
+        public string? LastImpact { get; set; }
+
+        // ====================================================================
         // NAVIGATION PROPERTIES
         // ====================================================================
 
@@ -128,6 +157,22 @@ namespace RingGeneral.Core.Models.Relations
         /// Is this a medium relationship? (40-69)
         /// </summary>
         public bool IsMediumRelation => RelationStrength >= 40 && RelationStrength < 70;
+
+        /// <summary>
+        /// Does this relation have a strong bias? (>= 70)
+        /// Strong bias = obvious favoritism/nepotism
+        /// </summary>
+        public bool HasStrongBias => BiasStrength >= 70;
+
+        /// <summary>
+        /// Does this relation have a moderate bias? (40-69)
+        /// </summary>
+        public bool HasModerateBias => BiasStrength >= 40 && BiasStrength < 70;
+
+        /// <summary>
+        /// Is this relation likely to influence decisions?
+        /// </summary>
+        public bool InfluencesDecisions => BiasStrength >= 40;
 
         // ====================================================================
         // HELPER METHODS
