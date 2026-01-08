@@ -334,7 +334,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
             insertCmd.Parameters.AddWithValue("@companyId", companyId);
             insertCmd.Parameters.AddWithValue("@name", CompanyName.Trim());
-            insertCmd.Parameters.AddWithValue("@countryId", countryId);
+            insertCmd.Parameters.AddWithValue("@countryId", countryId!);
             insertCmd.Parameters.AddWithValue("@regionId", SelectedRegion.RegionId);
             insertCmd.Parameters.AddWithValue("@prestige", StartingPrestige);
             insertCmd.Parameters.AddWithValue("@treasury", StartingTreasury);

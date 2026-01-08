@@ -1258,6 +1258,11 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     private void ChargerParametresGeneration()
     {
+        if (_repository is null)
+        {
+            return;
+        }
+
         var options = _repository.ChargerParametresGeneration();
         YouthGenerationSelection = YouthGenerationModes.FirstOrDefault(mode => mode.Mode == options.YouthMode);
         WorldGenerationSelection = WorldGenerationModes.FirstOrDefault(mode => mode.Mode == options.WorldMode);
