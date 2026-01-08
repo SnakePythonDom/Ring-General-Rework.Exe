@@ -1,62 +1,36 @@
 -- ============================================================================
--- Import companies from legacy BAKI database into staging table
+-- Import promotions from legacy BAKI database into Ring General Companies
 -- ============================================================================
 
 PRAGMA foreign_keys = ON;
 
-DROP TABLE IF EXISTS LegacyCompanies;
-CREATE TABLE LegacyCompanies (
-    LegacyPromotionId INTEGER PRIMARY KEY,
-    Name TEXT NOT NULL,
-    CountryName TEXT,
-    RegionName TEXT,
-    Prestige REAL,
-    Treasury REAL,
-    StyleName TEXT,
-    FoundedYear INTEGER,
-    AverageAudience INTEGER,
-    Reach INTEGER
-);
-
-INSERT INTO LegacyCompanies (
+INSERT INTO Companies (
+    CompanyId,
     LegacyPromotionId,
     Name,
-    CountryName,
-    RegionName,
-    Prestige,
-    Treasury,
-    StyleName,
-    FoundedYear,
-    AverageAudience,
-    Reach
+    CountryId,
+    RegionId,
+    Prestige
 )
 SELECT
-    p.promotionID,
-    p.fullName,
-    c.countryName,
-    r.regionName,
-    p.prestige,
-    p.money,
-    p.style,
-    p.founded,
-    CAST(ROUND((
-        COALESCE(p.northAmericaPop, 0)
-        + COALESCE(p.southAmericaPop, 0)
-        + COALESCE(p.oceaniaPop, 0)
-        + COALESCE(p.asiaPop, 0)
-        + COALESCE(p.europePop, 0)
-        + COALESCE(p.africaPop, 0)
-    ) / 6.0, 0) AS INTEGER),
-    CAST(ROUND((
-        COALESCE(p.northAmericaPop, 0)
-        + COALESCE(p.southAmericaPop, 0)
-        + COALESCE(p.oceaniaPop, 0)
-        + COALESCE(p.asiaPop, 0)
-        + COALESCE(p.europePop, 0)
-        + COALESCE(p.africaPop, 0)
-    ) * 1000.0, 0) AS INTEGER)
-FROM baki.promotions p
-LEFT JOIN baki.countries c ON c.countryID = p.basedInCountry
-LEFT JOIN baki.regions r ON r.regionID = p.basedInRegion
-WHERE p.fullName IS NOT NULL
-  AND p.fullName != '';
+    'COMP_' || p.id,
+    p.id,
+    p.name,
+    c.CountryId,
+    COALESCE(
+        (
+            SELECT r.RegionId
+            FROM Regions r
+            WHERE r.CountryId = c.CountryId
+            ORDER BY r.Name
+            LIMIT 1
+        ),
+        'REGION_DEFAULT'
+    ),
+    p.popularity
+FROM legacy.promotions p
+LEFT JOIN Countries c ON c.Name = p.country
+ON CONFLICT(LegacyPromotionId) DO NOTHING;
+
+INSERT OR IGNORE INTO Companies (CompanyId, Name, CountryId, RegionId, Prestige)
+VALUES ('0', 'Free Agent', 'COUNTRY_DEFAULT', 'REGION_DEFAULT', 0);

@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS Regions (
 
 CREATE TABLE IF NOT EXISTS Companies (
     CompanyId TEXT PRIMARY KEY,
+    LegacyPromotionId INTEGER UNIQUE,
     Name TEXT NOT NULL,
     CountryId TEXT,
     RegionId TEXT NOT NULL,
