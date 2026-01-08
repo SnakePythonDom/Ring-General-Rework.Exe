@@ -19,6 +19,7 @@ public sealed class RepositoryContainer
     public YouthRepository YouthRepository { get; }
     public TitleRepository TitleRepository { get; }
     public MedicalRepository MedicalRepository { get; }
+    public IWorkerAttributesRepository WorkerAttributesRepository { get; }
 
     public RepositoryContainer(
         GameRepository gameRepository,
@@ -31,7 +32,8 @@ public sealed class RepositoryContainer
         SettingsRepository settingsRepository,
         YouthRepository youthRepository,
         TitleRepository titleRepository,
-        MedicalRepository medicalRepository)
+        MedicalRepository medicalRepository,
+        IWorkerAttributesRepository workerAttributesRepository)
     {
         GameRepository = gameRepository;
         ShowRepository = showRepository;
@@ -44,6 +46,7 @@ public sealed class RepositoryContainer
         YouthRepository = youthRepository;
         TitleRepository = titleRepository;
         MedicalRepository = medicalRepository;
+        WorkerAttributesRepository = workerAttributesRepository;
     }
 }
 
@@ -67,6 +70,7 @@ public static class RepositoryFactory
         var youthRepository = new YouthRepository(factory);
         var titleRepository = new TitleRepository(factory);
         var medicalRepository = new MedicalRepository(factory);
+        var workerAttributesRepository = new WorkerAttributesRepository(factory);
 
         var gameRepository = new GameRepository(
             factory,
@@ -90,7 +94,8 @@ public static class RepositoryFactory
             settingsRepository,
             youthRepository,
             titleRepository,
-            medicalRepository);
+            medicalRepository,
+            workerAttributesRepository);
     }
 
     /// <summary>

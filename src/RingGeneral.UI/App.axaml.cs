@@ -17,6 +17,7 @@ using RingGeneral.UI.Views.Shell;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Validation;
+using RingGeneral.Core.Services;
 using RingGeneral.UI.ViewModels;
 
 namespace RingGeneral.UI;
@@ -54,10 +55,15 @@ public sealed class App : Application
         services.AddSingleton(repositories.YouthRepository);
         services.AddSingleton(repositories.TitleRepository);
         services.AddSingleton(repositories.MedicalRepository);
+        services.AddSingleton(repositories.WorkerAttributesRepository);
 
         // Core Services
         services.AddSingleton<BookingValidator>();
         services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
+
+        // Personality System Services
+        services.AddSingleton<PersonalityDetectorService>();
+        services.AddSingleton<AgentReportGeneratorService>();
 
         // ViewModels - Core
         services.AddSingleton<ViewModels.Core.ShellViewModel>();

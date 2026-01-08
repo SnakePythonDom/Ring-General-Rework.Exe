@@ -2,19 +2,22 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Services;
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Workers.Profile;
 
 /// <summary>
 /// Main ViewModel for Worker ProfileView.
-/// Manages all 6 tabs and worker data.
+/// Manages all 7 tabs and worker data.
 /// </summary>
 public sealed class ProfileViewModel : ViewModelBase
 {
     private readonly IWorkerAttributesRepository _attributesRepository;
     private readonly IRelationsRepository _relationsRepository;
     private readonly INotesRepository _notesRepository;
+    private readonly PersonalityDetectorService _detectorService;
+    private readonly AgentReportGeneratorService _reportService;
 
     private Worker? _currentWorker;
     private ViewModelBase? _selectedTabViewModel;
@@ -23,11 +26,15 @@ public sealed class ProfileViewModel : ViewModelBase
     public ProfileViewModel(
         IWorkerAttributesRepository attributesRepository,
         IRelationsRepository relationsRepository,
-        INotesRepository notesRepository)
+        INotesRepository notesRepository,
+        PersonalityDetectorService detectorService,
+        AgentReportGeneratorService reportService)
     {
         _attributesRepository = attributesRepository;
         _relationsRepository = relationsRepository;
         _notesRepository = notesRepository;
+        _detectorService = detectorService;
+        _reportService = reportService;
 
         // Initialize tab ViewModels
         AttributesTab = new AttributesTabViewModel(_attributesRepository);
@@ -36,6 +43,7 @@ public sealed class ProfileViewModel : ViewModelBase
         RelationsTab = new RelationsTabViewModel(_relationsRepository);
         HistoryTab = new HistoryTabViewModel(_notesRepository);
         NotesTab = new NotesTabViewModel(_notesRepository);
+        PersonalityTab = new PersonalityTabViewModel(_attributesRepository, _detectorService, _reportService);
 
         // Tab collection for UI binding
         Tabs = new ObservableCollection<TabItem>
@@ -45,7 +53,8 @@ public sealed class ProfileViewModel : ViewModelBase
             new TabItem("Gimmick", GimmickTab),
             new TabItem("Relations", RelationsTab),
             new TabItem("Historique", HistoryTab),
-            new TabItem("Notes", NotesTab)
+            new TabItem("Notes", NotesTab),
+            new TabItem("🎭 Personnalité", PersonalityTab)
         };
 
         // Select first tab by default
@@ -74,7 +83,7 @@ public sealed class ProfileViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Selected tab index (0-5)
+    /// Selected tab index (0-6)
     /// </summary>
     public int SelectedTabIndex
     {
@@ -113,6 +122,7 @@ public sealed class ProfileViewModel : ViewModelBase
     public RelationsTabViewModel RelationsTab { get; }
     public HistoryTabViewModel HistoryTab { get; }
     public NotesTabViewModel NotesTab { get; }
+    public PersonalityTabViewModel PersonalityTab { get; }
 
     // ====================================================================
     // COMMANDS
@@ -169,6 +179,7 @@ public sealed class ProfileViewModel : ViewModelBase
         RelationsTab.LoadWorker(worker.Id);
         HistoryTab.LoadWorker(worker.Id);
         NotesTab.LoadWorker(worker.Id);
+        PersonalityTab.LoadWorker(worker.Id);
     }
 
     private void Refresh()
