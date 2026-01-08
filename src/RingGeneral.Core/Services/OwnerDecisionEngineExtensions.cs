@@ -346,7 +346,7 @@ public static class OwnerDecisionEngineExtensions
         {
             if (targetEra is EraType.Mainstream or EraType.SportsEntertainment)
                 alignment += 15;
-            if (targetEra is EraType.Hardcore or EraType.Experimental)
+            if (targetEra is EraType.Hardcore or EraType.Developmental)
                 alignment -= 10;
         }
 

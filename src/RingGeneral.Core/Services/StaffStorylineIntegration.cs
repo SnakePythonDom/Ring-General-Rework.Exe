@@ -58,7 +58,7 @@ public sealed class StaffStorylineIntegration
             TargetEntityId = currentStoryline.StorylineId,
             Title = GenerateProposalTitle(staff, currentStoryline),
             Description = GenerateProposalDescription(staff, currentStoryline),
-            QualityScore = CalculateProposalQuality(staff),
+            QualityScore = await CalculateProposalQualityAsync(staff),
             Originality = staff.CreativityScore,
             RiskLevel = CalculateProposalRisk(staff),
             WorkerTypeBias = staff.WorkerBias,
@@ -77,7 +77,8 @@ public sealed class StaffStorylineIntegration
         EvaluateAndApplyProposalAsync(
             CreativeProposal proposal,
             StorylineInfo currentStoryline,
-            string bookerId)
+            string bookerId,
+            IBookerRepository bookerRepository)
     {
         // Évaluer la proposition
         var compatibility = await _compatibilityRepository.GetCompatibilityAsync(proposal.StaffId, bookerId);
@@ -86,7 +87,13 @@ public sealed class StaffStorylineIntegration
             return (false, null, "Compatibility not calculated - cannot evaluate proposal");
         }
 
-        var evaluation = _staffProposalService.EvaluateProposal(proposal, compatibility);
+        var booker = await bookerRepository.GetBookerByIdAsync(bookerId);
+        if (booker == null)
+        {
+            return (false, null, "Booker not found");
+        }
+
+        var evaluation = _staffProposalService.EvaluateProposal(proposal, booker, compatibility);
 
         if (!evaluation.IsAccepted)
         {
@@ -95,8 +102,8 @@ public sealed class StaffStorylineIntegration
             return (false, null, evaluation.Reason);
         }
 
-        // Appliquer la proposition à la storyline
-        var updatedStoryline = ApplyProposalToStoryline(proposal, currentStoryline, evaluation.AcceptanceScore);
+        // Appliquer la proposition à la storyline (utiliser un score de 70 pour les propositions acceptées)
+        var updatedStoryline = ApplyProposalToStoryline(proposal, currentStoryline, 70);
 
         // Incrémenter le compteur de collaborations réussies
         if (compatibility != null)
@@ -143,10 +150,10 @@ public sealed class StaffStorylineIntegration
         }
 
         // Vérifier le statut
-        if (storylineAfter.Status == StorylineStatus.Cancelled && storylineBefore.Status == StorylineStatus.Active)
+        if (storylineAfter.Status == StorylineStatus.Suspended && storylineBefore.Status == StorylineStatus.Active)
         {
             damageLevel += 45;
-            reasons.Add("Storyline cancelled due to poor execution");
+            reasons.Add("Storyline suspended due to poor execution");
         }
 
         // Si compatibilité très dangereuse (≤20), amplifier les dégâts
@@ -182,12 +189,12 @@ public sealed class StaffStorylineIntegration
     {
         var creativeStaff = await _staffRepository.GetCreativeStaffByCompanyIdAsync(companyId);
         var proposals = new List<CreativeProposal>();
+        var random = new System.Random();
 
         foreach (var staff in creativeStaff)
         {
             // Probabilité de proposition basée sur créativité et consistance
             var proposalProbability = (staff.CreativityScore + staff.ConsistencyScore) / 2;
-            var random = new Random();
 
             if (random.Next(100) < proposalProbability / 2) // 50% du score en probabilité
             {
@@ -229,7 +236,7 @@ public sealed class StaffStorylineIntegration
             $"Complication supplémentaire pour '{storyline.Nom}'"
         };
 
-        var random = new Random();
+        var random = new System.Random();
         return titles[random.Next(titles.Length)];
     }
 
@@ -248,11 +255,16 @@ public sealed class StaffStorylineIntegration
     /// <summary>
     /// Calcule la qualité d'une proposition basée sur le staff.
     /// </summary>
-    private int CalculateProposalQuality(CreativeStaff staff)
+    private async Task<int> CalculateProposalQualityAsync(CreativeStaff staff)
     {
+        // Récupérer le StaffMember pour avoir le SkillScore
+        var staffMember = await _staffRepository.GetStaffMemberByIdAsync(staff.StaffId);
+        if (staffMember == null)
+            return 50; // Score par défaut si non trouvé
+
         // Formule: 60% skill + 25% creativity + 15% consistency
         return (int)(
-            staff.SkillScore * 0.60 +
+            staffMember.SkillScore * 0.60 +
             staff.CreativityScore * 0.25 +
             staff.ConsistencyScore * 0.15
         );

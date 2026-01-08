@@ -114,10 +114,11 @@ public static class BookerAIEngineExtensions
         // Déterminer l'ère cible basée sur la vision du booker
         var targetEra = DetermineTargetEra(booker, currentEra);
 
-        // Déterminer la vitesse basée sur le risk tolerance du booker
-        var speed = booker.RiskTolerance >= 70 ? EraTransitionSpeed.Fast :
-                    booker.RiskTolerance >= 50 ? EraTransitionSpeed.Moderate :
-                    booker.RiskTolerance >= 30 ? EraTransitionSpeed.Slow :
+        // Déterminer la vitesse basée sur la créativité du booker
+        // Un booker créatif est plus enclin aux changements rapides
+        var speed = booker.CreativityScore >= 70 ? EraTransitionSpeed.Fast :
+                    booker.CreativityScore >= 50 ? EraTransitionSpeed.Moderate :
+                    booker.CreativityScore >= 30 ? EraTransitionSpeed.Slow :
                     EraTransitionSpeed.VerySlow;
 
         return (true, targetEra, speed);
