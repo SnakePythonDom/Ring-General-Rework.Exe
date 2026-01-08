@@ -1,4 +1,5 @@
 using RingGeneral.Core.Models.Relations;
+using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,21 +12,50 @@ namespace RingGeneral.Core.Services;
 /// </summary>
 public class NepotismEngine : INepotismEngine
 {
-    // Pour l'instant, stockage en mémoire (sera remplacé par repository)
-    private readonly List<NepotismImpact> _impacts = new();
-    private readonly List<BiasedDecision> _decisions = new();
+    private readonly INepotismRepository? _repository;
+
+    public NepotismEngine(INepotismRepository? repository = null)
+    {
+        _repository = repository;
+    }
 
     public bool IsDecisionBiased(string decisionMakerId, string targetEntityId, string decisionType)
     {
-        // TODO: Récupérer les relations depuis le repository
-        // Pour l'instant, retourne false (implémentation minimale)
-        return false;
+        if (_repository == null)
+            return false;
+
+        // Récupérer les relations avec biais fort pour le décideur
+        var strongBiasRelations = _repository.GetStrongBiasRelationsAsync(decisionMakerId, minBiasStrength: 40).Result;
+
+        // Vérifier si le targetEntity est impliqué dans une de ces relations
+        if (!int.TryParse(targetEntityId, out int targetId))
+            return false;
+
+        return strongBiasRelations.Any(r => r.InvolvesWorker(targetId));
     }
 
     public int CalculateSanctionDelay(string targetEntityId, string offense)
     {
-        // TODO: Récupérer les relations du targetEntity
-        // Pour l'instant, retourne 0 (pas de délai)
+        if (_repository == null)
+            return 0;
+
+        // Récupérer les relations avec biais fort pour le worker
+        var strongBiasRelations = _repository.GetStrongBiasRelationsAsync(targetEntityId, minBiasStrength: 40).Result;
+
+        if (!strongBiasRelations.Any())
+            return 0;
+
+        // Calculer le délai basé sur le BiasStrength le plus élevé
+        var maxBias = strongBiasRelations.Max(r => r.BiasStrength);
+
+        // Formule: BiasStrength 40-69 → 1-2 semaines, 70-89 → 3-4 semaines, 90-100 → 5-6 semaines
+        if (maxBias >= 90)
+            return 6;
+        else if (maxBias >= 70)
+            return 4;
+        else if (maxBias >= 40)
+            return 2;
+
         return 0;
     }
 
@@ -51,6 +81,9 @@ public class NepotismEngine : INepotismEngine
         int severity,
         string? description = null)
     {
+        if (_repository == null)
+            return;
+
         var impact = new NepotismImpact
         {
             RelationId = relationId,
@@ -63,9 +96,8 @@ public class NepotismEngine : INepotismEngine
             CreatedAt = DateTime.Now
         };
 
-        _impacts.Add(impact);
-
-        // TODO: Persister dans la base de données via repository
+        // Persister dans la base de données via repository
+        _repository.SaveNepotismImpactAsync(impact).Wait();
     }
 
     public void LogDecision(
@@ -76,6 +108,9 @@ public class NepotismEngine : INepotismEngine
         string? biasReason = null,
         string? justification = null)
     {
+        if (_repository == null)
+            return;
+
         var decision = new BiasedDecision
         {
             DecisionType = decisionType,
@@ -87,9 +122,8 @@ public class NepotismEngine : INepotismEngine
             CreatedAt = DateTime.Now
         };
 
-        _decisions.Add(decision);
-
-        // TODO: Persister dans la base de données via repository
+        // Persister dans la base de données via repository
+        _repository.SaveBiasedDecisionAsync(decision).Wait();
     }
 
     // ====================================================================
@@ -99,20 +133,24 @@ public class NepotismEngine : INepotismEngine
     /// <summary>
     /// Récupère tous les impacts visibles (pour UI)
     /// </summary>
-    public List<NepotismImpact> GetVisibleImpacts()
+    public List<NepotismImpact> GetVisibleImpacts(string companyId)
     {
-        return _impacts.Where(i => i.IsVisible).OrderByDescending(i => i.CreatedAt).ToList();
+        if (_repository == null)
+            return new List<NepotismImpact>();
+
+        return _repository.GetVisibleImpactsByCompanyAsync(companyId).Result;
     }
 
     /// <summary>
     /// Récupère les décisions biaisées récentes (pour génération de rumeurs)
     /// </summary>
-    public List<BiasedDecision> GetRecentBiasedDecisions(int days = 30)
+    public List<BiasedDecision> GetRecentBiasedDecisions(string decisionMakerId, int days = 14)
     {
-        var cutoffDate = DateTime.Now.AddDays(-days);
-        return _decisions
-            .Where(d => d.IsBiased && d.CreatedAt >= cutoffDate)
-            .OrderByDescending(d => d.CreatedAt)
+        if (_repository == null)
+            return new List<BiasedDecision>();
+
+        return _repository.GetBiasedDecisionsByMakerAsync(decisionMakerId).Result
+            .Where(d => (DateTime.Now - d.CreatedAt).TotalDays <= days)
             .ToList();
     }
 }

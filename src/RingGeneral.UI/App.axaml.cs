@@ -67,11 +67,17 @@ public sealed class App : Application
             new PersonalityRepository(factory, sp.GetRequiredService<IPersonalityEngine>()));
 
         // Nepotism System Services (Phase 2)
-        services.AddSingleton<INepotismEngine, NepotismEngine>();
+        services.AddSingleton<INepotismRepository>(sp => new NepotismRepository(factory));
+        services.AddSingleton<INepotismEngine>(sp =>
+            new NepotismEngine(sp.GetRequiredService<INepotismRepository>()));
 
         // Morale & Rumors System Services (Phase 3)
-        services.AddSingleton<IMoraleEngine, MoraleEngine>();
-        services.AddSingleton<IRumorEngine, RumorEngine>();
+        services.AddSingleton<IMoraleRepository>(sp => new MoraleRepository(factory));
+        services.AddSingleton<IMoraleEngine>(sp =>
+            new MoraleEngine(sp.GetRequiredService<IMoraleRepository>()));
+        services.AddSingleton<IRumorRepository>(sp => new RumorRepository(factory));
+        services.AddSingleton<IRumorEngine>(sp =>
+            new RumorEngine(sp.GetRequiredService<IRumorRepository>()));
 
         // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
