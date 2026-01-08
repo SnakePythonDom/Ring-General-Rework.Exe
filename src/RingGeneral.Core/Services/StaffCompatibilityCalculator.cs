@@ -251,7 +251,7 @@ public class StaffCompatibilityCalculator
         var conflictPenalty = Math.Min(conflictHistory * 10, 40);
 
         // Bonus si booker a haute résistance au biais (professionnel)
-        var professionalism Bonus = bookerBiasResistance >= 70 ? 10 : 0;
+        var professionalismBonus = bookerBiasResistance >= 70 ? 10 : 0;
 
         var totalScore = baseScore + professionalismBonus - conflictPenalty;
 
