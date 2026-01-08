@@ -10,7 +10,7 @@ namespace RingGeneral.Core.Interfaces;
 /// </summary>
 public interface INepotismRepository
 {
-    Task<List<Relation>> GetStrongBiasRelationsAsync(string entityId, int minBiasStrength);
+    Task<List<WorkerRelation>> GetStrongBiasRelationsAsync(string entityId, int minBiasStrength);
     Task<List<NepotismImpact>> GetVisibleImpactsByCompanyAsync(string companyId);
     Task<List<BiasedDecision>> GetBiasedDecisionsByMakerAsync(string decisionMakerId);
     Task SaveNepotismImpactAsync(NepotismImpact impact);

@@ -6,19 +6,18 @@ namespace RingGeneral.Core.Interfaces;
 
 /// <summary>
 /// Interface pour le repository du moral (Phase 3).
-/// Gère les événements de moral, les états et les historiques.
+/// Gère le moral backstage et le moral de compagnie.
 /// </summary>
 public interface IMoraleRepository
 {
-    Task<MoraleState?> GetMoraleStateAsync(string entityId);
-    Task<List<MoraleState>> GetCompanyMoraleStatesAsync(string companyId);
-    Task SaveMoraleStateAsync(MoraleState state);
-    Task UpdateMoraleStateAsync(MoraleState state);
+    Task<BackstageMorale?> GetBackstageMoraleAsync(string entityId, string companyId);
+    Task<List<BackstageMorale>> GetAllBackstageMoraleAsync(string companyId);
+    Task<List<BackstageMorale>> GetLowMoraleEntitiesAsync(string companyId, int threshold);
+    Task<List<BackstageMorale>> GetCriticalMoraleEntitiesAsync(string companyId, int threshold);
+    Task SaveBackstageMoraleAsync(BackstageMorale morale);
+    Task UpdateBackstageMoraleAsync(BackstageMorale morale);
 
-    Task<List<MoraleEvent>> GetRecentEventsAsync(string entityId, int limit);
-    Task<List<MoraleEvent>> GetEventsByCompanyAsync(string companyId);
-    Task SaveMoraleEventAsync(MoraleEvent moraleEvent);
-
-    Task<List<MoraleHistory>> GetMoraleHistoryAsync(string entityId, int limit);
-    Task SaveMoraleHistoryAsync(MoraleHistory history);
+    Task<CompanyMorale?> GetCompanyMoraleAsync(string companyId);
+    Task SaveCompanyMoraleAsync(CompanyMorale morale);
+    Task RecalculateCompanyMoraleAsync(string companyId);
 }
