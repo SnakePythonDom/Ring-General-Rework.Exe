@@ -66,6 +66,9 @@ public sealed class App : Application
         services.AddSingleton<IPersonalityRepository>(sp =>
             new PersonalityRepository(factory, sp.GetRequiredService<IPersonalityEngine>()));
 
+        // Nepotism System Services (Phase 2)
+        services.AddSingleton<INepotismEngine, NepotismEngine>();
+
         // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
         services.AddSingleton<AgentReportGeneratorService>();
