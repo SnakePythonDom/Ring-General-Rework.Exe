@@ -4,6 +4,9 @@ using System.Linq;
 using System.Reactive;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using RingGeneral.Core.Models;
+using RingGeneral.Core.Models.Owner;
+using RingGeneral.Core.Models.Booker;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.ViewModels.Dashboard;
@@ -11,29 +14,42 @@ using RingGeneral.UI.ViewModels.Dashboard;
 namespace RingGeneral.UI.ViewModels.Start;
 
 /// <summary>
-/// ViewModel pour la création d'une nouvelle compagnie personnalisée
+/// ViewModel pour la création d'une nouvelle compagnie personnalisée avec gouvernance complète
 /// </summary>
 public sealed class CreateCompanyViewModel : ViewModelBase
 {
     private readonly GameRepository _repository;
     private readonly INavigationService _navigationService;
+    private readonly IOwnerRepository _ownerRepository;
+    private readonly IBookerRepository _bookerRepository;
+    private readonly ICatchStyleRepository _catchStyleRepository;
 
     private string _companyName = string.Empty;
     private RegionInfo? _selectedRegion;
+    private CatchStyle? _selectedCatchStyle;
     private int _startingPrestige = 50;
     private double _startingTreasury = 100000.0;
+    private int _foundedYear = 2024;
     private string? _errorMessage;
 
     public CreateCompanyViewModel(
         GameRepository? repository = null,
-        INavigationService? navigationService = null)
+        INavigationService? navigationService = null,
+        IOwnerRepository? ownerRepository = null,
+        IBookerRepository? bookerRepository = null,
+        ICatchStyleRepository? catchStyleRepository = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+        _ownerRepository = ownerRepository ?? throw new ArgumentNullException(nameof(ownerRepository));
+        _bookerRepository = bookerRepository ?? throw new ArgumentNullException(nameof(bookerRepository));
+        _catchStyleRepository = catchStyleRepository ?? throw new ArgumentNullException(nameof(catchStyleRepository));
 
-        // Initialiser les régions disponibles depuis la base de données
+        // Initialiser les données de sélection
         AvailableRegions = new ObservableCollection<RegionInfo>();
+        AvailableCatchStyles = new ObservableCollection<CatchStyle>();
         LoadRegionsFromDatabase();
+        LoadCatchStylesFromDatabase();
 
         // Commandes
         CreateCompanyCommand = ReactiveCommand.Create(CreateCompany);
@@ -85,6 +101,41 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Charge les styles de catch depuis la base de données
+    /// </summary>
+    private async void LoadCatchStylesFromDatabase()
+    {
+        try
+        {
+            var styles = await _catchStyleRepository.GetAllActiveStylesAsync();
+            foreach (var style in styles)
+            {
+                AvailableCatchStyles.Add(style);
+            }
+
+            // Sélectionner "Hybrid" par défaut (le plus équilibré)
+            SelectedCatchStyle = AvailableCatchStyles.FirstOrDefault(s => s.CatchStyleId == "STYLE_HYBRID")
+                              ?? AvailableCatchStyles.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[CreateCompanyViewModel] Erreur lors du chargement des styles: {ex.Message}");
+
+            // Créer un style par défaut en cas d'erreur (fallback)
+            var defaultStyle = new CatchStyle(
+                "STYLE_HYBRID",
+                "Hybrid Wrestling",
+                "Style équilibré par défaut",
+                60, 60, 20, 30, 30,  // Characteristics
+                65, 65, 60, 65,      // Fan Expectations
+                1.0, 1.0,            // Multipliers
+                "🌐", "#607D8B", true);
+            AvailableCatchStyles.Add(defaultStyle);
+            SelectedCatchStyle = defaultStyle;
+        }
+    }
+
+    /// <summary>
     /// Nom de la compagnie
     /// </summary>
     public string CompanyName
@@ -100,6 +151,15 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     {
         get => _selectedRegion;
         set => this.RaiseAndSetIfChanged(ref _selectedRegion, value);
+    }
+
+    /// <summary>
+    /// Style de catch sélectionné
+    /// </summary>
+    public CatchStyle? SelectedCatchStyle
+    {
+        get => _selectedCatchStyle;
+        set => this.RaiseAndSetIfChanged(ref _selectedCatchStyle, value);
     }
 
     /// <summary>
@@ -121,6 +181,15 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Année de fondation (1950-2100)
+    /// </summary>
+    public int FoundedYear
+    {
+        get => _foundedYear;
+        set => this.RaiseAndSetIfChanged(ref _foundedYear, Math.Clamp(value, 1950, 2100));
+    }
+
+    /// <summary>
     /// Message d'erreur en cas de validation échouée
     /// </summary>
     public string? ErrorMessage
@@ -133,6 +202,11 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// Liste des régions disponibles
     /// </summary>
     public ObservableCollection<RegionInfo> AvailableRegions { get; }
+
+    /// <summary>
+    /// Liste des styles de catch disponibles
+    /// </summary>
+    public ObservableCollection<CatchStyle> AvailableCatchStyles { get; }
 
     /// <summary>
     /// Commande pour créer la compagnie
@@ -170,6 +244,12 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             return;
         }
 
+        if (SelectedCatchStyle == null)
+        {
+            ErrorMessage = "Veuillez sélectionner un style de catch.";
+            return;
+        }
+
         try
         {
             using var connection = _repository.CreateConnection();
@@ -192,11 +272,16 @@ public sealed class CreateCompanyViewModel : ViewModelBase
                 return;
             }
 
-            // Insérer la nouvelle compagnie
+            // Insérer la nouvelle compagnie avec tous les champs d'identité et de gouvernance
             using var insertCmd = connection.CreateCommand();
             insertCmd.CommandText = @"
-                INSERT INTO Companies (CompanyId, Name, CountryId, RegionId, Prestige, Treasury)
-                VALUES (@companyId, @name, @countryId, @regionId, @prestige, @treasury)";
+                INSERT INTO Companies (
+                    CompanyId, Name, CountryId, RegionId, Prestige, Treasury,
+                    FoundedYear, CompanySize, CurrentEra, CatchStyleId, IsPlayerControlled, MonthlyBurnRate
+                ) VALUES (
+                    @companyId, @name, @countryId, @regionId, @prestige, @treasury,
+                    @foundedYear, @companySize, @currentEra, @catchStyleId, @isPlayerControlled, @burnRate
+                )";
 
             insertCmd.Parameters.AddWithValue("@companyId", companyId);
             insertCmd.Parameters.AddWithValue("@name", CompanyName.Trim());
@@ -204,10 +289,26 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             insertCmd.Parameters.AddWithValue("@regionId", SelectedRegion.RegionId);
             insertCmd.Parameters.AddWithValue("@prestige", StartingPrestige);
             insertCmd.Parameters.AddWithValue("@treasury", StartingTreasury);
+            insertCmd.Parameters.AddWithValue("@foundedYear", FoundedYear);
+            insertCmd.Parameters.AddWithValue("@companySize", "Local"); // Taille initiale
+            insertCmd.Parameters.AddWithValue("@currentEra", "Foundation Era");
+            insertCmd.Parameters.AddWithValue("@catchStyleId", SelectedCatchStyle.CatchStyleId);
+            insertCmd.Parameters.AddWithValue("@isPlayerControlled", 1); // C'est la compagnie du joueur
+            insertCmd.Parameters.AddWithValue("@burnRate", 5000.0); // Burn rate initial modéré
 
             insertCmd.ExecuteNonQuery();
 
             Logger.Info($"Compagnie créée: {CompanyName} ({companyId})");
+
+            // Créer l'Owner (contrôleur stratégique)
+            var ownerId = $"OWN_{Guid.NewGuid():N}".Substring(0, 16);
+            CreateDefaultOwner(companyId, ownerId).Wait();
+            Logger.Info($"Owner créé: {ownerId}");
+
+            // Créer le Booker (directeur créatif)
+            var bookerId = $"BOOK_{Guid.NewGuid():N}".Substring(0, 16);
+            CreateDefaultBooker(companyId, bookerId).Wait();
+            Logger.Info($"Booker créé: {bookerId}");
 
             // Créer la sauvegarde
             CreateSaveGame(connection, companyId);
@@ -244,11 +345,71 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         insertCmd.Parameters.AddWithValue("@saveName", $"{CompanyName} - {DateTime.Now:yyyy-MM-dd HH:mm}");
         insertCmd.Parameters.AddWithValue("@companyId", companyId);
         insertCmd.Parameters.AddWithValue("@week", 1);
-        insertCmd.Parameters.AddWithValue("@date", "2024-01-01");
+        insertCmd.Parameters.AddWithValue("@date", $"{FoundedYear}-01-01");
 
         insertCmd.ExecuteNonQuery();
 
         Logger.Info("Sauvegarde créée avec succès");
+    }
+
+    /// <summary>
+    /// Crée un Owner par défaut aligné avec le style de catch choisi
+    /// </summary>
+    private async System.Threading.Tasks.Task CreateDefaultOwner(string companyId, string ownerId)
+    {
+        // Mapper le CatchStyle vers PreferredProductType de l'Owner
+        var productType = SelectedCatchStyle!.Name switch
+        {
+            "Pure Wrestling" or "Strong Style" => "Technical",
+            "Sports Entertainment" or "Family-Friendly" => "Entertainment",
+            "Hardcore Wrestling" => "Hardcore",
+            "Lucha Libre" => "Entertainment",
+            _ => "Entertainment"
+        };
+
+        var owner = new Owner
+        {
+            OwnerId = ownerId,
+            CompanyId = companyId,
+            Name = "Owner",  // Le joueur pourra personnaliser plus tard
+            VisionType = "Balanced",
+            RiskTolerance = 50,
+            PreferredProductType = productType,
+            ShowFrequencyPreference = "Weekly",
+            TalentDevelopmentFocus = 50,
+            FinancialPriority = 50,
+            FanSatisfactionPriority = 50,
+            CreatedAt = DateTime.Now
+        };
+
+        await _ownerRepository.SaveOwnerAsync(owner);
+    }
+
+    /// <summary>
+    /// Crée un Booker par défaut équilibré
+    /// </summary>
+    private async System.Threading.Tasks.Task CreateDefaultBooker(string companyId, string bookerId)
+    {
+        var booker = new RingGeneral.Core.Models.Booker.Booker
+        {
+            BookerId = bookerId,
+            CompanyId = companyId,
+            Name = "Head Booker",  // Le joueur pourra personnaliser plus tard
+            CreativityScore = 60,
+            LogicScore = 70,
+            BiasResistance = 60,
+            PreferredStyle = "Flexible",
+            LikesUnderdog = true,
+            LikesVeteran = false,
+            LikesFastRise = false,
+            LikesSlowBurn = true,
+            IsAutoBookingEnabled = false,  // Désactivé par défaut (le joueur book manuellement)
+            EmploymentStatus = "Active",
+            HireDate = DateTime.Now,
+            CreatedAt = DateTime.Now
+        };
+
+        await _bookerRepository.SaveBookerAsync(booker);
     }
 
     /// <summary>

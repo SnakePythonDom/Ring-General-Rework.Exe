@@ -20,6 +20,10 @@ public sealed class RepositoryContainer
     public TitleRepository TitleRepository { get; }
     public MedicalRepository MedicalRepository { get; }
     public IWorkerAttributesRepository WorkerAttributesRepository { get; }
+    // Company Governance & Identity
+    public IOwnerRepository OwnerRepository { get; }
+    public IBookerRepository BookerRepository { get; }
+    public ICatchStyleRepository CatchStyleRepository { get; }
 
     public RepositoryContainer(
         GameRepository gameRepository,
@@ -33,7 +37,10 @@ public sealed class RepositoryContainer
         YouthRepository youthRepository,
         TitleRepository titleRepository,
         MedicalRepository medicalRepository,
-        IWorkerAttributesRepository workerAttributesRepository)
+        IWorkerAttributesRepository workerAttributesRepository,
+        IOwnerRepository ownerRepository,
+        IBookerRepository bookerRepository,
+        ICatchStyleRepository catchStyleRepository)
     {
         GameRepository = gameRepository;
         ShowRepository = showRepository;
@@ -47,6 +54,9 @@ public sealed class RepositoryContainer
         TitleRepository = titleRepository;
         MedicalRepository = medicalRepository;
         WorkerAttributesRepository = workerAttributesRepository;
+        OwnerRepository = ownerRepository;
+        BookerRepository = bookerRepository;
+        CatchStyleRepository = catchStyleRepository;
     }
 }
 
@@ -72,6 +82,12 @@ public static class RepositoryFactory
         var medicalRepository = new MedicalRepository(factory);
         var workerAttributesRepository = new WorkerAttributesRepository(factory);
 
+        // Company Governance & Identity repositories
+        var connectionString = factory.GetConnectionString();
+        var ownerRepository = new OwnerRepository(connectionString);
+        var bookerRepository = new BookerRepository(connectionString);
+        var catchStyleRepository = new CatchStyleRepository(factory);
+
         var gameRepository = new GameRepository(
             factory,
             showRepository,
@@ -95,7 +111,10 @@ public static class RepositoryFactory
             youthRepository,
             titleRepository,
             medicalRepository,
-            workerAttributesRepository);
+            workerAttributesRepository,
+            ownerRepository,
+            bookerRepository,
+            catchStyleRepository);
     }
 
     /// <summary>
