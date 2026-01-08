@@ -24,8 +24,8 @@ SEED_REGIONS_FILE="sql/seed_regions.sql"
 SEED_STYLES_FILE="sql/seed_styles.sql"
 IMPORT_COMPANIES_FILE="sql/import_companies.sql"
 IMPORT_WORKERS_FILE="sql/import_workers.sql"
-MAP_COMPANIES_FILE="sql/map_companies.sql"
 MAP_WORKERS_FILE="sql/map_workers.sql"
+MAP_WORKERS_COMPANY_FILE="sql/map_workers_company.sql"
 VALIDATE_FILE="sql/validate.sql"
 REFERENCE_BUILDER="scripts/build_reference_data.py"
 
@@ -93,8 +93,8 @@ check_file "$SCHEMA_FILE"
 check_file "$SEED_STYLES_FILE"
 check_file "$IMPORT_COMPANIES_FILE"
 check_file "$IMPORT_WORKERS_FILE"
-check_file "$MAP_COMPANIES_FILE"
 check_file "$MAP_WORKERS_FILE"
+check_file "$MAP_WORKERS_COMPANY_FILE"
 check_file "$VALIDATE_FILE"
 check_file "$REFERENCE_BUILDER"
 check_file "$BAKI_DB"
@@ -136,11 +136,13 @@ print_success "Structure tables seeded"
 print_step "6/7 Importing legacy data..."
 sqlite3 "$DB_NAME" <<SQL
 PRAGMA foreign_keys = ON;
+ATTACH DATABASE '$BAKI_DB' AS legacy;
 ATTACH DATABASE '$BAKI_DB' AS baki;
 .read $IMPORT_COMPANIES_FILE
 .read $IMPORT_WORKERS_FILE
-.read $MAP_COMPANIES_FILE
 .read $MAP_WORKERS_FILE
+.read $MAP_WORKERS_COMPANY_FILE
+DETACH DATABASE legacy;
 DETACH DATABASE baki;
 SQL
 print_success "Legacy data imported and mapped"
