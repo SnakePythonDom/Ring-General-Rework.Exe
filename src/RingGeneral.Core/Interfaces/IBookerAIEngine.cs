@@ -81,4 +81,19 @@ public interface IBookerAIEngine
     /// <param name="bookerId">Identifiant du booker</param>
     /// <returns>Score de cohérence (0-100)</returns>
     int CalculateBookerConsistency(string bookerId);
+
+    /// <summary>
+    /// Génère un booking automatique complet pour un show
+    /// Utilise les préférences du booker, ses mémoires et les contraintes de l'owner
+    /// </summary>
+    /// <param name="bookerId">Identifiant du booker</param>
+    /// <param name="showContext">Contexte du show à booker</param>
+    /// <param name="existingSegments">Segments déjà créés par le joueur (optionnel)</param>
+    /// <param name="constraints">Contraintes imposées par l'Owner (optionnel)</param>
+    /// <returns>Liste de segments générés automatiquement</returns>
+    List<Models.SegmentDefinition> GenerateAutoBooking(
+        string bookerId,
+        Models.ShowContext showContext,
+        List<Models.SegmentDefinition>? existingSegments = null,
+        AutoBookingConstraints? constraints = null);
 }

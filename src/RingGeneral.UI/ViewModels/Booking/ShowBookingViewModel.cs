@@ -3,7 +3,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using ReactiveUI;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
 using RingGeneral.Core.Validation;
@@ -25,15 +27,18 @@ public sealed class ShowBookingViewModel : ViewModelBase
     private readonly SegmentTypeCatalog _catalog;
     private readonly BookingBuilderService _builder;
     private readonly TemplateService _templateService;
+    private readonly IBookerAIEngine? _bookerAIEngine;
     private ShowContext? _context;
     private string? _showId;
 
     public ShowBookingViewModel(
         GameRepository repository,
-        SegmentTypeCatalog catalog)
+        SegmentTypeCatalog catalog,
+        IBookerAIEngine? bookerAIEngine = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+        _bookerAIEngine = bookerAIEngine;
         _validator = new BookingValidator();
         _builder = new BookingBuilderService();
         _templateService = new TemplateService();
@@ -57,6 +62,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
         DuplicateSegmentCommand = ReactiveCommand.Create<SegmentViewModel>(DuplicateSegment);
         SimulateShowCommand = ReactiveCommand.Create(SimulateShow);
         ValidateBookingCommand = ReactiveCommand.Create(ValidateBooking);
+        AutoBookCommand = ReactiveCommand.Create(GenerateAutoBooking);
 
         LoadSegmentTypes();
         LoadMatchTypes();
@@ -128,6 +134,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
     public ReactiveCommand<SegmentViewModel, Unit> DuplicateSegmentCommand { get; }
     public ReactiveCommand<Unit, Unit> SimulateShowCommand { get; }
     public ReactiveCommand<Unit, Unit> ValidateBookingCommand { get; }
+    public ReactiveCommand<Unit, Unit> AutoBookCommand { get; }
 
     #endregion
 
@@ -371,6 +378,101 @@ public sealed class ShowBookingViewModel : ViewModelBase
         catch (Exception ex)
         {
             Logger.Error("Erreur lors de la simulation du show", ex);
+        }
+    }
+
+    /// <summary>
+    /// Génère un booking automatique en utilisant le BookerAIEngine.
+    /// Le Booker complète les slots vides selon ses préférences et mémoires.
+    /// </summary>
+    public void GenerateAutoBooking()
+    {
+        if (_context is null || string.IsNullOrWhiteSpace(_showId))
+        {
+            Logger.Warning("Impossible de générer un auto-booking : contexte non chargé");
+            return;
+        }
+
+        if (_bookerAIEngine is null)
+        {
+            Logger.Warning("BookerAIEngine non disponible pour l'auto-booking");
+            return;
+        }
+
+        Logger.Info("Génération du booking automatique...");
+
+        try
+        {
+            // Récupérer le booker de la compagnie
+            // Note: Cette méthode devrait être disponible dans GameRepository
+            // Pour l'instant, on utilise un ID de booker par défaut ou on demande au joueur de configurer un booker
+            var bookerId = "BOOKER-DEFAULT"; // TODO: Récupérer depuis la configuration de la compagnie
+
+            if (string.IsNullOrWhiteSpace(bookerId))
+            {
+                Logger.Warning("Aucun booker trouvé pour cette compagnie");
+                return;
+            }
+
+            // Préparer les contraintes par défaut
+            var constraints = new AutoBookingConstraints
+            {
+                ForbidInjuredWorkers = true,
+                MaxFatigueLevel = 80,
+                MinSegments = 4,
+                MaxSegments = 8,
+                ForbidMultipleAppearances = true,
+                PrioritizeActiveStorylines = true,
+                UseTitles = true,
+                RequireMainEvent = true,
+                TargetDuration = _context.Show.DureeMinutes
+            };
+
+            // Récupérer les segments existants
+            var existingSegments = Segments
+                .Select(s => new SegmentDefinition(
+                    s.SegmentId,
+                    s.TypeSegment,
+                    s.Participants.Select(p => p.WorkerId).ToList(),
+                    s.DureeMinutes,
+                    s.EstMainEvent,
+                    s.StorylineId,
+                    s.TitreId,
+                    s.Intensite,
+                    s.VainqueurId,
+                    s.PerdantId,
+                    s.ConstruireSettings()
+                ))
+                .ToList();
+
+            // Générer les nouveaux segments
+            var generatedSegments = _bookerAIEngine.GenerateAutoBooking(
+                bookerId,
+                _context,
+                existingSegments,
+                constraints
+            );
+
+            // Ajouter les segments générés à la liste
+            foreach (var segment in generatedSegments)
+            {
+                _repository.AjouterSegment(_showId, segment, Segments.Count + 1);
+                Segments.Add(new SegmentViewModel(segment));
+            }
+
+            // Valider le booking
+            ValidateBooking();
+
+            // Rafraîchir les propriétés
+            this.RaisePropertyChanged(nameof(TotalDuration));
+            this.RaisePropertyChanged(nameof(SegmentCount));
+            this.RaisePropertyChanged(nameof(HasSegments));
+
+            Logger.Info($"Auto-booking généré : {generatedSegments.Count} segments ajoutés");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Erreur lors de la génération du booking automatique", ex);
         }
     }
 
