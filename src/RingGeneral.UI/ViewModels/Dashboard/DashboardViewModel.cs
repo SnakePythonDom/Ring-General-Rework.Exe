@@ -463,7 +463,7 @@ public sealed class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Action du bouton "Continuer" (avancer d'une semaine)
+    /// Action du bouton "Continuer" (avancer d'une semaine OU simuler le show)
     /// </summary>
     private void OnContinue()
     {
@@ -472,33 +472,94 @@ public sealed class DashboardViewModel : ViewModelBase
             return;
         }
 
-        // Incrémenter la semaine
-        CurrentWeek++;
+        try
+        {
+            // Détecter si un show est prévu cette semaine
+            if (HasUpcomingShow && _showDayOrchestrator is not null)
+            {
+                // Simuler le show
+                OnPrepareShow();
+            }
+            else
+            {
+                // Avancer d'une semaine normale
+                // TODO: Intégrer WeeklyLoopService
+                CurrentWeek++;
+                RecentActivity.Insert(0, $"⏭️ Passage à la semaine {CurrentWeek}");
+                Logger.Info($"Avancé à la semaine {CurrentWeek}");
+            }
 
-        // TODO: Appeler WeeklyLoopService pour avancer d'une semaine
-        // weekly.PasserSemaineSuivante(companyId);
-
-        // Recharger les données
-        LoadDashboardData();
-
-        RecentActivity.Insert(0, $"⏭️ Passage à la semaine {CurrentWeek}");
-        Logger.Info($"Avancé à la semaine {CurrentWeek}");
+            // Recharger les données
+            LoadDashboardData();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[DashboardViewModel] Erreur lors de OnContinue: {ex.Message}");
+            RecentActivity.Insert(0, $"⚠️ Erreur: {ex.Message}");
+        }
     }
 
     /// <summary>
-    /// Action du bouton "Préparer le Show"
+    /// Action du bouton "Préparer le Show" - Exécute le flux Show Day complet
     /// </summary>
     private void OnPrepareShow()
     {
-        if (!HasUpcomingShow)
+        if (!HasUpcomingShow || _showDayOrchestrator is null || _repository is null)
         {
             return;
         }
 
-        // TODO: Naviguer vers la vue de booking
-        // _navigationService.NavigateTo<BookingViewModel>();
+        try
+        {
+            // Récupérer le show à simuler
+            var detection = _showDayOrchestrator.DetecterShowAVenir(_companyId, CurrentWeek);
+            if (!detection.ShowDetecte || detection.Show is null)
+            {
+                RecentActivity.Insert(0, "⚠️ Aucun show détecté à simuler");
+                return;
+            }
 
-        RecentActivity.Insert(0, $"📋 Préparation du show: {UpcomingShowName}");
-        Logger.Info($"Navigation vers le booking pour: {UpcomingShowName}");
+            var showId = detection.Show.ShowId;
+            RecentActivity.Insert(0, $"🎬 Simulation du show: {detection.Show.Nom}");
+            Logger.Info($"Début simulation show: {detection.Show.Nom} ({showId})");
+
+            // Exécuter le flux complet Show Day
+            var resultat = _showDayOrchestrator.ExecuterFluxComplet(showId, _companyId);
+
+            if (resultat.Succes)
+            {
+                RecentActivity.Insert(0, $"✅ Show simulé avec succès !");
+                if (resultat.Rapport is not null)
+                {
+                    RecentActivity.Insert(0, $"📊 Note: {resultat.Rapport.NoteGlobale}/100");
+                    RecentActivity.Insert(0, $"👥 Audience: {resultat.Rapport.Audience}");
+                    RecentActivity.Insert(0, $"💰 Revenus: ${resultat.Rapport.Billetterie + resultat.Rapport.Merch + resultat.Rapport.Tv:N2}");
+                }
+
+                foreach (var changement in resultat.Changements.Take(5))
+                {
+                    RecentActivity.Insert(0, changement);
+                }
+
+                Logger.Info($"Show simulé avec succès: {detection.Show.Nom}");
+            }
+            else
+            {
+                RecentActivity.Insert(0, $"⚠️ Erreurs lors de la simulation:");
+                foreach (var erreur in resultat.Erreurs)
+                {
+                    RecentActivity.Insert(0, $"  - {erreur}");
+                    Logger.Error($"[DashboardViewModel] Erreur simulation: {erreur}");
+                }
+            }
+
+            // Recharger les données
+            LoadDashboardData();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[DashboardViewModel] Erreur lors de la simulation du show: {ex.Message}");
+            RecentActivity.Insert(0, $"⚠️ Erreur critique: {ex.Message}");
+        }
     }
 }

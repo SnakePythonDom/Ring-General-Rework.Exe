@@ -473,6 +473,9 @@ public sealed class GameRepository
     public int ChargerSemaineShow(string showId)
         => _showRepository.ChargerSemaineShow(showId);
 
+    public void MettreAJourStatutShow(string showId, ShowStatus status)
+        => _showRepository.MettreAJourStatutShow(showId, status);
+
     public int ChargerFatigueWorker(string workerId)
         => _workerRepository.ChargerFatigueWorker(workerId);
 

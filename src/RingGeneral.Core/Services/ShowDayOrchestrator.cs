@@ -16,6 +16,10 @@ public sealed class ShowDayOrchestrator
     private readonly TitleService? _titleService;
     private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly IRandomProvider _random;
+    private readonly IImpactApplier? _impactApplier;
+    private readonly IMoraleEngine? _moraleEngine;
+    private readonly Func<string, ShowContext?>? _contextLoader;
+    private readonly Action<string, ShowStatus>? _statusUpdater;
 
     public ShowDayOrchestrator(
         IShowSchedulerStore? showScheduler = null,
@@ -27,6 +31,10 @@ public sealed class ShowDayOrchestrator
         _titleService = titleService;
         _bookerAIEngine = bookerAIEngine;
         _random = random ?? new SeededRandomProvider((int)DateTime.Now.Ticks);
+        _impactApplier = impactApplier;
+        _moraleEngine = moraleEngine;
+        _contextLoader = contextLoader;
+        _statusUpdater = statusUpdater;
     }
 
     /// <summary>
@@ -191,6 +199,92 @@ public sealed class ShowDayOrchestrator
             titresChanges,
             resultat.Delta);
     }
+
+    /// <summary>
+    /// Exécute le flux complet Show Day :
+    /// 1. Charge le ShowContext
+    /// 2. Simule le show
+    /// 3. Applique les impacts (finances, titres, blessures, popularité, etc.)
+    /// 4. Gère le moral post-show (workers non utilisés)
+    /// 5. Met à jour le statut du show
+    /// </summary>
+    public ShowDayFluxCompletResult ExecuterFluxComplet(string showId, string companyId)
+    {
+        var erreurs = new List<string>();
+        var changements = new List<string>();
+
+        // 1. Charger le ShowContext
+        if (_contextLoader is null)
+        {
+            erreurs.Add("Le chargeur de contexte n'est pas configuré.");
+            return new ShowDayFluxCompletResult(false, erreurs, changements, null);
+        }
+
+        var context = _contextLoader(showId);
+        if (context is null)
+        {
+            erreurs.Add($"Impossible de charger le contexte pour le show {showId}.");
+            return new ShowDayFluxCompletResult(false, erreurs, changements, null);
+        }
+
+        // 2. Simuler le show
+        changements.Add($"🎬 Début de la simulation : {context.Show.Nom}");
+        var resultatSimulation = SimulerShow(context);
+        changements.Add($"📊 Note globale : {resultatSimulation.RapportShow.NoteGlobale}/100");
+        changements.Add($"👥 Audience : {resultatSimulation.RapportShow.Audience}");
+
+        // 3. Appliquer les impacts via ImpactApplier
+        if (_impactApplier is not null)
+        {
+            var impactContext = new ImpactContext(
+                showId,
+                resultatSimulation.RapportShow.Segments.Select(s => new SegmentResult(s.SegmentId, s.Note, "", s)).ToList(),
+                context.Storylines.Select(s => s.StorylineId).ToList(),
+                resultatSimulation.RapportShow,
+                resultatSimulation.Delta);
+
+            var impactReport = _impactApplier.AppliquerImpacts(impactContext);
+            changements.AddRange(impactReport.Changements);
+        }
+        else
+        {
+            changements.Add("⚠️ ImpactApplier non configuré, impacts non appliqués.");
+        }
+
+        // 4. Gérer le moral post-show (workers non utilisés)
+        if (_moraleEngine is not null)
+        {
+            var workersUtilises = context.Segments
+                .SelectMany(s => s.Participants)
+                .Distinct()
+                .ToHashSet();
+
+            var workersNonUtilises = context.Workers
+                .Where(w => !workersUtilises.Contains(w.WorkerId))
+                .ToList();
+
+            foreach (var worker in workersNonUtilises)
+            {
+                // Impact négatif sur le moral des workers non utilisés
+                _moraleEngine.UpdateMorale(worker.WorkerId, "NotBooked", impact: -3);
+                changements.Add($"📉 {worker.NomComplet} : Moral -3 (non utilisé dans le show)");
+            }
+
+            // Recalculer le moral de la compagnie
+            _moraleEngine.CalculateCompanyMorale(companyId);
+        }
+
+        // 5. Mettre à jour le statut du show
+        if (_statusUpdater is not null)
+        {
+            _statusUpdater(showId, ShowStatus.Simule);
+            changements.Add($"✅ Show marqué comme SIMULÉ");
+        }
+
+        changements.Add($"🎉 Simulation terminée avec succès !");
+
+        return new ShowDayFluxCompletResult(true, erreurs, changements, resultatSimulation.RapportShow);
+    }
 }
 
 /// <summary>
@@ -219,3 +313,12 @@ public sealed record TitleChangeInfo(
     string AncienChampion,
     string NouveauChampion,
     int PrestigeDelta);
+
+/// <summary>
+/// Résultat du flux complet Show Day
+/// </summary>
+public sealed record ShowDayFluxCompletResult(
+    bool Succes,
+    IReadOnlyList<string> Erreurs,
+    IReadOnlyList<string> Changements,
+    ShowReport? Rapport);

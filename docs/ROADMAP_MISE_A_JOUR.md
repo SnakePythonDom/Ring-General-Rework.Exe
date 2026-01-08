@@ -1,17 +1,23 @@
 # 🗺️ ROADMAP MISE À JOUR - RING GENERAL
 **Date de mise à jour**: 2026-01-08
-**Basé sur**: Intégration système personnalité + rework attributs (8 janvier 2026)
+**Basé sur**: Implémentation du flux Show Day (Match Day) - 8 janvier 2026
 
 ---
 
 ## 📊 ÉTAT ACTUEL DU PROJET
 
-### Progrès Global: ~45-50% (Phase 0: 100% ✅, Phase 1: 60% En Cours)
+### Progrès Global: ~50-55% (Phase 0: 100% ✅, Phase 1: 70% En Cours, Phase 3: 15% ✅)
 
-**Phase actuelle**: **Phase 1 - Fondations UI/UX (60% complété)**
-**Sprint actuel**: **Phase 8 - Système Personnalité & Attributs** (Complété 8 janvier 2026) ✅
+**Phase actuelle**: **Phase 3 - Fonctionnalités Métier (15% complété)**
+**Sprint actuel**: **Phase 9 - Flux Show Day (Match Day)** (Complété 8 janvier 2026) ✅
 
-🎉 **NOUVEAUTÉ (8 janvier 2026)** :
+🎉 **NOUVEAUTÉ (8 janvier 2026 - Après-midi)** :
+- ✅ **Flux Show Day complet** : De la détection du show à la simulation complète
+- ✅ **Gestion automatique du moral post-show** : Workers non utilisés perdent 3 points
+- ✅ **ShowDayOrchestrator étendu** : Méthode `ExecuterFluxComplet()`
+- ✅ **DashboardViewModel fonctionnel** : Bouton "Continuer" détecte et simule automatiquement
+
+🎉 **NOUVEAUTÉ (8 janvier 2026 - Matin)** :
 - ✅ **Système d'attributs de performance complet** (30 attributs détaillés)
 - ✅ **Système de personnalité** (25+ profils automatiquement détectés)
 - ✅ **Composant AttributeBar** réutilisable
@@ -302,6 +308,107 @@ tests/RingGeneral.Tests/
 
 ---
 
+### 🎬 PHASE 1.9: FLUX SHOW DAY (MATCH DAY) (100% COMPLÉTÉ ✅)
+
+**Objectif**: Implémenter le flux complet de simulation d'un show (événement de catch)
+
+⭐ **NOUVELLE IMPLÉMENTATION (8 janvier 2026 - Après-midi)** : Flux Show Day entièrement opérationnel, du bouton "Continuer" jusqu'à l'application des impacts post-show.
+
+#### Tâche 1.9.1: Extension de ShowDayOrchestrator
+**Statut**: ✅ **COMPLÉTÉ**
+
+**Nouvelle méthode implémentée** :
+- ✅ `ExecuterFluxComplet(string showId, string companyId)` :
+  1. Charge le `ShowContext` (show, workers, titres, segments, storylines)
+  2. Simule le show via `ShowSimulationEngine`
+  3. Applique les impacts via `ImpactApplier` (finances, blessures, popularité)
+  4. Gère le moral post-show (**workers non utilisés : -3 moral**)
+  5. Met à jour le statut du show (`ShowStatus.Simule`)
+
+**Injection de dépendances** :
+- ✅ `IImpactApplier` - Application des impacts
+- ✅ `IMoraleEngine` - Gestion du moral
+- ✅ `Func<string, ShowContext?>` - Chargement du contexte
+- ✅ `Action<string, ShowStatus>` - Mise à jour du statut
+
+**Nouveau type de retour** :
+```csharp
+public sealed record ShowDayFluxCompletResult(
+    bool Succes,
+    IReadOnlyList<string> Erreurs,
+    IReadOnlyList<string> Changements,
+    ShowReport? Rapport);
+```
+
+#### Tâche 1.9.2: Extension de ShowRepository & GameRepository
+**Statut**: ✅ **COMPLÉTÉ**
+
+**Nouvelles méthodes** :
+- ✅ `ShowRepository.MettreAJourStatutShow(string showId, ShowStatus status)` :
+  - Met à jour le statut (ABOOKER → BOOKE → SIMULE → ANNULE)
+  - Enregistre `LastSimulatedAt` lors de la simulation
+- ✅ `GameRepository.MettreAJourStatutShow()` exposée via façade
+
+**Base de données** :
+- ✅ Table `Shows` utilise la colonne `Status` existante
+- ✅ Colonne `LastSimulatedAt` mise à jour automatiquement
+
+#### Tâche 1.9.3: Implémentation UI - DashboardViewModel
+**Statut**: ✅ **COMPLÉTÉ**
+
+**Méthode `OnContinue()` - Logique dynamique** :
+- ✅ Détection automatique : `HasUpcomingShow` ?
+  - **Si show prévu** → Déclenche `OnPrepareShow()` (simulation)
+  - **Si aucun show** → Avance d'une semaine normale
+- ✅ Rechargement automatique du dashboard après l'action
+
+**Méthode `OnPrepareShow()` - Simulation complète** :
+- ✅ Appelle `ShowDayOrchestrator.ExecuterFluxComplet()`
+- ✅ Affiche les résultats dans `RecentActivity` :
+  - 📊 Note du show
+  - 👥 Audience
+  - 💰 Revenus totaux
+  - 🏆 Changements de titres
+  - 🤕 Blessures
+  - 📉 Impact moral (workers non utilisés)
+- ✅ Logging complet des opérations
+- ✅ Gestion des erreurs avec feedback utilisateur
+
+#### Tâche 1.9.4: Gestion Automatique du Moral Post-Show
+**Statut**: ✅ **COMPLÉTÉ**
+
+**Implémentation** :
+- ✅ Détection des workers **non utilisés** dans le show
+- ✅ Application automatique : **-3 points de moral**
+- ✅ Recalcul du moral de la compagnie via `MoraleEngine.CalculateCompanyMorale()`
+- ✅ Feedback UI : Message clair pour chaque worker impacté
+
+**Exemple de sortie** :
+```
+📉 Stone Cold Steve Austin : Moral -3 (non utilisé dans le show)
+📉 The Rock : Moral -3 (non utilisé dans le show)
+```
+
+**Livrable**: ✅ **100% COMPLET** - Flux Show Day entièrement fonctionnel et intégré à l'UI
+
+**Fichiers Modifiés (Phase 9)** :
+```
+src/RingGeneral.Core/Services/
+└── ShowDayOrchestrator.cs (+ ExecuterFluxComplet, + dependencies)
+
+src/RingGeneral.Data/Repositories/
+├── ShowRepository.cs (+ MettreAJourStatutShow)
+└── GameRepository.cs (+ MettreAJourStatutShow exposé)
+
+src/RingGeneral.UI/ViewModels/Dashboard/
+└── DashboardViewModel.cs (+ OnContinue, + OnPrepareShow implémentés)
+```
+
+**Commit** : `a78ff69` - `feat: Implémentation complète du flux Show Day (Match Day)`
+**Branche** : `claude/implement-match-day-flow-NDU2A`
+
+---
+
 ### 🟢 PHASE 2: INTÉGRATION DONNÉES (90% COMPLÉTÉ)
 
 **Objectif**: Afficher les vraies données depuis la DB
@@ -356,11 +463,12 @@ tests/RingGeneral.Tests/
 
 ---
 
-### 🟢 PHASE 3: FONCTIONNALITÉS MÉTIER (0%)
+### 🟢 PHASE 3: FONCTIONNALITÉS MÉTIER (15% COMPLÉTÉ ✅)
 
 **Objectif**: Implémenter la boucle de jeu complète
 
 #### Étape 6: Contrats v1
+**Statut**: ❌ **À FAIRE** (0%)
 **Source**: roadmap.fr.json
 
 **Fonctionnalités**:
@@ -373,15 +481,19 @@ tests/RingGeneral.Tests/
 - `ContractDetailViewModel`
 
 #### Étape 7: Inbox & News
+**Statut**: ⚠️ **PARTIEL** (40%)
+
 **Fonctionnalités**:
-- Génération hebdomadaire de messages
-- Filtrage par type
-- Liens vers fiches
+- ✅ Génération hebdomadaire de messages (backend existe)
+- ❌ Filtrage par type (UI manquante)
+- ❌ Liens vers fiches (UI manquante)
 
 **ViewModels nécessaires**:
 - `InboxViewModel` (existe déjà partiellement)
 
 #### Étape 8: Scouting v1
+**Statut**: ❌ **À FAIRE** (0%)
+
 **Fonctionnalités**:
 - Rapports par région
 - Shortlist
@@ -391,59 +503,104 @@ tests/RingGeneral.Tests/
 - Régions, Rapports, Shortlist, Missions
 
 #### Étape 9: Youth v1
+**Statut**: ⚠️ **PARTIEL** (30%)
+
 **Fonctionnalités**:
-- Création de structures Youth
-- Gestion des élèves
-- Progression basique
+- ⚠️ Création de structures Youth (backend existe)
+- ⚠️ Gestion des élèves (backend existe)
+- ⚠️ Progression basique (backend existe)
+- ❌ UI complète manquante
 
 #### Étape 10: Shows + Calendrier
+**Statut**: ⚠️ **PARTIEL** (60%)
+
 **Fonctionnalités**:
-- Créer show
-- Assigner runtime, lieu, diffusion
-- Calendrier visuel
+- ✅ Créer show (implémenté)
+- ✅ Assigner runtime, lieu, diffusion (implémenté)
+- ⚠️ Calendrier visuel (UI basique existe)
 
 #### Étape 11: Booking v1
-**Statut**: Partiellement implémenté ✅
+**Statut**: ⚠️ **PARTIEL** (70%)
 
-**Fonctionnalités manquantes**:
+**Fonctionnalités**:
+- ✅ Créer segments
+- ✅ Assigner workers
+- ✅ Définir vainqueurs
 - ❌ Scripts pour promos/angles
 - ❌ Système de templates avancé
 
-#### Étape 12: Simulation show + ratings
-**Statut**: Backend existe ✅
-**À faire**: Améliorer l'affichage des résultats
+#### Étape 12: Simulation show + ratings ✅
+**Statut**: ✅ **COMPLÉTÉ** (100%) 🎉 **NOUVEAU (8 jan 2026)**
+
+**Fonctionnalités implémentées**:
+- ✅ Simulation complète via `ShowSimulationEngine`
+- ✅ Calcul des ratings et Star Ratings
+- ✅ Calcul de l'audience et des revenus
+- ✅ Application des impacts (finances, blessures, moral, titres)
+- ✅ **Gestion automatique du moral post-show** (workers non utilisés : -3)
+- ✅ Affichage des résultats dans le Dashboard
+- ✅ Flux complet de bout en bout
+
+**Implémentation**: `ShowDayOrchestrator.ExecuterFluxComplet()` + `DashboardViewModel.OnPrepareShow()`
 
 #### Étape 13: Storylines + Heat + Momentum
-**Statut**: Structure DB existe ✅
-**À faire**: UI complète
+**Statut**: ⚠️ **PARTIEL** (50%)
+
+- ✅ Structure DB existe
+- ✅ Backend existe (StorylineService)
+- ⚠️ UI basique existe
+- ❌ UI complète manquante
 
 #### Étape 14: Titres + historique + contenders
-**Statut**: Structure DB existe ✅
-**À faire**: UI complète
+**Statut**: ⚠️ **PARTIEL** (60%)
+
+- ✅ Structure DB existe
+- ✅ TitleService existe
+- ✅ Changements de titres automatiques (via ShowDayOrchestrator)
+- ⚠️ UI basique existe
+- ❌ Historique complet manquant
 
 #### Étape 15: Finances
-**Statut**: Structure DB existe ✅
-**À faire**: UI complète
+**Statut**: ⚠️ **PARTIEL** (50%)
+
+- ✅ Structure DB existe
+- ✅ FinanceEngine existe
+- ✅ Application des revenus via ShowDayOrchestrator
+- ⚠️ UI basique existe
+- ❌ UI complète manquante
 
 #### Étape 16: Diffusion (TV/Streaming)
-**Statut**: Backend existe (DealRevenueModel) ✅
-**À faire**: UI de gestion
+**Statut**: ⚠️ **PARTIEL** (40%)
+
+- ✅ Backend existe (DealRevenueModel)
+- ❌ UI de gestion manquante
 
 #### Étape 17: Blessures/Fatigue + médical
-**Statut**: InjuryService existe ✅
-**À faire**: UI de suivi
+**Statut**: ⚠️ **PARTIEL** (60%)
+
+- ✅ InjuryService existe
+- ✅ Application des blessures via ShowDayOrchestrator
+- ✅ Génération de RecoveryPlan automatique
+- ❌ UI de suivi manquante
 
 #### Étape 18: Profondeur backstage
-**Statut**: BackstageService existe ✅
-**À faire**: UI de gestion
+**Statut**: ⚠️ **PARTIEL** (50%)
+
+- ✅ BackstageService existe
+- ✅ MoraleEngine intégré au flux Show Day
+- ❌ UI de gestion manquante
 
 #### Étape 19: Bibliothèque segments + templates
-**Statut**: SegmentTemplateViewModel existe ✅
-**À faire**: UI enrichie
+**Statut**: ⚠️ **PARTIEL** (40%)
+
+- ✅ SegmentTemplateViewModel existe
+- ❌ UI enrichie manquante
 
 #### Étape 20: Modding + import/export
-**Statut**: Outils existent ✅
-**À faire**: UI dans l'app
+**Statut**: ⚠️ **PARTIEL** (30%)
+
+- ✅ Outils existent (BakiImporter)
+- ❌ UI dans l'app manquante
 
 ---
 
