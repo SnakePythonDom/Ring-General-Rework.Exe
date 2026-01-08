@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ReactiveUI;
+using RingGeneral.Core.Models;
 
 namespace RingGeneral.UI.ViewModels;
 
@@ -25,6 +26,23 @@ public sealed class SegmentTemplateViewModel : ReactiveObject
         Intensite = intensite;
         MatchTypeId = matchTypeId;
         MatchTypeNom = matchTypeNom;
+    }
+
+    /// <summary>
+    /// Constructeur simplifié prenant un SegmentTemplate.
+    /// </summary>
+    public SegmentTemplateViewModel(SegmentTemplate template)
+        : this(
+            template.TemplateId,
+            template.Nom,
+            template.TypeSegment,
+            template.TypeSegment, // Utiliser le type comme libelle par défaut
+            template.DureeMinutes,
+            template.EstMainEvent,
+            template.Intensite,
+            template.MatchTypeId,
+            template.MatchTypeId) // Utiliser l'ID comme nom par défaut
+    {
     }
 
     public string TemplateId { get; }

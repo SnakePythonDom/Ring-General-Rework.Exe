@@ -1,4 +1,6 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Repositories;
 
@@ -133,7 +135,7 @@ public sealed class InboxViewModel : ViewModelBase
 /// <summary>
 /// ViewModel pour un élément individuel de l'inbox.
 /// </summary>
-public sealed class InboxItemViewModel : ReactiveUI.ReactiveObject
+public sealed class InboxItemViewModel : ViewModelBase
 {
     private bool _isRead;
 

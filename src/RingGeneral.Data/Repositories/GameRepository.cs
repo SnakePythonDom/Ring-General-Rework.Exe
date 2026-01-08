@@ -184,6 +184,9 @@ public sealed class GameRepository
     public void MettreAJourOrdreSegments(string showId, IReadOnlyList<string> segmentIds)
         => _showRepository.MettreAJourOrdreSegments(showId, segmentIds);
 
+    public void MettreAJourOrdreSegment(string segmentId, int ordre)
+        => _showRepository.MettreAJourOrdreSegment(segmentId, ordre);
+
     public IReadOnlyList<SegmentTemplate> ChargerSegmentTemplates()
         => _showRepository.ChargerSegmentTemplates();
 

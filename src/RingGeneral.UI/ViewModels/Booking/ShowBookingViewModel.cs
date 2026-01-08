@@ -265,16 +265,16 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
         var duplicated = new SegmentDefinition(
             $"SEG-{Guid.NewGuid():N}".ToUpperInvariant(),
-            segment.Type,
-            segment.Participants.ToList(),
+            segment.TypeSegment,
+            segment.Participants.Select(p => p.WorkerId).ToList(),
             segment.DureeMinutes,
-            segment.IsMainEvent,
+            segment.EstMainEvent,
             segment.StorylineId,
-            segment.TitleId,
-            segment.Importance,
-            segment.WinnerId,
-            segment.FinishType,
-            segment.Settings is not null ? new Dictionary<string, string>(segment.Settings) : new Dictionary<string, string>());
+            segment.TitreId,
+            segment.Intensite,
+            segment.VainqueurId,
+            segment.PerdantId,
+            new Dictionary<string, string>(segment.ConstruireSettings()));
 
         var index = Segments.IndexOf(segment);
         _repository.AjouterSegment(_showId, duplicated, index + 2);
@@ -304,11 +304,16 @@ public sealed class ShowBookingViewModel : ViewModelBase
             ValidationIssues.Clear();
             foreach (var issue in result.Issues)
             {
-                ValidationIssues.Add(new BookingIssueViewModel(issue));
+                ValidationIssues.Add(new BookingIssueViewModel(
+                    issue.Code,
+                    issue.Message,
+                    issue.Severite,
+                    issue.SegmentId,
+                    issue.Severite == ValidationSeverity.Erreur ? "Corriger" : "Ignorer"));
             }
 
-            var errors = ValidationIssues.Where(i => i.Severity == "Error").ToList();
-            var warnings = ValidationIssues.Where(i => i.Severity == "Warning").ToList();
+            var errors = ValidationIssues.Where(i => i.Severity == ValidationSeverity.Erreur).ToList();
+            var warnings = ValidationIssues.Where(i => i.Severity == ValidationSeverity.Avertissement).ToList();
 
             ValidationErrors = errors.Any()
                 ? $"{errors.Count} erreur(s)"
@@ -354,9 +359,10 @@ public sealed class ShowBookingViewModel : ViewModelBase
             var result = engine.SimulerShow(plan, _context);
 
             Results.Clear();
-            foreach (var segmentResult in result.SegmentResults)
+            var workerNames = _context.Workers.ToDictionary(w => w.WorkerId, w => w.NomComplet);
+            foreach (var segmentResult in result.RapportShow.Segments)
             {
-                Results.Add(new SegmentResultViewModel(segmentResult));
+                Results.Add(new SegmentResultViewModel(segmentResult, workerNames));
             }
 
             UpdateAnalysis(result);
@@ -428,13 +434,13 @@ public sealed class ShowBookingViewModel : ViewModelBase
     private void LoadMatchTypes()
     {
         MatchTypes.Clear();
-        MatchTypes.Add(new MatchTypeViewModel("Singles", "Simple"));
-        MatchTypes.Add(new MatchTypeViewModel("Tag", "Tag Team"));
-        MatchTypes.Add(new MatchTypeViewModel("Triple", "Triple Threat"));
-        MatchTypes.Add(new MatchTypeViewModel("Fatal4", "Fatal 4-Way"));
-        MatchTypes.Add(new MatchTypeViewModel("Battle", "Battle Royal"));
-        MatchTypes.Add(new MatchTypeViewModel("Ladder", "Ladder Match"));
-        MatchTypes.Add(new MatchTypeViewModel("Cage", "Cage Match"));
+        MatchTypes.Add(new MatchTypeViewModel("Singles", "Simple", "Match 1 contre 1", true, 1));
+        MatchTypes.Add(new MatchTypeViewModel("Tag", "Tag Team", "Match par équipes de 2", true, 2));
+        MatchTypes.Add(new MatchTypeViewModel("Triple", "Triple Threat", "Match à 3 combattants", true, 3));
+        MatchTypes.Add(new MatchTypeViewModel("Fatal4", "Fatal 4-Way", "Match à 4 combattants", true, 4));
+        MatchTypes.Add(new MatchTypeViewModel("Battle", "Battle Royal", "Bataille royale multi-participants", true, 5));
+        MatchTypes.Add(new MatchTypeViewModel("Ladder", "Ladder Match", "Match avec échelles", true, 6));
+        MatchTypes.Add(new MatchTypeViewModel("Cage", "Cage Match", "Match en cage", true, 7));
     }
 
     private void SaveSegmentOrder()
