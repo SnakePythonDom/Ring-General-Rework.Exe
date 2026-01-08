@@ -42,7 +42,7 @@ public sealed class App : Application
         services.AddSingleton<IEventAggregator, EventAggregator>();
 
         // Database & Repositories
-        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "ringgeneral.db");
+        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "ring_general.db");
         var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
         var repositories = RepositoryFactory.CreateRepositories(factory);
 
