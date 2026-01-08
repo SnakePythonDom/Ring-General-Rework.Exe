@@ -44,6 +44,40 @@ CREATE TABLE IF NOT EXISTS SaveGames (
 
 CREATE INDEX IF NOT EXISTS idx_savegames_active ON SaveGames(IsActive);
 
+-- Table: Countries (region grouping)
+CREATE TABLE IF NOT EXISTS Countries (
+    CountryId TEXT PRIMARY KEY,
+    Code TEXT NOT NULL UNIQUE,
+    Name TEXT NOT NULL
+);
+
+-- Table: Regions (geographic regions)
+CREATE TABLE IF NOT EXISTS Regions (
+    RegionId TEXT PRIMARY KEY,
+    CountryId TEXT NOT NULL,
+    Name TEXT NOT NULL,
+    FOREIGN KEY (CountryId) REFERENCES Countries(CountryId)
+);
+
+-- Seed default countries and regions for UI selections
+INSERT OR IGNORE INTO Countries (CountryId, Code, Name) VALUES
+    ('COUNTRY_USA', 'USA', 'United States'),
+    ('COUNTRY_CAN', 'CAN', 'Canada'),
+    ('COUNTRY_MEX', 'MEX', 'Mexico'),
+    ('COUNTRY_JPN', 'JPN', 'Japan'),
+    ('COUNTRY_UK', 'UK', 'United Kingdom'),
+    ('COUNTRY_EUR', 'EUR', 'Europe'),
+    ('COUNTRY_WLD', 'WLD', 'World');
+
+INSERT OR IGNORE INTO Regions (RegionId, CountryId, Name) VALUES
+    ('REGION_USA', 'COUNTRY_USA', 'USA'),
+    ('REGION_CAN', 'COUNTRY_CAN', 'Canada'),
+    ('REGION_MEX', 'COUNTRY_MEX', 'Mexico'),
+    ('REGION_JPN', 'COUNTRY_JPN', 'Japan'),
+    ('REGION_UK', 'COUNTRY_UK', 'UK'),
+    ('REGION_EUR', 'COUNTRY_EUR', 'Europe'),
+    ('REGION_GLOBAL', 'COUNTRY_WLD', 'Global');
+
 -- Table: companies
 CREATE TABLE IF NOT EXISTS companies (
     company_id TEXT PRIMARY KEY,
