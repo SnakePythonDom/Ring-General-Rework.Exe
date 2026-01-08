@@ -29,11 +29,6 @@
       <Setter Property="VerticalAlignment" Value="Center"/>
       <Setter Property="Margin" Value="0,0,8,0"/>
     </Style>
-
-    <Style Selector="Grid.attributes-grid">
-      <Setter Property="RowDefinitions" Value="Auto,Auto,Auto,Auto,Auto,Auto"/>
-      <Setter Property="ColumnDefinitions" Value="*,*"/>
-    </Style>
   </UserControl.Styles>
 
   <Border Classes="category-container">
