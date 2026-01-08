@@ -1,12 +1,11 @@
 #!/bin/bash
 # ============================================================================
 # Ring General - Database Initialization Script
-# Version: 1.0.0
-# Date: 2026-01-08
-# Description: Automated database initialization from scratch
+# Version: 2.0.0
+# Description: Deterministic initialization from legacy BAKI1.1.db
 # ============================================================================
 
-set -e  # Exit on error
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,10 +16,18 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-DB_NAME="ringgeneral.db"
-BAKI_DB="BAKI1.1.db"
-SCHEMA_FILE="src/RingGeneral.Data/Migrations/Base_Schema.sql"
-IMPORT_FILE="src/RingGeneral.Data/Migrations/ImportWorkersFromBaki.sql"
+DB_NAME="${RING_GENERAL_DB:-ring_general.db}"
+BAKI_DB="${BAKI_DB:-data/BAKI1.1.db}"
+SCHEMA_FILE="sql/schema.sql"
+SEED_COUNTRIES_FILE="sql/seed_countries.sql"
+SEED_REGIONS_FILE="sql/seed_regions.sql"
+SEED_STYLES_FILE="sql/seed_styles.sql"
+IMPORT_COMPANIES_FILE="sql/import_companies.sql"
+IMPORT_WORKERS_FILE="sql/import_workers.sql"
+MAP_COMPANIES_FILE="sql/map_companies.sql"
+MAP_WORKERS_FILE="sql/map_workers.sql"
+VALIDATE_FILE="sql/validate.sql"
+REFERENCE_BUILDER="scripts/build_reference_data.py"
 
 # ============================================================================
 # FUNCTIONS
@@ -51,7 +58,7 @@ print_warning() {
 }
 
 check_command() {
-    if ! command -v $1 &> /dev/null; then
+    if ! command -v "$1" &> /dev/null; then
         print_error "$1 is not installed"
         exit 1
     fi
@@ -64,12 +71,6 @@ check_file() {
         exit 1
     fi
     print_success "File found: $1"
-}
-
-run_sql() {
-    local db=$1
-    local sql=$2
-    sqlite3 "$db" "$sql"
 }
 
 run_sql_file() {
@@ -87,13 +88,19 @@ print_header "🗄️  RING GENERAL DATABASE INITIALIZATION"
 # Step 1: Check prerequisites
 print_step "1/7 Checking prerequisites..."
 check_command sqlite3
+check_command python3
 check_file "$SCHEMA_FILE"
-check_file "$IMPORT_FILE"
+check_file "$SEED_STYLES_FILE"
+check_file "$IMPORT_COMPANIES_FILE"
+check_file "$IMPORT_WORKERS_FILE"
+check_file "$MAP_COMPANIES_FILE"
+check_file "$MAP_WORKERS_FILE"
+check_file "$VALIDATE_FILE"
+check_file "$REFERENCE_BUILDER"
 check_file "$BAKI_DB"
-echo ""
 
-# Step 2: Backup existing database (if exists)
-print_step "2/7 Checking for existing database..."
+# Step 2: Reset database
+print_step "2/7 Resetting database..."
 if [ -f "$DB_NAME" ]; then
     BACKUP_NAME="${DB_NAME}.backup.$(date +%Y%m%d_%H%M%S)"
     print_warning "Existing database found, creating backup: $BACKUP_NAME"
@@ -104,140 +111,54 @@ if [ -f "$DB_NAME" ]; then
 else
     print_success "No existing database, proceeding with fresh installation"
 fi
-echo ""
 
-# Step 3: Create database schema
+# Step 3: Create schema
 print_step "3/7 Creating database schema..."
 run_sql_file "$DB_NAME" "$SCHEMA_FILE"
-TABLE_COUNT=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM sqlite_master WHERE type='table';")
+TABLE_COUNT=$(sqlite3 "$DB_NAME" "SELECT COUNT(*) FROM sqlite_master WHERE type='table';")
 print_success "Database schema created ($TABLE_COUNT tables)"
-echo ""
 
-# Step 4: Verify critical tables
-print_step "4/7 Verifying critical tables..."
-CRITICAL_TABLES=("Workers" "WorkerInRingAttributes" "WorkerEntertainmentAttributes" "WorkerStoryAttributes" "WorkerMentalAttributes")
-for table in "${CRITICAL_TABLES[@]}"; do
-    EXISTS=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='$table';")
-    if [ "$EXISTS" -eq "1" ]; then
-        print_success "Table '$table' exists"
-    else
-        print_error "Table '$table' not found!"
-        exit 1
-    fi
-done
-echo ""
+# Step 4: Build reference data (countries/regions)
+print_step "4/7 Generating reference data from legacy DB..."
+python3 "$REFERENCE_BUILDER" --legacy-db "$BAKI_DB" --output-dir "sql"
+check_file "$SEED_COUNTRIES_FILE"
+check_file "$SEED_REGIONS_FILE"
+print_success "Reference data generated"
 
-# Step 5: Import from BAKI1.1.db
-print_step "5/7 Importing workers from BAKI1.1.db..."
-BAKI_WORKER_COUNT=$(run_sql "$BAKI_DB" "SELECT COUNT(*) FROM workers;")
-print_success "Found $BAKI_WORKER_COUNT workers in BAKI1.1.db"
+# Step 5: Seed structure tables (countries, regions, styles)
+print_step "5/7 Seeding structure tables..."
+run_sql_file "$DB_NAME" "$SEED_COUNTRIES_FILE"
+run_sql_file "$DB_NAME" "$SEED_REGIONS_FILE"
+run_sql_file "$DB_NAME" "$SEED_STYLES_FILE"
+print_success "Structure tables seeded"
 
-run_sql_file "$DB_NAME" "$IMPORT_FILE"
-IMPORTED_COUNT=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM Workers;")
-print_success "Imported $IMPORTED_COUNT workers"
-echo ""
+# Step 6: Import legacy data + mapping
+print_step "6/7 Importing legacy data..."
+sqlite3 "$DB_NAME" <<SQL
+PRAGMA foreign_keys = ON;
+ATTACH DATABASE '$BAKI_DB' AS baki;
+.read $IMPORT_COMPANIES_FILE
+.read $IMPORT_WORKERS_FILE
+.read $MAP_COMPANIES_FILE
+.read $MAP_WORKERS_FILE
+DETACH DATABASE baki;
+SQL
+print_success "Legacy data imported and mapped"
 
-# Step 6: Verify attributes generation
-print_step "6/7 Verifying attributes generation..."
+# Step 7: Validation
+print_step "7/7 Running validation..."
+run_sql_file "$DB_NAME" "$VALIDATE_FILE"
+print_success "Validation passed"
 
-INRING_COUNT=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM WorkerInRingAttributes;")
-print_success "In-Ring attributes: $INRING_COUNT"
-
-ENTERTAINMENT_COUNT=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM WorkerEntertainmentAttributes;")
-print_success "Entertainment attributes: $ENTERTAINMENT_COUNT"
-
-STORY_COUNT=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM WorkerStoryAttributes;")
-print_success "Story attributes: $STORY_COUNT"
-
-MENTAL_COUNT=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM WorkerMentalAttributes;")
-print_success "Mental attributes: $MENTAL_COUNT"
-
-# Check integrity
-if [ "$IMPORTED_COUNT" -eq "$INRING_COUNT" ] && \
-   [ "$IMPORTED_COUNT" -eq "$ENTERTAINMENT_COUNT" ] && \
-   [ "$IMPORTED_COUNT" -eq "$STORY_COUNT" ] && \
-   [ "$IMPORTED_COUNT" -eq "$MENTAL_COUNT" ]; then
-    print_success "All workers have complete attributes"
-else
-    print_warning "Attribute counts don't match worker count"
-    print_warning "Workers: $IMPORTED_COUNT, InRing: $INRING_COUNT, Entertainment: $ENTERTAINMENT_COUNT, Story: $STORY_COUNT, Mental: $MENTAL_COUNT"
-fi
-echo ""
-
-# Step 7: Generate final report
-print_step "7/7 Generating final report..."
-echo ""
-
-print_header "📊 DATABASE INITIALIZATION REPORT"
-
-echo -e "${CYAN}TABLES${NC}"
-echo "Total tables: $TABLE_COUNT"
-echo ""
-
-echo -e "${CYAN}WORKERS${NC}"
-echo "Total workers: $IMPORTED_COUNT"
-AVG_AGE=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(Age), 1) FROM Workers WHERE Age IS NOT NULL;")
-echo "Average age: $AVG_AGE years"
-AVG_POP=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(Popularity), 1) FROM Workers WHERE Popularity IS NOT NULL;")
-echo "Average popularity: $AVG_POP"
-echo ""
-
-echo -e "${CYAN}PERFORMANCE ATTRIBUTES${NC}"
-AVG_INRING=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(InRingAvg), 1) FROM WorkerInRingAttributes;")
-echo "Average In-Ring: $AVG_INRING"
-AVG_ENT=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(EntertainmentAvg), 1) FROM WorkerEntertainmentAttributes;")
-echo "Average Entertainment: $AVG_ENT"
-AVG_STORY=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(StoryAvg), 1) FROM WorkerStoryAttributes;")
-echo "Average Story: $AVG_STORY"
-echo ""
-
-echo -e "${CYAN}MENTAL ATTRIBUTES (Phase 8)${NC}"
-echo "Workers with mental attributes: $MENTAL_COUNT"
-AVG_PRO=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(Professionnalisme), 1) FROM WorkerMentalAttributes;")
-echo "Average Professionnalisme: $AVG_PRO / 20"
-AVG_EGO=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(Égoïsme), 1) FROM WorkerMentalAttributes;")
-echo "Average Égoïsme: $AVG_EGO / 20"
-AVG_INF=$(run_sql "$DB_NAME" "SELECT ROUND(AVG(Influence), 1) FROM WorkerMentalAttributes;")
-echo "Average Influence: $AVG_INF / 20"
-echo ""
-
-echo -e "${CYAN}INTEGRITY CHECKS${NC}"
-
-# Check foreign keys
-FK_VIOLATIONS=$(run_sql "$DB_NAME" "PRAGMA foreign_key_check;" | wc -l)
-if [ "$FK_VIOLATIONS" -eq "0" ]; then
-    print_success "No foreign key violations"
-else
-    print_error "$FK_VIOLATIONS foreign key violations found"
-fi
-
-# Check workers without attributes
-MISSING_INRING=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM Workers w LEFT JOIN WorkerInRingAttributes a ON w.Id = a.WorkerId WHERE a.WorkerId IS NULL;")
-MISSING_MENTAL=$(run_sql "$DB_NAME" "SELECT COUNT(*) FROM Workers w LEFT JOIN WorkerMentalAttributes a ON w.Id = a.WorkerId WHERE a.WorkerId IS NULL;")
-
-if [ "$MISSING_INRING" -eq "0" ]; then
-    print_success "All workers have In-Ring attributes"
-else
-    print_error "$MISSING_INRING workers missing In-Ring attributes"
-fi
-
-if [ "$MISSING_MENTAL" -eq "0" ]; then
-    print_success "All workers have Mental attributes"
-else
-    print_error "$MISSING_MENTAL workers missing Mental attributes"
-fi
-
-echo ""
 print_header "✅ DATABASE INITIALIZATION COMPLETE!"
 
 echo ""
 echo -e "${GREEN}Next steps:${NC}"
 echo "  1. Run the application: ${CYAN}dotnet run --project src/RingGeneral.UI${NC}"
-echo "  2. Open a worker profile and check the 🎭 PERSONNALITÉ tab"
-echo "  3. Test the scouting system"
+echo "  2. Create or select a company in the start menu"
+echo "  3. Verify countries/regions/styles are populated"
 echo ""
 echo -e "${YELLOW}Database file:${NC} $DB_NAME"
-echo -e "${YELLOW}Documentation:${NC} INIT_DATABASE.md"
 echo ""
 
 exit 0

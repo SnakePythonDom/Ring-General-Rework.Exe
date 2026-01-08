@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+"""Build deterministic countries/regions seed data from legacy BAKI database."""
+
+from __future__ import annotations
+
+import argparse
+import pathlib
+import re
+import sqlite3
+import unicodedata
+from typing import Dict, Iterable, List, Tuple
+
+DEFAULT_COUNTRY_ID = "COUNTRY_DEFAULT"
+DEFAULT_REGION_ID = "REGION_DEFAULT"
+DEFAULT_COUNTRY_CODE = "WLD"
+DEFAULT_COUNTRY_NAME = "World"
+DEFAULT_REGION_NAME = "Global"
+
+CODE_OVERRIDES = {
+    "united states": "USA",
+    "united states of america": "USA",
+    "usa": "USA",
+    "united kingdom": "GBR",
+    "england": "GBR",
+    "scotland": "GBR",
+    "wales": "GBR",
+    "japan": "JPN",
+    "mexico": "MEX",
+    "canada": "CAN",
+    "france": "FRA",
+    "germany": "DEU",
+    "spain": "ESP",
+    "italy": "ITA",
+    "brazil": "BRA",
+    "argentina": "ARG",
+    "china": "CHN",
+    "india": "IND",
+    "australia": "AUS",
+    "new zealand": "NZL",
+    "south korea": "KOR",
+    "korea": "KOR",
+    "russia": "RUS",
+    "south africa": "ZAF",
+    "nigeria": "NGA",
+    "egypt": "EGY",
+}
+
+
+def normalize_name(name: str) -> str:
+    if not name:
+        return ""
+    normalized = unicodedata.normalize("NFKD", name)
+    normalized = normalized.encode("ascii", "ignore").decode("ascii")
+    normalized = re.sub(r"[^a-zA-Z0-9]+", " ", normalized).strip().lower()
+    return normalized
+
+
+def slugify(name: str) -> str:
+    normalized = normalize_name(name)
+    slug = re.sub(r"\s+", "_", normalized).upper()
+    return slug or "UNKNOWN"
+
+
+def dedupe_by_normalized(rows: Iterable[Tuple[int, str]]) -> List[Tuple[int, str, str]]:
+    seen: Dict[str, Tuple[int, str]] = {}
+    for country_id, name in rows:
+        norm = normalize_name(name)
+        if not norm:
+            continue
+        if norm not in seen or country_id < seen[norm][0]:
+            seen[norm] = (country_id, name)
+    result = [(cid, name, normalize_name(name)) for cid, name in seen.values()]
+    return sorted(result, key=lambda x: (x[2], x[0]))
+
+
+def build_country_ids(countries: List[Tuple[int, str, str]]) -> Dict[int, Dict[str, str]]:
+    used_ids = {DEFAULT_COUNTRY_ID}
+    used_codes = {DEFAULT_COUNTRY_CODE}
+    mapping: Dict[int, Dict[str, str]] = {}
+
+    for legacy_id, name, norm in countries:
+        base_id = f"COUNTRY_{slugify(name)}"
+        country_id = base_id
+        suffix = 2
+        while country_id in used_ids:
+            country_id = f"{base_id}_{suffix}"
+            suffix += 1
+        used_ids.add(country_id)
+
+        override = CODE_OVERRIDES.get(norm)
+        if override:
+            code = override
+        else:
+            letters = re.sub(r"[^A-Za-z]", "", slugify(name))
+            code = (letters[:3] or "UNK").upper()
+
+        if len(code) < 3:
+            code = code.ljust(3, "X")
+
+        base_code = code
+        suffix = 1
+        while code in used_codes:
+            code = f"{base_code[:2]}{suffix}"
+            suffix += 1
+        used_codes.add(code)
+
+        mapping[legacy_id] = {"id": country_id, "name": name, "code": code}
+
+    return mapping
+
+
+def build_region_rows(
+    conn: sqlite3.Connection, country_mapping: Dict[int, Dict[str, str]]
+) -> List[Dict[str, str]]:
+    cursor = conn.execute(
+        "SELECT regionID, regionParent, regionName FROM regions WHERE regionName IS NOT NULL AND regionName != ''"
+    )
+    regions_by_country: Dict[int, List[str]] = {}
+    for _, parent_id, name in cursor.fetchall():
+        if parent_id is None:
+            continue
+        regions_by_country.setdefault(parent_id, []).append(name)
+
+    used_region_ids = {DEFAULT_REGION_ID}
+    region_rows: List[Dict[str, str]] = []
+
+    for legacy_country_id, data in country_mapping.items():
+        region_names = regions_by_country.get(legacy_country_id, [])
+        if not region_names:
+            region_names = ["Other"]
+
+        for region_name in sorted(set(region_names), key=lambda v: normalize_name(v)):
+            base_id = f"REGION_{data['id']}_{slugify(region_name)}"
+            region_id = base_id
+            suffix = 2
+            while region_id in used_region_ids:
+                region_id = f"{base_id}_{suffix}"
+                suffix += 1
+            used_region_ids.add(region_id)
+
+            region_rows.append(
+                {
+                    "id": region_id,
+                    "country_id": data["id"],
+                    "name": region_name,
+                }
+            )
+
+    return region_rows
+
+
+def sql_escape(value: str) -> str:
+    return value.replace("'", "''")
+
+
+def write_seed_files(output_dir: pathlib.Path, countries: Dict[int, Dict[str, str]], regions: List[Dict[str, str]]) -> None:
+    countries_path = output_dir / "seed_countries.sql"
+    regions_path = output_dir / "seed_regions.sql"
+
+    with countries_path.open("w", encoding="utf-8") as handle:
+        handle.write("-- Auto-generated by scripts/build_reference_data.py\n")
+        handle.write("PRAGMA foreign_keys = ON;\n\n")
+        handle.write("BEGIN TRANSACTION;\n\n")
+        handle.write(
+            "INSERT OR IGNORE INTO Countries (CountryId, Code, Name) VALUES\n"
+        )
+        entries = [
+            f"('{DEFAULT_COUNTRY_ID}', '{DEFAULT_COUNTRY_CODE}', '{DEFAULT_COUNTRY_NAME}')"
+        ]
+        for data in countries.values():
+            entries.append(
+                f"('{data['id']}', '{data['code']}', '{sql_escape(data['name'])}')"
+            )
+        handle.write(",\n".join(entries))
+        handle.write(";\n\nCOMMIT;\n")
+
+    with regions_path.open("w", encoding="utf-8") as handle:
+        handle.write("-- Auto-generated by scripts/build_reference_data.py\n")
+        handle.write("PRAGMA foreign_keys = ON;\n\n")
+        handle.write("BEGIN TRANSACTION;\n\n")
+        handle.write(
+            "INSERT OR IGNORE INTO Regions (RegionId, CountryId, Name) VALUES\n"
+        )
+        entries = [
+            f"('{DEFAULT_REGION_ID}', '{DEFAULT_COUNTRY_ID}', '{DEFAULT_REGION_NAME}')"
+        ]
+        for region in regions:
+            entries.append(
+                "('{id}', '{country_id}', '{name}')".format(
+                    id=region["id"],
+                    country_id=region["country_id"],
+                    name=sql_escape(region["name"]),
+                )
+            )
+        handle.write(",\n".join(entries))
+        handle.write(";\n\nCOMMIT;\n")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--legacy-db", required=True, help="Path to BAKI1.1.db")
+    parser.add_argument("--output-dir", required=True, help="Output directory for SQL seeds")
+    args = parser.parse_args()
+
+    output_dir = pathlib.Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    conn = sqlite3.connect(args.legacy_db)
+    try:
+        cursor = conn.execute(
+            "SELECT countryID, countryName FROM countries WHERE countryName IS NOT NULL AND countryName != ''"
+        )
+        countries_raw = cursor.fetchall()
+        countries = dedupe_by_normalized(countries_raw)
+        country_mapping = build_country_ids(countries)
+        regions = build_region_rows(conn, country_mapping)
+        write_seed_files(output_dir, country_mapping, regions)
+    finally:
+        conn.close()
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
