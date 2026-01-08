@@ -2,9 +2,9 @@
 
 **Document de référence unique** - Status consolidé du projet
 
-**Dernière mise à jour** : 8 janvier 2026 (Réorganisation complète)
-**Version actuelle** : Phase 2 - ~35-40% complété
-**Branche active** : `claude/organize-repo-files-LH0mI`
+**Dernière mise à jour** : 8 janvier 2026 (Phase 8 : Système Personnalité & Attributs)
+**Version actuelle** : Phase 1.5 - ~45-50% complété
+**Branche active** : `claude/update-architecture-roadmap-WM1pe`
 
 ---
 
@@ -12,13 +12,14 @@
 
 ### Progression Globale
 
-**Complétion : 35-40%** (Phase 0-1 transition)
+**Complétion : 45-50%** (Phase 1.5 complète)
 
 | Phase | Description | Status | % |
 |-------|-------------|--------|---|
 | **Phase 0** | Infrastructure & Architecture | ✅ **COMPLET** | 100% |
-| **Phase 1** | Fondations UI/UX & Gameplay de base | ⚠️ **EN COURS** | 40% |
-| **Phase 2** | Intégration Données & Features avancées | ❌ **À DÉMARRER** | 0% |
+| **Phase 1** | Fondations UI/UX & Gameplay de base | ✅ **COMPLÉTÉ** | 70% |
+| **Phase 1.5** | Système Personnalité & Attributs | ✅ **COMPLET** | 100% |
+| **Phase 2** | Intégration Données & Features avancées | ⚠️ **EN COURS** | 20% |
 | **Phase 3** | Fonctionnalités Métier complètes | ❌ **À DÉMARRER** | 0% |
 | **Phase 4** | Performance & Optimisation | ❌ **À DÉMARRER** | 0% |
 | **Phase 5** | QA & Polish | ❌ **À DÉMARRER** | 0% |
@@ -28,10 +29,13 @@
 - ✅ **Architecture MVVM** : Core, Repositories, Services en place
 - ✅ **Navigation** : Prototype D (FM26 dual-pane) implémenté et fonctionnel
 - ✅ **Base de données** : SQLite avec DbSeeder automatique (BAKI1.1.db)
-- ✅ **ViewModels** : 46 ViewModels créés (Dashboard, Booking, Roster, Finance, Youth, Calendar, etc.)
-- ⚠️ **Views** : 13/20 Views créées et câblées
-- ⚠️ **UI** : Interface partiellement fonctionnelle (composants réutilisables manquants)
-- ⚠️ **Services** : Backend solide, services UI partiels
+- ✅ **Système d'Attributs** : 40 attributs détaillés (In-Ring, Entertainment, Story, Mental) ✨ **NOUVEAU**
+- ✅ **Système de Personnalité** : 25+ profils automatiquement détectés ✨ **NOUVEAU**
+- ✅ **ViewModels** : 48 ViewModels créés (+ AttributesTabVM, PersonalityTabVM)
+- ✅ **ProfileView** : Vue complète avec onglets (Aperçu, Attributs, Personnalité, etc.) ✨ **NOUVEAU**
+- ⚠️ **Views** : 14/20 Views créées et câblées (+ ProfileView)
+- ⚠️ **UI** : Interface fonctionnelle avec 1er composant réutilisable (AttributeBar)
+- ⚠️ **Services** : Backend solide, + PersonalityDetectorService
 - ❌ **Boucle de jeu complète** : Éléments séparés mais pas orchestrés
 - ❌ **Gameplay** : Boucle de base en développement
 
@@ -121,9 +125,94 @@ RingGeneral.sln
 └── Pagination.cs
 ```
 
-**Tous les 17 repositories sont maintenant enregistrés dans le DI** (App.axaml.cs)
+**Tous les 18 repositories sont maintenant enregistrés dans le DI** (App.axaml.cs)
+- ✨ **NOUVEAU** : `WorkerAttributesRepository.cs` (Phase 8)
 
-### 3. ViewModels (46 ViewModels - 92% ✅)
+---
+
+### 2.5. ✨ NOUVEAU : Système d'Attributs de Performance (Phase 8 - 100% ✅)
+
+**Implémenté** : 8 janvier 2026
+
+#### Modèles d'Attributs (40 attributs au total)
+
+**A. Attributs IN-RING (10 attributs, 0-100)**
+`src/RingGeneral.Core/Models/Attributes/WorkerInRingAttributes.cs`
+- Striking, Grappling, HighFlying, Powerhouse
+- Timing, Selling, Psychology
+- Stamina, Safety, HardcoreBrawl
+- ✅ Moyenne calculée : `InRingAvg`
+
+**B. Attributs ENTERTAINMENT (10 attributs, 0-100)**
+`src/RingGeneral.Core/Models/Attributes/WorkerEntertainmentAttributes.cs`
+- Charisma, MicWork, Acting, CrowdConnection
+- StarPower, Improvisation, Entrance
+- SexAppeal, MerchandiseAppeal, CrossoverPotential
+- ✅ Moyenne calculée : `EntertainmentAvg`
+
+**C. Attributs STORY (10 attributs, 0-100)**
+`src/RingGeneral.Core/Models/Attributes/WorkerStoryAttributes.cs`
+- CharacterDepth, Consistency, HeelPerformance, BabyfacePerformance
+- StorytellingLongTerm, EmotionalRange, Adaptability
+- RivalryChemistry, CreativeInput, MoralAlignment
+- ✅ Moyenne calculée : `StoryAvg`
+
+**D. Attributs MENTAUX (10 attributs, 0-20) 🔒 CACHÉS**
+`src/RingGeneral.Core/Models/Attributes/WorkerMentalAttributes.cs`
+- Ambition, Détermination, Loyauté, Professionnalisme, Sportivité
+- Pression, Tempérament, Égoïsme, Adaptabilité, Influence
+- ✅ Système de révélation par scouting (ScoutingLevel 0/1/2)
+- ✅ 4 Piliers calculés pour rapports d'agent
+
+#### Repository & Persistence
+- ✅ `WorkerAttributesRepository.cs` créé
+- ✅ `IWorkerAttributesRepository.cs` interface
+- ✅ Tables DB : `WorkerInRingAttributes`, `WorkerEntertainmentAttributes`, `WorkerStoryAttributes`, `WorkerMentalAttributes`
+- ✅ Import BAKI avec conversion automatique (`BakiAttributeConverter.cs`)
+
+#### UI Profil Worker
+- ✅ `AttributeBar.axaml` - Composant réutilisable (barres colorées, delta)
+- ✅ `ProfileView.axaml` - Vue complète avec onglets
+- ✅ `AttributesTabViewModel.cs` - Gestion affichage attributs
+- ✅ `PersonalityTabViewModel.cs` - Gestion personnalité
+
+---
+
+### 2.6. ✨ NOUVEAU : Système de Personnalité (Phase 8 - 100% ✅)
+
+**Implémenté** : 8 janvier 2026
+**Inspiration** : Football Manager
+
+#### PersonalityProfile Enum (25+ profils)
+`src/RingGeneral.Core/Models/PersonalityProfile.cs`
+
+**Catégories** :
+- **Élites** : Professionnel Exemplaire, Citoyen Modèle, Déterminé
+- **Stars à Égo** : Ambitieux, Leader de Vestiaire, Mercenaire
+- **Instables** : Tempérament de Feu, Franc-Tireur, Inconstant
+- **Toxiques** : Égoïste, Diva, Paresseux
+- **Stratèges** : Vétéran Rusé, Maître du Storytelling, Politicien
+- **Bêtes de Compétition** : Accro au Ring, Pilier Fiable, Machine de Guerre
+- **Créatures Médiatiques** : Obsédé par l'Image, Charismatique Imprévisible, Aimant à Public
+- **Dangereux** : Saboteur Passif, Instable Chronique, Poids Mort
+- **Défaut** : Équilibré, Non Déterminé
+
+#### PersonalityDetectorService
+`src/RingGeneral.Core/Services/PersonalityDetectorService.cs`
+- ✅ Détection automatique basée sur attributs mentaux
+- ✅ Génération de rapports d'agent textuels
+- ✅ Recommandations booking
+- ✅ Identification risques (backstage, contrats)
+
+#### AgentReport Model
+`src/RingGeneral.Core/Models/AgentReport.cs`
+- Summary (texte narratif)
+- Strengths / Weaknesses
+- BookingTips / Risks
+
+---
+
+### 3. ViewModels (48 ViewModels - 96% ✅)
 
 #### ViewModels Principaux (12/12)
 

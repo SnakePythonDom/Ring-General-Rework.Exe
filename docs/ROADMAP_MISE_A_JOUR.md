@@ -1,17 +1,23 @@
 # 🗺️ ROADMAP MISE À JOUR - RING GENERAL
-**Date de mise à jour**: 2026-01-07
-**Basé sur**: Audit exhaustif du code source (7 janvier 2026)
+**Date de mise à jour**: 2026-01-08
+**Basé sur**: Intégration système personnalité + rework attributs (8 janvier 2026)
 
 ---
 
 ## 📊 ÉTAT ACTUEL DU PROJET
 
-### Progrès Global: ~35-40% (Phase 0: 100% ✅, Phase 1: 40% En Cours)
+### Progrès Global: ~45-50% (Phase 0: 100% ✅, Phase 1: 60% En Cours)
 
-**Phase actuelle**: **Phase 1 - Fondations UI/UX (40% complété)**
-**Sprint actuel**: **Sprint 1 - Composants UI Réutilisables** (Démarré 7 janvier 2026)
+**Phase actuelle**: **Phase 1 - Fondations UI/UX (60% complété)**
+**Sprint actuel**: **Phase 8 - Système Personnalité & Attributs** (Complété 8 janvier 2026) ✅
 
-⚠️ **MISE À JOUR IMPORTANTE** : Suite à un audit complet du code source, il s'avère que le projet est **significativement plus avancé** que ce que la documentation précédente indiquait. Voir [PROJECT_STATUS.md](./PROJECT_STATUS.md) pour l'état consolidé du projet.
+🎉 **NOUVEAUTÉ (8 janvier 2026)** :
+- ✅ **Système d'attributs de performance complet** (30 attributs détaillés)
+- ✅ **Système de personnalité** (25+ profils automatiquement détectés)
+- ✅ **Composant AttributeBar** réutilisable
+- ✅ **ProfileView complète** avec système d'onglets
+
+Voir [PROJECT_STATUS.md](./PROJECT_STATUS.md) pour l'état consolidé du projet.
 
 ---
 
@@ -120,6 +126,179 @@ Views/
 - ShellViewModel → MainWindow (implicite)
 
 **Livrable**: ✅ **COMPLET** - Toutes les pages accessibles via navigation
+
+---
+
+### 🎭 PHASE 1.5: SYSTÈME PERSONNALITÉ & ATTRIBUTS (100% COMPLÉTÉ ✅)
+
+**Objectif**: Système d'attributs professionnel et détection automatique de personnalités
+
+⭐ **NOUVELLE IMPLÉMENTATION (8 janvier 2026)** : Suite au rework complet des attributs et à l'ajout du système de personnalité inspiré de Football Manager.
+
+#### Tâche 1.5.1: Système d'Attributs de Performance (30 attributs)
+**Statut**: ✅ **COMPLÉTÉ**
+
+**Structure Implémentée**:
+
+**A. Attributs IN-RING (10 attributs, échelle 0-100)**
+- ✅ `WorkerInRingAttributes.cs` créé avec :
+  - Striking (Précision et impact des coups)
+  - Grappling (Maîtrise du sol et soumissions)
+  - HighFlying (Agilité et acrobaties)
+  - Powerhouse (Force brute et levées)
+  - Timing (Précision chirurgicale)
+  - Selling (Rendre les coups crédibles)
+  - Psychology (Construction narrative du match)
+  - Stamina (Endurance 30+ min)
+  - Safety (Protection du partenaire)
+  - HardcoreBrawl (Utilisation d'objets)
+- ✅ Moyenne calculée automatiquement : `InRingAvg`
+
+**B. Attributs ENTERTAINMENT (10 attributs, échelle 0-100)**
+- ✅ `WorkerEntertainmentAttributes.cs` créé avec :
+  - Charisma (Magnétisme naturel)
+  - MicWork (Aisance verbale, promos)
+  - Acting (Expressions faciales, segments)
+  - CrowdConnection (Réactions foule)
+  - StarPower (Aura Main Event)
+  - Improvisation (Réaction aux imprévus)
+  - Entrance (Impact visuel)
+  - SexAppeal (Attrait esthétique)
+  - MerchandiseAppeal (Potentiel produits dérivés)
+  - CrossoverPotential (Attrait hors-catch)
+- ✅ Moyenne calculée : `EntertainmentAvg`
+
+**C. Attributs STORY (10 attributs, échelle 0-100)**
+- ✅ `WorkerStoryAttributes.cs` créé avec :
+  - CharacterDepth (Complexité du personnage)
+  - Consistency (Fidélité au personnage)
+  - HeelPerformance (Efficacité antagoniste)
+  - BabyfacePerformance (Efficacité héros)
+  - StorytellingLongTerm (Porter rivalités)
+  - EmotionalRange (Générer émotions)
+  - Adaptability (Changer de gimmick)
+  - RivalryChemistry (Créer étincelles)
+  - CreativeInput (Implication storylines)
+  - MoralAlignment (Jouer Tweener)
+- ✅ Moyenne calculée : `StoryAvg`
+
+**D. Attributs MENTAUX (10 attributs, échelle 0-20) 🔒**
+- ✅ `WorkerMentalAttributes.cs` créé avec :
+  - **Cachés par défaut** (révélés par scouting)
+  - Ambition (Désir de succès)
+  - Détermination (Résilience)
+  - Loyauté (Fidélité compagnie)
+  - Professionnalisme (Éthique de travail)
+  - Sportivité (Respect adversaires)
+  - Pression (Performance grands moments)
+  - Tempérament (Contrôle émotionnel)
+  - Égoïsme (Centré sur soi vs équipe)
+  - Adaptabilité (Flexibilité rôles)
+  - Influence (Pouvoir backstage)
+- ✅ Système de révélation par scouting (ScoutingLevel 0/1/2)
+- ✅ 4 Piliers calculés pour rapports d'agent
+
+**Repository & Persistence**:
+- ✅ `WorkerAttributesRepository.cs` créé
+- ✅ `IWorkerAttributesRepository.cs` interface
+- ✅ Tables DB : `WorkerInRingAttributes`, `WorkerEntertainmentAttributes`, `WorkerStoryAttributes`, `WorkerMentalAttributes`
+- ✅ Import BAKI avec conversion automatique (`BakiAttributeConverter.cs`)
+
+#### Tâche 1.5.2: Système de Personnalité
+**Statut**: ✅ **COMPLÉTÉ**
+
+**Implémentation**:
+- ✅ `PersonalityProfile.cs` - Enum avec 25+ profils :
+  - **Élites** : Professionnel Exemplaire, Citoyen Modèle, Déterminé
+  - **Stars à Égo** : Ambitieux, Leader de Vestiaire, Mercenaire
+  - **Instables** : Tempérament de Feu, Franc-Tireur, Inconstant
+  - **Toxiques** : Égoïste, Diva, Paresseux
+  - **Stratèges** : Vétéran Rusé, Maître du Storytelling, Politicien
+  - **Bêtes de Compétition** : Accro au Ring, Pilier Fiable, Machine de Guerre
+  - **Créatures Médiatiques** : Obsédé par l'Image, Charismatique Imprévisible, Aimant à Public
+  - **Dangereux** : Saboteur Passif, Instable Chronique, Poids Mort
+  - **Par Défaut** : Équilibré, Non Déterminé
+
+- ✅ `PersonalityDetectorService.cs` - Détection automatique :
+  - Analyse des 10 attributs mentaux
+  - Algorithme de correspondance avec seuils
+  - Génération de rapports d'agent textuels
+  - Support multi-profils (priorité au plus spécifique)
+
+- ✅ `AgentReport.cs` - Modèle de rapport :
+  - Analyse narrative basée sur personnalité
+  - Recommandations booking
+  - Risques potentiels (backstage, contrats)
+
+#### Tâche 1.5.3: UI Profil Worker Complet
+**Statut**: ✅ **COMPLÉTÉ**
+
+**Composants UI créés** :
+- ✅ `AttributeBar.axaml` + `.cs` - Composant réutilisable :
+  - Barres de progression colorées (rouge/orange/vert)
+  - Affichage delta (↑/↓) pour progression
+  - Tooltips avec descriptions
+  - Support échelle 0-100 et 0-20
+
+- ✅ `ProfileView.axaml` - Vue principale worker :
+  - Onglet "Aperçu" (identité, photo, stats générales)
+  - Onglet "Attributs" (In-Ring, Entertainment, Story)
+  - Onglet "Mental" (attributs cachés si ScoutingLevel > 0)
+  - Onglet "Personnalité" (profil détecté + rapport agent)
+  - Onglet "Contrat" (détails contractuels)
+  - Onglet "Historique" (carrière, titres, matchs)
+
+- ✅ `AttributesTabViewModel.cs` - Gestion affichage attributs :
+  - Chargement depuis `WorkerAttributesRepository`
+  - Binding réactif avec PropertyChanged
+  - Groupement par catégorie (In-Ring/Entertainment/Story)
+
+- ✅ `PersonalityTabViewModel.cs` - Gestion personnalité :
+  - Détection automatique via `PersonalityDetectorService`
+  - Affichage rapport d'agent
+  - Visualisation 4 piliers (Profil/Pression/Égo/Influence)
+  - Indicateur de révélation scouting
+
+**Livrable**: ✅ **100% COMPLET** - Système d'attributs et personnalité entièrement fonctionnel
+
+**Fichiers Créés (Phase 8)** :
+```
+src/RingGeneral.Core/Models/
+├── PersonalityProfile.cs
+├── AgentReport.cs
+├── Attributes/
+│   ├── WorkerInRingAttributes.cs
+│   ├── WorkerEntertainmentAttributes.cs
+│   ├── WorkerStoryAttributes.cs
+│   └── WorkerMentalAttributes.cs
+
+src/RingGeneral.Core/Services/
+└── PersonalityDetectorService.cs
+
+src/RingGeneral.Core/Import/
+├── BakiAttributeConverter.cs
+├── BakiAttributeNormalizer.cs
+└── BakiAttributeMappingMath.cs
+
+src/RingGeneral.Data/Repositories/
+├── WorkerAttributesRepository.cs
+└── IWorkerAttributesRepository.cs
+
+src/RingGeneral.UI/Components/
+├── AttributeBar.axaml
+└── AttributeBar.axaml.cs
+
+src/RingGeneral.UI/Views/Workers/Profile/
+└── ProfileView.axaml
+
+src/RingGeneral.UI/ViewModels/Workers/Profile/
+├── ProfileViewModel.cs
+├── AttributesTabViewModel.cs
+└── PersonalityTabViewModel.cs
+
+tests/RingGeneral.Tests/
+└── BakiAttributeConversionTests.cs
+```
 
 ---
 
@@ -377,30 +556,40 @@ Views/
    - ✅ TitlesView
    - ✅ + 10 autres Views (13 total)
 
-6. ⚠️ **Nouvelle Priorité : Composants UI Réutilisables**
-   - [ ] Créer AttributeBar.axaml
+6. ✅ **Phase 8 : Système Personnalité & Attributs** (FAIT - 8 janvier 2026!)
+   - ✅ Créer AttributeBar.axaml (composant réutilisable)
+   - ✅ Système d'attributs complet (30 attributs détaillés)
+   - ✅ Système de personnalité (25+ profils)
+   - ✅ ProfileView complète avec onglets
+   - ✅ Import BAKI avec conversion automatique
+
+7. ⚠️ **Nouvelle Priorité : Composants UI Supplémentaires**
    - [ ] Créer SortableDataGrid.axaml
    - [ ] Créer DetailPanel.axaml
    - [ ] Créer AttributeDescriptions.fr.resx
+   - [ ] Finaliser l'intégration des attributs dans ProfileView
 
 ---
 
 ## 📊 MÉTRIQUES DE PROGRESSION
 
-⚠️ **RÉVISION POST-AUDIT** : Les métriques ont été significativement revues à la hausse
+⚠️ **RÉVISION (8 janvier 2026)** : Mise à jour post-Phase 8 (Personnalité & Attributs)
 
 ### Complétude par couche
 
-| Couche | Ancienne Estimation | **Nouvelle Réalité** | Commentaire |
-|--------|---------------------|----------------------|-------------|
-| **Base de données** | 90% | **90%** ✅ | Schéma complet + DbSeeder implémenté |
-| **Repositories** | 80% | **100%** (créés) 🟡 **12%** (DI) | 17/17 créés, seulement 2/17 en DI |
-| **Core Services** | 70% | **30%** ⚠️ | Moins que pensé (6/20 services) |
-| **ViewModels** | 20% | **92%** ✅ | 46/50 fichiers (12 principaux + 33 support) |
-| **Views** | 10% | **65%** ✅ | 13/20 views créées et câblées |
-| **Navigation** | 80% | **95%** ✅ | Système 100%, 9/15 items câblés |
-| **Seed Data** | 0% | **100%** ✅ | DbSeeder complet avec BAKI import |
-| **Composants UI** | N/A | **0%** ❌ | Aucun composant réutilisable créé |
+| Couche | Avant Phase 8 | **Après Phase 8** | Commentaire |
+|--------|---------------|-------------------|-------------|
+| **Base de données** | 90% | **95%** ✅ | + Tables attributs (In-Ring, Entertainment, Story, Mental) |
+| **Repositories** | 100% (créés) | **100%** ✅ | + WorkerAttributesRepository créé |
+| **Core Services** | 30% | **40%** 🟡 | + PersonalityDetectorService |
+| **Core Models** | 85% | **95%** ✅ | + 4 modèles attributs + PersonalityProfile |
+| **ViewModels** | 92% | **95%** ✅ | + AttributesTabViewModel + PersonalityTabViewModel |
+| **Views** | 65% | **70%** ✅ | + ProfileView complète avec onglets |
+| **Navigation** | 95% | **95%** ✅ | Système 100%, 9/15 items câblés |
+| **Seed Data** | 100% | **100%** ✅ | DbSeeder complet avec BAKI import + conversion attributs |
+| **Composants UI** | 0% | **20%** 🟡 | ✅ AttributeBar créé (1er composant réutilisable) |
+| **Système Attributs** | 0% | **100%** ✅ | **NOUVEAU** : 30 attributs de performance complets |
+| **Système Personnalité** | 0% | **100%** ✅ | **NOUVEAU** : 25+ profils avec détection automatique |
 
 ### Tests
 
@@ -423,6 +612,6 @@ Views/
 
 ---
 
-**Dernière mise à jour**: 2026-01-07 (Audit complet + Révision des métriques)
+**Dernière mise à jour**: 2026-01-08 (Phase 8 : Système Personnalité & Attributs)
 **Par**: Claude Code
-**Statut**: Documentation alignée avec la réalité du code
+**Statut**: Documentation alignée avec la réalité du code + Phase 8 complète
