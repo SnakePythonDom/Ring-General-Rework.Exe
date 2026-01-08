@@ -353,7 +353,7 @@
                     <TextBlock Text="•" FontSize="10" Foreground="#444444" VerticalAlignment="Center"/>
                     <TextBlock Text="Dernière sauvegarde : 14:32" FontSize="10" Foreground="#666666" VerticalAlignment="Center"/>
                     <TextBlock Text="•" FontSize="10" Foreground="#444444" VerticalAlignment="Center"/>
-                    <TextBlock Text="ringgeneral.db" FontSize="10" Foreground="#666666" VerticalAlignment="Center"/>
+                    <TextBlock Text="ring_general.db" FontSize="10" Foreground="#666666" VerticalAlignment="Center"/>
                 </StackPanel>
                 <TextBlock Text="Ring General v1.0.0 • Build 2024.01" FontSize="10" Foreground="#444444" VerticalAlignment="Center" HorizontalAlignment="Right"/>
             </Grid>

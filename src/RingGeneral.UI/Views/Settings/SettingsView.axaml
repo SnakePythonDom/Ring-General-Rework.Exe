@@ -164,7 +164,7 @@
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="2024.01.08" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Base de données:" FontSize="13" Foreground="#888888" Margin="0,0,15,10"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="ringgeneral.db" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="ring_general.db" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Framework:" FontSize="13" Foreground="#888888" Margin="0,0,15,0"/>
                         <TextBlock Grid.Row="3" Grid.Column="1" Text="Avalonia UI 11.0" FontSize="13" Foreground="#e0e0e0" FontWeight="SemiBold"/>
