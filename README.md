@@ -35,10 +35,9 @@ Pour comprendre l'état actuel du projet, consultez **dans cet ordre** :
 Toutes les spécifications officielles (UI, modèles, boucle hebdo, booking, impacts, services) sont désormais la source de vérité dans le dossier `/specs`.
 Merci de vous référer aux fichiers JSON en français de ce dossier pour toute mise à jour.
 
-## Documentation (Guides Utilisateur)
-- [Guide du jeu (FR)](docs/JEU_GUIDE_FR.md)
-- [Guide du modding (FR)](docs/MODDING_GUIDE_FR.md)
-- [Guide de développement (FR)](docs/DEV_GUIDE_FR.md)
+## Documentation (Guides Utilisateur & Développeur)
+- [Guide de démarrage rapide (FR)](docs/QUICK_START_GUIDE.md) - Inclut guide joueur et développeur
+- [Guide de développement & modding (FR)](docs/DEV_GUIDE_FR.md) - Inclut guide de modding
 - [Guide base SQLite (FR)](docs/DATABASE_GUIDE_FR.md)
 - [Guide import SQLite (FR)](docs/IMPORT_GUIDE_FR.md)
 

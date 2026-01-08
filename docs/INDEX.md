@@ -4,8 +4,8 @@ Bienvenue dans la documentation complète du projet Ring General. Ce document vo
 
 ## 🚀 Pour Débuter
 
-- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Démarrage rapide pour les nouveaux contributeurs
-- **[DEV_GUIDE_FR.md](DEV_GUIDE_FR.md)** - Guide de développement complet
+- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Démarrage rapide (développeurs & joueurs)
+- **[DEV_GUIDE_FR.md](DEV_GUIDE_FR.md)** - Guide de développement & modding complet
 
 ## 📊 État du Projet
 
@@ -23,13 +23,11 @@ Bienvenue dans la documentation complète du projet Ring General. Ce document vo
 - **[SHOW_DAY_IMPLEMENTATION.md](SHOW_DAY_IMPLEMENTATION.md)** - Implémentation du système de show
 - **[FULLSCREEN_MODE.md](FULLSCREEN_MODE.md)** - Documentation mode plein écran
 - **[SCHEMA_MIGRATION_STRATEGY.md](SCHEMA_MIGRATION_STRATEGY.md)** - Stratégie de migration de schéma
-- **[PERFORMANCE_FR.md](PERFORMANCE_FR.md)** - Guide des performances
 
 ## 📋 Planification & Sprints
 
 ### Documents de Planning
 - **[planning/PLAN_IMPLEMENTATION_TECHNIQUE.md](planning/PLAN_IMPLEMENTATION_TECHNIQUE.md)** - Plan d'implémentation technique
-- **[planning/COMPARAISON_ET_PROCHAINES_ETAPES.md](planning/COMPARAISON_ET_PROCHAINES_ETAPES.md)** - Comparaison et prochaines étapes
 
 ### Documents de Sprint
 - **[sprints/SPRINT_1_SUMMARY.md](sprints/SPRINT_1_SUMMARY.md)** - Résumé du Sprint 1
@@ -38,10 +36,10 @@ Bienvenue dans la documentation complète du projet Ring General. Ce document vo
 
 ## 🎮 Guides Utilisateur
 
-- **[JEU_GUIDE_FR.md](JEU_GUIDE_FR.md)** - Guide du jeu pour les joueurs
+- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Guide de démarrage rapide (inclut guide joueur)
+- **[DEV_GUIDE_FR.md](DEV_GUIDE_FR.md)** - Guide de développement & modding
 - **[DATABASE_GUIDE_FR.md](DATABASE_GUIDE_FR.md)** - Guide de la base de données SQLite
 - **[IMPORT_GUIDE_FR.md](IMPORT_GUIDE_FR.md)** - Guide d'import de bases de données
-- **[MODDING_GUIDE_FR.md](MODDING_GUIDE_FR.md)** - Guide de modding
 
 ## 🗂️ Organisation des Fichiers
 
@@ -49,8 +47,7 @@ Bienvenue dans la documentation complète du projet Ring General. Ce document vo
 docs/
 ├── INDEX.md                              # Ce fichier
 ├── planning/                             # Documents de planification
-│   ├── PLAN_IMPLEMENTATION_TECHNIQUE.md
-│   └── COMPARAISON_ET_PROCHAINES_ETAPES.md
+│   └── PLAN_IMPLEMENTATION_TECHNIQUE.md
 ├── sprints/                              # Documents de sprint
 │   ├── SPRINT_1_SUMMARY.md
 │   ├── SPRINT_2_DESIGN.md
@@ -63,7 +60,6 @@ docs/
 ### Architecture & Code
 - [ARCHITECTURE_REVIEW_FR.md](ARCHITECTURE_REVIEW_FR.md)
 - [DEV_GUIDE_FR.md](DEV_GUIDE_FR.md)
-- [PERFORMANCE_FR.md](PERFORMANCE_FR.md)
 
 ### Base de Données
 - [DATABASE_GUIDE_FR.md](DATABASE_GUIDE_FR.md)
@@ -85,10 +81,19 @@ docs/
 
 Les documents suivants ont été archivés dans `/_archived_files/` car ils étaient redondants ou obsolètes:
 
-- **CURRENT_STATE.md** - Fusionné dans PROJECT_STATUS.md
-- **RECAPITULATIF_TECHNIQUE.md** - Fusionné dans PROJECT_STATUS.md
-- **RAPPORT_IMPLEMENTATION_FINALE.md** - Rapport ponctuel du 7 jan 2026 (archivé)
-- **MODIFICATIONS_EFFECTUEES.md** - Changelog du 7 jan 2026 (archivé)
+### Fusionnés (8 jan 2026)
+- **JEU_GUIDE_FR.md** → Fusionné dans QUICK_START_GUIDE.md (section "Guide Joueur")
+- **MODDING_GUIDE_FR.md** → Fusionné dans DEV_GUIDE_FR.md (section "Guide de Modding")
+
+### Documents obsolètes archivés (8 jan 2026)
+- **planning/COMPARAISON_ET_PROCHAINES_ETAPES.md** → `_archived_files/planning/` (plan obsolète)
+- **PERFORMANCE_FR.md** → `_archived_files/` (checklist incomplète)
+
+### Archivage précédent (7 jan 2026)
+- **CURRENT_STATE.md** → Fusionné dans PROJECT_STATUS.md
+- **RECAPITULATIF_TECHNIQUE.md** → Fusionné dans PROJECT_STATUS.md
+- **RAPPORT_IMPLEMENTATION_FINALE.md** → Rapport ponctuel archivé
+- **MODIFICATIONS_EFFECTUEES.md** → Changelog ponctuel archivé
 
 Ces fichiers restent accessibles pour consultation historique.
 
