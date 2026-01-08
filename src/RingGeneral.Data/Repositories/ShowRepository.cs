@@ -702,4 +702,23 @@ public sealed class ShowRepository : RepositoryBase
         var resultat = command.ExecuteScalar();
         return resultat is null or DBNull ? 0 : Convert.ToInt32(resultat);
     }
+
+    /// <summary>
+    /// Met à jour le statut d'un show (ABOOKER, BOOKE, SIMULE, ANNULE)
+    /// </summary>
+    public void MettreAJourStatutShow(string showId, ShowStatus status)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE Shows
+            SET Status = $status, LastSimulatedAt = $simulatedAt
+            WHERE ShowId = $showId;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        command.Parameters.AddWithValue("$status", status.ToString().ToUpperInvariant());
+        command.Parameters.AddWithValue("$simulatedAt",
+            status == ShowStatus.Simule ? DateTime.UtcNow.ToString("O") : DBNull.Value);
+        command.ExecuteNonQuery();
+    }
 }

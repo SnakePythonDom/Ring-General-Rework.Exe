@@ -2,9 +2,9 @@
 
 **Document de référence unique** - Status consolidé du projet
 
-**Dernière mise à jour** : 8 janvier 2026 (Phase 8 : Système Personnalité & Attributs)
-**Version actuelle** : Phase 1.5 - ~45-50% complété
-**Branche active** : `claude/update-architecture-roadmap-WM1pe`
+**Dernière mise à jour** : 8 janvier 2026 (Phase 9 : Flux Show Day - Match Day)
+**Version actuelle** : Phase 1.9 - ~50-55% complété
+**Branche active** : `claude/implement-match-day-flow-NDU2A`
 
 ---
 
@@ -12,15 +12,16 @@
 
 ### Progression Globale
 
-**Complétion : 45-50%** (Phase 1.5 complète)
+**Complétion : 50-55%** (Phase 1.9 complète + Phase 3 démarrée)
 
 | Phase | Description | Status | % |
 |-------|-------------|--------|---|
 | **Phase 0** | Infrastructure & Architecture | ✅ **COMPLET** | 100% |
-| **Phase 1** | Fondations UI/UX & Gameplay de base | ✅ **COMPLÉTÉ** | 70% |
+| **Phase 1** | Fondations UI/UX & Gameplay de base | ✅ **COMPLÉTÉ** | 75% |
 | **Phase 1.5** | Système Personnalité & Attributs | ✅ **COMPLET** | 100% |
-| **Phase 2** | Intégration Données & Features avancées | ⚠️ **EN COURS** | 20% |
-| **Phase 3** | Fonctionnalités Métier complètes | ❌ **À DÉMARRER** | 0% |
+| **Phase 1.9** | Flux Show Day (Match Day) | ✅ **COMPLET** | 100% |
+| **Phase 2** | Intégration Données & Features avancées | ⚠️ **EN COURS** | 25% |
+| **Phase 3** | Fonctionnalités Métier complètes | ⚠️ **EN COURS** | 15% |
 | **Phase 4** | Performance & Optimisation | ❌ **À DÉMARRER** | 0% |
 | **Phase 5** | QA & Polish | ❌ **À DÉMARRER** | 0% |
 
@@ -29,15 +30,17 @@
 - ✅ **Architecture MVVM** : Core, Repositories, Services en place
 - ✅ **Navigation** : Prototype D (FM26 dual-pane) implémenté et fonctionnel
 - ✅ **Base de données** : SQLite avec DbSeeder automatique (BAKI1.1.db)
-- ✅ **Système d'Attributs** : 40 attributs détaillés (In-Ring, Entertainment, Story, Mental) ✨ **NOUVEAU**
-- ✅ **Système de Personnalité** : 25+ profils automatiquement détectés ✨ **NOUVEAU**
+- ✅ **Système d'Attributs** : 40 attributs détaillés (In-Ring, Entertainment, Story, Mental)
+- ✅ **Système de Personnalité** : 25+ profils automatiquement détectés
+- ✅ **Flux Show Day** : Simulation complète de bout en bout ✨ **NOUVEAU (8 jan 2026)**
+- ✅ **Moral Post-Show** : Gestion automatique du moral des workers non utilisés ✨ **NOUVEAU**
 - ✅ **ViewModels** : 48 ViewModels créés (+ AttributesTabVM, PersonalityTabVM)
-- ✅ **ProfileView** : Vue complète avec onglets (Aperçu, Attributs, Personnalité, etc.) ✨ **NOUVEAU**
+- ✅ **ProfileView** : Vue complète avec onglets (Aperçu, Attributs, Personnalité, etc.)
 - ⚠️ **Views** : 14/20 Views créées et câblées (+ ProfileView)
 - ⚠️ **UI** : Interface fonctionnelle avec 1er composant réutilisable (AttributeBar)
-- ⚠️ **Services** : Backend solide, + PersonalityDetectorService
-- ❌ **Boucle de jeu complète** : Éléments séparés mais pas orchestrés
-- ❌ **Gameplay** : Boucle de base en développement
+- ⚠️ **Services** : Backend solide (+ PersonalityDetectorService, ShowDayOrchestrator étendu)
+- ⚠️ **Boucle de jeu** : Simulation show fonctionnelle, avancement hebdo en cours
+- ⚠️ **Gameplay** : Boucle de base partiellement opérationnelle (show day OK)
 
 ### Découverte Principale
 
