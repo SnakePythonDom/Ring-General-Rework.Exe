@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.Core.Models;
@@ -8,11 +11,13 @@ using System.Linq;
 namespace RingGeneral.UI.ViewModels.Roster;
 
 /// <summary>
-/// ViewModel pour la gestion des titres (championships)
+/// ViewModel pour la gestion des titres (championships).
+/// Enrichi dans Phase 6.3 avec intégration booking.
 /// </summary>
 public sealed class TitlesViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
+    private ShowContext? _context;
     private TitleListItemViewModel? _selectedTitle;
     private string _searchText = string.Empty;
     private readonly List<TitleListItemViewModel> _allTitles = new List<TitleListItemViewModel>();
@@ -24,8 +29,19 @@ public sealed class TitlesViewModel : ViewModelBase
         Titles = new ObservableCollection<TitleListItemViewModel>();
         TitleHistory = new ObservableCollection<TitleReignHistoryItem>();
 
+        // Phase 6.3 - Collection pour booking
+        AvailableForBooking = new ObservableCollection<TitleOptionViewModel>();
+
+        // Phase 6.3 - Commandes
+        LoadAvailableTitlesCommand = ReactiveCommand.Create(LoadAvailableTitles);
+        AssignToSegmentCommand = ReactiveCommand.Create<string>(AssignToSegment);
+        GetVacantTitlesCommand = ReactiveCommand.Create(GetVacantTitles);
+        GetDefendedTitlesCommand = ReactiveCommand.Create(GetDefendedTitles);
+
         LoadTitles();
     }
+
+    #region Collections
 
     /// <summary>
     /// Liste des titres
@@ -36,6 +52,15 @@ public sealed class TitlesViewModel : ViewModelBase
     /// Historique du titre sélectionné
     /// </summary>
     public ObservableCollection<TitleReignHistoryItem> TitleHistory { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Titres disponibles pour assignment booking
+    /// </summary>
+    public ObservableCollection<TitleOptionViewModel> AvailableForBooking { get; }
+
+    #endregion
+
+    #region Properties
 
     /// <summary>
     /// Titre sélectionné
@@ -72,6 +97,150 @@ public sealed class TitlesViewModel : ViewModelBase
     /// Nombre de titres vacants
     /// </summary>
     public int VacantTitles => Titles.Count(t => t.IsVacant);
+
+    #endregion
+
+    #region Commands
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour charger les titres disponibles pour booking
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> LoadAvailableTitlesCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour assigner à un segment
+    /// </summary>
+    public ReactiveCommand<string, Unit> AssignToSegmentCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour obtenir les titres vacants
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> GetVacantTitlesCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour obtenir les titres défendus
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> GetDefendedTitlesCommand { get; }
+
+    #endregion
+
+    #region Public Methods - Phase 6.3
+
+    /// <summary>
+    /// Phase 6.3 - Charge les titres disponibles pour assignment booking
+    /// </summary>
+    public void LoadAvailableTitles()
+    {
+        AvailableForBooking.Clear();
+
+        if (_repository == null)
+        {
+            LoadPlaceholderBookingTitles();
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT
+                    t.TitleId,
+                    t.Name,
+                    t.Prestige,
+                    t.CurrentChampionId,
+                    w.FullName as ChampionName
+                FROM Titles t
+                LEFT JOIN Workers w ON t.CurrentChampionId = w.WorkerId
+                WHERE t.IsActive = 1
+                ORDER BY t.Prestige DESC";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var championId = reader.IsDBNull(3) ? null : reader.GetString(3);
+                var championName = reader.IsDBNull(4) ? "VACANT" : reader.GetString(4);
+                var isVacant = string.IsNullOrEmpty(championId);
+
+                AvailableForBooking.Add(new TitleOptionViewModel
+                {
+                    TitleId = reader.GetString(0),
+                    Name = reader.GetString(1),
+                    Prestige = reader.GetInt32(2),
+                    CurrentChampion = championName,
+                    IsVacant = isVacant
+                });
+            }
+
+            Logger.Info($"{AvailableForBooking.Count} titres disponibles pour booking");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement titres booking : {ex.Message}");
+            LoadPlaceholderBookingTitles();
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Assigne un titre à un segment (défense titre)
+    /// </summary>
+    public void AssignToSegment(string segmentId)
+    {
+        if (_repository == null || string.IsNullOrWhiteSpace(segmentId) || SelectedTitle == null)
+        {
+            Logger.Warning("Impossible d'assigner titre : paramètres invalides");
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE Segments
+                SET TitleId = @titleId
+                WHERE SegmentId = @segmentId";
+
+            cmd.Parameters.AddWithValue("@titleId", SelectedTitle.TitleId);
+            cmd.Parameters.AddWithValue("@segmentId", segmentId);
+
+            cmd.ExecuteNonQuery();
+
+            Logger.Info($"Titre '{SelectedTitle.Name}' assigné au segment {segmentId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur assignment titre : {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Retourne les titres vacants uniquement
+    /// </summary>
+    public void GetVacantTitles()
+    {
+        var vacantTitles = AvailableForBooking
+            .Where(t => t.IsVacant)
+            .ToList();
+
+        Logger.Info($"{vacantTitles.Count} titres vacants");
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Retourne les titres avec détenteur
+    /// </summary>
+    public void GetDefendedTitles()
+    {
+        var defendedTitles = AvailableForBooking
+            .Where(t => !t.IsVacant)
+            .ToList();
+
+        Logger.Info($"{defendedTitles.Count} titres défendus");
+    }
+
+    #endregion
+
+    #region Private Methods
 
     /// <summary>
     /// Charge la liste des titres
@@ -249,6 +418,31 @@ public sealed class TitlesViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(TotalTitles));
         this.RaisePropertyChanged(nameof(VacantTitles));
     }
+
+    /// <summary>
+    /// Phase 6.3 - Charge placeholder titres pour booking
+    /// </summary>
+    private void LoadPlaceholderBookingTitles()
+    {
+        AvailableForBooking.Add(new TitleOptionViewModel
+        {
+            TitleId = "T001",
+            Name = "WWE Championship",
+            Prestige = 95,
+            CurrentChampion = "John Cena",
+            IsVacant = false
+        });
+        AvailableForBooking.Add(new TitleOptionViewModel
+        {
+            TitleId = "T003",
+            Name = "Intercontinental Championship",
+            Prestige = 78,
+            CurrentChampion = "VACANT",
+            IsVacant = true
+        });
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -364,4 +558,52 @@ public sealed class TitleReignHistoryItem : ViewModelBase
     public string PeriodDisplay => EndWeek.HasValue
         ? $"S{StartWeek} → S{EndWeek}"
         : $"S{StartWeek} → Actuel";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un titre disponible pour booking
+/// </summary>
+public sealed class TitleOptionViewModel : ViewModelBase
+{
+    private string _titleId = string.Empty;
+    private string _name = string.Empty;
+    private int _prestige;
+    private string _currentChampion = string.Empty;
+    private bool _isVacant;
+
+    public string TitleId
+    {
+        get => _titleId;
+        set => this.RaiseAndSetIfChanged(ref _titleId, value);
+    }
+
+    public string Name
+    {
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    public int Prestige
+    {
+        get => _prestige;
+        set => this.RaiseAndSetIfChanged(ref _prestige, value);
+    }
+
+    public string CurrentChampion
+    {
+        get => _currentChampion;
+        set => this.RaiseAndSetIfChanged(ref _currentChampion, value);
+    }
+
+    public bool IsVacant
+    {
+        get => _isVacant;
+        set => this.RaiseAndSetIfChanged(ref _isVacant, value);
+    }
+
+    public string Display => IsVacant
+        ? $"{Name} (VACANT - Prestige: {Prestige})"
+        : $"{Name} ({CurrentChampion} - Prestige: {Prestige})";
+
+    public string StatusDisplay => IsVacant ? "VACANT" : $"Détenteur: {CurrentChampion}";
 }

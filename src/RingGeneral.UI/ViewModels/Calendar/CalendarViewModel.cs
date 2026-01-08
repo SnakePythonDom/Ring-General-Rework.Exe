@@ -1,19 +1,31 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Models;
 
 namespace RingGeneral.UI.ViewModels.Calendar;
 
 /// <summary>
-/// ViewModel pour le calendrier et la planification des shows
+/// ViewModel pour le calendrier et la planification des shows.
+/// Enrichi dans Phase 6.3 avec création et gestion de shows.
 /// </summary>
 public sealed class CalendarViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
+    private ShowContext? _context;
     private int _currentWeek = 1;
     private CalendarEntryItemViewModel? _selectedEntry;
+    private ShowScheduleItemViewModel? _selectedShow;
+
+    // Phase 6.3 - Propriétés pour nouveau show
+    private string _newShowName = string.Empty;
+    private int _newShowWeek = 1;
+    private int _newShowDuration = 120;
+    private string _newShowLocation = string.Empty;
+    private string _newShowType = "TV";
 
     public CalendarViewModel(GameRepository? repository = null)
     {
@@ -22,11 +34,22 @@ public sealed class CalendarViewModel : ViewModelBase
         UpcomingShows = new ObservableCollection<ShowScheduleItemViewModel>();
         CalendarEntries = new ObservableCollection<CalendarEntryItemViewModel>();
 
+        // Phase 6.3 - Commandes
+        CreateNewShowCommand = ReactiveCommand.Create(CreateNewShow);
+        UpdateShowScheduleCommand = ReactiveCommand.Create<ShowScheduleItemViewModel>(UpdateShowSchedule);
+        CancelShowCommand = ReactiveCommand.Create<ShowScheduleItemViewModel>(CancelShow);
+
         LoadCalendarData();
     }
 
+    #region Collections
+
     public ObservableCollection<ShowScheduleItemViewModel> UpcomingShows { get; }
     public ObservableCollection<CalendarEntryItemViewModel> CalendarEntries { get; }
+
+    #endregion
+
+    #region Properties
 
     public int CurrentWeek
     {
@@ -39,6 +62,198 @@ public sealed class CalendarViewModel : ViewModelBase
         get => _selectedEntry;
         set => this.RaiseAndSetIfChanged(ref _selectedEntry, value);
     }
+
+    public ShowScheduleItemViewModel? SelectedShow
+    {
+        get => _selectedShow;
+        set => this.RaiseAndSetIfChanged(ref _selectedShow, value);
+    }
+
+    // Phase 6.3 - Propriétés pour création de show
+    public string NewShowName
+    {
+        get => _newShowName;
+        set => this.RaiseAndSetIfChanged(ref _newShowName, value);
+    }
+
+    public int NewShowWeek
+    {
+        get => _newShowWeek;
+        set => this.RaiseAndSetIfChanged(ref _newShowWeek, value);
+    }
+
+    public int NewShowDuration
+    {
+        get => _newShowDuration;
+        set => this.RaiseAndSetIfChanged(ref _newShowDuration, value);
+    }
+
+    public string NewShowLocation
+    {
+        get => _newShowLocation;
+        set => this.RaiseAndSetIfChanged(ref _newShowLocation, value);
+    }
+
+    public string NewShowType
+    {
+        get => _newShowType;
+        set => this.RaiseAndSetIfChanged(ref _newShowType, value);
+    }
+
+    public int TotalUpcomingShows => UpcomingShows.Count;
+
+    #endregion
+
+    #region Commands
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour créer un nouveau show
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> CreateNewShowCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour mettre à jour le planning d'un show
+    /// </summary>
+    public ReactiveCommand<ShowScheduleItemViewModel, Unit> UpdateShowScheduleCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour annuler un show
+    /// </summary>
+    public ReactiveCommand<ShowScheduleItemViewModel, Unit> CancelShowCommand { get; }
+
+    #endregion
+
+    #region Public Methods - Phase 6.3
+
+    /// <summary>
+    /// Phase 6.3 - Crée un nouveau show planifié
+    /// </summary>
+    public void CreateNewShow()
+    {
+        if (_repository == null || string.IsNullOrWhiteSpace(NewShowName))
+        {
+            Logger.Warning("Impossible de créer show : nom invalide");
+            return;
+        }
+
+        try
+        {
+            var showId = $"SHOW-{Guid.NewGuid():N}".ToUpperInvariant();
+
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO Shows (ShowId, Name, Week, Location, Duration, ShowType, Status, Broadcast)
+                VALUES (@id, @name, @week, @location, @duration, @type, 'ABOOKER', 'TBA')";
+
+            cmd.Parameters.AddWithValue("@id", showId);
+            cmd.Parameters.AddWithValue("@name", NewShowName);
+            cmd.Parameters.AddWithValue("@week", NewShowWeek);
+            cmd.Parameters.AddWithValue("@location", string.IsNullOrWhiteSpace(NewShowLocation) ? "TBA" : NewShowLocation);
+            cmd.Parameters.AddWithValue("@duration", NewShowDuration);
+            cmd.Parameters.AddWithValue("@type", NewShowType);
+
+            cmd.ExecuteNonQuery();
+
+            UpcomingShows.Add(new ShowScheduleItemViewModel
+            {
+                ShowId = showId,
+                Name = NewShowName,
+                Week = NewShowWeek,
+                Location = NewShowLocation,
+                ShowType = NewShowType,
+                Status = "ABOOKER",
+                Broadcast = "TBA"
+            });
+
+            this.RaisePropertyChanged(nameof(TotalUpcomingShows));
+
+            Logger.Info($"Show créé : {NewShowName} à la semaine {NewShowWeek}");
+
+            // Réinitialiser les champs
+            NewShowName = string.Empty;
+            NewShowWeek = CurrentWeek + 1;
+            NewShowLocation = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur création show : {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Met à jour le planning d'un show
+    /// </summary>
+    public void UpdateShowSchedule(ShowScheduleItemViewModel? show)
+    {
+        if (_repository == null || show == null || NewShowWeek <= 0)
+        {
+            Logger.Warning("Impossible de modifier planning : paramètres invalides");
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE Shows
+                SET Week = @week
+                WHERE ShowId = @id";
+
+            cmd.Parameters.AddWithValue("@week", NewShowWeek);
+            cmd.Parameters.AddWithValue("@id", show.ShowId);
+
+            cmd.ExecuteNonQuery();
+
+            show.Week = NewShowWeek;
+
+            Logger.Info($"Show '{show.Name}' replanifié à la semaine {NewShowWeek}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur mise à jour planning : {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Annule un show planifié
+    /// </summary>
+    public void CancelShow(ShowScheduleItemViewModel? show)
+    {
+        if (_repository == null || show == null)
+        {
+            Logger.Warning("Impossible d'annuler show : paramètre invalide");
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE Shows
+                SET Status = 'ANNULE'
+                WHERE ShowId = @id";
+
+            cmd.Parameters.AddWithValue("@id", show.ShowId);
+
+            cmd.ExecuteNonQuery();
+
+            UpcomingShows.Remove(show);
+            this.RaisePropertyChanged(nameof(TotalUpcomingShows));
+
+            Logger.Info($"Show annulé : {show.Name}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur annulation show : {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region Private Methods
 
     private void LoadCalendarData()
     {

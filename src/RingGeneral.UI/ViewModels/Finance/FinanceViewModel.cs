@@ -1,17 +1,22 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Models;
 
 namespace RingGeneral.UI.ViewModels.Finance;
 
 /// <summary>
-/// ViewModel pour le système financier
+/// ViewModel pour le système financier.
+/// Enrichi dans Phase 6.3 avec TV deals, audience et reach.
 /// </summary>
 public sealed class FinanceViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
+    private ShowContext? _context;
     private decimal _currentBalance = 10_000_000m;
     private decimal _weeklyRevenue;
     private decimal _weeklyExpenses;
@@ -23,10 +28,47 @@ public sealed class FinanceViewModel : ViewModelBase
 
         Transactions = new ObservableCollection<TransactionItemViewModel>();
 
+        // Phase 6.3 - Nouvelles collections
+        TvDeals = new ObservableCollection<TvDealViewModel>();
+        ReachMap = new ObservableCollection<ReachMapItemViewModel>();
+        BroadcastConstraints = new ObservableCollection<string>();
+        AudienceHistory = new ObservableCollection<AudienceHistoryItemViewModel>();
+
+        // Phase 6.3 - Commandes
+        LoadTvDealsCommand = ReactiveCommand.Create(LoadTvDeals);
+        LoadAudienceHistoryCommand = ReactiveCommand.Create<string>(LoadAudienceHistory);
+        CalculateReachCommand = ReactiveCommand.Create(CalculateReach);
+
         LoadFinanceData();
     }
 
+    #region Collections
+
     public ObservableCollection<TransactionItemViewModel> Transactions { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Deals TV actifs
+    /// </summary>
+    public ObservableCollection<TvDealViewModel> TvDeals { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Carte de reach (régions/markets)
+    /// </summary>
+    public ObservableCollection<ReachMapItemViewModel> ReachMap { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Contraintes de diffusion
+    /// </summary>
+    public ObservableCollection<string> BroadcastConstraints { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Historique d'audience
+    /// </summary>
+    public ObservableCollection<AudienceHistoryItemViewModel> AudienceHistory { get; }
+
+    #endregion
+
+    #region Properties
 
     public decimal CurrentBalance
     {
@@ -61,6 +103,177 @@ public sealed class FinanceViewModel : ViewModelBase
         get => _currentWeek;
         set => this.RaiseAndSetIfChanged(ref _currentWeek, value);
     }
+
+    public int TotalTvDeals => TvDeals.Count;
+    public decimal TotalReach => ReachMap.Sum(r => r.Population);
+
+    #endregion
+
+    #region Commands
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour charger les deals TV
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> LoadTvDealsCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour charger l'historique d'audience
+    /// </summary>
+    public ReactiveCommand<string, Unit> LoadAudienceHistoryCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour calculer le reach
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> CalculateReachCommand { get; }
+
+    #endregion
+
+    #region Public Methods - Phase 6.3
+
+    /// <summary>
+    /// Phase 6.3 - Charge les deals TV actifs
+    /// </summary>
+    public void LoadTvDeals()
+    {
+        TvDeals.Clear();
+        BroadcastConstraints.Clear();
+
+        if (_repository == null)
+        {
+            LoadPlaceholderTvDeals();
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT DealId, Network, WeeklyPayment, MinShows, MaxShows, StartWeek, EndWeek
+                FROM TvDeals
+                WHERE IsActive = 1
+                ORDER BY WeeklyPayment DESC";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                TvDeals.Add(new TvDealViewModel
+                {
+                    DealId = reader.GetString(0),
+                    Network = reader.GetString(1),
+                    WeeklyPayment = reader.GetDecimal(2),
+                    MinShows = reader.GetInt32(3),
+                    MaxShows = reader.GetInt32(4),
+                    StartWeek = reader.GetInt32(5),
+                    EndWeek = reader.IsDBNull(6) ? (int?)null : reader.GetInt32(6)
+                });
+            }
+
+            this.RaisePropertyChanged(nameof(TotalTvDeals));
+
+            Logger.Info($"{TvDeals.Count} TV deals actifs chargés");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement TV deals : {ex.Message}");
+            LoadPlaceholderTvDeals();
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Charge l'historique d'audience pour un show
+    /// </summary>
+    public void LoadAudienceHistory(string showId)
+    {
+        AudienceHistory.Clear();
+
+        if (_repository == null || string.IsNullOrWhiteSpace(showId))
+        {
+            LoadPlaceholderAudienceHistory();
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Week, Rating, Viewers, SharePercent
+                FROM ShowAudienceHistory
+                WHERE ShowId = @showId
+                ORDER BY Week DESC
+                LIMIT 12";
+
+            cmd.Parameters.AddWithValue("@showId", showId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                AudienceHistory.Add(new AudienceHistoryItemViewModel
+                {
+                    Week = reader.GetInt32(0),
+                    Rating = reader.GetDouble(1),
+                    Viewers = reader.GetInt32(2),
+                    SharePercent = reader.GetDouble(3)
+                });
+            }
+
+            Logger.Info($"{AudienceHistory.Count} entrées d'audience chargées pour {showId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement audience history : {ex.Message}");
+            LoadPlaceholderAudienceHistory();
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Calcule le reach potentiel
+    /// </summary>
+    public void CalculateReach()
+    {
+        ReachMap.Clear();
+
+        if (_repository == null)
+        {
+            LoadPlaceholderReach();
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Region, Population, Penetration
+                FROM MarketReach
+                ORDER BY Population DESC";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                ReachMap.Add(new ReachMapItemViewModel
+                {
+                    Region = reader.GetString(0),
+                    Population = reader.GetDecimal(1),
+                    Penetration = reader.GetDouble(2)
+                });
+            }
+
+            this.RaisePropertyChanged(nameof(TotalReach));
+
+            Logger.Info($"Reach calculé : {ReachMap.Count} régions, {TotalReach:N0} pop totale");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur calcul reach : {ex.Message}");
+            LoadPlaceholderReach();
+        }
+    }
+
+    #endregion
+
+    #region Private Methods
 
     private void LoadFinanceData()
     {
@@ -191,6 +404,69 @@ public sealed class FinanceViewModel : ViewModelBase
             Week = 1
         });
     }
+
+    /// <summary>
+    /// Phase 6.3 - Charge placeholder TV deals
+    /// </summary>
+    private void LoadPlaceholderTvDeals()
+    {
+        TvDeals.Add(new TvDealViewModel
+        {
+            DealId = "TV001",
+            Network = "USA Network",
+            WeeklyPayment = 150_000m,
+            MinShows = 1,
+            MaxShows = 2,
+            StartWeek = 1,
+            EndWeek = null
+        });
+
+        BroadcastConstraints.Add("Minimum 1 show par semaine");
+        BroadcastConstraints.Add("Primetime slot requis (19h-22h)");
+        BroadcastConstraints.Add("Rating minimum: PG-13");
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Charge placeholder audience history
+    /// </summary>
+    private void LoadPlaceholderAudienceHistory()
+    {
+        AudienceHistory.Add(new AudienceHistoryItemViewModel
+        {
+            Week = 4,
+            Rating = 2.5,
+            Viewers = 3_500_000,
+            SharePercent = 18.5
+        });
+        AudienceHistory.Add(new AudienceHistoryItemViewModel
+        {
+            Week = 3,
+            Rating = 2.3,
+            Viewers = 3_200_000,
+            SharePercent = 17.8
+        });
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Charge placeholder reach
+    /// </summary>
+    private void LoadPlaceholderReach()
+    {
+        ReachMap.Add(new ReachMapItemViewModel
+        {
+            Region = "Northeast",
+            Population = 55_000_000m,
+            Penetration = 0.65
+        });
+        ReachMap.Add(new ReachMapItemViewModel
+        {
+            Region = "South",
+            Population = 125_000_000m,
+            Penetration = 0.45
+        });
+    }
+
+    #endregion
 }
 
 public sealed class TransactionItemViewModel : ViewModelBase
@@ -227,4 +503,136 @@ public sealed class TransactionItemViewModel : ViewModelBase
     public string AmountFormatted => $"{(Amount >= 0 ? "+" : "")}{Amount:N0}";
     public string AmountColor => Amount >= 0 ? "#10b981" : "#ef4444";
     public string WeekDisplay => $"Week {Week}";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un TV deal
+/// </summary>
+public sealed class TvDealViewModel : ViewModelBase
+{
+    private string _dealId = string.Empty;
+    private string _network = string.Empty;
+    private decimal _weeklyPayment;
+    private int _minShows;
+    private int _maxShows;
+    private int _startWeek;
+    private int? _endWeek;
+
+    public string DealId
+    {
+        get => _dealId;
+        set => this.RaiseAndSetIfChanged(ref _dealId, value);
+    }
+
+    public string Network
+    {
+        get => _network;
+        set => this.RaiseAndSetIfChanged(ref _network, value);
+    }
+
+    public decimal WeeklyPayment
+    {
+        get => _weeklyPayment;
+        set => this.RaiseAndSetIfChanged(ref _weeklyPayment, value);
+    }
+
+    public int MinShows
+    {
+        get => _minShows;
+        set => this.RaiseAndSetIfChanged(ref _minShows, value);
+    }
+
+    public int MaxShows
+    {
+        get => _maxShows;
+        set => this.RaiseAndSetIfChanged(ref _maxShows, value);
+    }
+
+    public int StartWeek
+    {
+        get => _startWeek;
+        set => this.RaiseAndSetIfChanged(ref _startWeek, value);
+    }
+
+    public int? EndWeek
+    {
+        get => _endWeek;
+        set => this.RaiseAndSetIfChanged(ref _endWeek, value);
+    }
+
+    public string PaymentDisplay => $"${WeeklyPayment:N0}/semaine";
+    public string DurationDisplay => EndWeek.HasValue ? $"S{StartWeek}-S{EndWeek}" : $"S{StartWeek}+";
+    public string ShowsDisplay => $"{MinShows}-{MaxShows} shows/semaine";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un item de reach map
+/// </summary>
+public sealed class ReachMapItemViewModel : ViewModelBase
+{
+    private string _region = string.Empty;
+    private decimal _population;
+    private double _penetration;
+
+    public string Region
+    {
+        get => _region;
+        set => this.RaiseAndSetIfChanged(ref _region, value);
+    }
+
+    public decimal Population
+    {
+        get => _population;
+        set => this.RaiseAndSetIfChanged(ref _population, value);
+    }
+
+    public double Penetration
+    {
+        get => _penetration;
+        set => this.RaiseAndSetIfChanged(ref _penetration, value);
+    }
+
+    public string PopulationDisplay => $"{Population:N0}";
+    public string PenetrationDisplay => $"{Penetration:P0}";
+    public decimal EffectiveReach => Population * (decimal)Penetration;
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un item d'historique d'audience
+/// </summary>
+public sealed class AudienceHistoryItemViewModel : ViewModelBase
+{
+    private int _week;
+    private double _rating;
+    private int _viewers;
+    private double _sharePercent;
+
+    public int Week
+    {
+        get => _week;
+        set => this.RaiseAndSetIfChanged(ref _week, value);
+    }
+
+    public double Rating
+    {
+        get => _rating;
+        set => this.RaiseAndSetIfChanged(ref _rating, value);
+    }
+
+    public int Viewers
+    {
+        get => _viewers;
+        set => this.RaiseAndSetIfChanged(ref _viewers, value);
+    }
+
+    public double SharePercent
+    {
+        get => _sharePercent;
+        set => this.RaiseAndSetIfChanged(ref _sharePercent, value);
+    }
+
+    public string WeekDisplay => $"Week {Week}";
+    public string RatingDisplay => $"{Rating:F1}";
+    public string ViewersDisplay => $"{Viewers:N0}";
+    public string ShareDisplay => $"{SharePercent:F1}%";
 }
