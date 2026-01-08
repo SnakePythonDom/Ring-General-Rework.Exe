@@ -232,6 +232,19 @@ public sealed class BrandRepository : IBrandRepository
         await command.ExecuteNonQueryAsync();
     }
 
+    public async Task DeleteBrandAsync(string brandId)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Brands WHERE BrandId = @BrandId";
+
+        command.Parameters.AddWithValue("@BrandId", brandId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
     public async Task AssignBookerToBrandAsync(string brandId, string bookerId)
     {
         using var connection = new SqliteConnection(_connectionString);

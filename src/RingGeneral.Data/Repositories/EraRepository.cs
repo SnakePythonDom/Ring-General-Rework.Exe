@@ -428,6 +428,22 @@ public sealed class EraRepository : IEraRepository
         await command.ExecuteNonQueryAsync();
     }
 
+    public async Task CancelTransitionAsync(string transitionId)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            UPDATE EraTransitions
+            SET IsActive = 0
+            WHERE TransitionId = @TransitionId";
+
+        command.Parameters.AddWithValue("@TransitionId", transitionId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
     // ====================================================================
     // BUSINESS QUERIES
     // ====================================================================
