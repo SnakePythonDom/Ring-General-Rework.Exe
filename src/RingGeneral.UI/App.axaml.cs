@@ -61,7 +61,12 @@ public sealed class App : Application
         services.AddSingleton<BookingValidator>();
         services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
 
-        // Personality System Services
+        // Personality System Services (Phase 1)
+        services.AddSingleton<IPersonalityEngine, PersonalityEngine>();
+        services.AddSingleton<IPersonalityRepository>(sp =>
+            new PersonalityRepository(factory, sp.GetRequiredService<IPersonalityEngine>()));
+
+        // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
         services.AddSingleton<AgentReportGeneratorService>();
 
