@@ -87,6 +87,7 @@
                        Foreground="#e2e8f0"/>
             <ComboBox ItemsSource="{Binding AvailableRegions}"
                       SelectedItem="{Binding SelectedRegion}"
+                      DisplayMemberBinding="{Binding RegionName}"
                       FontSize="18"
                       Padding="12"
                       Background="#0f172a"

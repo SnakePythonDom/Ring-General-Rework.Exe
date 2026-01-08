@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Core.Models;
@@ -31,6 +32,8 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private double _startingTreasury = 100000.0;
     private int _foundedYear = 2024;
     private string? _errorMessage;
+    private readonly int _baseStartingPrestige = 50;
+    private readonly double _baseStartingTreasury = 100000.0;
 
     public CreateCompanyViewModel(
         GameRepository? repository = null,
@@ -52,7 +55,16 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         LoadCatchStylesFromDatabase();
 
         // Commandes
-        CreateCompanyCommand = ReactiveCommand.Create(CreateCompany);
+        var canCreateCompany = this.WhenAnyValue(
+            vm => vm.CompanyName,
+            vm => vm.SelectedRegion,
+            vm => vm.SelectedCatchStyle,
+            (name, region, style) => !string.IsNullOrWhiteSpace(name)
+                                     && name.Trim().Length >= 3
+                                     && region != null
+                                     && style != null);
+
+        CreateCompanyCommand = ReactiveCommand.Create(CreateCompany, canCreateCompany);
         ContinueCommand = CreateCompanyCommand;
         CancelCommand = ReactiveCommand.Create(Cancel);
     }
@@ -160,7 +172,11 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     public CatchStyle? SelectedCatchStyle
     {
         get => _selectedCatchStyle;
-        set => this.RaiseAndSetIfChanged(ref _selectedCatchStyle, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedCatchStyle, value);
+            UpdateStartingValuesForStyle(value);
+        }
     }
 
     /// <summary>
@@ -223,6 +239,20 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// Commande pour annuler et retourner
     /// </summary>
     public ReactiveCommand<Unit, Unit> CancelCommand { get; }
+
+    private void UpdateStartingValuesForStyle(CatchStyle? style)
+    {
+        if (style == null)
+        {
+            StartingPrestige = _baseStartingPrestige;
+            StartingTreasury = _baseStartingTreasury;
+            return;
+        }
+
+        var adjustedPrestige = (int)Math.Round(_baseStartingPrestige * style.MatchRatingMultiplier);
+        StartingPrestige = Math.Clamp(adjustedPrestige, 0, 100);
+        StartingTreasury = Math.Max(0, _baseStartingTreasury * style.PromoRatingMultiplier);
+    }
 
     /// <summary>
     /// Crée la nouvelle compagnie dans la base de données
