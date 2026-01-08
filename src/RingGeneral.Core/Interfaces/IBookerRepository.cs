@@ -18,12 +18,14 @@ public interface IBookerRepository
     Task UpdateBookerAsync(Booker booker);
 
     Task<BookerMemory?> GetBookerMemoryByIdAsync(int memoryId);
+    Task<List<BookerMemory>> GetBookerMemoriesAsync(string bookerId);
     Task<List<BookerMemory>> GetRecentMemoriesAsync(string bookerId, int limit);
     Task<List<BookerMemory>> GetStrongMemoriesAsync(string bookerId);
     Task<int> CountMemoriesAsync(string bookerId);
     Task SaveBookerMemoryAsync(BookerMemory memory);
     Task UpdateBookerMemoryAsync(BookerMemory memory);
     Task DeleteWeakMemoriesAsync(string bookerId, int threshold);
+    Task CleanupWeakMemoriesAsync(string bookerId);
 
     Task<List<BookerEmploymentHistory>> GetEmploymentHistoryAsync(string bookerId);
     Task SaveEmploymentHistoryAsync(BookerEmploymentHistory history);

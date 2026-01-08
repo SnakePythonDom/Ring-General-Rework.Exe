@@ -117,73 +117,73 @@ public class PersonalityEngine : IPersonalityEngine
         {
             case "MainEventPush":
                 // Push vers main event → augmente Ego et Ambition
-                AdjustAttribute(ref attributes.Ego, +intensity);
-                AdjustAttribute(ref attributes.Ambition, +intensity);
+                attributes.Ego = AdjustAttribute(attributes.Ego, +intensity);
+                attributes.Ambition = AdjustAttribute(attributes.Ambition, +intensity);
                 // Peut diminuer Loyalty si non mérité
                 if (intensity >= 4)
-                    AdjustAttribute(ref attributes.Loyalty, -1);
+                    attributes.Loyalty = AdjustAttribute(attributes.Loyalty, -1);
                 break;
 
             case "TitleWin":
                 // Victoire titre → boost confiance
-                AdjustAttribute(ref attributes.Ego, +intensity);
-                AdjustAttribute(ref attributes.Resilience, +1);
+                attributes.Ego = AdjustAttribute(attributes.Ego, +intensity);
+                attributes.Resilience = AdjustAttribute(attributes.Resilience, +1);
                 break;
 
             case "PushFailed":
                 // Push raté → diminue Resilience et Ambition
-                AdjustAttribute(ref attributes.Resilience, -intensity);
-                AdjustAttribute(ref attributes.Ambition, -Math.Max(1, intensity - 1));
-                AdjustAttribute(ref attributes.Ego, -1);
+                attributes.Resilience = AdjustAttribute(attributes.Resilience, -intensity);
+                attributes.Ambition = AdjustAttribute(attributes.Ambition, -Math.Max(1, intensity - 1));
+                attributes.Ego = AdjustAttribute(attributes.Ego, -1);
                 break;
 
             case "ContractDispute":
                 // Conflit contractuel → diminue Loyalty et Professionalism
-                AdjustAttribute(ref attributes.Loyalty, -intensity);
-                AdjustAttribute(ref attributes.Professionalism, -Math.Max(1, intensity - 1));
+                attributes.Loyalty = AdjustAttribute(attributes.Loyalty, -intensity);
+                attributes.Professionalism = AdjustAttribute(attributes.Professionalism, -Math.Max(1, intensity - 1));
                 break;
 
             case "InjuryReturn":
                 // Retour de blessure → augmente Resilience
-                AdjustAttribute(ref attributes.Resilience, +intensity);
-                AdjustAttribute(ref attributes.WorkEthic, +1);
+                attributes.Resilience = AdjustAttribute(attributes.Resilience, +intensity);
+                attributes.WorkEthic = AdjustAttribute(attributes.WorkEthic, +1);
                 break;
 
             case "CreativeControl":
                 // Obtention de contrôle créatif → augmente Creativity et Ego
-                AdjustAttribute(ref attributes.Creativity, +intensity);
-                AdjustAttribute(ref attributes.Ego, +1);
+                attributes.Creativity = AdjustAttribute(attributes.Creativity, +intensity);
+                attributes.Ego = AdjustAttribute(attributes.Ego, +1);
                 break;
 
             case "LockerRoomConflict":
                 // Conflit vestiaire → peut affecter SocialSkills et Temperament
-                AdjustAttribute(ref attributes.SocialSkills, -intensity);
-                AdjustAttribute(ref attributes.Temperament, -Math.Max(1, intensity - 1));
+                attributes.SocialSkills = AdjustAttribute(attributes.SocialSkills, -intensity);
+                attributes.Temperament = AdjustAttribute(attributes.Temperament, -Math.Max(1, intensity - 1));
                 break;
 
             case "PositiveFeedback":
                 // Feedback positif (du booker, owner, etc.)
-                AdjustAttribute(ref attributes.Professionalism, +1);
-                AdjustAttribute(ref attributes.WorkEthic, +1);
+                attributes.Professionalism = AdjustAttribute(attributes.Professionalism, +1);
+                attributes.WorkEthic = AdjustAttribute(attributes.WorkEthic, +1);
                 break;
 
             case "PublicCriticism":
                 // Critique publique
-                AdjustAttribute(ref attributes.Ego, -intensity);
-                AdjustAttribute(ref attributes.Temperament, -1);
+                attributes.Ego = AdjustAttribute(attributes.Ego, -intensity);
+                attributes.Temperament = AdjustAttribute(attributes.Temperament, -1);
                 break;
 
             case "MentorshipGiven":
                 // Devenu mentor d'un jeune
-                AdjustAttribute(ref attributes.SocialSkills, +1);
-                AdjustAttribute(ref attributes.Adaptability, +1);
+                attributes.SocialSkills = AdjustAttribute(attributes.SocialSkills, +1);
+                attributes.Adaptability = AdjustAttribute(attributes.Adaptability, +1);
                 break;
 
             case "LongTermSuccess":
                 // Succès sur le long terme (plusieurs mois)
-                AdjustAttribute(ref attributes.Professionalism, +1);
-                AdjustAttribute(ref attributes.Resilience, +1);
-                AdjustAttribute(ref attributes.Loyalty, +1);
+                attributes.Professionalism = AdjustAttribute(attributes.Professionalism, +1);
+                attributes.Resilience = AdjustAttribute(attributes.Resilience, +1);
+                attributes.Loyalty = AdjustAttribute(attributes.Loyalty, +1);
                 break;
 
             default:
@@ -194,9 +194,9 @@ public class PersonalityEngine : IPersonalityEngine
         attributes.LastUpdated = DateTime.Now;
     }
 
-    private void AdjustAttribute(ref int attribute, int change)
+    private int AdjustAttribute(int currentValue, int change)
     {
-        attribute = Math.Clamp(attribute + change, 0, 20);
+        return Math.Clamp(currentValue + change, 0, 20);
     }
 
     public bool ShouldPersonalityChange(

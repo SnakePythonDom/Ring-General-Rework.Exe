@@ -17,4 +17,5 @@ public interface IRumorRepository
     Task SaveRumorAsync(Rumor rumor);
     Task UpdateRumorAsync(Rumor rumor);
     Task ResolveRumorAsync(int rumorId);
+    Task CleanupOldRumorsAsync(string companyId, int daysToKeep);
 }
