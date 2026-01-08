@@ -13,9 +13,9 @@ INSERT INTO Companies (
     Prestige
 )
 SELECT
-    'COMP_' || p.id,
-    p.id,
-    p.name,
+    'COMP_' || p.promotionID,
+    p.promotionID,
+    p.fullName,
     c.CountryId,
     COALESCE(
         (
@@ -27,9 +27,9 @@ SELECT
         ),
         'REGION_DEFAULT'
     ),
-    p.popularity
+    p.prestige
 FROM legacy.promotions p
-LEFT JOIN Countries c ON c.Name = p.country
+LEFT JOIN Countries c ON c.Name = p.basedInCountry
 ON CONFLICT(LegacyPromotionId) DO NOTHING;
 
 INSERT OR IGNORE INTO Companies (CompanyId, Name, CountryId, RegionId, Prestige)
