@@ -3,7 +3,6 @@ using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Company;
 using RingGeneral.Core.Models.Owner;
 using RingGeneral.Core.Models.Staff;
-using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

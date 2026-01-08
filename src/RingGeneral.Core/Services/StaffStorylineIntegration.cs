@@ -1,7 +1,7 @@
 using RingGeneral.Core.Enums;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Staff;
-using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

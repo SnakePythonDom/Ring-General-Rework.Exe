@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Enums;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Staff;
 using System;
 using System.Collections.Generic;

@@ -5,9 +5,9 @@ using System.Reactive;
 using System.Threading.Tasks;
 using ReactiveUI;
 using RingGeneral.Core.Enums;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Company;
 using RingGeneral.Core.Services;
-using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels;
 
