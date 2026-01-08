@@ -318,7 +318,7 @@ public sealed class ShowWorkersViewModel : ViewModelBase
     /// <summary>
     /// Vérifie si un worker est disponible pour le booking.
     /// </summary>
-    private bool IsWorkerAvailable(Worker worker)
+    private bool IsWorkerAvailable(WorkerSnapshot worker)
     {
         if (worker is null)
         {

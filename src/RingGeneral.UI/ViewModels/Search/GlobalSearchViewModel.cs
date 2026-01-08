@@ -185,9 +185,9 @@ public sealed class GlobalSearchViewModel : ViewModelBase
         return phase switch
         {
             StorylinePhase.Setup => "Configuration",
-            StorylinePhase.Developpement => "Développement",
+            StorylinePhase.Rising => "Développement",
             StorylinePhase.Climax => "Climax",
-            StorylinePhase.Resolution => "Résolution",
+            StorylinePhase.Fallout => "Résolution",
             _ => "Inconnue"
         };
     }
