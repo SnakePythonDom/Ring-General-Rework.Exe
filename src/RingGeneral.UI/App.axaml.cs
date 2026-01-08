@@ -18,6 +18,7 @@ using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Validation;
 using RingGeneral.Core.Services;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.UI.ViewModels;
 
 namespace RingGeneral.UI;
