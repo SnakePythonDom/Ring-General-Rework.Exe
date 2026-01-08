@@ -34,13 +34,13 @@ public sealed class TableViewViewModel : ViewModelBase
         Configuration = new TableViewConfigurationViewModel();
         Columns = new ObservableCollection<TableColumnOrderViewModel>
         {
-            new("Type", "Type", true),
-            new("Compagnie", "Compagnie", false),
-            new("Role", "Rôle", false),
-            new("Statut", "Statut", true),
-            new("Popularite", "Popularité", true),
-            new("Momentum", "Momentum", true),
-            new("Note", "Note", true)
+            new("Type", "Type"),
+            new("Compagnie", "Compagnie"),
+            new("Role", "Rôle"),
+            new("Statut", "Statut"),
+            new("Popularite", "Popularité"),
+            new("Momentum", "Momentum"),
+            new("Note", "Note")
         };
         TypeFilters = new ObservableCollection<TableFilterOptionViewModel>
         {
