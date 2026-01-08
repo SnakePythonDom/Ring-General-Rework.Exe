@@ -380,6 +380,12 @@ public sealed class StaffManagementViewModel : ViewModelBase
     private StaffMemberListItemViewModel? _selectedStaff;
     private string _selectedDepartment = "All";
 
+    public sealed record StaffHireRequest(
+        StaffMember Member,
+        CreativeStaff? CreativeStaff,
+        StructuralStaff? StructuralStaff,
+        Trainer? Trainer);
+
     public StaffManagementViewModel(
         string companyId,
         IStaffRepository staffRepository,
@@ -398,7 +404,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
         Compatibilities = new ObservableCollection<StaffCompatibilityViewModel>();
         DangerousStaff = new ObservableCollection<CreativeStaffViewModel>();
 
-        HireStaffCommand = ReactiveCommand.CreateFromTask<(StaffMember Member, string? SpecificType)>(HireStaffAsync);
+        HireStaffCommand = ReactiveCommand.CreateFromTask<StaffHireRequest>(HireStaffAsync);
         TerminateStaffCommand = ReactiveCommand.CreateFromTask<string>(TerminateStaffAsync);
         CalculateCompatibilityCommand = ReactiveCommand.CreateFromTask<(string StaffId, string BookerId)>(CalculateCompatibilityAsync);
         RecalculateAllCompatibilitiesCommand = ReactiveCommand.CreateFromTask(RecalculateAllCompatibilitiesAsync);
@@ -450,7 +456,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
     // COMMANDS
     // ====================================================================
 
-    public ReactiveCommand<(StaffMember Member, string? SpecificType), Unit> HireStaffCommand { get; }
+    public ReactiveCommand<StaffHireRequest, Unit> HireStaffCommand { get; }
     public ReactiveCommand<string, Unit> TerminateStaffCommand { get; }
     public ReactiveCommand<(string StaffId, string BookerId), Unit> CalculateCompatibilityCommand { get; }
     public ReactiveCommand<Unit, Unit> RecalculateAllCompatibilitiesCommand { get; }
@@ -565,7 +571,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
     // PRIVATE COMMAND HANDLERS
     // ====================================================================
 
-    private async Task HireStaffAsync((StaffMember Member, string? SpecificType) parameters)
+    private async Task HireStaffAsync(StaffHireRequest parameters)
     {
         try
         {
@@ -573,18 +579,19 @@ public sealed class StaffManagementViewModel : ViewModelBase
 
             await _staffRepository.SaveStaffMemberAsync(parameters.Member);
 
-            // Si type spécifique, sauvegarder aussi
-            if (parameters.SpecificType == "Creative" && parameters.Member is CreativeStaff creative)
+            if (parameters.CreativeStaff != null)
             {
-                await _staffRepository.SaveCreativeStaffAsync(creative);
+                await _staffRepository.SaveCreativeStaffAsync(parameters.CreativeStaff);
             }
-            else if (parameters.SpecificType == "Structural" && parameters.Member is StructuralStaff structural)
+
+            if (parameters.StructuralStaff != null)
             {
-                await _staffRepository.SaveStructuralStaffAsync(structural);
+                await _staffRepository.SaveStructuralStaffAsync(parameters.StructuralStaff);
             }
-            else if (parameters.SpecificType == "Trainer" && parameters.Member is Trainer trainer)
+
+            if (parameters.Trainer != null)
             {
-                await _staffRepository.SaveTrainerAsync(trainer);
+                await _staffRepository.SaveTrainerAsync(parameters.Trainer);
             }
 
             await LoadDataAsync();
@@ -699,7 +706,7 @@ public sealed class StaffManagementViewModel : ViewModelBase
         return new StructuralStaffViewModel(
             baseVm,
             structural.ExpertiseDomain,
-            structural.ExpertiseLevel,
+            structural.EfficiencyScore,
             structural.TotalInterventions,
             structural.SuccessfulInterventions);
     }

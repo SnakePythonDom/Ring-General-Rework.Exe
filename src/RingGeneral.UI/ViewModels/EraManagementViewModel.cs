@@ -420,13 +420,13 @@ public sealed class EraManagementViewModel : ViewModelBase
     {
         return new EraTransitionViewModel(
             transition.TransitionId,
-            transition.FromEraType.ToString(),
-            transition.ToEraType.ToString(),
+            transition.FromEraId,
+            transition.ToEraId,
             transition.ProgressPercentage,
             transition.Speed.ToString(),
             transition.MoraleImpact,
             transition.AudienceImpact,
             transition.ChangeResistance,
-            transition.StartedAt);
+            transition.StartDate);
     }
 }
