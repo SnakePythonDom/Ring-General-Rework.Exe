@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Services;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Services;
@@ -12,11 +13,13 @@ public sealed class WorkerService
 {
     private readonly SqliteConnectionFactory _factory;
     private readonly System.Random _random;
+    private readonly ILoggingService _logger;
 
-    public WorkerService(SqliteConnectionFactory factory)
+    public WorkerService(SqliteConnectionFactory factory, ILoggingService? logger = null)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _random = new System.Random();
+        _logger = logger ?? ApplicationServices.Logger;
     }
 
     /// <summary>
@@ -25,7 +28,7 @@ public sealed class WorkerService
     /// <param name="currentWeek">Semaine courante du jeu</param>
     public void ProcessWeeklyAging(int currentWeek)
     {
-        Console.WriteLine($"[WorkerService] Traitement du vieillissement pour la semaine {currentWeek}");
+        _logger.Info($"Processing weekly aging for week {currentWeek}");
 
         using var connection = _factory.OuvrirConnexion();
         using var transaction = connection.BeginTransaction();
@@ -65,7 +68,7 @@ public sealed class WorkerService
                     ApplyAgingToWorker(connection, worker.workerId, worker.age, worker.inRing, worker.entertainment);
                 }
 
-                Console.WriteLine($"[WorkerService] {workersToAge.Count} workers vieillis");
+                _logger.Info($"{workersToAge.Count} workers aged");
             }
 
             transaction.Commit();
@@ -73,7 +76,7 @@ public sealed class WorkerService
         catch (Exception ex)
         {
             transaction.Rollback();
-            Console.Error.WriteLine($"[WorkerService] Erreur lors du vieillissement: {ex.Message}");
+            _logger.Error($"Error during aging process: {ex.Message}", ex);
             throw;
         }
     }
@@ -111,7 +114,7 @@ public sealed class WorkerService
 
                 if (rowsAffected > 0)
                 {
-                    Console.WriteLine($"[WorkerService] {workerId} ({ageInYears} ans) - Déclin physique: InRing {currentInRing} → {newInRing}");
+                    _logger.Debug($"{workerId} ({ageInYears} years) - Physical decline: InRing {currentInRing} → {newInRing}");
                 }
             }
         }
@@ -123,7 +126,7 @@ public sealed class WorkerService
     /// <param name="currentWeek">Semaine courante</param>
     public void ProcessWeeklyFatigueRecovery(int currentWeek)
     {
-        Console.WriteLine($"[WorkerService] Traitement de la récupération de fatigue pour la semaine {currentWeek}");
+        _logger.Info($"Processing fatigue recovery for week {currentWeek}");
 
         using var connection = _factory.OuvrirConnexion();
 
@@ -137,11 +140,11 @@ public sealed class WorkerService
                 WHERE Fatigue > 0";
 
             var rowsAffected = updateCmd.ExecuteNonQuery();
-            Console.WriteLine($"[WorkerService] {rowsAffected} workers ont récupéré de la fatigue");
+            _logger.Info($"{rowsAffected} workers recovered fatigue");
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[WorkerService] Erreur lors de la récupération de fatigue: {ex.Message}");
+            _logger.Error($"Error during fatigue recovery: {ex.Message}", ex);
         }
     }
 
@@ -151,7 +154,7 @@ public sealed class WorkerService
     /// <param name="currentWeek">Semaine courante</param>
     public void ProcessWeeklyMoraleChanges(int currentWeek)
     {
-        Console.WriteLine($"[WorkerService] Traitement des changements de moral pour la semaine {currentWeek}");
+        _logger.Info($"Processing morale changes for week {currentWeek}");
 
         using var connection = _factory.OuvrirConnexion();
 
@@ -169,11 +172,11 @@ public sealed class WorkerService
                 WHERE Morale != 75";
 
             var rowsAffected = updateCmd.ExecuteNonQuery();
-            Console.WriteLine($"[WorkerService] {rowsAffected} workers ont eu un ajustement de moral");
+            _logger.Info($"{rowsAffected} workers had morale adjustment");
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[WorkerService] Erreur lors des changements de moral: {ex.Message}");
+            _logger.Error($"Error during morale changes: {ex.Message}", ex);
         }
     }
 
@@ -183,12 +186,12 @@ public sealed class WorkerService
     /// <param name="currentWeek">Semaine courante</param>
     public void ProcessWeeklyTick(int currentWeek)
     {
-        Console.WriteLine($"[WorkerService] ========== TICK HEBDOMADAIRE SEMAINE {currentWeek} ==========");
+        _logger.Info($"========== WEEKLY TICK WEEK {currentWeek} ==========");
 
         ProcessWeeklyAging(currentWeek);
         ProcessWeeklyFatigueRecovery(currentWeek);
         ProcessWeeklyMoraleChanges(currentWeek);
 
-        Console.WriteLine($"[WorkerService] ========== FIN TICK SEMAINE {currentWeek} ==========");
+        _logger.Info($"========== END TICK WEEK {currentWeek} ==========");
     }
 }
