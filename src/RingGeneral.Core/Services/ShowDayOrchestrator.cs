@@ -135,14 +135,20 @@ public sealed class ShowDayOrchestrator
         // 1. Traiter les changements de titres
         if (_titleService is not null)
         {
-            foreach (var segment in context.Segments.Where(s => s.TitreId is not null))
+            foreach (var segment in context.Segments.Where(s => !string.IsNullOrWhiteSpace(s.TitreId)))
             {
                 var segmentReport = resultat.RapportShow.Segments
                     .FirstOrDefault(r => r.SegmentId == segment.SegmentId);
 
                 if (segmentReport is not null && !string.IsNullOrWhiteSpace(segment.VainqueurId))
                 {
-                    var titre = context.Titres.FirstOrDefault(t => t.TitreId == segment.TitreId);
+                    var titreId = segment.TitreId;
+                    if (string.IsNullOrWhiteSpace(titreId))
+                    {
+                        continue;
+                    }
+
+                    var titre = context.Titres.FirstOrDefault(t => t.TitreId == titreId);
                     if (titre is null)
                     {
                         continue;
@@ -153,7 +159,7 @@ public sealed class ShowDayOrchestrator
                         .FirstOrDefault(p => p != segment.VainqueurId);
 
                     var input = new TitleMatchInput(
-                        segment.TitreId,
+                        titreId,
                         challengerId ?? string.Empty,
                         segment.VainqueurId,
                         context.Show.Semaine,
