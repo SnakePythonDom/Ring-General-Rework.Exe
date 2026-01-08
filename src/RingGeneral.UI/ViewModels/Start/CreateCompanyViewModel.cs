@@ -53,6 +53,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
         // Commandes
         CreateCompanyCommand = ReactiveCommand.Create(CreateCompany);
+        ContinueCommand = CreateCompanyCommand;
         CancelCommand = ReactiveCommand.Create(Cancel);
     }
 
@@ -212,6 +213,11 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// Commande pour créer la compagnie
     /// </summary>
     public ReactiveCommand<Unit, Unit> CreateCompanyCommand { get; }
+
+    /// <summary>
+    /// Commande pour continuer la création
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> ContinueCommand { get; }
 
     /// <summary>
     /// Commande pour annuler et retourner
