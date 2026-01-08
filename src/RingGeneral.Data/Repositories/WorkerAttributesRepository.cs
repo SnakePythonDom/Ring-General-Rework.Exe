@@ -415,4 +415,181 @@ public sealed class WorkerAttributesRepository : RepositoryBase, IWorkerAttribut
 
         return workers;
     }
+
+    // ====================================================================
+    // MENTAL ATTRIBUTES (10 attributes - 0-20 scale)
+    // ====================================================================
+
+    public WorkerMentalAttributes? GetMentalAttributes(int workerId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = @"
+            SELECT Id, WorkerId, Ambition, Loyauté, Professionnalisme, Pression,
+                   Tempérament, Égoïsme, Détermination, Adaptabilité, Influence, Sportivité,
+                   IsRevealed, ScoutingLevel, LastUpdated
+            FROM WorkerMentalAttributes
+            WHERE WorkerId = $workerId";
+
+        AjouterParametre(command, "$workerId", workerId);
+
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
+        {
+            return new WorkerMentalAttributes
+            {
+                Id = reader.GetInt32(0),
+                WorkerId = reader.GetInt32(1),
+                Ambition = reader.GetInt32(2),
+                Loyauté = reader.GetInt32(3),
+                Professionnalisme = reader.GetInt32(4),
+                Pression = reader.GetInt32(5),
+                Tempérament = reader.GetInt32(6),
+                Égoïsme = reader.GetInt32(7),
+                Détermination = reader.GetInt32(8),
+                Adaptabilité = reader.GetInt32(9),
+                Influence = reader.GetInt32(10),
+                Sportivité = reader.GetInt32(11),
+                IsRevealed = reader.GetBoolean(12),
+                ScoutingLevel = reader.GetInt32(13),
+                LastUpdated = DateTime.Parse(reader.GetString(14))
+            };
+        }
+
+        return null;
+    }
+
+    public void SaveMentalAttributes(WorkerMentalAttributes attributes)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = @"
+            INSERT OR REPLACE INTO WorkerMentalAttributes
+            (WorkerId, Ambition, Loyauté, Professionnalisme, Pression, Tempérament,
+             Égoïsme, Détermination, Adaptabilité, Influence, Sportivité,
+             IsRevealed, ScoutingLevel, LastUpdated)
+            VALUES ($workerId, $ambition, $loyauté, $professionnalisme, $pression, $tempérament,
+                    $égoïsme, $détermination, $adaptabilité, $influence, $sportivité,
+                    $isRevealed, $scoutingLevel, $lastUpdated)";
+
+        AjouterParametre(command, "$workerId", attributes.WorkerId);
+        AjouterParametre(command, "$ambition", attributes.Ambition);
+        AjouterParametre(command, "$loyauté", attributes.Loyauté);
+        AjouterParametre(command, "$professionnalisme", attributes.Professionnalisme);
+        AjouterParametre(command, "$pression", attributes.Pression);
+        AjouterParametre(command, "$tempérament", attributes.Tempérament);
+        AjouterParametre(command, "$égoïsme", attributes.Égoïsme);
+        AjouterParametre(command, "$détermination", attributes.Détermination);
+        AjouterParametre(command, "$adaptabilité", attributes.Adaptabilité);
+        AjouterParametre(command, "$influence", attributes.Influence);
+        AjouterParametre(command, "$sportivité", attributes.Sportivité);
+        AjouterParametre(command, "$isRevealed", attributes.IsRevealed ? 1 : 0);
+        AjouterParametre(command, "$scoutingLevel", attributes.ScoutingLevel);
+        AjouterParametre(command, "$lastUpdated", attributes.LastUpdated.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        command.ExecuteNonQuery();
+    }
+
+    public void UpdateMentalAttribute(int workerId, string attributeName, int value)
+    {
+        // Validate attribute name to prevent SQL injection
+        var validAttributes = new[] { "Ambition", "Loyauté", "Professionnalisme", "Pression", "Tempérament",
+                                      "Égoïsme", "Détermination", "Adaptabilité", "Influence", "Sportivité" };
+
+        if (!validAttributes.Contains(attributeName))
+            throw new ArgumentException($"Invalid attribute name: {attributeName}");
+
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = $@"
+            UPDATE WorkerMentalAttributes
+            SET {attributeName} = $value, LastUpdated = $lastUpdated
+            WHERE WorkerId = $workerId";
+
+        // Mental attributes use 0-20 scale (not 0-100)
+        AjouterParametre(command, "$value", Math.Clamp(value, 0, 20));
+        AjouterParametre(command, "$workerId", workerId);
+        AjouterParametre(command, "$lastUpdated", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        command.ExecuteNonQuery();
+    }
+
+    public void RevealMentalAttributes(int workerId, int scoutingLevel)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = @"
+            UPDATE WorkerMentalAttributes
+            SET IsRevealed = 1,
+                ScoutingLevel = $scoutingLevel,
+                LastUpdated = $lastUpdated
+            WHERE WorkerId = $workerId";
+
+        AjouterParametre(command, "$scoutingLevel", Math.Clamp(scoutingLevel, 0, 2));
+        AjouterParametre(command, "$workerId", workerId);
+        AjouterParametre(command, "$lastUpdated", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        command.ExecuteNonQuery();
+    }
+
+    public void InitializeDefaultMentalAttributes(int workerId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = @"
+            INSERT OR IGNORE INTO WorkerMentalAttributes
+            (WorkerId, Ambition, Loyauté, Professionnalisme, Pression, Tempérament,
+             Égoïsme, Détermination, Adaptabilité, Influence, Sportivité,
+             IsRevealed, ScoutingLevel, LastUpdated)
+            VALUES ($workerId, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, $lastUpdated)";
+
+        AjouterParametre(command, "$workerId", workerId);
+        AjouterParametre(command, "$lastUpdated", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        command.ExecuteNonQuery();
+    }
+
+    public List<int> GetWorkersByProfessionnalismeScore(double minScore)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = @"
+            SELECT WorkerId
+            FROM WorkerMentalAttributes
+            WHERE (Professionnalisme + Sportivité + Loyauté) / 3.0 >= $minScore
+            ORDER BY (Professionnalisme + Sportivité + Loyauté) / 3.0 DESC";
+
+        AjouterParametre(command, "$minScore", minScore);
+
+        var workers = new List<int>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            workers.Add(reader.GetInt32(0));
+        }
+
+        return workers;
+    }
+
+    public List<int> GetWorkersByHighEgo(int minEgo)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = @"
+            SELECT WorkerId
+            FROM WorkerMentalAttributes
+            WHERE Égoïsme >= $minEgo
+            ORDER BY Égoïsme DESC, Sportivité ASC";
+
+        AjouterParametre(command, "$minEgo", minEgo);
+
+        var workers = new List<int>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            workers.Add(reader.GetInt32(0));
+        }
+
+        return workers;
+    }
 }

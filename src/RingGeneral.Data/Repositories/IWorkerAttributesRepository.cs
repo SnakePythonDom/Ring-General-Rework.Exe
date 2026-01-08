@@ -98,4 +98,45 @@ public interface IWorkerAttributesRepository
     /// Get workers with StoryAvg above threshold
     /// </summary>
     List<int> GetWorkersByStoryAvg(int minAvg);
+
+    // ====================================================================
+    // MENTAL ATTRIBUTES (10 attributes - 0-20 scale)
+    // ====================================================================
+
+    /// <summary>
+    /// Get Mental attributes for a worker
+    /// </summary>
+    WorkerMentalAttributes? GetMentalAttributes(int workerId);
+
+    /// <summary>
+    /// Save or update Mental attributes for a worker
+    /// </summary>
+    void SaveMentalAttributes(WorkerMentalAttributes attributes);
+
+    /// <summary>
+    /// Update a specific Mental attribute value
+    /// </summary>
+    void UpdateMentalAttribute(int workerId, string attributeName, int value);
+
+    /// <summary>
+    /// Reveal mental attributes through scouting
+    /// </summary>
+    /// <param name="workerId">Worker ID</param>
+    /// <param name="scoutingLevel">1 = Basic (4 pillars), 2 = Full (all 10)</param>
+    void RevealMentalAttributes(int workerId, int scoutingLevel);
+
+    /// <summary>
+    /// Initialize default mental attributes for a new worker (all = 10)
+    /// </summary>
+    void InitializeDefaultMentalAttributes(int workerId);
+
+    /// <summary>
+    /// Get workers by professionalism score (4-pillar average)
+    /// </summary>
+    List<int> GetWorkersByProfessionnalismeScore(double minScore);
+
+    /// <summary>
+    /// Get workers by ego score (potential problems)
+    /// </summary>
+    List<int> GetWorkersByHighEgo(int minEgo);
 }
