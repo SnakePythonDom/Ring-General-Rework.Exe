@@ -65,6 +65,17 @@ public sealed record Booker
     public required string PreferredStyle { get; init; }
 
     /// <summary>
+    /// Type de produit préféré: "Hardcore", "Puroresu", "Technical", "Entertainment", "Balanced"
+    /// - Hardcore: Stipulations violentes, matches extrêmes
+    /// - Puroresu: Matchs longs et techniques, strong style
+    /// - Technical: Wrestling technique pur, soumissions
+    /// - Entertainment: Segments narratifs, promos, angles
+    /// - Balanced: Mix équilibré de tous les styles
+    /// </summary>
+    [Required]
+    public string PreferredProductType { get; init; } = "Balanced";
+
+    /// <summary>
     /// Aime pousser les underdogs (workers peu populaires)
     /// </summary>
     public bool LikesUnderdog { get; init; }
@@ -134,6 +145,13 @@ public sealed record Booker
         if (!validStyles.Contains(PreferredStyle))
         {
             errorMessage = $"PreferredStyle doit être: {string.Join(", ", validStyles)}";
+            return false;
+        }
+
+        var validProductTypes = new[] { "Hardcore", "Puroresu", "Technical", "Entertainment", "Balanced" };
+        if (!validProductTypes.Contains(PreferredProductType))
+        {
+            errorMessage = $"PreferredProductType doit être: {string.Join(", ", validProductTypes)}";
             return false;
         }
 

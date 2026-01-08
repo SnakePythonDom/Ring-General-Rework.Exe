@@ -60,6 +60,11 @@ public sealed class App : Application
         services.AddSingleton(repositories.MedicalRepository);
         services.AddSingleton(repositories.WorkerAttributesRepository);
 
+        // Company Governance & Identity
+        services.AddSingleton(repositories.OwnerRepository);
+        services.AddSingleton(repositories.BookerRepository);
+        services.AddSingleton(repositories.CatchStyleRepository);
+
         // Core Services
         services.AddSingleton<BookingValidator>();
         services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());

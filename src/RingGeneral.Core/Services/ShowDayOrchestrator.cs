@@ -1,5 +1,6 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Simulation;
 
@@ -13,6 +14,7 @@ public sealed class ShowDayOrchestrator
 {
     private readonly IShowSchedulerStore? _showScheduler;
     private readonly TitleService? _titleService;
+    private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly IRandomProvider _random;
     private readonly IImpactApplier? _impactApplier;
     private readonly IMoraleEngine? _moraleEngine;
@@ -23,6 +25,7 @@ public sealed class ShowDayOrchestrator
         IShowSchedulerStore? showScheduler = null,
         TitleService? titleService = null,
         IRandomProvider? random = null,
+        IBookerAIEngine? bookerAIEngine = null,
         IImpactApplier? impactApplier = null,
         IMoraleEngine? moraleEngine = null,
         Func<string, ShowContext?>? contextLoader = null,
@@ -30,6 +33,7 @@ public sealed class ShowDayOrchestrator
     {
         _showScheduler = showScheduler;
         _titleService = titleService;
+        _bookerAIEngine = bookerAIEngine;
         _random = random ?? new SeededRandomProvider((int)DateTime.Now.Ticks);
         _impactApplier = impactApplier;
         _moraleEngine = moraleEngine;
@@ -66,6 +70,54 @@ public sealed class ShowDayOrchestrator
         var seed = HashCode.Combine(context.Show.ShowId, context.Show.Semaine);
         var engine = new ShowSimulationEngine(new SeededRandomProvider(seed));
         return engine.Simuler(context);
+    }
+
+    /// <summary>
+    /// Génère automatiquement un booking pour une compagnie IA (non-joueur).
+    /// Le Booker IA crée une carte complète basée sur ses préférences et mémoires.
+    /// </summary>
+    /// <param name="bookerId">ID du booker de la compagnie</param>
+    /// <param name="context">Contexte du show à booker</param>
+    /// <param name="isPlayerCompany">True si la compagnie est contrôlée par le joueur</param>
+    /// <returns>Liste des segments générés automatiquement</returns>
+    public List<SegmentDefinition> GenerateAICompanyBooking(
+        string bookerId,
+        ShowContext context,
+        bool isPlayerCompany)
+    {
+        // Si c'est la compagnie du joueur, on ne génère pas automatiquement
+        if (isPlayerCompany)
+        {
+            return new List<SegmentDefinition>();
+        }
+
+        // Si le BookerAIEngine n'est pas disponible, retourner vide
+        if (_bookerAIEngine is null)
+        {
+            return new List<SegmentDefinition>();
+        }
+
+        // Contraintes par défaut pour les compagnies IA
+        var constraints = new AutoBookingConstraints
+        {
+            ForbidInjuredWorkers = true,
+            MaxFatigueLevel = 85, // Les IA peuvent pousser un peu plus
+            MinSegments = 5,
+            MaxSegments = 8,
+            ForbidMultipleAppearances = true,
+            PrioritizeActiveStorylines = true,
+            UseTitles = true,
+            RequireMainEvent = true,
+            TargetDuration = context.Show.DureeMinutes
+        };
+
+        // Générer le booking automatiquement
+        return _bookerAIEngine.GenerateAutoBooking(
+            bookerId,
+            context,
+            existingSegments: null, // Les IA partent de zéro
+            constraints: constraints
+        );
     }
 
     /// <summary>

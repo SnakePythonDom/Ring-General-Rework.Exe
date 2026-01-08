@@ -11,7 +11,7 @@
 
 ## 📊 État Actuel du Projet
 
-**Version :** Phase 1.5+ — ~45-50% complété
+**Version :** Phase 1.9+ — ~50-55% complété
 **Dernière mise à jour :** 8 janvier 2026
 
 ### ✅ Ce Qui Est Fait
@@ -21,6 +21,8 @@
 - **Systèmes backstage sophistiqués** : Moral, Rumeurs, Népotisme, Crises, IA Booker/Propriétaire
 - **40 attributs de performance** détaillés (In-Ring, Entertainment, Story, Mental)
 - **25+ profils de personnalité** automatiques (style Football Manager)
+- **🆕 Système d'Auto-Booking IA** : Le Booker génère automatiquement des cartes complètes 🎯
+- **🆕 Flux Show Day complet** : Simulation de bout en bout avec impacts automatiques
 - **48+ ViewModels** créés avec navigation complète
 - **Base de données SQLite** avec import automatique BAKI
 
@@ -155,11 +157,17 @@ Ring-General-Rework.Exe/
 ### Systèmes Clés
 
 - **Booking** : Construction de cartes, validation, templates
+- **🆕 Auto-Booking IA** : Génération automatique de cartes complètes par le Booker
+  - 5 styles de produit : Hardcore, Puroresu, Technical, Entertainment, Balanced
+  - Respect des préférences du Booker (Underdog, Veteran, Fast Rise, Slow Burn)
+  - Utilisation du système de mémoire pour décisions cohérentes
+  - Contraintes Owner personnalisables (budget, workers interdits, fatigue)
 - **Storylines** : Feuds, heat progression, phases (BUILD/PEAK/BLOWOFF)
 - **Attributs** : 40 attributs de performance (4 dimensions)
 - **Personnalité** : 25+ profils automatiques (FM-like)
 - **Backstage** : Moral, rumeurs, népotisme, crises
 - **Simulation** : Engine sophistiqué de calcul de ratings
+- **🆕 Show Day** : Flux complet de simulation avec impacts automatiques (finances, titres, blessures, moral)
 - **IA** : Booker et Propriétaire avec décisions automatiques
 
 ---
@@ -171,8 +179,9 @@ Ring-General-Rework.Exe/
 | **Phase 0** | Infrastructure & Architecture | ✅ **Complet** | - |
 | **Phase 1** | Fondations UI/UX & Gameplay de base | ✅ **Complet** | - |
 | **Phase 1.5** | Systèmes Personnalité & Attributs | ✅ **Complet** | - |
+| **Phase 1.9** | 🆕 Flux Show Day & Auto-Booking | ✅ **Complet** | - |
 | **Phase 2** | Intégration Données & Features avancées | ⚠️ **En cours** | Jan 2026 |
-| **Phase 3** | Fonctionnalités Métier complètes | ❌ **À démarrer** | Fév 2026 |
+| **Phase 3** | Fonctionnalités Métier complètes | ⚠️ **En cours** (15%) | Fév 2026 |
 | **Phase 4** | Performance & Optimisation | ❌ **À démarrer** | Mar 2026 |
 | **Phase 5** | QA & Polish | ❌ **À démarrer** | Avr 2026 |
 

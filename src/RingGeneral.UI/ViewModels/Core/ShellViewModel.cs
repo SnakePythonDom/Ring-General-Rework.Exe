@@ -230,6 +230,15 @@ public sealed class ShellViewModel : ViewModelBase
         ));
         root.Add(roster);
 
+        // 🏢 COMPANY HUB
+        var companyHub = new NavigationItemViewModel(
+            "companyhub",
+            "COMPANY HUB",
+            "🏢",
+            typeof(ViewModels.CompanyHub.CompanyHubViewModel)
+        );
+        root.Add(companyHub);
+
         // 📖 STORYLINES
         var storylines = new NavigationItemViewModel(
             "storylines",

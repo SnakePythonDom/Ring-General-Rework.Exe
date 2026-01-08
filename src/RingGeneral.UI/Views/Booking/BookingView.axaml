@@ -49,15 +49,23 @@
                         </TextBlock>
                     </StackPanel>
                 </StackPanel>
-                <Button Content="+ Nouveau segment"
-                        Padding="15,10"
-                        Background="#3b82f6"
-                        Foreground="White"
-                        CornerRadius="6"
-                        FontWeight="SemiBold"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        Command="{Binding AddSegmentCommand}"/>
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="🤖 Laisser le Booker préparer le show"
+                            Padding="15,10"
+                            Background="#10b981"
+                            Foreground="White"
+                            CornerRadius="6"
+                            FontWeight="SemiBold"
+                            Command="{Binding AutoBookCommand}"
+                            ToolTip.Tip="Le Booker IA génère automatiquement un booking basé sur ses préférences et ses mémoires"/>
+                    <Button Content="+ Nouveau segment"
+                            Padding="15,10"
+                            Background="#3b82f6"
+                            Foreground="White"
+                            CornerRadius="6"
+                            FontWeight="SemiBold"
+                            Command="{Binding AddSegmentCommand}"/>
+                </StackPanel>
             </Grid>
         </Border>
 
