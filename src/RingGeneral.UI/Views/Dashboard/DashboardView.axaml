@@ -77,6 +77,17 @@
                 </Border>
             </Grid>
 
+            <!-- Alerte de crise critique (si existante) -->
+            <Border IsVisible="{Binding HasCriticalCrises}" Background="#7f1d1d" Padding="18,16" CornerRadius="8">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="⚠️" FontSize="24" VerticalAlignment="Center"/>
+                    <StackPanel Spacing="4" VerticalAlignment="Center">
+                        <TextBlock Text="ALERTE CRITIQUE" FontSize="13" Foreground="#fecaca" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding CrisisAlertMessage}" FontSize="12" Foreground="#fca5a5"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!-- Dernière actualité -->
             <Border Background="#1e293b" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="10">
