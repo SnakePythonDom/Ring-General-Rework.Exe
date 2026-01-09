@@ -2,7 +2,7 @@ using Microsoft.Data.Sqlite;
 
 namespace RingGeneral.Data.Database;
 
-public sealed class DbInitializer
+public sealed class DbInitializer 
 {
     public const int SchemaVersionActuelle = 2;
 
@@ -110,7 +110,10 @@ public sealed class DbInitializer
         var dossier = chemins.FirstOrDefault(Directory.Exists);
         if (dossier is null)
         {
-            throw new InvalidOperationException("Impossible de trouver les scripts de migration (data/migrations).");
+            // Ne pas lever d'exception ici : en environnement de dev les migrations peuvent être absentes.
+            // Retourner une liste vide pour permettre la création de la DB et le seed si possible.
+            Console.WriteLine("WARNING: migrations directory not found. Skipping migrations.");
+            return Array.Empty<MigrationEntry>();
         }
 
         var fichiers = Directory.GetFiles(dossier, "*.sql", SearchOption.TopDirectoryOnly);

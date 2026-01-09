@@ -14,6 +14,7 @@ using RingGeneral.UI.ViewModels.OwnerBooker;
 using RingGeneral.UI.ViewModels.Crisis;
 using RingGeneral.UI.ViewModels.Inbox;
 using RingGeneral.UI.ViewModels.Settings;
+using RingGeneral.UI.ViewModels; // provide access to GameSessionViewModel
 
 namespace RingGeneral.UI.ViewModels.Core;
 
@@ -29,9 +30,15 @@ public sealed class ShellViewModel : ViewModelBase
     private ViewModelBase? _currentContextViewModel;
     private bool _isInGameMode = false;
 
+    // Expose a live GameSession so XAML can bind to its commands/props
+    public GameSessionViewModel GameSession { get; }
+
     public ShellViewModel(INavigationService navigationService)
     {
         _navigationService = navigationService;
+
+        // Ensure game session exists as early as possible so bindings (commands) are available
+        GameSession = new GameSessionViewModel();
 
         // Construction de l'arbre de navigation
         NavigationItems = BuildNavigationTree();
