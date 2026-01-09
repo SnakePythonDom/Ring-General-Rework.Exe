@@ -991,6 +991,7 @@ DELIVERABLES:
 - ScoutingReportView.axaml (rapports détaillés)
 - AttributeImprovement simulation
 - Scouting level progression (0/1/2)
+- Youth Systems
 
 CRITÈRE ACCEPTATION:
 ✓ Créer plan d'entraînement pour jeune
@@ -998,6 +999,124 @@ CRITÈRE ACCEPTATION:
 ✓ Scouting révèle attributs mentaux
 ✓ Jeune wrestler peut débuter en show
 ```
+ ✓ Système de Jeunes Procédural pour Ring General
+
+1.0 Introduction et Vision Stratégique
+
+Ce document d'exigences produit (PRD) a pour objectif de définir les spécifications fonctionnelles et stratégiques pour l'implémentation d'un système de génération procédurale de nouveaux catcheurs, désigné sous le nom de "Youth System", au sein du jeu de gestion de catch Ring General. L'objectif stratégique fondamental de cette fonctionnalité est de garantir la viabilité, la profondeur et l'engagement du jeu sur le très long terme. Cette orientation s'aligne directement sur notre vision centrale : créer un jeu de gestion complexe et profond, inspiré par des références du genre telles que Football Manager pour sa granularité et Total Extreme Wrestling pour sa complexité narrative.
+
+Ce PRD est destiné aux équipes de développement et d'assurance qualité (QA). Il servira de source de vérité unique tout au long du cycle de vie de cette fonctionnalité, de la conception initiale à l'implémentation technique, jusqu'à la phase de validation et d'équilibrage.
+
+Pour comprendre pleinement l'importance de cette fonctionnalité, il est essentiel de justifier pourquoi une approche procédurale est non seulement une option, mais une nécessité stratégique pour l'avenir de Ring General.
+
+2.0 Contexte et Justification
+
+Cette section vise à démontrer pourquoi un système de génération procédurale de talents est non seulement préférable à une base de données statique, mais constitue un pilier essentiel pour réaliser les ambitions de Ring General en matière de rejouabilité et de narration émergente. Il s'agit de passer d'un jeu avec une fin de contenu prévisible à un véritable générateur d'histoires dynamiques et infinies.
+
+2.1 Alignement avec la Vision Produit
+
+La génération procédurale est en parfaite adéquation avec la vision fondamentale du produit. Ring General a été explicitement conçu pour capturer la profondeur de Football Manager et la complexité de Total Extreme Wrestling. Le cœur de l'expérience de ces titres de référence ne réside pas dans leurs données initiales, mais dans le renouvellement constant et imprévisible de leurs univers respectifs. Les joueurs y reviennent pendant des centaines d'heures car chaque nouvelle saison apporte son lot de jeunes prodiges, de déceptions et de surprises. Une base de données statique, aussi vaste soit-elle, est par nature finie. Seule la génération procédurale peut garantir un flux inépuisable et unique de nouveaux talents, assurant que l'univers du jeu reste vivant, pertinent et surprenant, même après des décennies de simulation en jeu.
+
+2.2 Impact sur l'Engagement à Long Terme
+
+L'intégration d'un "Youth System" procédural est le principal levier pour garantir un engagement sur le long terme. Des jeux comme RimWorld et Dwarf Fortress ont prouvé que l'imprévisibilité est la clé d'une rejouabilité quasi infinie. Le joueur n'est plus un simple consommateur de contenu pré-écrit, mais un acteur réagissant à un monde en constante évolution.
+
+* Renouvellement Infini : Chaque nouvelle partie, et même chaque saison au sein d'une même partie, présentera un paysage de talents entièrement unique. Cela empêche les joueurs d'établir des stratégies optimales et répétitives basées sur la connaissance d'une base de données fixe, rendant chaque carrière distincte.
+* Défi Constant : Le système force le joueur à s'adapter en permanence. L'émergence de nouveaux archétypes de catcheurs oblige à revoir ses stratégies de recrutement, de formation et de booking. Ce "reactive gameplay" teste continuellement les compétences tactiques et la vision à long terme du joueur, bien au-delà de la simple gestion d'un effectif connu.
+* Prévention de la Stagnation : Dans un système statique, le vivier de talents finit inévitablement par s'épuiser ou devenir prévisible. Les joueurs finissent par connaître les meilleurs espoirs et le défi s'amenuise. Un système procédural garantit qu'il n'y a jamais de moment où le joueur "a tout vu", maintenant ainsi une tension et une curiosité permanentes.
+
+2.3 Catalyseur de Récits Émergents
+
+La génération procédurale est le médium par excellence pour la création de récits émergents, un pilier de l'expérience que nous visons. Le système ne se contentera pas de générer des statistiques ; il créera des "accroches narratives" (narrative hooks), des profils complexes qui interagiront de manière imprévisible avec les systèmes de jeu existants. Ces personnages ne sont pas pré-scénarisés, mais leurs attributs et leur personnalité génèrent naturellement des histoires.
+
+Voici quelques exemples de récits pouvant émerger de ce système :
+
+* Un prodige technique doté d'un charisme minimal et d'une personnalité "difficile", créant des tensions en coulisses malgré son succès sur le ring.
+* Le fils ou la fille d'une légende du catch qui vient de prendre sa retraite, arrivant avec une pression médiatique immense et des attributs mentaux faibles.
+* Deux jeunes talents générés la même année, avec des styles radicalement opposés (l'un voltigeur, l'autre cogneur) mais un potentiel de croissance similaire, créant les bases d'une rivalité "naturelle" qui pourrait définir une décennie de jeu.
+
+En conclusion, l'approche procédurale est le seul moyen de transformer Ring General d'un simple jeu de gestion en un véritable "générateur d'histoires". C'est cet investissement dans la narration systémique qui assurera sa longévité et le distinguera sur le marché.
+
+3.0 Objectifs et Exigences Fonctionnelles
+
+Cette section constitue le cœur de ce PRD. Elle détaille précisément ce que nous allons construire en définissant les fonctionnalités, les contraintes et les interactions du système de génération de jeunes catcheurs.
+
+3.1 Objectifs Clés
+
+Les objectifs de haut niveau de cette fonctionnalité sont les suivants :
+
+1. Garantir un flux continu et unique de nouveaux talents dans le monde du jeu pour assurer sa pérennité.
+2. Augmenter la rejouabilité et l'imprévisibilité des parties à long terme en évitant la stagnation du vivier de talents.
+3. Créer des opportunités de narration émergente grâce à la génération de profils de catcheurs uniques et complexes.
+4. S'intégrer de manière transparente avec les systèmes de jeu existants (backstage, booking, IA) pour créer une expérience cohérente.
+
+3.2 Exigences Fonctionnelles du Moteur de Génération
+
+Le moteur de génération doit être capable de créer des profils de catcheurs complets et cohérents. Les composants suivants sont requis :
+
+Composant Généré	Description des Exigences
+Attributs de Performance	Le système doit générer des valeurs pour les 40 attributs existants (In-Ring, Entertainment, Story, Mental), respectant une logique de distribution configurable via les fichiers JSON pour éviter la surpopulation de prodiges. Il doit aussi définir une valeur de "potentiel" qui dictera leur courbe de progression future.
+Profil de Personnalité	Le système doit assigner l'un des 25+ profils de personnalité existants ou en générer un nouveau basé sur des traits fondamentaux. Ce profil doit avoir un impact direct et mesurable sur les systèmes de moral, de crises et de rumeurs.
+Caractéristiques Physiques	Génération de la taille, du poids, et d'un style visuel de base (pouvant être représenté par des avatars ou des descriptions textuelles). Ces caractéristiques doivent être corrélées et cohérentes (ex: un catcheur de 2m10 ne pèsera pas 70kg).
+Accroche Narrative (Hook)	Le système doit pouvoir générer une "accroche" textuelle simple qui fournit un contexte narratif de base (ex: "Ancienne star du football amateur", "Issu d'une famille de lutteurs", "Réputation sulfureuse sur le circuit indépendant").
+
+3.3 Intégration avec les Systèmes Existants
+
+Les catcheurs générés par le "Youth System" ne doivent pas être des entités isolées. Ils doivent interagir pleinement avec les fonctionnalités de base de Ring General pour que l'écosystème du jeu soit crédible.
+
+* Systèmes Backstage : Les nouveaux catcheurs doivent être intégrés aux systèmes de Moral, Rumeurs, Népotisme et Crises. Leur personnalité générée doit directement influencer leur comportement, leur susceptibilité aux problèmes de moral et leur manière d'interagir avec les autres membres de l'effectif.
+* IA Booker/Propriétaire : L'Auto-Booking IA doit être capable de reconnaître, d'évaluer et d'utiliser le potentiel des jeunes talents. L'IA devra respecter les préférences définies pour le Booker (ex: "Fast Rise", "Slow Burn") en intégrant progressivement ces nouveaux talents dans ses cartes.
+* Flux "Show Day" : Les performances des jeunes talents durant le "Show Day" (matchs, segments) doivent influencer leur progression de carrière, leur moral et leur "heat" de manière dynamique et cohérente, tout comme pour les catcheurs existants.
+
+La définition de ces exigences fonctionnelles doit maintenant être validée par une analyse de faisabilité technique et une évaluation des risques associés.
+
+4.0 Analyse de Faisabilité et Risques
+
+Cette section évalue la faisabilité technique de l'implémentation du système de génération procédurale au sein de l'architecture existante de Ring General. Elle a également pour but d'identifier et de proposer des stratégies pour atténuer les risques potentiels liés à cette nouvelle fonctionnalité majeure.
+
+4.1 Impact sur l'Architecture Actuelle
+
+L'architecture actuelle de Ring General a été conçue pour la modularité et l'évolutivité, ce qui facilite grandement l'intégration d'un tel système. Les points forts suivants rendent cette implémentation non seulement faisable, mais également alignée avec nos bonnes pratiques de développement :
+
+* L'architecture modulaire, avec ses 23+ repositories spécialisés, nous permet de développer le moteur de génération de manière isolée, minimisant ainsi les risques d'effets de bord sur le reste du code base.
+* L'utilisation de la Clean Architecture (avec les couches RingGeneral.Core pour la logique métier et RingGeneral.Data pour l'accès aux données) fournit un cadre de travail clair et robuste pour intégrer la nouvelle logique de génération et ses interactions avec la base de données SQLite.
+* La configuration data-driven via des fichiers JSON (situés dans specs/) est la pierre angulaire de ce projet. Elle est idéale pour définir les règles, les archétypes et les pondérations de la génération procédurale. Cela nous permettra d'itérer et d'équilibrer le système sans avoir à recompiler le code, ce qui est un avantage considérable en phase de test.
+
+4.2 Risques Potentiels et Stratégies d'Atténuation
+
+Bien que la faisabilité soit élevée, plusieurs risques doivent être anticipés et gérés.
+
+Risque	Impact Potentiel	Stratégie d'Atténuation
+Déséquilibre du Jeu	Génération de catcheurs systématiquement trop puissants ("overpowered") ou, à l'inverse, complètement inutiles, ce qui rendrait le jeu trop facile ou frustrant.	Implémenter des règles de distribution et des pondérations strictes dans les fichiers de configuration JSON pour un ajustement fin et rapide. Planifier une phase de test et d'équilibrage dédiée post-implémentation.
+Manque de Cohérence	Les catcheurs générés semblent purement aléatoires, sans "âme" ni logique interne (ex: un technicien de génie avec des attributs mentaux très faibles), ce qui briserait l'immersion du joueur.	Utiliser des archétypes de base (ex: "Brawler", "High-Flyer", "Technician") comme point de départ pour guider la génération. S'assurer que les attributs, la personnalité et l'"accroche narrative" sont corrélés logiquement.
+Impact sur la Performance	Le processus de génération de centaines de nouveaux catcheurs chaque année pourrait ralentir les temps de chargement entre les saisons ou la simulation hebdomadaire.	Optimiser l'algorithme de génération. Effectuer la génération en arrière-plan durant les temps morts ou les écrans de chargement. Limiter le nombre de catcheurs générés par an via un paramètre configurable.
+
+En dépit de ces risques identifiés, la structure robuste et flexible du projet rend cette fonctionnalité tout à fait réalisable dans des conditions maîtrisées. La prochaine étape consiste à définir une feuille de route pour sa mise en œuvre.
+
+5.0 Proposition de Mini-Roadmap
+
+Cette section propose une feuille de route macro pour le développement et l'intégration du "Youth System". Elle est conçue pour s'intégrer de manière cohérente dans la roadmap globale du projet, telle que définie dans docs/ROADMAP_MISE_A_JOUR.md.
+
+1. Phase 1 : Conception et Spécification (Estimation : 1 semaine)
+  * Objectif : Finaliser les algorithmes de génération, les règles de distribution des attributs et la structure des données.
+  * Livrables : Création des fichiers de spécification JSON pour les archétypes de catcheurs, les distributions d'attributs et les pondérations. Rédaction d'un document de design technique détaillé décrivant la logique du moteur.
+2. Phase 2 : Développement du Moteur de Génération (Estimation : 3 semaines)
+  * Objectif : Coder le moteur de génération de base en C# 12 au sein du projet RingGeneral.Core.
+  * Livrables : Une librairie autonome capable de générer des objets "catcheur" complets (avec attributs, personnalité, accroche narrative, etc.) en se basant sur les fichiers de spécification JSON.
+3. Phase 3 : Intégration et Tests Unitaires (Estimation : 2 semaines)
+  * Objectif : Intégrer le moteur dans la boucle de jeu principale pour déclencher la génération à des intervalles définis (ex: chaque 1er janvier en jeu). Assurer la compatibilité avec le système de base de données SQLite et les systèmes backstage.
+  * Livrables : Le jeu génère et sauvegarde de nouveaux catcheurs chaque année dans la base de données. Couverture de tests unitaires complète validant l'intégration et la non-régression des systèmes existants.
+4. Phase 4 : Équilibrage et Itération (Estimation : 2 semaines)
+  * Objectif : Tester intensivement la qualité et la cohérence des talents générés sur le long terme. Ajuster les règles de génération pour assurer une expérience de jeu équilibrée et intéressante.
+  * Livrables : Versions ajustées et validées des fichiers de configuration JSON. Un rapport de playtest détaillé sur la qualité des talents générés sur une période de 10 ans de jeu simulé.
+
+Cette fonctionnalité s'inscrit dans la Phase 3 ("Fonctionnalités Métier complètes") de la roadmap globale du projet. Une date de release cible pourra être discutée et fixée après la validation de la Phase 2 de cette mini-roadmap.
+
+6.0 Conclusion
+
+Ce document établit la nécessité stratégique et les exigences fonctionnelles pour le "Youth System". La recommandation principale est claire : l'adoption d'un système de génération procédurale est une étape cruciale pour concrétiser la vision à long terme de Ring General.
+
+Les bénéfices sont fondamentaux : une rejouabilité quasi infinie, un défi stratégique constant pour le joueur, et surtout, la capacité à générer des récits émergents uniques qui deviendront la véritable signature du jeu. En transformant Ring General en un générateur d'histoires, nous nous assurons non seulement de sa longévité, mais aussi de sa capacité à créer une communauté de joueurs investis et passionnés. Ce PRD fournit une base solide et actionnable pour que l'équipe de développement puisse désormais entamer la phase de conception technique détaillée.
 
 ### Phase 4 : Performance & Optimisation (Mars 2026)
 
