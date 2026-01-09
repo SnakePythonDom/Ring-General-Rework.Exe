@@ -1,4 +1,11 @@
 ringgeneral.db
 # Visual Studio
 .vs/
-
+# Visual Studio temporaries
+.vs/
+[Dd]ebug/
+[Rr]elease/
+bin/
+obj/
+*.user
+*.suo

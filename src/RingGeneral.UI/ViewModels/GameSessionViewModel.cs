@@ -1,10 +1,11 @@
-using System.Collections.ObjectModel;
+using Avalonia.Animation;
 using Avalonia.Collections;
+using Avalonia.Markup.Xaml.MarkupExtensions;
+using DynamicData;
 using ReactiveUI;
-using System.Reactive;
 using RingGeneral.Core.Interfaces;
-using RingGeneral.Core.Models;
 using RingGeneral.Core.Medical;
+using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
@@ -15,12 +16,37 @@ using RingGeneral.Data.Repositories;
 using RingGeneral.Specs.Models;
 using RingGeneral.Specs.Services;
 using RingGeneral.UI.Services;
+using System.Collections.ObjectModel;
+using System.Reactive;
 using LogLevel = RingGeneral.Core.Services.LogLevel;
 
 namespace RingGeneral.UI.ViewModels;
 
 public sealed class GameSessionViewModel : ViewModelBase
 {
+    public ReactiveCommand<Unit, Unit> AvancerTempsCommand { get; }
+
+    // 2. Propriétés pour l'affichage (utilisées dans ton XAML)
+    private int _currentWeek;
+    public int CurrentWeek
+    {
+        get => _currentWeek;
+        set => this.RaiseAndSetIfChanged(ref _currentWeek, value);
+    }
+
+    private int _totalWeeks = 52;
+    public int TotalWeeks
+    {
+        get => _totalWeeks;
+        set => this.RaiseAndSetIfChanged(ref _totalWeeks, value);
+    }
+
+    private string _currentBudget = "0 €";
+    public string CurrentBudget
+    {
+        get => _currentBudget;
+        set => this.RaiseAndSetIfChanged(ref _currentBudget, value);
+    }
     private const string ShowId = "SHOW-001";
     private GameRepository? _repository;
     private IScoutingRepository? _scoutingRepository;
@@ -44,6 +70,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public GameSessionViewModel(string? cheminDb = null, ServiceContainer? services = null)
     {
+        AvancerTempsCommand = ReactiveCommand.Create(PasserSemaineSuivante);
         // Initialize logger from service container or use default
         _logger = services?.IsRegistered<ILoggingService>() == true
             ? services.Resolve<ILoggingService>()
@@ -57,23 +84,40 @@ public sealed class GameSessionViewModel : ViewModelBase
         {
             _logger.Info($"Initializing GameSession with database: {cheminFinal}");
 
-            // Apply database migrations first to ensure all tables exist
+            // 1. Initialisation de la base
             var initializer = new DbInitializer();
+
+            // Debug: vérifier l'existence du dossier de migrations pour aider au diagnostic
+            var migrationsPaths = new[]
+            {
+                Path.Combine(AppContext.BaseDirectory, "data", "migrations"),
+                Path.Combine(Directory.GetCurrentDirectory(), "data", "migrations")
+            };
+            foreach (var p in migrationsPaths)
+            {
+                _logger.Info($"Migrations path: {p} Exists={Directory.Exists(p)}");
+            }
+
             initializer.CreateDatabaseIfMissing(cheminFinal);
 
             var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
+            _logger.Info($"SqliteConnectionFactory created. ConnectionString='{factory.GetConnectionString()}'");
+
+            // 2. Récupération des repositories depuis la factory
             var repositories = RepositoryFactory.CreateRepositories(factory);
+
+            // CORRECT : On assigne aux variables privées de la classe (celles avec _)
             _repository = repositories.GameRepository;
             _scoutingRepository = repositories.ScoutingRepository;
             _medicalRepository = new MedicalRepository(factory);
             _injuryService = new InjuryService(new MedicalRecommendations());
 
+            _logger.Info($"Repositories created: GameRepository={( _repository != null )}, ScoutingRepository={( _scoutingRepository != null )}");
+
             _logger.Info("GameSession initialized successfully");
         }
         catch (Exception ex)
         {
-            // En cas d'échec d'initialisation, l'application continue en mode lecture seule
-            // L'utilisateur sera notifié via l'interface qu'aucune sauvegarde n'est chargée
             _logger.Fatal("Failed to initialize database", ex);
             _repository = null;
             _scoutingRepository = null;
@@ -195,7 +239,14 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerImpactsInitial();
         InitialiserNouveauShow();
         ChargerYouth();
+        // INITIALISATION DE LA COMMANDE
+        // On la crée ici pour que le bouton soit actif et visible
+        
+        // Chargement initial des données
+        RafraichirDonneesSession();
     }
+
+
 
     public ObservableCollection<SegmentViewModel> Segments { get; }
     public ObservableCollection<BookingIssueViewModel> ValidationIssues { get; }
@@ -255,6 +306,46 @@ public sealed class GameSessionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _youthGenerationSelection, value);
     }
     private YouthGenerationOptionViewModel? _youthGenerationSelection;
+    public void PasserSemaineSuivante()
+    {
+        // On vérifie que les services sont bien chargés
+        if (_repository is null || _scoutingRepository is null)
+        {
+            _logger.Error("Impossible d'avancer le temps : Repositories non initialisés.");
+            return;
+        }
+
+        try
+        {
+            // Initialisation du service de boucle hebdomadaire
+            var weekly = new WeeklyLoopService(_repository, _scoutingRepository);
+
+            // Exécution de la simulation de passage de semaine
+            weekly.PasserSemaineSuivante(ShowId);
+
+            // Mise à jour de l'interface utilisateur
+            RafraichirDonneesSession();
+            ChargerInbox();
+            ChargerShow();
+
+            _logger.Info($"Passage à la semaine {CurrentWeek} réussi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Erreur critique lors du passage de semaine : {ex.Message}");
+        }
+    }
+
+    private void RafraichirDonneesSession()
+    {
+        // On utilise l'ID "SHOW-001" défini en haut de votre classe
+        var show = _repository?.ChargerShow(ShowId);
+
+        if (show != null)
+        {
+            this.CurrentWeek = show.Semaine;
+        }
+    }
 
     public WorldGenerationOptionViewModel? WorldGenerationSelection
     {
@@ -887,19 +978,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         NouveauSegmentParticipants.Remove(participant);
     }
-
-    public void PasserSemaineSuivante()
-    {
-        if (_repository is null)
-        {
-            return;
-        }
-
-        var weekly = new WeeklyLoopService(_repository, _scoutingRepository!);
-        weekly.PasserSemaineSuivante(ShowId);
-        ChargerInbox();
-        ChargerShow();
-    }
+   
 
     public void CorrigerIssue(BookingIssueViewModel issue)
     {

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RingGeneral.Data")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+81f7261246cadd79d05e6058d36d49035174be97")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d08bc0cc692fe322109a9ec931a7a0cf6a0b6e36")]
 [assembly: System.Reflection.AssemblyProductAttribute("RingGeneral.Data")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RingGeneral.Data")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

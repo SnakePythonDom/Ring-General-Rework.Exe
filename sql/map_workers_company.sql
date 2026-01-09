@@ -1,8 +1,9 @@
+-- SQLite syntax - Do not validate as T-SQL
 -- ============================================================================
 -- Map workers without a company to the Free Agent company
 -- ============================================================================
 
-PRAGMA foreign_keys = ON;
+
 
 UPDATE Workers
 SET CompanyId = '0'
