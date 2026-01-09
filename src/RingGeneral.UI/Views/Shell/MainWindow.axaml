@@ -246,14 +246,6 @@
                                   SelectedItem="{Binding SelectedNavigationItem}"
                                   Background="Transparent"
                                   Margin="8,0,8,20">
-                            <!-- Styles pour les items de navigation -->
-                            <TreeView.Styles>
-                                <Style Selector="TreeViewItem">
-                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-                                </Style>
-                            </TreeView.Styles>
-
                             <!-- Template pour chaque niveau -->
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">

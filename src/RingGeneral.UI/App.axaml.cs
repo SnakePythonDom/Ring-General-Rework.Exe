@@ -4,7 +4,6 @@ using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.Services.Messaging;
-using RingGeneral.UI.ViewModels.Core;
 using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.ViewModels.Booking;
 using RingGeneral.UI.ViewModels.Roster;
@@ -41,10 +40,70 @@ public sealed class App : Application
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IEventAggregator, EventAggregator>();
 
+        // ═════════════════════════════════════════════════════════════════════════
+        // 🗂️ INITIALISATION DE LA WORLD DB
+        // ═════════════════════════════════════════════════════════════════════════
+        
+        try
+        {
+            // Chercher BAKI1.1.db dans le répertoire de la solution
+            var solutionRoot = AppContext.BaseDirectory;
+            // Remonter depuis bin/Debug/net8.0 vers la racine du projet
+            var upDirs = new DirectoryInfo(solutionRoot).Parent?.Parent?.Parent;
+            var bakiDbPath = upDirs != null ? Path.Combine(upDirs.FullName, "data", "BAKI1.1.db") : "";
+
+            // Fallback : chercher directement dans AppData ou chemins connus
+            if (!File.Exists(bakiDbPath))
+            {
+                bakiDbPath = @"C:\Users\popo2\source\repos\Ring-General-Rework.Exe\data\BAKI1.1.db";
+            }
+
+            var worldDbDir = Path.Combine(AppContext.BaseDirectory, "data");
+            var worldDbPath = Path.Combine(worldDbDir, "ring_world.db");
+
+            Directory.CreateDirectory(worldDbDir);
+
+            if (File.Exists(bakiDbPath))
+            {
+                var worldDbInit = new WorldDbInitializer(bakiDbPath, worldDbPath);
+                worldDbInit.InitializeIfNeeded();
+                logger.Info($"✅ World DB initialisée : {worldDbPath}");
+            }
+            else
+            {
+                logger.Warning($"⚠️ BAKI1.1.db introuvable à : {bakiDbPath}");
+                logger.Info($"Tentative de création avec données par défaut...");
+                
+                // Créer une DB vide avec juste le schéma et des données par défaut
+                using var worldConnection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={worldDbPath}");
+                worldConnection.Open();
+                using var transaction = worldConnection.BeginTransaction();
+                var initializer = new WorldDbInitializer(bakiDbPath, worldDbPath);
+                // Forcer la création du schéma et des données par défaut
+                initializer.CreateSchemaWithDefaults(worldConnection);
+                transaction.Commit();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Warning($"⚠️ Impossible d'initialiser World DB : {ex.Message}");
+            // Continuer - la validation se fera lors de l'accès aux données
+        }
+
         // Database & Repositories
-        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "ring_general.db");
-        var factory = new SqliteConnectionFactory($"Data Source={dbPath}");
+        var factory = new SqliteConnectionFactory();
         var repositories = RepositoryFactory.CreateRepositories(factory);
+
+        // Database initialization and validation services
+        var dbInitializer = new DbInitializer();
+        var dbValidator = new DbValidator();
+        services.AddSingleton(dbInitializer);
+        services.AddSingleton(dbValidator);
+
+        // SaveGame manager service
+        var saveGameManager = new SaveGameManager(factory, dbInitializer, dbValidator);
+        services.AddSingleton(saveGameManager);
+        services.AddSingleton(factory);
 
         // Register all repositories
         services.AddSingleton(repositories.GameRepository);

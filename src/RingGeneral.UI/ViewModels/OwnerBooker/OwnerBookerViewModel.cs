@@ -1,10 +1,7 @@
-using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
-using RingGeneral.UI.ViewModels;
 using RingGeneral.Data.Repositories;
-using RingGeneral.Core.Models.Owner;
 using RingGeneral.Core.Models.Booker;
 
 namespace RingGeneral.UI.ViewModels.OwnerBooker;

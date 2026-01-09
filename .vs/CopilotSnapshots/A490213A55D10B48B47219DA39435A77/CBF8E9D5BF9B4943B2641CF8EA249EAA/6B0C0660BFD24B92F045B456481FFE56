@@ -1,0 +1,794 @@
+﻿using Microsoft.Data.Sqlite;
+using System;
+using System.IO;
+
+namespace RingGeneral.Data.Database;
+
+/// <summary>
+/// Initialise la World DB en important et adaptant les données de BAKI1.1.db
+/// </summary>
+public sealed class WorldDbInitializer
+{
+    private readonly string _bakiSourcePath;
+    private readonly string _worldDbPath;
+
+    public WorldDbInitializer(string bakiSourcePath, string worldDbPath)
+    {
+        _bakiSourcePath = bakiSourcePath;
+        _worldDbPath = worldDbPath;
+    }
+
+    /// <summary>
+    /// Initialise la World DB si elle n'existe pas ou est vide
+    /// </summary>
+    public void InitializeIfNeeded()
+    {
+        // Vérifier si ring_world.db existe et est valide
+        if (IsValidWorldDb())
+        {
+            return;
+        }
+
+        // Vérifier que BAKI1.1.db existe
+        if (!File.Exists(_bakiSourcePath))
+        {
+            throw new InvalidOperationException(
+                $"❌ Base de données source introuvable.\n" +
+                $"Chemin attendu : {_bakiSourcePath}\n\n" +
+                $"Conseil : Placer BAKI1.1.db dans le répertoire data/");
+        }
+
+        // Créer le répertoire data s'il n'existe pas
+        var worldDbDir = Path.GetDirectoryName(_worldDbPath);
+        if (!string.IsNullOrEmpty(worldDbDir))
+        {
+            Directory.CreateDirectory(worldDbDir);
+        }
+
+        // Importer et adapter la DB
+        ImportAndAdaptDatabase();
+    }
+
+    /// <summary>
+    /// Vérifie si ring_world.db est une base de données valide avec les tables requises
+    /// </summary>
+    private bool IsValidWorldDb()
+    {
+        if (!File.Exists(_worldDbPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_worldDbPath}");
+            connection.Open();
+
+            // Vérifier que les tables Companies et Workers existent
+            bool companiesExists = TableExists(connection, "Companies");
+            bool workersExists = TableExists(connection, "Workers");
+            
+            // Vérifier que CatchStyles existe ET contient les bonnes colonnes
+            bool catchStylesValid = IsCatchStylesTableValid(connection);
+
+            return companiesExists && workersExists && catchStylesValid;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Vérifie que la table CatchStyles existe et contient toutes les colonnes requises
+    /// </summary>
+    private static bool IsCatchStylesTableValid(SqliteConnection connection)
+    {
+        try
+        {
+            if (!TableExists(connection, "CatchStyles"))
+            {
+                return false;
+            }
+
+            // Vérifier que les colonnes critiques existent
+            using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA table_info(CatchStyles);";
+            using var reader = command.ExecuteReader();
+
+            var columnNames = new HashSet<string>();
+            while (reader.Read())
+            {
+                columnNames.Add(reader.GetString(1));
+            }
+
+            // Colonnes requises
+            var requiredColumns = new[]
+            {
+                "CatchStyleId", "Name", "WrestlingPurity", "EntertainmentFocus",
+                "HardcoreIntensity", "LuchaInfluence", "StrongStyleInfluence",
+                "FanExpectationMatchQuality", "FanExpectationStorylines",
+                "FanExpectationPromos", "FanExpectationSpectacle",
+                "MatchRatingMultiplier", "PromoRatingMultiplier", "IconName", "AccentColor"
+            };
+
+            return requiredColumns.All(col => columnNames.Contains(col));
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Importe les données de BAKI1.1.db et les adapte pour ring_world.db
+    /// </summary>
+    private void ImportAndAdaptDatabase()
+    {
+        // Ouvrir les deux connexions
+        using var bakiConnection = new SqliteConnection($"Data Source={_bakiSourcePath}");
+        bakiConnection.Open();
+
+        using var worldConnection = new SqliteConnection($"Data Source={_worldDbPath}");
+        worldConnection.Open();
+
+        using var transaction = worldConnection.BeginTransaction();
+
+        try
+        {
+            // 1. Recréer le schéma (DROP et CREATE)
+            DropAndCreateWorldSchema(worldConnection);
+
+            // 2. Importer les données de référence
+            ImportCompanies(bakiConnection, worldConnection);
+            ImportWorkers(bakiConnection, worldConnection);
+            ImportRegions(bakiConnection, worldConnection);
+            ImportCountries(bakiConnection, worldConnection);
+            ImportTitles(bakiConnection, worldConnection);
+            ImportVenues(bakiConnection, worldConnection);
+            ImportShowTypes(bakiConnection, worldConnection);
+            ImportMatchTypes(bakiConnection, worldConnection);
+            ImportCatchStyles(worldConnection);
+
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            transaction.Rollback();
+            throw new InvalidOperationException(
+                $"❌ Erreur lors de l'initialisation de la World DB.\n" +
+                $"Détails : {ex.Message}",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// DROP les tables existantes et recréé le schéma complet
+    /// </summary>
+    private static void DropAndCreateWorldSchema(SqliteConnection connection)
+    {
+        try
+        {
+            // Désactiver les contraintes de clés étrangères temporairement
+            using var pragma = connection.CreateCommand();
+            pragma.CommandText = "PRAGMA foreign_keys = OFF;";
+            pragma.ExecuteNonQuery();
+
+            // DROP les tables si elles existent
+            var dropScript = """
+                DROP TABLE IF EXISTS CompanyStyleEvolution;
+                DROP TABLE IF EXISTS CatchStyles;
+                DROP TABLE IF EXISTS MatchTypes;
+                DROP TABLE IF EXISTS ShowTypes;
+                DROP TABLE IF EXISTS Venues;
+                DROP TABLE IF EXISTS Titles;
+                DROP TABLE IF EXISTS Workers;
+                DROP TABLE IF EXISTS Companies;
+                DROP TABLE IF EXISTS Regions;
+                DROP TABLE IF EXISTS Countries;
+                """;
+
+            using var dropCmd = connection.CreateCommand();
+            dropCmd.CommandText = dropScript;
+            dropCmd.ExecuteNonQuery();
+
+            // Réactiver les contraintes
+            using var pragmaOn = connection.CreateCommand();
+            pragmaOn.CommandText = "PRAGMA foreign_keys = ON;";
+            pragmaOn.ExecuteNonQuery();
+
+            // Créer le nouveau schéma
+            CreateWorldSchema(connection);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Erreur lors du DROP/CREATE du schéma: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Crée le schéma complet de la World DB
+    /// </summary>
+    private static void CreateWorldSchema(SqliteConnection connection)
+    {
+        const string schema = """
+            CREATE TABLE IF NOT EXISTS Countries (
+                CountryId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                Code TEXT,
+                Description TEXT,
+                CreatedAt TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS Regions (
+                RegionId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                CountryId TEXT,
+                Description TEXT,
+                CreatedAt TEXT NOT NULL,
+                FOREIGN KEY (CountryId) REFERENCES Countries(CountryId)
+            );
+
+            CREATE TABLE IF NOT EXISTS Companies (
+                CompanyId TEXT PRIMARY KEY,
+                LegacyPromotionId INTEGER,
+                Name TEXT NOT NULL,
+                CountryId TEXT,
+                RegionId TEXT,
+                Prestige INTEGER DEFAULT 50,
+                Treasury REAL DEFAULT 1000000.0,
+                AverageAudience INTEGER DEFAULT 5000,
+                Reach INTEGER DEFAULT 50,
+                SimLevel INTEGER DEFAULT 1,
+                LastSimulatedAt TEXT,
+                FoundedYear INTEGER,
+                CompanySize TEXT,
+                CurrentEra TEXT,
+                CatchStyleId TEXT,
+                CreatedAt TEXT NOT NULL,
+                FOREIGN KEY (CountryId) REFERENCES Countries(CountryId),
+                FOREIGN KEY (RegionId) REFERENCES Regions(RegionId)
+            );
+
+            CREATE TABLE IF NOT EXISTS Workers (
+                WorkerId TEXT PRIMARY KEY,
+                LegacyWorkerId INTEGER,
+                FirstName TEXT NOT NULL,
+                LastName TEXT NOT NULL,
+                RingName TEXT,
+                CompanyId TEXT,
+                Nationality TEXT,
+                Gender TEXT DEFAULT 'Male',
+                BirthDate TEXT,
+                InRing INTEGER DEFAULT 50,
+                Entertainment INTEGER DEFAULT 50,
+                Story INTEGER DEFAULT 50,
+                Popularity INTEGER DEFAULT 50,
+                Fatigue INTEGER DEFAULT 0,
+                InjuryStatus TEXT DEFAULT 'AUCUNE',
+                Momentum INTEGER DEFAULT 0,
+                RoleTv TEXT DEFAULT 'None',
+                SimLevel INTEGER DEFAULT 1,
+                LastSimulatedAt TEXT,
+                CreatedAt TEXT NOT NULL,
+                FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId)
+            );
+
+            CREATE TABLE IF NOT EXISTS Titles (
+                TitleId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                CompanyId TEXT,
+                Prestige INTEGER DEFAULT 50,
+                DetenteurId TEXT,
+                CreatedAt TEXT NOT NULL,
+                FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId),
+                FOREIGN KEY (DetenteurId) REFERENCES Workers(WorkerId)
+            );
+
+            CREATE TABLE IF NOT EXISTS Venues (
+                VenueId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                City TEXT,
+                RegionId TEXT,
+                Capacity INTEGER,
+                CreatedAt TEXT NOT NULL,
+                FOREIGN KEY (RegionId) REFERENCES Regions(RegionId)
+            );
+
+            CREATE TABLE IF NOT EXISTS ShowTypes (
+                ShowTypeId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                Description TEXT,
+                CreatedAt TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS MatchTypes (
+                MatchTypeId TEXT PRIMARY KEY,
+                Libelle TEXT NOT NULL,
+                Description TEXT,
+                Participants INTEGER,
+                DureeParDefaut INTEGER,
+                CreatedAt TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS CatchStyles (
+                CatchStyleId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                Description TEXT,
+                WrestlingPurity INTEGER DEFAULT 50,
+                EntertainmentFocus INTEGER DEFAULT 50,
+                HardcoreIntensity INTEGER DEFAULT 50,
+                LuchaInfluence INTEGER DEFAULT 0,
+                StrongStyleInfluence INTEGER DEFAULT 0,
+                FanExpectationMatchQuality INTEGER DEFAULT 50,
+                FanExpectationStorylines INTEGER DEFAULT 50,
+                FanExpectationPromos INTEGER DEFAULT 50,
+                FanExpectationSpectacle INTEGER DEFAULT 50,
+                MatchRatingMultiplier REAL DEFAULT 1.0,
+                PromoRatingMultiplier REAL DEFAULT 1.0,
+                IconName TEXT,
+                AccentColor TEXT,
+                IsActive INTEGER DEFAULT 1,
+                CreatedAt TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_workers_company ON Workers(CompanyId);
+            CREATE INDEX IF NOT EXISTS idx_companies_region ON Companies(RegionId);
+            CREATE INDEX IF NOT EXISTS idx_companies_country ON Companies(CountryId);
+            CREATE INDEX IF NOT EXISTS idx_regions_country ON Regions(CountryId);
+            CREATE INDEX IF NOT EXISTS idx_venues_region ON Venues(RegionId);
+            """;
+
+        using var command = connection.CreateCommand();
+        command.CommandText = schema;
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Importe les compagnies de BAKI vers World DB
+    /// </summary>
+    private static void ImportCompanies(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var srcCmd = source.CreateCommand();
+            srcCmd.CommandText = "SELECT * FROM Promotions LIMIT 100";
+            using var reader = srcCmd.ExecuteReader();
+
+            using var destCmd = dest.CreateCommand();
+            destCmd.CommandText = """
+                INSERT OR REPLACE INTO Companies 
+                (CompanyId, LegacyPromotionId, Name, Prestige, Treasury, CreatedAt)
+                VALUES ($companyId, $legacyId, $name, $prestige, $treasury, $createdAt)
+                """;
+
+            var companyIdParam = destCmd.Parameters.Add("$companyId", SqliteType.Text);
+            var legacyIdParam = destCmd.Parameters.Add("$legacyId", SqliteType.Integer);
+            var nameParam = destCmd.Parameters.Add("$name", SqliteType.Text);
+            var prestigeParam = destCmd.Parameters.Add("$prestige", SqliteType.Integer);
+            var treasuryParam = destCmd.Parameters.Add("$treasury", SqliteType.Real);
+            var createdAtParam = destCmd.Parameters.Add("$createdAt", SqliteType.Text);
+
+            while (reader.Read())
+            {
+                try
+                {
+                    int legacyId = reader.GetInt32(0);
+                    string name = reader.IsDBNull(1) ? $"Company_{legacyId}" : reader.GetString(1);
+                    
+                    companyIdParam.Value = $"COMP_{legacyId}";
+                    legacyIdParam.Value = legacyId;
+                    nameParam.Value = name;
+                    prestigeParam.Value = 50;
+                    treasuryParam.Value = 1000000.0;
+                    createdAtParam.Value = DateTime.UtcNow.ToString("O");
+
+                    destCmd.ExecuteNonQuery();
+                }
+                catch
+                {
+                    // Continuer avec la compagnie suivante
+                }
+            }
+        }
+        catch
+        {
+            // Si la table Promotions n'existe pas, créer des compagnies par défaut
+            CreateDefaultCompanies(dest);
+        }
+    }
+
+    /// <summary>
+    /// Importe les workers de BAKI vers World DB
+    /// </summary>
+    private static void ImportWorkers(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var srcCmd = source.CreateCommand();
+            srcCmd.CommandText = "SELECT * FROM Wrestlers LIMIT 1000";
+            using var reader = srcCmd.ExecuteReader();
+
+            using var destCmd = dest.CreateCommand();
+            destCmd.CommandText = """
+                INSERT OR REPLACE INTO Workers 
+                (WorkerId, LegacyWorkerId, FirstName, LastName, RingName, InRing, Entertainment, Story, CreatedAt)
+                VALUES ($workerId, $legacyId, $firstName, $lastName, $ringName, $inRing, $entertainment, $story, $createdAt)
+                """;
+
+            var workerIdParam = destCmd.Parameters.Add("$workerId", SqliteType.Text);
+            var legacyIdParam = destCmd.Parameters.Add("$legacyId", SqliteType.Integer);
+            var firstNameParam = destCmd.Parameters.Add("$firstName", SqliteType.Text);
+            var lastNameParam = destCmd.Parameters.Add("$lastName", SqliteType.Text);
+            var ringNameParam = destCmd.Parameters.Add("$ringName", SqliteType.Text);
+            var inRingParam = destCmd.Parameters.Add("$inRing", SqliteType.Integer);
+            var entertainmentParam = destCmd.Parameters.Add("$entertainment", SqliteType.Integer);
+            var storyParam = destCmd.Parameters.Add("$story", SqliteType.Integer);
+            var createdAtParam = destCmd.Parameters.Add("$createdAt", SqliteType.Text);
+
+            while (reader.Read())
+            {
+                try
+                {
+                    int legacyId = reader.GetInt32(0);
+                    string firstName = reader.IsDBNull(1) ? "Worker" : reader.GetString(1);
+                    string lastName = reader.IsDBNull(2) ? $"{legacyId}" : reader.GetString(2);
+
+                    workerIdParam.Value = $"WORKER_{legacyId}";
+                    legacyIdParam.Value = legacyId;
+                    firstNameParam.Value = firstName;
+                    lastNameParam.Value = lastName;
+                    ringNameParam.Value = reader.IsDBNull(3) ? $"{firstName} {lastName}" : reader.GetString(3);
+                    inRingParam.Value = reader.IsDBNull(4) ? 50 : reader.GetInt32(4);
+                    entertainmentParam.Value = reader.IsDBNull(5) ? 50 : reader.GetInt32(5);
+                    storyParam.Value = reader.IsDBNull(6) ? 50 : reader.GetInt32(6);
+                    createdAtParam.Value = DateTime.UtcNow.ToString("O");
+
+                    destCmd.ExecuteNonQuery();
+                }
+                catch
+                {
+                    // Continuer avec le worker suivant
+                }
+            }
+        }
+        catch
+        {
+            // Si la table Wrestlers n'existe pas, créer des workers par défaut
+            CreateDefaultWorkers(dest);
+        }
+    }
+
+    /// <summary>
+    /// Importe les régions
+    /// </summary>
+    private static void ImportRegions(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var cmd = dest.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Regions (RegionId, Name, CreatedAt) VALUES
+                ('USA', 'United States', datetime('now')),
+                ('JAPAN', 'Japan', datetime('now')),
+                ('MEXICO', 'Mexico', datetime('now')),
+                ('CANADA', 'Canada', datetime('now')),
+                ('EUROPE', 'Europe', datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch
+        {
+            // Continuer
+        }
+    }
+
+    /// <summary>
+    /// Importe les pays
+    /// </summary>
+    private static void ImportCountries(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var cmd = dest.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Countries (CountryId, Name, Code, CreatedAt) VALUES
+                ('USA', 'United States', 'US', datetime('now')),
+                ('JAPAN', 'Japan', 'JP', datetime('now')),
+                ('MEXICO', 'Mexico', 'MX', datetime('now')),
+                ('CANADA', 'Canada', 'CA', datetime('now')),
+                ('GERMANY', 'Germany', 'DE', datetime('now')),
+                ('UK', 'United Kingdom', 'GB', datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch
+        {
+            // Continuer
+        }
+    }
+
+    /// <summary>
+    /// Importe les titres
+    /// </summary>
+    private static void ImportTitles(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var cmd = dest.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Titles (TitleId, Name, Prestige, CreatedAt) VALUES
+                ('TITLE_WORLD', 'World Championship', 100, datetime('now')),
+                ('TITLE_IC', 'Intercontinental Championship', 75, datetime('now')),
+                ('TITLE_TAG', 'Tag Team Championship', 70, datetime('now')),
+                ('TITLE_REGIONAL', 'Regional Championship', 50, datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch
+        {
+            // Continuer
+        }
+    }
+
+    /// <summary>
+    /// Importe les venues
+    /// </summary>
+    private static void ImportVenues(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var cmd = dest.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Venues (VenueId, Name, RegionId, Capacity, CreatedAt) VALUES
+                ('VENUE_NY', 'Madison Square Garden', 'USA', 20000, datetime('now')),
+                ('VENUE_LA', 'Staples Center', 'USA', 19000, datetime('now')),
+                ('VENUE_TOKYO', 'Tokyo Dome', 'JAPAN', 55000, datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch
+        {
+            // Continuer
+        }
+    }
+
+    /// <summary>
+    /// Importe les types de show
+    /// </summary>
+    private static void ImportShowTypes(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var cmd = dest.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO ShowTypes (ShowTypeId, Name, CreatedAt) VALUES
+                ('SHOW_TV', 'TV Show', datetime('now')),
+                ('SHOW_PREMIUM', 'Premium Event', datetime('now')),
+                ('SHOW_WEEKLY', 'Weekly Show', datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch
+        {
+            // Continuer
+        }
+    }
+
+    /// <summary>
+    /// Importe les types de match
+    /// </summary>
+    private static void ImportMatchTypes(SqliteConnection source, SqliteConnection dest)
+    {
+        try
+        {
+            using var cmd = dest.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO MatchTypes (MatchTypeId, Libelle, Participants, DureeParDefaut, CreatedAt) VALUES
+                ('MATCH_1V1', 'Singles Match', 2, 15, datetime('now')),
+                ('MATCH_TAG', 'Tag Team Match', 4, 20, datetime('now')),
+                ('MATCH_TRIPLE', 'Triple Threat', 3, 15, datetime('now')),
+                ('MATCH_ROYAL', 'Royal Rumble', 30, 60, datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch
+        {
+            // Continuer
+        }
+    }
+
+    /// <summary>
+    /// Importe les styles de catch avec leurs caractéristiques
+    /// </summary>
+    private static void ImportCatchStyles(SqliteConnection dest)
+    {
+        try
+        {
+            using var cmd = dest.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO CatchStyles 
+                (CatchStyleId, Name, Description, WrestlingPurity, EntertainmentFocus, HardcoreIntensity, 
+                 LuchaInfluence, StrongStyleInfluence, FanExpectationMatchQuality, FanExpectationStorylines, 
+                 FanExpectationPromos, FanExpectationSpectacle, MatchRatingMultiplier, PromoRatingMultiplier, 
+                 IconName, AccentColor, IsActive, CreatedAt) VALUES
+                ('STYLE_PURE_WRESTLING', 'Pure Wrestling', 
+                 'Focus absolu sur la qualité technique des matchs. Workrate élevé, compétition sportive, peu de storylines extravagantes.', 
+                 90, 20, 0, 10, 30, 90, 30, 20, 20, 1.3, 0.7, '🥋', '#4CAF50', 1, datetime('now')),
+                ('STYLE_SPORTS_ENTERTAINMENT', 'Sports Entertainment', 
+                 'Équilibre entre wrestling et spectacle. Storylines complexes, gimmicks marquants, grande production.', 
+                 50, 80, 20, 15, 10, 60, 80, 70, 85, 1.0, 1.2, '🎭', '#2196F3', 1, datetime('now')),
+                ('STYLE_HARDCORE', 'Hardcore Wrestling', 
+                 'Violence extrême, objets, sang, no-DQ. Public niche amateur de brutalité et spots dangereux.', 
+                 30, 40, 95, 0, 20, 50, 40, 30, 80, 1.1, 0.8, '💀', '#F44336', 1, datetime('now')),
+                ('STYLE_LUCHA_LIBRE', 'Lucha Libre', 
+                 'High-flying, rythme rapide, masques, trios. Tradition mexicaine avec acrobaties spectaculaires.', 
+                 60, 60, 10, 95, 0, 75, 50, 40, 80, 1.2, 0.9, '🎪', '#FF9800', 1, datetime('now')),
+                ('STYLE_STRONG_STYLE', 'Strong Style', 
+                 'Dureté japonaise, stiff strikes, fighting spirit. Présentation sérieuse et sportive.', 
+                 85, 30, 30, 5, 95, 85, 40, 25, 50, 1.3, 0.7, '⚔️', '#9C27B0', 1, datetime('now')),
+                ('STYLE_HYBRID', 'Hybrid Wrestling', 
+                 'Mix équilibré de tous les styles. Adaptable selon les talents et le public.', 
+                 60, 60, 20, 30, 30, 65, 65, 60, 65, 1.0, 1.0, '🌐', '#607D8B', 1, datetime('now')),
+                ('STYLE_FAMILY_FRIENDLY', 'Family-Friendly', 
+                 'Contenu tous publics, heroes vs villains clairs, messages positifs. Accessible aux enfants.', 
+                 50, 70, 0, 20, 5, 55, 75, 65, 80, 0.9, 1.1, '👨‍👩‍👧‍👦', '#4CAF50', 1, datetime('now')),
+                ('STYLE_INDIE', 'Indie Wrestling', 
+                 'Compétition pure, innovation, passion. Petit budget mais grande créativité.', 
+                 75, 50, 15, 40, 40, 80, 55, 50, 60, 1.2, 0.9, '💎', '#00BCD4', 1, datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            // Log l'erreur mais continue (les catch styles pourraient avoir été créés manuellement)
+            System.Diagnostics.Debug.WriteLine($"⚠️ Erreur lors de l'import des styles de catch: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Crée des compagnies par défaut si l'import échoue
+    /// </summary>
+    private static void CreateDefaultCompanies(SqliteConnection connection)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = """
+            INSERT OR IGNORE INTO Companies (CompanyId, Name, Prestige, Treasury, CreatedAt) VALUES
+            ('COMP_1', 'Main Event Wrestling', 75, 2000000.0, datetime('now')),
+            ('COMP_2', 'Championship Wrestling', 65, 1500000.0, datetime('now')),
+            ('COMP_3', 'Prime Wrestling', 55, 1000000.0, datetime('now'));
+            """;
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Crée des workers par défaut si l'import échoue
+    /// </summary>
+    private static void CreateDefaultWorkers(SqliteConnection connection)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = """
+            INSERT OR IGNORE INTO Workers (WorkerId, FirstName, LastName, RingName, InRing, Entertainment, Story, CreatedAt) VALUES
+            ('WORKER_1', 'John', 'Smith', 'The Champion', 85, 80, 75, datetime('now')),
+            ('WORKER_2', 'Mike', 'Johnson', 'Thunder', 78, 75, 70, datetime('now')),
+            ('WORKER_3', 'David', 'Williams', 'The Beast', 80, 70, 65, datetime('now')),
+            ('WORKER_4', 'Chris', 'Brown', 'Storm', 75, 85, 80, datetime('now'));
+            """;
+        cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Crée le schéma et les données par défaut (accessible publiquement pour fallback)
+    /// </summary>
+    public void CreateSchemaWithDefaults(SqliteConnection connection)
+    {
+        CreateWorldSchema(connection);
+        CreateDefaultCompanies(connection);
+        CreateDefaultWorkers(connection);
+        ImportCatchStyles(connection);
+        
+        // Import des données de référence sans source
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Countries (CountryId, Name, Code, CreatedAt) VALUES
+                ('USA', 'United States', 'US', datetime('now')),
+                ('JAPAN', 'Japan', 'JP', datetime('now')),
+                ('MEXICO', 'Mexico', 'MX', datetime('now')),
+                ('CANADA', 'Canada', 'CA', datetime('now')),
+                ('GERMANY', 'Germany', 'DE', datetime('now')),
+                ('UK', 'United Kingdom', 'GB', datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch { }
+
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Regions (RegionId, Name, CreatedAt) VALUES
+                ('USA', 'United States', datetime('now')),
+                ('JAPAN', 'Japan', datetime('now')),
+                ('MEXICO', 'Mexico', datetime('now')),
+                ('CANADA', 'Canada', datetime('now')),
+                ('EUROPE', 'Europe', datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch { }
+
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Titles (TitleId, Name, Prestige, CreatedAt) VALUES
+                ('TITLE_WORLD', 'World Championship', 100, datetime('now')),
+                ('TITLE_IC', 'Intercontinental Championship', 75, datetime('now')),
+                ('TITLE_TAG', 'Tag Team Championship', 70, datetime('now')),
+                ('TITLE_REGIONAL', 'Regional Championship', 50, datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch { }
+
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO Venues (VenueId, Name, RegionId, Capacity, CreatedAt) VALUES
+                ('VENUE_NY', 'Madison Square Garden', 'USA', 20000, datetime('now')),
+                ('VENUE_LA', 'Staples Center', 'USA', 19000, datetime('now')),
+                ('VENUE_TOKYO', 'Tokyo Dome', 'JAPAN', 55000, datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch { }
+
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO ShowTypes (ShowTypeId, Name, CreatedAt) VALUES
+                ('SHOW_TV', 'TV Show', datetime('now')),
+                ('SHOW_PREMIUM', 'Premium Event', datetime('now')),
+                ('SHOW_WEEKLY', 'Weekly Show', datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch { }
+
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                INSERT OR IGNORE INTO MatchTypes (MatchTypeId, Libelle, Participants, DureeParDefaut, CreatedAt) VALUES
+                ('MATCH_1V1', 'Singles Match', 2, 15, datetime('now')),
+                ('MATCH_TAG', 'Tag Team Match', 4, 20, datetime('now')),
+                ('MATCH_TRIPLE', 'Triple Threat', 3, 15, datetime('now')),
+                ('MATCH_ROYAL', 'Royal Rumble', 30, 60, datetime('now'));
+                """;
+            cmd.ExecuteNonQuery();
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Vérifie l'existence d'une table
+    /// </summary>
+    private static bool TableExists(SqliteConnection connection, string tableName)
+    {
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=@tableName LIMIT 1;";
+            command.Parameters.AddWithValue("@tableName", tableName);
+            return command.ExecuteScalar() is not null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}

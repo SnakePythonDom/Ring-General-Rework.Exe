@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "types-segments"
+  },
+  "types": [
+    {
+      "id": "match",
+      "libelle": "Match",
+      "champsRequis": ["participants", "duree", "agent", "production"],
+      "validations": ["minParticipants:2", "dureeMin:3"],
+      "consignes": ["typeMatch", "intensite", "storyHeavy", "finish", "risqueBotch"]
+    },
+    {
+      "id": "promo",
+      "libelle": "Promo",
+      "champsRequis": ["participants", "duree", "micro"],
+      "validations": ["minParticipants:1", "dureeMin:2"],
+      "consignes": ["storyHeavy", "ton"]
+    },
+    {
+      "id": "angle_backstage",
+      "libelle": "Angle backstage",
+      "champsRequis": ["participants", "duree", "production"],
+      "validations": ["minParticipants:1", "dureeMin:1"],
+      "consignes": ["storyHeavy", "risqueBotch"]
+    },
+    {
+      "id": "video",
+      "libelle": "Vidéo",
+      "champsRequis": ["duree", "production"],
+      "validations": ["dureeMin:1"],
+      "consignes": ["ton"]
+    },
+    {
+      "id": "run_in",
+      "libelle": "Run-in",
+      "champsRequis": ["participants", "cible", "duree"],
+      "validations": ["minParticipants:1", "dureeMin:1"],
+      "consignes": ["storyHeavy", "risqueBotch"]
+    },
+    {
+      "id": "entree",
+      "libelle": "Entrée",
+      "champsRequis": ["participants", "duree", "production"],
+      "validations": ["minParticipants:1", "dureeMin:1"],
+      "consignes": ["ton"]
+    },
+    {
+      "id": "interview",
+      "libelle": "Interview",
+      "champsRequis": ["participants", "duree", "intervieweur"],
+      "validations": ["minParticipants:2", "dureeMin:2"],
+      "consignes": ["storyHeavy", "ton"]
+    },
+    {
+      "id": "brawl",
+      "libelle": "Brawl",
+      "champsRequis": ["participants", "duree", "production"],
+      "validations": ["minParticipants:2", "dureeMin:2"],
+      "consignes": ["intensite", "risqueBotch"]
+    }
+  ],
+  "champsCommuns": [
+    {"id": "participants", "libelle": "Participants"},
+    {"id": "cible", "libelle": "Cible"},
+    {"id": "duree", "libelle": "Durée (min)"},
+    {"id": "agent", "libelle": "Agent"},
+    {"id": "production", "libelle": "Production"},
+    {"id": "micro", "libelle": "Micro"},
+    {"id": "intervieweur", "libelle": "Intervieweur"}
+  ],
+  "regles": [
+    "Les segments doivent totaliser la durée du show.",
+    "Un participant ne peut pas être dans deux segments simultanés."
+  ],
+  "consignes": {
+    "typeMatch": ["Singles", "Tag", "Triple Threat", "Hardcore", "Cage"],
+    "intensite": ["FAIBLE", "MOYENNE", "FORTE"],
+    "storyHeavy": ["NON", "OUI"],
+    "finish": ["PROPRE", "CONTROVERSE", "DQ", "COUNT_OUT"],
+    "risqueBotch": ["FAIBLE", "MOYEN", "ELEVE"],
+    "ton": ["SERIEUX", "LEGER", "COMIQUE"]
+  },
+  "etatVide": {
+    "libelle": "Aucun type de segment défini.",
+    "messageErreur": "Impossible de charger les types de segments."
+  }
+}

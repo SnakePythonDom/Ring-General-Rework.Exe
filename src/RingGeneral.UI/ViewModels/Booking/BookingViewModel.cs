@@ -4,7 +4,6 @@ using ReactiveUI;
 using RingGeneral.Core.Validation;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Repositories;
-using RingGeneral.UI.ViewModels.Core;
 using RingGeneral.UI.Services.Messaging;
 
 namespace RingGeneral.UI.ViewModels.Booking;

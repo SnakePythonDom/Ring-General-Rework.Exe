@@ -1,0 +1,210 @@
+﻿using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.DependencyInjection;
+using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.Services.Messaging;
+using RingGeneral.UI.ViewModels.Dashboard;
+using RingGeneral.UI.ViewModels.Booking;
+using RingGeneral.UI.ViewModels.Roster;
+using RingGeneral.UI.ViewModels.Storylines;
+using RingGeneral.UI.ViewModels.Youth;
+using RingGeneral.UI.ViewModels.Finance;
+using RingGeneral.UI.ViewModels.Calendar;
+using RingGeneral.UI.ViewModels.Start;
+using RingGeneral.UI.Views.Shell;
+using RingGeneral.Data.Database;
+using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Validation;
+using RingGeneral.Core.Services;
+using RingGeneral.Core.Interfaces;
+using RingGeneral.UI.ViewModels;
+
+namespace RingGeneral.UI;
+
+public sealed class App : Application
+{
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+    }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        var logger = ApplicationServices.Logger;
+
+        // Configuration DI
+        var services = new ServiceCollection();
+
+        // Services
+        services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IEventAggregator, EventAggregator>();
+
+        // Database & Repositories
+        var factory = new SqliteConnectionFactory();
+        var repositories = RepositoryFactory.CreateRepositories(factory);
+
+        // Database initialization and validation services
+        var dbInitializer = new DbInitializer();
+        var dbValidator = new DbValidator();
+        services.AddSingleton(dbInitializer);
+        services.AddSingleton(dbValidator);
+
+        // SaveGame manager service
+        var saveGameManager = new SaveGameManager(factory, dbInitializer, dbValidator);
+        services.AddSingleton(saveGameManager);
+        services.AddSingleton(factory);
+
+        // Register all repositories
+        services.AddSingleton(repositories.GameRepository);
+        services.AddSingleton(repositories.ShowRepository);
+        services.AddSingleton(repositories.CompanyRepository);
+        services.AddSingleton(repositories.WorkerRepository);
+        services.AddSingleton(repositories.BackstageRepository);
+        services.AddSingleton(repositories.ScoutingRepository);
+        services.AddSingleton(repositories.ContractRepository);
+        services.AddSingleton(repositories.SettingsRepository);
+        services.AddSingleton(repositories.YouthRepository);
+        services.AddSingleton(repositories.TitleRepository);
+        services.AddSingleton(repositories.MedicalRepository);
+        services.AddSingleton(repositories.WorkerAttributesRepository);
+
+        // Company Governance & Identity
+        services.AddSingleton(repositories.OwnerRepository);
+        services.AddSingleton(repositories.BookerRepository);
+        services.AddSingleton(repositories.CatchStyleRepository);
+        services.AddSingleton<IRegionRepository>(_ => new RegionRepository(factory));
+
+        // Core Services
+        services.AddSingleton<BookingValidator>();
+        services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
+
+        // Personality System Services (Phase 1)
+        services.AddSingleton<IPersonalityEngine, PersonalityEngine>();
+        services.AddSingleton<IPersonalityRepository>(sp =>
+            new PersonalityRepository(factory, sp.GetRequiredService<IPersonalityEngine>()));
+
+        // Nepotism System Services (Phase 2)
+        services.AddSingleton<INepotismRepository>(sp => new NepotismRepository(factory));
+        services.AddSingleton<INepotismEngine>(sp =>
+            new NepotismEngine(sp.GetRequiredService<INepotismRepository>()));
+
+        // Morale & Rumors System Services (Phase 3)
+        services.AddSingleton<IMoraleRepository>(sp => new MoraleRepository(factory));
+        services.AddSingleton<IMoraleEngine>(sp =>
+            new MoraleEngine(sp.GetRequiredService<IMoraleRepository>()));
+        services.AddSingleton<IRumorRepository>(sp => new RumorRepository(factory));
+        services.AddSingleton<IRumorEngine>(sp =>
+            new RumorEngine(sp.GetRequiredService<IRumorRepository>()));
+
+        // Legacy Personality Services
+        services.AddSingleton<PersonalityDetectorService>();
+        services.AddSingleton<AgentReportGeneratorService>();
+
+        // ViewModels - Core
+        services.AddSingleton<ViewModels.Core.ShellViewModel>();
+
+        // ViewModels - Start
+        services.AddTransient<StartViewModel>();
+        services.AddTransient<CompanySelectorViewModel>();
+        services.AddTransient<CreateCompanyViewModel>();
+
+        // ViewModels - Game
+        services.AddTransient<DashboardViewModel>();
+
+        // Booking ViewModels
+        services.AddTransient<BookingViewModel>();
+        services.AddTransient<LibraryViewModel>();
+        services.AddTransient<ShowHistoryPageViewModel>();
+        services.AddTransient<BookingSettingsViewModel>();
+
+        // Roster ViewModels
+        services.AddTransient<RosterViewModel>();
+        services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>();
+        services.AddTransient<ViewModels.Roster.TitlesViewModel>();
+        services.AddTransient<ViewModels.Roster.InjuriesViewModel>();
+
+        // Other ViewModels
+        services.AddTransient<StorylinesViewModel>();
+        services.AddTransient<YouthViewModel>();
+        services.AddTransient<FinanceViewModel>();
+        services.AddTransient<CalendarViewModel>();
+
+        // Inbox & Settings ViewModels
+        services.AddTransient<ViewModels.Inbox.InboxViewModel>();
+        services.AddTransient<ViewModels.Settings.SettingsViewModel>();
+
+        var provider = services.BuildServiceProvider();
+
+        // Obtenir le NavigationService
+        var navigationService = provider.GetRequiredService<INavigationService>();
+
+        // Vérifier si une partie est déjà en cours
+        var hasActiveSave = CheckForActiveSave(repositories.GameRepository);
+
+        if (hasActiveSave)
+        {
+            // Charger directement le Shell si une partie existe
+            logger.Info("Partie active détectée, chargement du Dashboard...");
+            // Le ShellViewModel naviguera automatiquement vers DashboardViewModel
+        }
+        else
+        {
+            // Sinon, afficher le menu de démarrage
+            logger.Info("Aucune partie active, affichage du menu de démarrage...");
+
+            // Initialiser le NavigationService avec StartViewModel AVANT de créer le Shell
+            navigationService.NavigateTo<StartViewModel>();
+            logger.Debug("Navigation vers StartViewModel effectuée");
+        }
+
+        // Créer le ShellViewModel (qui observera le NavigationService)
+        var shellViewModel = provider.GetRequiredService<ViewModels.Core.ShellViewModel>();
+        logger.Debug($"ShellViewModel créé, CurrentContentViewModel = {shellViewModel.CurrentContentViewModel?.GetType().Name ?? "null"}");
+
+        // Lancer la fenêtre principale avec le ShellViewModel
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow = new MainWindow(shellViewModel);
+        }
+
+        base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Vérifie si une partie active existe dans la base de données
+    /// </summary>
+    private static bool CheckForActiveSave(GameRepository repository)
+    {
+        try
+        {
+            using var connection = repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM SaveGames WHERE IsActive = 1";
+            var count = Convert.ToInt32(cmd.ExecuteScalar());
+            return count > 0;
+        }
+        catch (Exception ex)
+        {
+            ApplicationServices.Logger.Error($"Erreur lors de la vérification de sauvegarde: {ex.Message}", ex);
+            return false;
+        }
+    }
+
+    private static SegmentTypeCatalog ChargerSegmentTypes()
+    {
+        // Charger depuis les specs ou créer un catalogue par défaut
+        return new SegmentTypeCatalog(
+            new Dictionary<string, string>
+            {
+                ["match"] = "Match",
+                ["promo"] = "Promo",
+                ["angle"] = "Angle",
+                ["interview"] = "Interview"
+            },
+            new Dictionary<string, IReadOnlyList<string>>(),
+            new Dictionary<string, IReadOnlyList<string>>(),
+            new Dictionary<string, string>()
+        );
+    }
+}

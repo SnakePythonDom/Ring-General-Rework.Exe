@@ -1,0 +1,106 @@
+﻿using System.Collections.ObjectModel;
+using ReactiveUI;
+
+namespace RingGeneral.UI.ViewModels.Shared.Navigation;
+
+/// <summary>
+/// ViewModel pour un élément de navigation dans le TreeView
+/// Style FM26 : icône, label, sous-éléments
+/// </summary>
+public sealed class NavigationItemViewModel : ViewModelBase
+{
+    private bool _isExpanded;
+    private bool _isSelected;
+
+    public NavigationItemViewModel(
+        string id,
+        string label,
+        string icon,
+        Type? targetViewModelType = null,
+        NavigationItemViewModel? parent = null)
+    {
+        Id = id;
+        Label = label;
+        Icon = icon;
+        TargetViewModelType = targetViewModelType;
+        Parent = parent;
+        Children = new ObservableCollection<NavigationItemViewModel>();
+    }
+
+    /// <summary>
+    /// Identifiant unique de l'item
+    /// </summary>
+    public string Id { get; }
+
+    /// <summary>
+    /// Libellé affiché
+    /// </summary>
+    public string Label { get; }
+
+    /// <summary>
+    /// Icône (emoji ou code)
+    /// </summary>
+    public string Icon { get; }
+
+    /// <summary>
+    /// Type de ViewModel à afficher quand on clique
+    /// </summary>
+    public Type? TargetViewModelType { get; }
+
+    /// <summary>
+    /// Parent dans l'arbre
+    /// </summary>
+    public NavigationItemViewModel? Parent { get; }
+
+    /// <summary>
+    /// Enfants de cet item
+    /// </summary>
+    public ObservableCollection<NavigationItemViewModel> Children { get; }
+
+    /// <summary>
+    /// Est-ce que l'item est expanded (arbre)
+    /// </summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded == value)
+            {
+                return;
+            }
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+        }
+    }
+
+    /// <summary>
+    /// Est-ce que l'item est sélectionné
+    /// </summary>
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value)
+            {
+                return;
+            }
+            this.RaiseAndSetIfChanged(ref _isSelected, value);
+        }
+    }
+
+    /// <summary>
+    /// A-t-il des enfants ?
+    /// </summary>
+    public bool HasChildren => Children.Count > 0;
+
+    /// <summary>
+    /// Badge optionnel (ex: nombre de notifications)
+    /// </summary>
+    public string? Badge
+    {
+        get => _badge;
+        set => this.RaiseAndSetIfChanged(ref _badge, value);
+    }
+    private string? _badge;
+}

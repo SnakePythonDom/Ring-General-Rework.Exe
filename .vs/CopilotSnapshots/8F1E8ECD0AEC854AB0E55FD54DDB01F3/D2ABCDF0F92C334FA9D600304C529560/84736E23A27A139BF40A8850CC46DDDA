@@ -1,0 +1,340 @@
+﻿using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Linq;
+using ReactiveUI;
+using RingGeneral.UI.ViewModels.Dashboard;
+using RingGeneral.UI.Services.Navigation;
+using RingGeneral.Data.Repositories;
+
+namespace RingGeneral.UI.ViewModels.Start;
+
+/// <summary>
+/// ViewModel pour la sélection de compagnie au démarrage
+/// </summary>
+public sealed class CompanySelectorViewModel : ViewModelBase
+{
+    private readonly INavigationService _navigationService;
+    private readonly GameRepository _repository;
+    private CompanyListItem? _selectedCompany;
+    private bool _isLoading;
+
+    public CompanySelectorViewModel(INavigationService navigationService, GameRepository repository)
+    {
+        _navigationService = navigationService;
+        _repository = repository;
+
+        Companies = new ObservableCollection<CompanyListItem>();
+
+        var canSelectCompany = this.WhenAnyValue(x => x.SelectedCompany)
+            .Select(company => company is not null);
+
+        SelectCompanyCommand = ReactiveCommand.CreateFromTask(StartGameWithSelectedCompanyAsync, canSelectCompany);
+        CreateNewCompanyCommand = ReactiveCommand.Create(CreateNewCompany);
+        BackCommand = ReactiveCommand.Create(GoBack);
+
+        _ = LoadCompaniesAsync();
+    }
+
+    /// <summary>
+    /// Indique si le chargement est en cours
+    /// </summary>
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set => this.RaiseAndSetIfChanged(ref _isLoading, value);
+    }
+
+    /// <summary>
+    /// Liste des compagnies disponibles
+    /// </summary>
+    public ObservableCollection<CompanyListItem> Companies { get; }
+
+    /// <summary>
+    /// Compagnie sélectionnée
+    /// </summary>
+    public CompanyListItem? SelectedCompany
+    {
+        get => _selectedCompany;
+        set => this.RaiseAndSetIfChanged(ref _selectedCompany, value);
+    }
+
+    public ReactiveCommand<Unit, Unit> SelectCompanyCommand { get; }
+    public ReactiveCommand<Unit, Unit> CreateNewCompanyCommand { get; }
+    public ReactiveCommand<Unit, Unit> BackCommand { get; }
+
+    /// <summary>
+    /// Log la DB réellement ouverte par SQLite (super utile pour diagnostiquer les "no such table")
+    /// </summary>
+    private void LogDatabasePath(System.Data.Common.DbConnection connection)
+    {
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "PRAGMA database_list;";
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                // columns: seq, name, file
+                var seq = r.GetInt32(0);
+                var name = r.GetString(1);
+                var file = r.IsDBNull(2) ? "" : r.GetString(2);
+                Logger.Info($"SQLite database_list[{seq}] name={name} file={file}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Impossible de lire PRAGMA database_list", ex);
+        }
+    }
+
+    /// <summary>
+    /// Vérifie si une table existe dans la DB courante
+    /// </summary>
+    private bool TableExists(System.Data.Common.DbConnection connection, string tableName)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            SELECT 1
+            FROM sqlite_master
+            WHERE type = 'table' AND name = @name
+            LIMIT 1;";
+        var p = cmd.CreateParameter();
+        p.ParameterName = "@name";
+        p.Value = tableName;
+        cmd.Parameters.Add(p);
+
+        var result = cmd.ExecuteScalar();
+        return result is not null;
+    }
+
+    /// <summary>
+    /// Charge la liste des compagnies depuis la base de données (asynchrone)
+    /// </summary>
+    private async Task LoadCompaniesAsync()
+    {
+        IsLoading = true;
+        Logger.Info("Début du chargement des compagnies...");
+
+        try
+        {
+            var companies = await Task.Run(() =>
+            {
+                var result = new List<CompanyListItem>();
+
+                using var connection = _repository.CreateConnection();
+
+                // Important : selon ton GameRepository, la connexion peut ne pas être ouverte.
+                if (connection.State != System.Data.ConnectionState.Open)
+                    connection.Open();
+
+                // Log le vrai fichier sqlite ouvert (pour détecter DB vide / mauvais chemin)
+                LogDatabasePath(connection);
+
+                // Vérification claire : si pas de Companies, on log et on arrête proprement
+                if (!TableExists(connection, "Companies"))
+                {
+                    Logger.Error("La table 'Companies' est introuvable dans la base actuellement ouverte. " +
+                                 "=> mauvais fichier DB (vide / mauvais chemin / DB de save au lieu de world).");
+                    return result; // vide -> on retombe sur fallback plus bas
+                }
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT
+                        c.CompanyId,
+                        c.Name,
+                        r.Name as RegionName,
+                        ct.Name as CountryName,
+                        c.Prestige,
+                        c.Treasury
+                    FROM Companies c
+                    LEFT JOIN Regions r ON r.RegionId = c.RegionId
+                    LEFT JOIN Countries ct ON ct.CountryId = c.CountryId
+                    ORDER BY c.Prestige DESC
+                    LIMIT 50";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var regionName = reader.IsDBNull(2) ? null : reader.GetString(2);
+                    var countryName = reader.IsDBNull(3) ? "Unknown" : reader.GetString(3);
+                    var regionDisplay = regionName != null ? $"{regionName}, {countryName}" : countryName;
+
+                    result.Add(new CompanyListItem
+                    {
+                        CompanyId = reader.GetString(0),
+                        Name = reader.GetString(1),
+                        Region = regionDisplay,
+                        Prestige = reader.IsDBNull(4) ? 50 : reader.GetInt32(4),
+                        Treasury = reader.IsDBNull(5) ? 1000000.0 : reader.GetDouble(5)
+                    });
+                }
+
+                return result;
+            });
+
+            Companies.Clear();
+            foreach (var company in companies)
+                Companies.Add(company);
+
+            if (Companies.Count == 0)
+            {
+                Logger.Info("Aucune compagnie trouvée (ou DB incorrecte). Ajout d'une compagnie par défaut.");
+                Companies.Add(new CompanyListItem
+                {
+                    CompanyId = "COMP_DEFAULT",
+                    Name = "Default Wrestling Company",
+                    Region = "USA",
+                    Prestige = 50,
+                    Treasury = 1000000.0
+                });
+            }
+
+            Logger.Info($"{Companies.Count} compagnies chargées (ou fallback)");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Erreur lors du chargement", ex);
+
+            Companies.Clear();
+            Companies.Add(new CompanyListItem
+            {
+                CompanyId = "COMP_DEFAULT",
+                Name = "Default Wrestling Company",
+                Region = "USA",
+                Prestige = 50,
+                Treasury = 1000000.0
+            });
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Démarre le jeu avec la compagnie sélectionnée (asynchrone)
+    /// </summary>
+    private async Task StartGameWithSelectedCompanyAsync()
+    {
+        if (SelectedCompany == null)
+        {
+            Logger.Info("Aucune compagnie sélectionnée");
+            return;
+        }
+
+        Logger.Info($"Démarrage avec {SelectedCompany.Name}...");
+        IsLoading = true;
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                using var connection = _repository.CreateConnection();
+                if (connection.State != System.Data.ConnectionState.Open)
+                    connection.Open();
+
+                // Log DB ouverte (utile si SaveGames est dans une autre DB)
+                LogDatabasePath(connection);
+
+                // Si SaveGames n'existe pas, log clair
+                if (!TableExists(connection, "SaveGames"))
+                {
+                    Logger.Error("La table 'SaveGames' est introuvable dans la base actuellement ouverte. " +
+                                 "=> probablement mélange DB world/save. (À corriger dans GameRepository)");
+                    return;
+                }
+
+                using (var deactivateCmd = connection.CreateCommand())
+                {
+                    deactivateCmd.CommandText = "UPDATE SaveGames SET IsActive = 0";
+                    deactivateCmd.ExecuteNonQuery();
+                }
+
+                using (var insertCmd = connection.CreateCommand())
+                {
+                    insertCmd.CommandText = @"
+                        INSERT INTO SaveGames (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive)
+                        VALUES (@saveName, @companyId, @week, @date, 1)";
+
+                    var saveName = $"{SelectedCompany.Name} - {DateTime.Now:yyyy-MM-dd HH:mm}";
+                    insertCmd.Parameters.AddWithValue("@saveName", saveName);
+                    insertCmd.Parameters.AddWithValue("@companyId", SelectedCompany.CompanyId);
+                    insertCmd.Parameters.AddWithValue("@week", 1);
+                    insertCmd.Parameters.AddWithValue("@date", "2024-01-01");
+
+                    insertCmd.ExecuteNonQuery();
+                }
+
+                Logger.Info("Sauvegarde créée avec succès");
+            });
+
+            _navigationService.NavigateTo<DashboardViewModel>();
+            Logger.Info("Navigation vers Dashboard effectuée");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Erreur lors de la création", ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void CreateNewCompany()
+    {
+        Logger.Info("Création d'une nouvelle compagnie...");
+        _navigationService.NavigateTo<CreateCompanyViewModel>();
+    }
+
+    private void GoBack()
+    {
+        _navigationService.GoBack();
+    }
+}
+
+/// <summary>
+/// Item de liste pour une compagnie
+/// </summary>
+public sealed class CompanyListItem : ViewModelBase
+{
+    private string _companyId = string.Empty;
+    private string _name = string.Empty;
+    private string _region = string.Empty;
+    private int _prestige;
+    private double _treasury;
+
+    public string CompanyId
+    {
+        get => _companyId;
+        set => this.RaiseAndSetIfChanged(ref _companyId, value);
+    }
+
+    public string Name
+    {
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    public string Region
+    {
+        get => _region;
+        set => this.RaiseAndSetIfChanged(ref _region, value);
+    }
+
+    public int Prestige
+    {
+        get => _prestige;
+        set => this.RaiseAndSetIfChanged(ref _prestige, value);
+    }
+
+    public double Treasury
+    {
+        get => _treasury;
+        set => this.RaiseAndSetIfChanged(ref _treasury, value);
+    }
+
+    public string TreasuryFormatted => $"${Treasury:N0}";
+    public string PrestigeDisplay => $"★ {Prestige}/100";
+}

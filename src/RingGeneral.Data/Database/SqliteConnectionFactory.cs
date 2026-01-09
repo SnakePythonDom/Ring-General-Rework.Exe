@@ -2,24 +2,246 @@ using Microsoft.Data.Sqlite;
 
 namespace RingGeneral.Data.Database;
 
+/// <summary>
+/// Factory de connexions SQLite avec support de deux bases séparées :
+/// - World DB (Companies, Workers, Shows, Regions, Countries, etc.)
+/// - Save DB (SaveGames, état de partie active)
+/// 
+/// Chemins gérés par :
+/// 1. Variable d'environnement RINGGENERAL_WORLD_DB_PATH (override)
+/// 2. Sinon ? AppContext.BaseDirectory/data/ring_world.db (défaut)
+/// 3. Save DB ? %APPDATA%/RingGeneral/ring_save.db (automatique)
+/// </summary>
 public sealed class SqliteConnectionFactory
 {
-    private readonly string _connectionString;
+    private readonly string _worldConnectionString;
+    private readonly string _saveConnectionString;
 
-    public SqliteConnectionFactory(string connectionString)
+    public string WorldDatabasePath { get; }
+    public string SaveDatabasePath { get; }
+
+    /// <summary>
+    /// Initialise la factory avec les deux chaînes de connexion
+    /// </summary>
+    /// <param name="worldConnectionString">Connection string pour World DB (si null, cherche via env)</param>
+    /// <param name="saveConnectionString">Connection string pour Save DB (si null, utilise AppData)</param>
+    public SqliteConnectionFactory(string? worldConnectionString = null, string? saveConnectionString = null)
     {
-        _connectionString = connectionString;
-        DatabasePath = new SqliteConnectionStringBuilder(connectionString).DataSource;
+        // ???????????????????????????????????????????????????????????????????
+        // WORLD DB PATH RESOLUTION
+        // ???????????????????????????????????????????????????????????????????
+        
+        if (!string.IsNullOrWhiteSpace(worldConnectionString))
+        {
+            // ? Path explicite fourni (rare, surtout pour tests)
+            _worldConnectionString = worldConnectionString;
+            var worldBuilder = new SqliteConnectionStringBuilder(worldConnectionString);
+            WorldDatabasePath = worldBuilder.DataSource ?? throw new InvalidOperationException("DataSource non trouvé dans connection string");
+        }
+        else
+        {
+            // 1?? Chercher via variable d'environnement (expert override)
+            var envWorldPath = Environment.GetEnvironmentVariable("RINGGENERAL_WORLD_DB_PATH");
+            if (!string.IsNullOrWhiteSpace(envWorldPath))
+            {
+                WorldDatabasePath = envWorldPath;
+            }
+            else
+            {
+                // 2?? Sinon ? AppContext.BaseDirectory/data/ring_world.db (défaut)
+                var dataDir = Path.Combine(AppContext.BaseDirectory, "data");
+                WorldDatabasePath = Path.Combine(dataDir, "ring_world.db");
+            }
+
+            _worldConnectionString = $"Data Source={WorldDatabasePath}";
+        }
+
+        // ???????????????????????????????????????????????????????????????????
+        // SAVE DB PATH RESOLUTION
+        // ???????????????????????????????????????????????????????????????????
+
+        if (!string.IsNullOrWhiteSpace(saveConnectionString))
+        {
+            // ? Path explicite fourni
+            _saveConnectionString = saveConnectionString;
+            var saveBuilder = new SqliteConnectionStringBuilder(saveConnectionString);
+            SaveDatabasePath = saveBuilder.DataSource ?? throw new InvalidOperationException("DataSource non trouvé dans connection string");
+        }
+        else
+        {
+            // ? Défaut : %APPDATA%/RingGeneral/ring_save.db
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var ringGenDir = Path.Combine(appDataPath, "RingGeneral");
+            SaveDatabasePath = Path.Combine(ringGenDir, "ring_save.db");
+            _saveConnectionString = $"Data Source={SaveDatabasePath}";
+
+            // Créer le répertoire s'il n'existe pas
+            Directory.CreateDirectory(ringGenDir);
+        }
     }
 
-    public string DatabasePath { get; }
+    // ???????????????????????????????????????????????????????????????????????????
+    // PUBLIC API - CONNEXIONS
+    // ???????????????????????????????????????????????????????????????????????????
 
-    public string GetConnectionString() => _connectionString;
+    /// <summary>
+    /// ? RECOMMANDÉ : Crée une connexion à la WORLD DB avec validation
+    /// 
+    /// Validation effectuée :
+    /// - Fichier doit exister
+    /// - Tables 'Companies' et 'Workers' doivent exister
+    /// - Lève InvalidOperationException si validation échoue
+    /// </summary>
+    public SqliteConnection CreateWorldConnection()
+    {
+        var connexion = new SqliteConnection(_worldConnectionString);
+        connexion.Open();
 
+        // ? VALIDATION CRITIQUE : Vérifier que c'est la bonne DB
+        if (!TableExists(connexion, "companies") && !TableExists(connexion, "Companies"))
+        {
+            connexion.Dispose();
+            throw new InvalidOperationException(
+                $"? Mauvaise base de données chargée.\n" +
+                $"Table 'Companies' introuvable.\n\n" +
+                $"Chemin attendu : {WorldDatabasePath}\n\n" +
+                $"Conseil :\n" +
+                $"  1. Vérifier que ring_world.db existe et n'est pas vide\n" +
+                $"  2. Vérifier que ring_world.db contient les tables Companies et Workers\n" +
+                $"  3. Chercher la variable d'env RINGGENERAL_WORLD_DB_PATH (si définie)");
+        }
+
+        if (!TableExists(connexion, "workers") && !TableExists(connexion, "Workers"))
+        {
+            connexion.Dispose();
+            throw new InvalidOperationException(
+                $"? Mauvaise base de données chargée.\n" +
+                $"Table 'Workers' introuvable.\n\n" +
+                $"Chemin attendu : {WorldDatabasePath}\n\n" +
+                $"Conseil : Vérifier que ring_world.db est la bonne base de données.");
+        }
+
+        return connexion;
+    }
+
+    /// <summary>
+    /// ? RECOMMANDÉ : Crée une connexion à la SAVE DB avec auto-création
+    /// 
+    /// Comportement :
+    /// - Crée le répertoire si absent
+    /// - Crée la table SaveGames si manquante
+    /// - Pas d'exception si table existe déjà
+    /// </summary>
+    public SqliteConnection CreateSaveConnection()
+    {
+        var connexion = new SqliteConnection(_saveConnectionString);
+        connexion.Open();
+
+        // ? AUTO-CRÉATION : Créer la table SaveGames si manquante
+        EnsureSaveSchema(connexion);
+
+        return connexion;
+    }
+
+    /// <summary>
+    /// ?? LEGACY : Redirige vers CreateWorldConnection() pour backward compatibility
+    /// À préférer : Utilisez CreateWorldConnection() explicitement
+    /// </summary>
     public SqliteConnection OuvrirConnexion()
     {
-        var connexion = new SqliteConnection(_connectionString);
-        connexion.Open();
-        return connexion;
+        return CreateWorldConnection();
+    }
+
+    // ???????????????????????????????????????????????????????????????????????????
+    // HELPERS ET ACCESSEURS
+    // ???????????????????????????????????????????????????????????????????????????
+
+    /// <summary>
+    /// Retourne la chaîne de connexion World DB
+    /// </summary>
+    public string GetConnectionString() => _worldConnectionString;
+
+    /// <summary>
+    /// Retourne la chaîne de connexion Save DB
+    /// </summary>
+    public string GetSaveConnectionString() => _saveConnectionString;
+
+    /// <summary>
+    /// Retourne le chemin de la DB spécifiée (pour logging/debug)
+    /// </summary>
+    public string GetDbFilePath(bool isSaveDb = false)
+    {
+        return isSaveDb ? SaveDatabasePath : WorldDatabasePath;
+    }
+
+    /// <summary>
+    /// Retourne l'état des deux bases (pour logs au démarrage)
+    /// </summary>
+    public (bool WorldDbExists, bool SaveDbExists) CheckDatabasesExist()
+    {
+        return (
+            File.Exists(WorldDatabasePath),
+            File.Exists(SaveDatabasePath)
+        );
+    }
+
+    // ???????????????????????????????????????????????????????????????????????????
+    // PRIVATE HELPERS
+    // ???????????????????????????????????????????????????????????????????????????
+
+    /// <summary>
+    /// Vérifie l'existence d'une table (case-insensitive)
+    /// </summary>
+    private static bool TableExists(SqliteConnection connexion, string tableName)
+    {
+        try
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=@tableName LIMIT 1;";
+            command.Parameters.AddWithValue("@tableName", tableName);
+            return command.ExecuteScalar() is not null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Crée le schéma Save DB si absent (idempotent)
+    /// </summary>
+    private static void EnsureSaveSchema(SqliteConnection connexion)
+    {
+        const string createSaveGamesTableSql = """
+            CREATE TABLE IF NOT EXISTS SaveGames (
+                SaveId TEXT PRIMARY KEY,
+                CompanyId TEXT NOT NULL,
+                CompanyName TEXT NOT NULL,
+                PlayerId TEXT,
+                WorldVersion INTEGER NOT NULL DEFAULT 1,
+                CurrentWeek INTEGER NOT NULL DEFAULT 1,
+                CurrentYear INTEGER NOT NULL DEFAULT 2024,
+                CreatedAt TEXT NOT NULL,
+                LastPlayedAt TEXT,
+                TotalHoursPlayed REAL NOT NULL DEFAULT 0.0,
+                GameDifficulty TEXT DEFAULT 'Normal',
+                IsActive INTEGER NOT NULL DEFAULT 0
+            );
+            """;
+
+        try
+        {
+            using var command = connexion.CreateCommand();
+            command.CommandText = createSaveGamesTableSql;
+            command.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "? Impossible de créer la table SaveGames dans la Save DB.\n" +
+                $"Chemin : {connexion.DataSource}\n" +
+                "Vérifier les permissions d'écriture du dossier AppData/RingGeneral.",
+                ex);
+        }
     }
 }

@@ -61,19 +61,18 @@
                      FontSize="18"
                      Padding="12"
                      Background="#0f172a"
-                     Foreground="White"
+                     Foreground="#e2e8f0"
                      BorderBrush="#475569"
                      BorderThickness="1"
-                     CaretBrush="White">
+                     CaretBrush="#e2e8f0">
               <TextBox.Styles>
                 <Style Selector="TextBox">
-                  <Setter Property="Foreground" Value="White"/>
+                  <Setter Property="Foreground" Value="#e2e8f0"/>
                 </Style>
                 <Style Selector="TextBox:focus">
                   <Setter Property="Foreground" Value="White"/>
-                </Style>
-                <Style Selector="TextBox:pointerover">
-                  <Setter Property="Foreground" Value="White"/>
+                  <Setter Property="Background" Value="#1e293b"/>
+                  <Setter Property="BorderBrush" Value="#3b82f6"/>
                 </Style>
               </TextBox.Styles>
             </TextBox>
@@ -87,14 +86,19 @@
                        Foreground="#e2e8f0"/>
             <ComboBox ItemsSource="{Binding AvailableRegions}"
                       SelectedItem="{Binding SelectedRegion}"
-                      DisplayMemberBinding="{Binding CountryName}"
                       FontSize="18"
                       Padding="12"
                       Background="#0f172a"
-                      Foreground="White"
+                      Foreground="#e2e8f0"
                       BorderBrush="#475569"
                       BorderThickness="1"
-                      HorizontalAlignment="Stretch"/>
+                      HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding RegionName}" Foreground="#e2e8f0"/>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
           </StackPanel>
 
           <!-- Catch Style -->
@@ -108,7 +112,7 @@
                       FontSize="18"
                       Padding="12"
                       Background="#0f172a"
-                      Foreground="White"
+                      Foreground="#e2e8f0"
                       BorderBrush="#475569"
                       BorderThickness="1"
                       HorizontalAlignment="Stretch">
@@ -116,7 +120,7 @@
                 <DataTemplate>
                   <StackPanel Orientation="Horizontal" Spacing="10">
                     <TextBlock Text="{Binding IconName}" FontSize="20" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding Name}" FontSize="16" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Name}" FontSize="16" VerticalAlignment="Center" Foreground="#e2e8f0"/>
                   </StackPanel>
                 </DataTemplate>
               </ComboBox.ItemTemplate>
@@ -140,16 +144,18 @@
                      FontSize="18"
                      Padding="12"
                      Background="#0f172a"
-                     Foreground="White"
+                     Foreground="#e2e8f0"
                      BorderBrush="#475569"
                      BorderThickness="1"
-                     CaretBrush="White">
+                     CaretBrush="#e2e8f0">
               <TextBox.Styles>
                 <Style Selector="TextBox">
-                  <Setter Property="Foreground" Value="White"/>
+                  <Setter Property="Foreground" Value="#e2e8f0"/>
                 </Style>
                 <Style Selector="TextBox:focus">
                   <Setter Property="Foreground" Value="White"/>
+                  <Setter Property="Background" Value="#1e293b"/>
+                  <Setter Property="BorderBrush" Value="#3b82f6"/>
                 </Style>
               </TextBox.Styles>
             </TextBox>

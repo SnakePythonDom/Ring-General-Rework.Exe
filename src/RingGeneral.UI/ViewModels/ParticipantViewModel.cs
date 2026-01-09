@@ -1,4 +1,3 @@
-using System;
 using RingGeneral.Core.Models;
 
 namespace RingGeneral.UI.ViewModels;

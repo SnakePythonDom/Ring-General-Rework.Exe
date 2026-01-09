@@ -1,0 +1,265 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Start"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="RingGeneral.UI.Views.Start.CreateCompanyView"
+             x:DataType="vm:CreateCompanyViewModel">
+
+  <Grid Background="#0a0a0a">
+    <!-- Background gradient -->
+    <Border>
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+          <GradientStop Color="#0a0a0a" Offset="0.0"/>
+          <GradientStop Color="#1a1a2e" Offset="0.5"/>
+          <GradientStop Color="#0a0a0a" Offset="1.0"/>
+        </LinearGradientBrush>
+      </Border.Background>
+    </Border>
+
+    <!-- Main content -->
+    <DockPanel Margin="0" LastChildFill="True">
+      <!-- Title -->
+      <TextBlock Text="CRÉER UNE COMPAGNIE"
+                 FontSize="48"
+                 FontWeight="Bold"
+                 Foreground="White"
+                 HorizontalAlignment="Center"
+                 Margin="0,40,0,20"
+                 DockPanel.Dock="Top"/>
+
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+        <StackPanel HorizontalAlignment="Center" MaxWidth="600" Spacing="20" Margin="0,0,0,20">
+
+          <!-- Back button -->
+          <Button Content="← Retour"
+                  Background="#374151"
+                  Foreground="White"
+                  Padding="15,8"
+                  FontSize="16"
+                  HorizontalAlignment="Left"
+                  Command="{Binding CancelCommand}"/>
+
+          <!-- Form -->
+          <Border Background="#1e293b"
+                  CornerRadius="8"
+                  Padding="40"
+                  BoxShadow="0 8 32 #00000040">
+            <StackPanel Spacing="25">
+
+          <!-- Company Name -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Nom de la compagnie *"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#e2e8f0"/>
+            <TextBox Text="{Binding CompanyName}"
+                     Watermark="Entrez le nom de votre compagnie..."
+                     FontSize="18"
+                     Padding="12"
+                     Background="#0f172a"
+                     Foreground="#e2e8f0"
+                     BorderBrush="#475569"
+                     BorderThickness="1"
+                     CaretBrush="#e2e8f0">
+              <TextBox.Styles>
+                <Style Selector="TextBox">
+                  <Setter Property="Foreground" Value="#e2e8f0"/>
+                </Style>
+                <Style Selector="TextBox:focus">
+                  <Setter Property="Foreground" Value="White"/>
+                  <Setter Property="Background" Value="#1e293b"/>
+                  <Setter Property="BorderBrush" Value="#3b82f6"/>
+                </Style>
+              </TextBox.Styles>
+            </TextBox>
+          </StackPanel>
+
+          <!-- Region -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Région *"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#e2e8f0"/>
+            <ComboBox ItemsSource="{Binding AvailableRegions}"
+                      SelectedItem="{Binding SelectedRegion}"
+                      FontSize="18"
+                      Padding="12"
+                      Background="#0f172a"
+                      Foreground="#e2e8f0"
+                      BorderBrush="#475569"
+                      BorderThickness="1"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding RegionName}" Foreground="#e2e8f0"/>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+
+          <!-- Catch Style -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Style de Catch *"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#e2e8f0"/>
+            <ComboBox ItemsSource="{Binding AvailableCatchStyles}"
+                      SelectedItem="{Binding SelectedCatchStyle}"
+                      FontSize="18"
+                      Padding="12"
+                      Background="#0f172a"
+                      Foreground="#e2e8f0"
+                      BorderBrush="#475569"
+                      BorderThickness="1"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding IconName}" FontSize="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Name}" FontSize="16" VerticalAlignment="Center" Foreground="#e2e8f0"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding SelectedCatchStyle.Description}"
+                       FontSize="13"
+                       Foreground="#94a3b8"
+                       FontStyle="Italic"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding SelectedCatchStyle, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+          </StackPanel>
+
+          <!-- Founded Year -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Année de fondation"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#e2e8f0"/>
+            <TextBox Text="{Binding FoundedYear}"
+                     Watermark="2024"
+                     FontSize="18"
+                     Padding="12"
+                     Background="#0f172a"
+                     Foreground="#e2e8f0"
+                     BorderBrush="#475569"
+                     BorderThickness="1"
+                     CaretBrush="#e2e8f0">
+              <TextBox.Styles>
+                <Style Selector="TextBox">
+                  <Setter Property="Foreground" Value="#e2e8f0"/>
+                </Style>
+                <Style Selector="TextBox:focus">
+                  <Setter Property="Foreground" Value="White"/>
+                  <Setter Property="Background" Value="#1e293b"/>
+                  <Setter Property="BorderBrush" Value="#3b82f6"/>
+                </Style>
+              </TextBox.Styles>
+            </TextBox>
+            <TextBlock Text="L'année de lancement de votre compagnie (1950-2100)"
+                       FontSize="13"
+                       Foreground="#94a3b8"
+                       FontStyle="Italic"/>
+          </StackPanel>
+
+          <!-- Starting Prestige -->
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#e2e8f0">
+              <Run Text="Prestige de départ: "/>
+              <Run Text="{Binding StartingPrestige}" FontWeight="Bold" Foreground="#3b82f6"/>
+              <Run Text=" / 100"/>
+            </TextBlock>
+            <Slider Value="{Binding StartingPrestige}"
+                    Minimum="0"
+                    Maximum="100"
+                    TickFrequency="5"
+                    IsSnapToTickEnabled="True"
+                    Foreground="#3b82f6"/>
+            <TextBlock Text="Le prestige détermine la réputation de votre compagnie"
+                       FontSize="13"
+                       Foreground="#94a3b8"
+                       FontStyle="Italic"/>
+          </StackPanel>
+
+          <!-- Starting Treasury -->
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#e2e8f0">
+              <Run Text="Trésorerie de départ: "/>
+              <Run Text="{Binding StartingTreasury, StringFormat='${0:N0}'}" FontWeight="Bold" Foreground="#10b981"/>
+            </TextBlock>
+            <Slider Value="{Binding StartingTreasury}"
+                    Minimum="50000"
+                    Maximum="1000000"
+                    TickFrequency="50000"
+                    IsSnapToTickEnabled="True"
+                    Foreground="#10b981"/>
+            <TextBlock Text="Votre budget de départ pour les salaires et dépenses"
+                       FontSize="13"
+                       Foreground="#94a3b8"
+                       FontStyle="Italic"/>
+          </StackPanel>
+
+          <!-- Error message -->
+          <Border Background="#7f1d1d"
+                  CornerRadius="4"
+                  Padding="12"
+                  IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="#fca5a5"
+                       FontSize="14"
+                       TextWrapping="Wrap"/>
+          </Border>
+
+          <!-- Action buttons -->
+          <Grid ColumnDefinitions="*,*" Margin="0,20,0,0">
+            <Button Grid.Column="0"
+                    Content="Annuler"
+                    Background="#374151"
+                    Foreground="White"
+                    Padding="0,15"
+                    FontSize="18"
+                    FontWeight="SemiBold"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    CornerRadius="6"
+                    Margin="0,0,10,0"
+                    Command="{Binding CancelCommand}"/>
+
+            <Button Grid.Column="1"
+                    Content="Continuer"
+                    Background="#3b82f6"
+                    Foreground="White"
+                    Padding="0,15"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    CornerRadius="6"
+                    Margin="10,0,0,0"
+                    Command="{Binding ContinueCommand}">
+              <Button.Styles>
+                <Style Selector="Button:pointerover">
+                  <Setter Property="Background" Value="#2563eb"/>
+                </Style>
+              </Button.Styles>
+            </Button>
+          </Grid>
+
+            </StackPanel>
+          </Border>
+
+          <!-- Info text -->
+          <TextBlock Text="* Champs obligatoires"
+                     FontSize="13"
+                     Foreground="#64748b"
+                     HorizontalAlignment="Center"
+                     Margin="0,10,0,0"/>
+
+        </StackPanel>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
+</UserControl>

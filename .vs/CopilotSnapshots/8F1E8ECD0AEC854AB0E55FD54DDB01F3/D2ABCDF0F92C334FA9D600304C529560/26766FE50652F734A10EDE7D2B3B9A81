@@ -1,0 +1,147 @@
+﻿namespace RingGeneral.Data.Database;
+
+public sealed class SaveGameManager
+{
+    private readonly DbInitializer _initializer;
+    private readonly IDbValidator _validator;
+
+    public SaveGameManager(DbInitializer initializer, IDbValidator validator)
+    {
+        _initializer = initializer;
+        _validator = validator;
+        SavesDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "RingGeneral",
+            "Saves");
+    }
+
+    public string SavesDirectory { get; }
+
+    public IReadOnlyList<SaveGameInfo> ListerSaves()
+    {
+        if (!Directory.Exists(SavesDirectory))
+        {
+            return Array.Empty<SaveGameInfo>();
+        }
+
+        return Directory.GetFiles(SavesDirectory, "*.db", SearchOption.TopDirectoryOnly)
+            .Select(chemin => new FileInfo(chemin))
+            .OrderByDescending(info => info.LastWriteTimeUtc)
+            .Select(info => new SaveGameInfo(Path.GetFileNameWithoutExtension(info.Name), info.FullName, info.LastWriteTime))
+            .ToList();
+    }
+
+    public SaveGameInfo CreerNouvellePartie(string? nom)
+    {
+        Directory.CreateDirectory(SavesDirectory);
+        var nomFinal = string.IsNullOrWhiteSpace(nom) ? $"sauvegarde_{DateTime.UtcNow:yyyyMMdd_HHmmss}" : nom.Trim();
+        var nomNettoye = NettoyerNomFichier(nomFinal);
+        var chemin = ObtenirCheminUnique(nomNettoye);
+
+        _initializer.CreateDatabaseIfMissing(chemin);
+        return ConstruireInfo(chemin);
+    }
+
+    public SaveGameInfo ImporterBase(string cheminSource)
+    {
+        if (string.IsNullOrWhiteSpace(cheminSource))
+        {
+            throw new InvalidOperationException("Chemin d'import manquant.");
+        }
+
+        if (!File.Exists(cheminSource))
+        {
+            throw new InvalidOperationException("Le fichier à importer est introuvable.");
+        }
+
+        if (!string.Equals(Path.GetExtension(cheminSource), ".db", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Le fichier sélectionné n'est pas une base SQLite (.db).");
+        }
+
+        Directory.CreateDirectory(SavesDirectory);
+        var nom = Path.GetFileNameWithoutExtension(cheminSource);
+        var cheminDestination = ObtenirCheminUnique(nom);
+        File.Copy(cheminSource, cheminDestination, overwrite: false);
+
+        var validation = _validator.Valider(cheminDestination);
+        if (!validation.EstValide)
+        {
+            File.Delete(cheminDestination);
+            var details = string.Join("\n", validation.Erreurs);
+            throw new InvalidOperationException($"Base importée invalide :\n{details}");
+        }
+
+        return ConstruireInfo(cheminDestination);
+    }
+
+    public SaveGameInfo DupliquerSauvegarde(string cheminSource)
+    {
+        if (string.IsNullOrWhiteSpace(cheminSource))
+        {
+            throw new InvalidOperationException("Sélectionnez une sauvegarde à dupliquer.");
+        }
+
+        if (!File.Exists(cheminSource))
+        {
+            throw new InvalidOperationException("La sauvegarde sélectionnée est introuvable.");
+        }
+
+        Directory.CreateDirectory(SavesDirectory);
+        var nom = Path.GetFileNameWithoutExtension(cheminSource);
+        var cheminDestination = ObtenirCheminUnique($"{nom}_copie");
+        File.Copy(cheminSource, cheminDestination, overwrite: false);
+        return ConstruireInfo(cheminDestination);
+    }
+
+    public void SupprimerSauvegarde(string cheminSource)
+    {
+        if (string.IsNullOrWhiteSpace(cheminSource))
+        {
+            throw new InvalidOperationException("Sélectionnez une sauvegarde à supprimer.");
+        }
+
+        if (!File.Exists(cheminSource))
+        {
+            throw new InvalidOperationException("La sauvegarde sélectionnée est introuvable.");
+        }
+
+        File.Delete(cheminSource);
+    }
+
+    public DbValidationResult ValiderSauvegarde(string cheminDb)
+        => _validator.Valider(cheminDb);
+
+    private SaveGameInfo ConstruireInfo(string chemin)
+    {
+        var info = new FileInfo(chemin);
+        return new SaveGameInfo(Path.GetFileNameWithoutExtension(info.Name), info.FullName, info.LastWriteTime);
+    }
+
+    private string ObtenirCheminUnique(string nomBase)
+    {
+        var nomNettoye = NettoyerNomFichier(nomBase);
+        var chemin = Path.Combine(SavesDirectory, $"{nomNettoye}.db");
+        if (!File.Exists(chemin))
+        {
+            return chemin;
+        }
+
+        var compteur = 1;
+        string cheminUnique;
+        do
+        {
+            cheminUnique = Path.Combine(SavesDirectory, $"{nomNettoye}_{compteur}.db");
+            compteur++;
+        } while (File.Exists(cheminUnique));
+
+        return cheminUnique;
+    }
+
+    private static string NettoyerNomFichier(string nom)
+    {
+        var caracteresInvalides = Path.GetInvalidFileNameChars();
+        var nettoye = new string(nom.Select(c => caracteresInvalides.Contains(c) ? '_' : c).ToArray());
+        return string.IsNullOrWhiteSpace(nettoye) ? "sauvegarde" : nettoye;
+    }
+}

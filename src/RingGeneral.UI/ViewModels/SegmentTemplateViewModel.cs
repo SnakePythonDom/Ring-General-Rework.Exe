@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ReactiveUI;
 using RingGeneral.Core.Models;
 

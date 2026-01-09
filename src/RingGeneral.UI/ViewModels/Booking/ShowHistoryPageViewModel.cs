@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
-using RingGeneral.Core.Models;
 
 namespace RingGeneral.UI.ViewModels.Booking;
 

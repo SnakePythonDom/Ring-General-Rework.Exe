@@ -1,0 +1,31 @@
+{
+  "meta": {"langue": "fr", "pageId": "ma-compagnie", "titre": "Ma compagnie"},
+  "onglets": [
+    {"id": "profil", "libelle": "Profil"},
+    {"id": "infrastructures", "libelle": "Infrastructures"},
+    {"id": "objectifs", "libelle": "Objectifs"}
+  ],
+  "tables": [
+    {
+      "id": "infos_generales",
+      "libelle": "Informations générales",
+      "colonnes": ["Champ", "Valeur"]
+    }
+  ],
+  "filtres": ["Catégorie"],
+  "panneauDetail": {
+    "sections": ["Historique", "Style de compagnie", "Ressources"]
+  },
+  "actions": [
+    {"id": "modifier_profil", "libelle": "Modifier le profil"}
+  ],
+  "validations": [
+    {"id": "compagnie.nom", "message": "Le nom de la compagnie est requis."}
+  ],
+  "warnings": ["Style de compagnie non défini."],
+  "etatVide": "Aucune information de compagnie disponible.",
+  "tooltips": [
+    {"id": "style", "libelle": "Style", "texte": "Le style influence les pondérations de la simulation."}
+  ],
+  "messagesErreur": ["Impossible de charger les informations de la compagnie."]
+}

@@ -1,0 +1,31 @@
+{
+  "meta": {"langue": "fr", "pageId": "aide-codex", "titre": "Aide/Codex"},
+  "onglets": [
+    {"id": "guides", "libelle": "Guides"},
+    {"id": "glossaire", "libelle": "Glossaire"},
+    {"id": "faq", "libelle": "FAQ"}
+  ],
+  "tables": [
+    {
+      "id": "articles",
+      "libelle": "Articles",
+      "colonnes": ["Titre", "Catégorie", "Dernière mise à jour"]
+    }
+  ],
+  "filtres": ["Catégorie", "Recherche"],
+  "panneauDetail": {
+    "sections": ["Contenu", "Liens utiles"]
+  },
+  "actions": [
+    {"id": "ouvrir_article", "libelle": "Ouvrir"}
+  ],
+  "validations": [
+    {"id": "aide.selection", "message": "Sélectionnez un article."}
+  ],
+  "warnings": ["Certaines entrées peuvent être obsolètes."],
+  "etatVide": "Aucun contenu d'aide disponible.",
+  "tooltips": [
+    {"id": "glossaire", "libelle": "Glossaire", "texte": "Définitions des termes du jeu."}
+  ],
+  "messagesErreur": ["Impossible de charger l'aide."]
+}
