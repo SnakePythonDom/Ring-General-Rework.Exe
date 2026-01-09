@@ -1,44 +1,36 @@
--- ============================================================================
--- Map legacy worker data into Ring General Workers table
--- ============================================================================
-
-PRAGMA foreign_keys = ON;
+-- SQLite syntax - Do not validate as T-SQL
+-- 1. On s'assure que le pays par défaut existe
+INSERT INTO Countries (CountryId, Code, Name)
+SELECT 'COUNTRY_DEFAULT', 'WLD', 'World'
+WHERE NOT EXISTS (SELECT 1 FROM Countries WHERE CountryId = 'COUNTRY_DEFAULT');
 
 DELETE FROM Workers;
 
+-- 2. Insertion directe (sans le bloc WITH qui pose problème)
 INSERT INTO Workers (
-    WorkerId,
-    Name,
-    FirstName,
-    LastName,
-    RingName,
-    CompanyId,
-    Nationality,
-    Gender,
-    BirthDate,
-    InRing,
-    Entertainment,
-    Story,
-    Popularity,
-    Fatigue,
-    InjuryStatus,
-    Momentum,
-    RoleTv,
-    SimLevel,
-    LastSimulatedAt,
-    CreatedAt
+    WorkerId, Name, FirstName, LastName, RingName, CompanyId, CountryId,
+    Gender, BirthDate, InRing, Entertainment, Story, Popularity,
+    Fatigue, InjuryStatus, Momentum, RoleTv, SimLevel, LastSimulatedAt, CreatedAt
 )
 SELECT
-    CAST(lw.LegacyWorkerId AS TEXT),
+    'WRK_' || lw.LegacyWorkerId,
     lw.Name,
     NULL,
     NULL,
     lw.Name,
-    CASE
-        WHEN companies.CompanyId IS NOT NULL THEN companies.CompanyId
-        ELSE NULL
-    END,
-    COALESCE(country.Code, 'WLD'),
+    COALESCE('COMP_' || lw.CompanyLegacyId, '0'),
+    -- Résolution du pays : on cherche d'abord dans les alias, sinon les fallbacks manuels, sinon défaut
+    COALESCE(
+        alias.CountryId, 
+        CASE 
+            WHEN LOWER(lw.CountryName) LIKE '%north america%' THEN 'COUNTRY_USA'
+            WHEN LOWER(lw.CountryName) LIKE '%asia%'          THEN 'COUNTRY_JAPAN'
+            WHEN LOWER(lw.CountryName) LIKE '%europe%'        THEN 'COUNTRY_UK'
+            WHEN LOWER(lw.CountryName) LIKE '%mexico%'        THEN 'COUNTRY_MEXICO'
+            ELSE NULL 
+        END, 
+        'COUNTRY_DEFAULT'
+    ),
     CASE
         WHEN LOWER(lw.Gender) = 'male' THEN 'M'
         WHEN LOWER(lw.Gender) = 'female' THEN 'F'
@@ -57,5 +49,4 @@ SELECT
     NULL,
     CURRENT_TIMESTAMP
 FROM LegacyWorkers lw
-LEFT JOIN Countries country ON LOWER(country.Name) = LOWER(lw.CountryName)
-LEFT JOIN Companies companies ON companies.CompanyId = 'COMP_' || lw.CompanyLegacyId;
+LEFT JOIN CountryAliases alias ON alias.AliasNorm = LOWER(TRIM(lw.CountryName));
