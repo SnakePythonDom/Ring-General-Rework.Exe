@@ -1,3 +1,4 @@
+-- SQLite syntax - Do not validate as T-SQL
 -- ============================================================================
 -- IMPORT WORKERS - BAKI1.1.db vers Ring General
 -- Version: 2.0 (Corrected)
