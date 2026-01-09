@@ -15,101 +15,101 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = RingGeneral.UI
-build_property.ProjectDir = c:\Users\popo2\source\repos\Ring-General-Rework.Exe\src\RingGeneral.UI\
+build_property.ProjectDir = C:\Users\popo2\source\repos\Ring-General-Rework.Exe\src\RingGeneral.UI\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/App.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/AttributeBar.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/AttributeBar.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/AttributeCategoryPanel.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/AttributeCategoryPanel.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/DetailPanel.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/DetailPanel.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/DetailSection.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/DetailSection.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/NewsCard.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/NewsCard.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/SortableDataGrid.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Components/SortableDataGrid.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Styles/RingGeneralTheme.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Styles/RingGeneralTheme.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Themes/RingGeneralTheme.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Themes/RingGeneralTheme.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Booking/BookingView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Booking/BookingView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Booking/LibraryView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Booking/LibraryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Booking/ShowHistoryPageView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Booking/ShowHistoryPageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Calendar/CalendarView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Calendar/CalendarView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/CompanyHub/CompanyHubView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/CompanyHub/CompanyHubView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Crisis/CrisisManagementView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Crisis/CrisisManagementView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Dashboard/DashboardView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Dashboard/DashboardView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Finance/FinanceView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Finance/FinanceView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Inbox/InboxView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Inbox/InboxView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/OwnerBooker/OwnerBookerView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/OwnerBooker/OwnerBookerView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/InjuriesView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/InjuriesView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/RosterView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/RosterView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/TitlesView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/TitlesView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/WorkerDetailView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Roster/WorkerDetailView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Settings/SettingsView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Settings/SettingsView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Shell/MainWindow.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Shell/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Start/CompanySelectorView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Start/CompanySelectorView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Start/CreateCompanyView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Start/CreateCompanyView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Start/StartView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Start/StartView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Storylines/StorylinesView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Storylines/StorylinesView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Workers/Profile/ProfileView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Workers/Profile/ProfileView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[c:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Youth/YouthView.axaml]
+[C:/Users/popo2/source/repos/Ring-General-Rework.Exe/src/RingGeneral.UI/Views/Youth/YouthView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
