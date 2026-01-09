@@ -618,7 +618,16 @@ public sealed class GameRepository
         command.Parameters.AddWithValue("$delta", delta);
         command.ExecuteNonQuery();
     }
+    public ShowDefinition? ChargerShow(string showId)
+    {
+        // Utilisation de la factory interne pour ouvrir la connexion
+        using var connexion = _factory.OuvrirConnexion();
 
+        // Appel de la méthode statique privée juste en dessous
+        return ChargerShow(connexion, showId);
+    }
+
+    // --- CETTE MÉTHODE RESTE PRIVÉE ET STATIQUE ---
     private static ShowDefinition? ChargerShow(SqliteConnection connexion, string showId)
     {
         using var command = connexion.CreateCommand();
@@ -628,6 +637,7 @@ public sealed class GameRepository
             WHERE show_id = $showId;
             """;
         command.Parameters.AddWithValue("$showId", showId);
+
         using var reader = command.ExecuteReader();
         if (!reader.Read())
         {

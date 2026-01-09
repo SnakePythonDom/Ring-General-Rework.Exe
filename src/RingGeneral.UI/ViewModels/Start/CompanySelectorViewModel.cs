@@ -146,19 +146,19 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                 }
 
                 using var cmd = connection.CreateCommand();
-                cmd.CommandText = @"
-                    SELECT
-                        c.CompanyId,
-                        c.Name,
-                        r.Name as RegionName,
-                        ct.Name as CountryName,
-                        c.Prestige,
-                        c.Treasury
-                    FROM Companies c
-                    LEFT JOIN Regions r ON r.RegionId = c.RegionId
-                    LEFT JOIN Countries ct ON ct.CountryId = c.CountryId
-                    ORDER BY c.Prestige DESC
-                    LIMIT 50";
+                    cmd.CommandText = @"
+                        SELECT
+                            c.CompanyId,
+                            c.Name,
+                            r.Name as RegionName,
+                            ct.Name as CountryName,
+                            c.Prestige,
+                            c.Treasury
+                        FROM Companies c
+                        LEFT JOIN Regions r ON r.RegionId = c.RegionId
+                        LEFT JOIN Countries ct ON ct.CountryId = COALESCE(c.CountryId, r.CountryId, 'COUNTRY_DEFAULT')
+                        ORDER BY c.Prestige DESC
+                        LIMIT 50";
 
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())

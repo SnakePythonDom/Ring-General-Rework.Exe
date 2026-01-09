@@ -1,8 +1,14 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "8aZr28D6Gec=",
   "success": true,
   "projectFilePath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
+=======
+  "dgSpecHash": "eJbEQnBo1x0=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
+>>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
   "expectedPackageFiles": [
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.codecoverage\\17.8.0\\microsoft.codecoverage.17.8.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",

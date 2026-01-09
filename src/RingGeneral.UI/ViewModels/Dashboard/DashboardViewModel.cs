@@ -483,8 +483,8 @@ public sealed class DashboardViewModel : ViewModelBase
                 // Avancer d'une semaine normale
                 // TODO: Intégrer WeeklyLoopService
                 CurrentWeek++;
-                RecentActivity.Insert(0, $"⏭️ Passage à la semaine {CurrentWeek}");
-                Logger.Info($"Avancé à la semaine {CurrentWeek}");
+                RecentActivity.Insert(0, $"⏭️ Passer au jour suivant {CurrentWeek}");
+                Logger.Info($"Avancé au jour suivant {CurrentWeek}");
             }
 
             // Recharger les données

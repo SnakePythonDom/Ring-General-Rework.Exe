@@ -1,8 +1,14 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "gUfhZ3f30qg=",
   "success": true,
   "projectFilePath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj",
+=======
+  "dgSpecHash": "ts/yM1ksLYk=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj",
+>>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
   "expectedPackageFiles": [
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.22\\microsoft.netcore.app.ref.8.0.22.nupkg.sha512",

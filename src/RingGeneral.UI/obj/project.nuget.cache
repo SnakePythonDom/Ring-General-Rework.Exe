@@ -1,8 +1,14 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "pgO2M9zZI48=",
   "success": true,
   "projectFilePath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\RingGeneral.UI.csproj",
+=======
+  "dgSpecHash": "O/XD8xQf/uM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\RingGeneral.UI.csproj",
+>>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
   "expectedPackageFiles": [
     "C:\\Users\\popo2\\.nuget\\packages\\avalonia\\11.0.6\\avalonia.11.0.6.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.0.2023020321\\avalonia.angle.windows.natives.2.1.0.2023020321.nupkg.sha512",

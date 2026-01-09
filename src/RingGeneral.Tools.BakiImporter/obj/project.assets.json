@@ -363,11 +363,19 @@
   "project": {
     "version": "1.0.0",
     "restore": {
+<<<<<<< HEAD
       "projectUniqueName": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.BakiImporter\\RingGeneral.Tools.BakiImporter.csproj",
       "projectName": "RingGeneral.Tools.BakiImporter",
       "projectPath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.BakiImporter\\RingGeneral.Tools.BakiImporter.csproj",
       "packagesPath": "C:\\Users\\popo2\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.BakiImporter\\obj\\",
+=======
+      "projectUniqueName": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.BakiImporter\\RingGeneral.Tools.BakiImporter.csproj",
+      "projectName": "RingGeneral.Tools.BakiImporter",
+      "projectPath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.BakiImporter\\RingGeneral.Tools.BakiImporter.csproj",
+      "packagesPath": "C:\\Users\\popo2\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.BakiImporter\\obj\\",
+>>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -389,11 +397,19 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
+<<<<<<< HEAD
             "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj": {
               "projectPath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj"
             },
             "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj": {
               "projectPath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj"
+=======
+            "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj": {
+              "projectPath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj"
+            },
+            "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj": {
+              "projectPath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj"
+>>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
             }
           }
         }

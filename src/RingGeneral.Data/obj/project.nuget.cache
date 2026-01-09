@@ -1,8 +1,14 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "Nkf9y26pKQ4=",
   "success": true,
   "projectFilePath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj",
+=======
+  "dgSpecHash": "T5ZfNw071uI=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj",
+>>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
   "expectedPackageFiles": [
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
