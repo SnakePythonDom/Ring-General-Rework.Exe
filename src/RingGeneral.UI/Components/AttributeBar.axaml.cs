@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
-using System;
 
 namespace RingGeneral.UI.Components;
 

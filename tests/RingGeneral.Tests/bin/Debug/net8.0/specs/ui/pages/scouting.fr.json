@@ -1,0 +1,43 @@
+{
+  "meta": {"langue": "fr", "pageId": "scouting", "titre": "Scouting"},
+  "onglets": [
+    {"id": "rapports", "libelle": "Rapports"},
+    {"id": "shortlist", "libelle": "Shortlist"},
+    {"id": "missions", "libelle": "Missions"}
+  ],
+  "tables": [
+    {
+      "id": "liste_rapports",
+      "libelle": "Rapports",
+      "colonnes": ["Nom", "Potentiel", "Note", "Région", "Semaine"]
+    },
+    {
+      "id": "liste_shortlist",
+      "libelle": "Shortlist",
+      "colonnes": ["Nom", "Note", "Région", "Ajouté"]
+    },
+    {
+      "id": "liste_missions",
+      "libelle": "Missions",
+      "colonnes": ["Mission", "Région", "Focus", "Progression", "Statut"]
+    }
+  ],
+  "filtres": ["Recherche", "Région", "Potentiel", "Statut", "Note"],
+  "panneauDetail": {
+    "sections": ["Profil", "Rapport", "Mission"]
+  },
+  "actions": [
+    {"id": "ajouter_shortlist", "libelle": "Ajouter shortlist"},
+    {"id": "creer_mission", "libelle": "Créer mission"},
+    {"id": "ouvrir_profil", "libelle": "Ouvrir profil"}
+  ],
+  "validations": [
+    {"id": "scouting.selection", "message": "Sélectionnez un rapport ou une cible."}
+  ],
+  "warnings": ["Rapports de scouting en retard."],
+  "etatVide": "Aucun rapport disponible.",
+  "tooltips": [
+    {"id": "note", "libelle": "Note", "texte": "Synthèse scouting basée sur la performance et le potentiel."}
+  ],
+  "messagesErreur": ["Impossible de charger le scouting."]
+}

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace RingGeneral.UI.ViewModels;
 
 public sealed class SegmentTypeCatalog

@@ -1,0 +1,43 @@
+{
+  "meta": {"langue": "fr", "pageId": "finances", "titre": "Finances"},
+  "onglets": [
+    {"id": "resume", "libelle": "Résumé"},
+    {"id": "ledger", "libelle": "Ledger"},
+    {"id": "snapshots", "libelle": "Snapshots"},
+    {"id": "revenus", "libelle": "Revenus"},
+    {"id": "depenses", "libelle": "Dépenses"}
+  ],
+  "tables": [
+    {
+      "id": "ledger",
+      "libelle": "Ledger",
+      "colonnes": ["Semaine", "Catégorie", "Libellé", "Montant", "Solde"]
+    },
+    {
+      "id": "flux_financiers",
+      "libelle": "Flux financiers",
+      "colonnes": ["Semaine", "Revenus", "Dépenses", "Résultat", "Trésorerie"]
+    },
+    {
+      "id": "snapshots",
+      "libelle": "Snapshots",
+      "colonnes": ["Semaine", "Revenus", "Dépenses", "Trésorerie", "Variation"]
+    }
+  ],
+  "filtres": ["Période", "Catégorie", "Type", "Montant"],
+  "panneauDetail": {
+    "sections": ["Détails", "Prévisions", "Alertes"]
+  },
+  "actions": [
+    {"id": "exporter", "libelle": "Exporter"}
+  ],
+  "validations": [
+    {"id": "finances.periode", "message": "La période est requise."}
+  ],
+  "warnings": ["Trésorerie en baisse continue."],
+  "etatVide": "Aucun flux financier à afficher.",
+  "tooltips": [
+    {"id": "tresorerie", "libelle": "Trésorerie", "texte": "Solde disponible après opérations."}
+  ],
+  "messagesErreur": ["Impossible de charger les finances."]
+}

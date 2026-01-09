@@ -1,13 +1,10 @@
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Owner;
-using RingGeneral.Core.Models.Booker;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.ViewModels.Dashboard;
@@ -63,8 +60,6 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             0, 0, 0, 0,
             1.0, 1.0,
             "⏳", "#9CA3AF", false);
-        LoadRegionsFromDatabase();
-        LoadCatchStylesFromDatabase();
 
         // Commandes
         var canCreateCompany = this.WhenAnyValue(
@@ -73,6 +68,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             vm => vm.FoundedYear,
             (name, region, year) => !string.IsNullOrWhiteSpace(name)
                                     && region != null
+                                    && !region.RegionId.StartsWith("REGION_PENDING")
                                     && year is >= 1950 and <= 2100);
 
         ContinueCommand = ReactiveCommand.Create(CreateCompany, canCreateCompany);
@@ -82,6 +78,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         this.WhenAnyValue(vm => vm.SelectedCatchStyle)
             .Subscribe(ApplyStyleModifiers);
 
+        // Charger les données
         LoadRegionsFromDatabase();
         LoadCatchStylesFromDatabase();
     }
@@ -93,22 +90,34 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     {
         try
         {
+            Logger.Info("[CreateCompanyViewModel] Chargement des régions...");
             var regions = _regionRepository.GetRegions();
+            Logger.Info($"[CreateCompanyViewModel] {regions.Count} régions chargées");
+
+            if (regions.Count == 0)
+            {
+                Logger.Error("[CreateCompanyViewModel] ⚠️ Aucune région trouvée en DB");
+                AvailableRegions.Add(new RegionInfo("REGION_DEFAULT", "Global", "World"));
+                SelectedRegion = AvailableRegions[0];
+                return;
+            }
+
             foreach (var region in regions)
             {
                 AvailableRegions.Add(new RegionInfo(region.RegionId, region.RegionName, region.CountryName));
             }
 
-            // Sélectionner la première région par défaut
-            if (AvailableRegions.Count > 0)
-            {
-                SelectedRegion = AvailableRegions.FirstOrDefault(r => r.CountryName.Contains("United States"))
-                              ?? AvailableRegions[0];
-            }
+            // Sélectionner la première région par défaut ou USA si disponible
+            SelectedRegion = AvailableRegions.FirstOrDefault(r => r.CountryName.Contains("United States"))
+                          ?? AvailableRegions.FirstOrDefault(r => r.CountryName.Contains("USA"))
+                          ?? AvailableRegions[0];
+            
+            Logger.Info($"[CreateCompanyViewModel] Région sélectionnée par défaut: {SelectedRegion.RegionName}");
         }
         catch (Exception ex)
         {
-            Logger.Error($"[CreateCompanyViewModel] Erreur lors du chargement des régions: {ex.Message}");
+            Logger.Error($"[CreateCompanyViewModel] ❌ Erreur lors du chargement des régions: {ex.Message}");
+            Logger.Error($"[CreateCompanyViewModel] Stack: {ex.StackTrace}");
 
             // Ajouter une région par défaut en cas d'erreur
             AvailableRegions.Add(new RegionInfo("REGION_DEFAULT", "Global", "World"));
@@ -123,7 +132,17 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     {
         try
         {
+            Logger.Info("[CreateCompanyViewModel] Chargement des styles de catch...");
             var styles = await _catchStyleRepository.GetAllActiveStylesAsync();
+            Logger.Info($"[CreateCompanyViewModel] {styles.Count} styles chargés");
+
+            if (styles.Count == 0)
+            {
+                Logger.Error("[CreateCompanyViewModel] ⚠️ Aucun style trouvé en DB");
+                CreateDefaultFallbackStyle();
+                return;
+            }
+
             foreach (var style in styles)
             {
                 AvailableCatchStyles.Add(style);
@@ -132,33 +151,44 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             // Sélectionner "Hybrid" par défaut (le plus équilibré)
             SelectedCatchStyle = AvailableCatchStyles.FirstOrDefault(s => s.CatchStyleId == "STYLE_HYBRID")
                               ?? AvailableCatchStyles.FirstOrDefault();
+            
+            Logger.Info($"[CreateCompanyViewModel] Style sélectionné par défaut: {SelectedCatchStyle?.Name}");
         }
         catch (Exception ex)
         {
-            Logger.Error($"[CreateCompanyViewModel] Erreur lors du chargement des styles: {ex.Message}");
-
-            // Créer un style par défaut en cas d'erreur (fallback)
-            var defaultStyle = new CatchStyle(
-                CatchStyleId: "STYLE_HYBRID",
-                Name: "Hybrid Wrestling",
-                Description: "Style équilibré par défaut",
-                WrestlingPurity: 60,
-                EntertainmentFocus: 60,
-                HardcoreIntensity: 20,
-                LuchaInfluence: 30,
-                StrongStyleInfluence: 30,
-                FanExpectationMatchQuality: 65,
-                FanExpectationStorylines: 65,
-                FanExpectationPromos: 60,
-                FanExpectationSpectacle: 65,
-                MatchRatingMultiplier: 1.0,
-                PromoRatingMultiplier: 1.0,
-                IconName: "🌐",
-                AccentColor: "#607D8B",
-                IsActive: true);
-            AvailableCatchStyles.Add(defaultStyle);
-            SelectedCatchStyle = defaultStyle;
+            Logger.Error($"[CreateCompanyViewModel] ❌ Erreur lors du chargement des styles: {ex.Message}");
+            Logger.Error($"[CreateCompanyViewModel] Stack: {ex.StackTrace}");
+            CreateDefaultFallbackStyle();
         }
+    }
+
+    /// <summary>
+    /// Crée un style par défaut en fallback
+    /// </summary>
+    private void CreateDefaultFallbackStyle()
+    {
+        var defaultStyle = new CatchStyle(
+            CatchStyleId: "STYLE_HYBRID",
+            Name: "Hybrid Wrestling",
+            Description: "Style équilibré par défaut",
+            WrestlingPurity: 60,
+            EntertainmentFocus: 60,
+            HardcoreIntensity: 20,
+            LuchaInfluence: 30,
+            StrongStyleInfluence: 30,
+            FanExpectationMatchQuality: 65,
+            FanExpectationStorylines: 65,
+            FanExpectationPromos: 60,
+            FanExpectationSpectacle: 65,
+            MatchRatingMultiplier: 1.0,
+            PromoRatingMultiplier: 1.0,
+            IconName: "🌐",
+            AccentColor: "#607D8B",
+            IsActive: true);
+        
+        AvailableCatchStyles.Add(defaultStyle);
+        SelectedCatchStyle = defaultStyle;
+        Logger.Info("[CreateCompanyViewModel] Style par défaut (Fallback) créé");
     }
 
     /// <summary>
@@ -212,7 +242,11 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     public int FoundedYear
     {
         get => _foundedYear;
-        set => this.RaiseAndSetIfChanged(ref _foundedYear, Math.Clamp(value, 1950, 2100));
+        set
+        {
+            var clampedValue = Math.Clamp(value, 1950, 2100);
+            this.RaiseAndSetIfChanged(ref _foundedYear, clampedValue);
+        }
     }
 
     /// <summary>

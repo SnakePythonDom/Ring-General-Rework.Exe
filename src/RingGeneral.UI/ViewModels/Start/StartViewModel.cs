@@ -1,6 +1,5 @@
 using System.Reactive;
 using ReactiveUI;
-using RingGeneral.UI.ViewModels;
 using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.Data.Repositories;

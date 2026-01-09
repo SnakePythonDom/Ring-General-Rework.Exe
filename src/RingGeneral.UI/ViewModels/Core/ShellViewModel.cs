@@ -10,7 +10,6 @@ using RingGeneral.UI.ViewModels.Storylines;
 using RingGeneral.UI.ViewModels.Youth;
 using RingGeneral.UI.ViewModels.Finance;
 using RingGeneral.UI.ViewModels.Calendar;
-using RingGeneral.UI.ViewModels.Start;
 using RingGeneral.UI.ViewModels.OwnerBooker;
 using RingGeneral.UI.ViewModels.Crisis;
 using RingGeneral.UI.ViewModels.Inbox;
@@ -85,7 +84,12 @@ public sealed class ShellViewModel : ViewModelBase
         get => _selectedNavigationItem;
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedNavigationItem, value);
+            if (_selectedNavigationItem == value)
+            {
+                return;
+            }
+
+            NavigationItemViewModel? navigationItemViewModel = this.RaiseAndSetIfChanged(ref _selectedNavigationItem, value);
             if (value != null)
             {
                 NavigateToItem(value);
@@ -335,7 +339,12 @@ public sealed class ShellViewModel : ViewModelBase
     {
         // Navigation vers un ViewModel spécifique via reflection
         var navigateMethod = typeof(INavigationService)
-            .GetMethod(nameof(INavigationService.NavigateTo))
+            .GetMethod(nameof(INavigationService.NavigateTo), 
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance,
+                null,
+                System.Reflection.CallingConventions.HasThis,
+                Type.EmptyTypes,
+                null)
             ?.MakeGenericMethod(viewModelType);
 
         navigateMethod?.Invoke(_navigationService, null);

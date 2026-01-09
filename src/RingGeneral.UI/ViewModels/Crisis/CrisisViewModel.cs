@@ -1,12 +1,6 @@
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive;
 using ReactiveUI;
-using RingGeneral.UI.ViewModels;
-using RingGeneral.Data.Repositories;
-using RingGeneral.Core.Models.Crisis;
-using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;
 using CrisisModel = RingGeneral.Core.Models.Crisis.Crisis;
 using ICrisisRepository = RingGeneral.Data.Repositories.ICrisisRepository;

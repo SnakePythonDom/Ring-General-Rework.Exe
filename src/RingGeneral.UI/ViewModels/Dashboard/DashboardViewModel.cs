@@ -1,8 +1,6 @@
-using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
-using RingGeneral.UI.ViewModels;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;

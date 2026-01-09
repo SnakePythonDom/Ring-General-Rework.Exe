@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models;
-using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Search;
 

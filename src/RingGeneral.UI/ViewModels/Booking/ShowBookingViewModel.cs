@@ -1,17 +1,12 @@
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Services;
-using RingGeneral.Core.Simulation;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Repositories;
-using RingGeneral.Specs.Models;
-using RingGeneral.Specs.Services;
 
 namespace RingGeneral.UI.ViewModels.Booking;
 

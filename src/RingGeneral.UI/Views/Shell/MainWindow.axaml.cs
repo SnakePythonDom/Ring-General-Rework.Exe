@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using RingGeneral.UI.ViewModels;
-using RingGeneral.UI.ViewModels.Core;
 
 namespace RingGeneral.UI.Views.Shell;
 

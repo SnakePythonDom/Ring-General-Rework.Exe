@@ -1,0 +1,36 @@
+{
+  "meta": {"langue": "fr", "pageId": "medical", "titre": "Médical"},
+  "onglets": [
+    {"id": "blessures", "libelle": "Blessures"},
+    {"id": "fatigue", "libelle": "Fatigue"},
+    {"id": "retours", "libelle": "Retours"}
+  ],
+  "tables": [
+    {
+      "id": "liste_blessures",
+      "libelle": "Blessures",
+      "colonnes": ["Nom", "Type", "Gravité", "Durée", "Statut", "Actions"]
+    }
+  ],
+  "filtres": ["Gravité", "Statut", "Rôle", "Risque"],
+  "panneauDetail": {
+    "sections": ["Diagnostic", "Planning de retour", "Restrictions"]
+  },
+  "actions": [
+    {"id": "planifier_retour", "libelle": "Planifier un retour"},
+    {"id": "ajouter_note", "libelle": "Ajouter une note médicale"},
+    {"id": "marquer_retour", "libelle": "Marquer le retour"}
+  ],
+  "validations": [
+    {"id": "retour.date", "message": "La date de retour est requise."}
+  ],
+  "warnings": [
+    "Risque élevé de rechute pour certains catcheurs.",
+    "Retours anticipés en attente de validation."
+  ],
+  "etatVide": "Aucune blessure enregistrée cette semaine.",
+  "tooltips": [
+    {"id": "gravite", "libelle": "Gravité", "texte": "Impact sur la disponibilité et la performance."}
+  ],
+  "messagesErreur": ["Impossible de charger les données médicales."]
+}

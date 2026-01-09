@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using ReactiveUI;
-using RingGeneral.UI.ViewModels.Core;
 
 namespace RingGeneral.UI.ViewModels.Shared.Navigation;
 
@@ -64,7 +63,14 @@ public sealed class NavigationItemViewModel : ViewModelBase
     public bool IsExpanded
     {
         get => _isExpanded;
-        set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+        set
+        {
+            if (_isExpanded == value)
+            {
+                return;
+            }
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+        }
     }
 
     /// <summary>
@@ -73,7 +79,14 @@ public sealed class NavigationItemViewModel : ViewModelBase
     public bool IsSelected
     {
         get => _isSelected;
-        set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+        set
+        {
+            if (_isSelected == value)
+            {
+                return;
+            }
+            this.RaiseAndSetIfChanged(ref _isSelected, value);
+        }
     }
 
     /// <summary>

@@ -2,11 +2,10 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
-using RingGeneral.UI.ViewModels;
 using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.Data.Repositories;
-using RingGeneral.Core.Models;
+using RingGeneral.Data.Database;  // ✅ AJOUT
 
 namespace RingGeneral.UI.ViewModels.Start;
 
@@ -17,24 +16,29 @@ public sealed class CompanySelectorViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;
     private readonly GameRepository _repository;
+    private readonly SaveGameManager _saveGameManager;  // ✅ NOUVEAU
     private CompanyListItem? _selectedCompany;
     private bool _isLoading;
 
-    public CompanySelectorViewModel(INavigationService navigationService, GameRepository repository)
+    // ✅ INJECTION SaveGameManager
+    public CompanySelectorViewModel(
+        INavigationService navigationService,
+        GameRepository repository,
+        SaveGameManager saveGameManager)  // ✅ NOUVEAU
     {
         _navigationService = navigationService;
         _repository = repository;
+        _saveGameManager = saveGameManager;  // ✅ NOUVEAU
 
         Companies = new ObservableCollection<CompanyListItem>();
 
-        // Commandes (async)
         var canSelectCompany = this.WhenAnyValue(x => x.SelectedCompany)
             .Select(company => company is not null);
+
         SelectCompanyCommand = ReactiveCommand.CreateFromTask(StartGameWithSelectedCompanyAsync, canSelectCompany);
         CreateNewCompanyCommand = ReactiveCommand.Create(CreateNewCompany);
         BackCommand = ReactiveCommand.Create(GoBack);
 
-        // Charger les compagnies de manière asynchrone
         _ = LoadCompaniesAsync();
     }
 
@@ -61,20 +65,54 @@ public sealed class CompanySelectorViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedCompany, value);
     }
 
-    /// <summary>
-    /// Commande pour démarrer avec la compagnie sélectionnée
-    /// </summary>
     public ReactiveCommand<Unit, Unit> SelectCompanyCommand { get; }
-
-    /// <summary>
-    /// Commande pour créer une nouvelle compagnie
-    /// </summary>
     public ReactiveCommand<Unit, Unit> CreateNewCompanyCommand { get; }
+    public ReactiveCommand<Unit, Unit> BackCommand { get; }
 
     /// <summary>
-    /// Commande pour retourner au menu principal
+    /// Log la DB réellement ouverte par SQLite (super utile pour diagnostiquer les "no such table")
     /// </summary>
-    public ReactiveCommand<Unit, Unit> BackCommand { get; }
+    private void LogDatabasePath(System.Data.Common.DbConnection connection)
+    {
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "PRAGMA database_list;";
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                // columns: seq, name, file
+                var seq = r.GetInt32(0);
+                var name = r.GetString(1);
+                var file = r.IsDBNull(2) ? "" : r.GetString(2);
+                Logger.Info($"SQLite database_list[{seq}] name={name} file={file}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Impossible de lire PRAGMA database_list", ex);
+        }
+    }
+
+    /// <summary>
+    /// Vérifie si une table existe dans la DB courante
+    /// </summary>
+    private bool TableExists(System.Data.Common.DbConnection connection, string tableName)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            SELECT 1
+            FROM sqlite_master
+            WHERE type = 'table' AND name = @name
+            LIMIT 1;";
+        var p = cmd.CreateParameter();
+        p.ParameterName = "@name";
+        p.Value = tableName;
+        cmd.Parameters.Add(p);
+
+        var result = cmd.ExecuteScalar();
+        return result is not null;
+    }
 
     /// <summary>
     /// Charge la liste des compagnies depuis la base de données (asynchrone)
@@ -86,12 +124,27 @@ public sealed class CompanySelectorViewModel : ViewModelBase
 
         try
         {
-            // Exécuter la requête DB dans un thread en arrière-plan
             var companies = await Task.Run(() =>
             {
                 var result = new List<CompanyListItem>();
 
                 using var connection = _repository.CreateConnection();
+
+                // Important : selon ton GameRepository, la connexion peut ne pas être ouverte.
+                if (connection.State != System.Data.ConnectionState.Open)
+                    connection.Open();
+
+                // Log le vrai fichier sqlite ouvert (pour détecter DB vide / mauvais chemin)
+                LogDatabasePath(connection);
+
+                // Vérification claire : si pas de Companies, on log et on arrête proprement
+                if (!TableExists(connection, "Companies"))
+                {
+                    Logger.Error("La table 'Companies' est introuvable dans la base actuellement ouverte. " +
+                                 "=> mauvais fichier DB (vide / mauvais chemin / DB de save au lieu de world).");
+                    return result; // vide -> on retombe sur fallback plus bas
+                }
+
                 using var cmd = connection.CreateCommand();
                 cmd.CommandText = @"
                     SELECT
@@ -127,20 +180,29 @@ public sealed class CompanySelectorViewModel : ViewModelBase
                 return result;
             });
 
-            // Mettre à jour l'UI sur le thread principal
             Companies.Clear();
             foreach (var company in companies)
-            {
                 Companies.Add(company);
+
+            if (Companies.Count == 0)
+            {
+                Logger.Info("Aucune compagnie trouvée (ou DB incorrecte). Ajout d'une compagnie par défaut.");
+                Companies.Add(new CompanyListItem
+                {
+                    CompanyId = "COMP_DEFAULT",
+                    Name = "Default Wrestling Company",
+                    Region = "USA",
+                    Prestige = 50,
+                    Treasury = 1000000.0
+                });
             }
 
-            Logger.Info($"{Companies.Count} compagnies chargées avec succès");
+            Logger.Info($"{Companies.Count} compagnies chargées (ou fallback)");
         }
         catch (Exception ex)
         {
             Logger.Error("Erreur lors du chargement", ex);
 
-            // Ajouter une compagnie par défaut en cas d'erreur
             Companies.Clear();
             Companies.Add(new CompanyListItem
             {
@@ -158,7 +220,7 @@ public sealed class CompanySelectorViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Démarre le jeu avec la compagnie sélectionnée (asynchrone)
+    /// ✅ MODIFIÉ : Démarre le jeu avec SaveGameManager (Save DB)
     /// </summary>
     private async Task StartGameWithSelectedCompanyAsync()
     {
@@ -168,48 +230,42 @@ public sealed class CompanySelectorViewModel : ViewModelBase
             return;
         }
 
-        Logger.Info($"Démarrage avec {SelectedCompany.Name}...");
+        Logger.Info($"🎮 Démarrage avec {SelectedCompany.Name}...");
         IsLoading = true;
 
         try
         {
-            // Exécuter les opérations DB dans un thread en arrière-plan
             await Task.Run(() =>
             {
-                using var connection = _repository.CreateConnection();
-
-                // Désactiver toutes les sauvegardes existantes
-                using (var deactivateCmd = connection.CreateCommand())
+                try
                 {
-                    deactivateCmd.CommandText = "UPDATE SaveGames SET IsActive = 0";
-                    deactivateCmd.ExecuteNonQuery();
-                }
+                    // ✅ NOUVEAU : Utiliser SaveGameManager pour créer la sauvegarde (SAVE DB)
+                    var save = _saveGameManager.CreerNouvellePartie(
+                        companyId: SelectedCompany.CompanyId,
+                        companyName: SelectedCompany.Name,
+                        playerId: null,
+                        difficulty: "Normal"
+                    );
 
-                // Créer la nouvelle sauvegarde
-                using (var insertCmd = connection.CreateCommand())
+                    Logger.Info($"✅ Sauvegarde créée dans SAVE DB:");
+                    Logger.Info($"   SaveId    : {save.SaveId}");
+                    Logger.Info($"   Compagnie : {save.Name}");
+                    Logger.Info($"   Base path : {save.FullPath}");
+                    Logger.Info($"   WorldVer  : {save.WorldVersion}");
+                }
+                catch (Exception ex)
                 {
-                    insertCmd.CommandText = @"
-                        INSERT INTO SaveGames (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive)
-                        VALUES (@saveName, @companyId, @week, @date, 1)";
-
-                    insertCmd.Parameters.AddWithValue("@saveName", $"{SelectedCompany.Name} - {DateTime.Now:yyyy-MM-dd HH:mm}");
-                    insertCmd.Parameters.AddWithValue("@companyId", SelectedCompany.CompanyId);
-                    insertCmd.Parameters.AddWithValue("@week", 1);
-                    insertCmd.Parameters.AddWithValue("@date", "2024-01-01");
-
-                    insertCmd.ExecuteNonQuery();
+                    Logger.Error($"❌ Erreur création sauvegarde: {ex.Message}", ex);
+                    throw;
                 }
-
-                Logger.Info("Sauvegarde créée avec succès");
             });
 
-            // Naviguer vers le Dashboard (tableau de bord) - sur le thread UI
             _navigationService.NavigateTo<DashboardViewModel>();
-            Logger.Info("Navigation vers Dashboard effectuée");
+            Logger.Info("✅ Navigation vers Dashboard effectuée");
         }
         catch (Exception ex)
         {
-            Logger.Error("Erreur lors de la création", ex);
+            Logger.Error("❌ Erreur lors du démarrage", ex);
         }
         finally
         {
@@ -217,18 +273,12 @@ public sealed class CompanySelectorViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// Ouvre le formulaire de création de compagnie
-    /// </summary>
     private void CreateNewCompany()
     {
         Logger.Info("Création d'une nouvelle compagnie...");
         _navigationService.NavigateTo<CreateCompanyViewModel>();
     }
 
-    /// <summary>
-    /// Retourne au menu principal
-    /// </summary>
     private void GoBack()
     {
         _navigationService.GoBack();

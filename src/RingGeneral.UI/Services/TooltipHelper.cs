@@ -1,5 +1,3 @@
-using RingGeneral.Specs.Models;
-
 namespace RingGeneral.UI.Services;
 
 public sealed class TooltipHelper

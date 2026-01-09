@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using ReactiveUI;
-using System;
 using System.Reactive;
 
 namespace RingGeneral.UI.Components;

@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "bibliotheque-segments"
+  },
+  "templates": [
+    {
+      "id": "tpl-open-promo",
+      "nom": "Ouverture promo",
+      "typeSegment": "promo",
+      "duree": 6,
+      "intensite": 35,
+      "mainEvent": false
+    },
+    {
+      "id": "tpl-angle-backstage",
+      "nom": "Angle backstage",
+      "typeSegment": "angle_backstage",
+      "duree": 4,
+      "intensite": 30,
+      "mainEvent": false
+    },
+    {
+      "id": "tpl-match-simple",
+      "nom": "Match simple",
+      "typeSegment": "match",
+      "matchTypeId": "singles",
+      "duree": 10,
+      "intensite": 60,
+      "mainEvent": false
+    },
+    {
+      "id": "tpl-main-event",
+      "nom": "Main event classique",
+      "typeSegment": "match",
+      "matchTypeId": "singles",
+      "duree": 18,
+      "intensite": 75,
+      "mainEvent": true
+    }
+  ],
+  "etatVide": "Aucun template de segment disponible."
+}

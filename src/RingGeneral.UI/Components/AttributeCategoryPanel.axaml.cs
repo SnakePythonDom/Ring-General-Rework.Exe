@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace RingGeneral.UI.Components;
 

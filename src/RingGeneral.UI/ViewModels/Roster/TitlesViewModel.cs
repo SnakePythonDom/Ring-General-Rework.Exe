@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
-using RingGeneral.UI.ViewModels;
-using RingGeneral.Core.Models;
 using RingGeneral.Data.Repositories;
-using System.Linq;
 
 namespace RingGeneral.UI.ViewModels.Roster;
 
