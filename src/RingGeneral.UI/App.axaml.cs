@@ -159,29 +159,28 @@ public sealed class App : Application
 
         // Daily Time System Services (Phase 7)
         services.AddSingleton<IGameRepository>(repositories.GameRepository);
-        services.AddSingleton<IDailyFinanceService>(sp =>
+        services.AddSingleton<IDailyServices>(sp =>
             new DailyFinanceService(sp.GetRequiredService<IGameRepository>()));
         
         // Show Day Orchestrator (doit être enregistré avant TimeOrchestratorService)
-        services.AddSingleton<ShowDayOrchestrator>(sp =>
+        services.AddSingleton<IShowDayOrchestrator>(sp =>
             new ShowDayOrchestrator(
                 showScheduler: null,  // TODO: Implémenter IShowSchedulerStore si nécessaire
-                titleService: null,   // TODO: Implémenter TitleService si nécessaire
+                titleService: null,   // TODO: Implémenter ITitleService si nécessaire
                 random: null,
                 bookerAIEngine: null, // TODO: Implémenter IBookerAIEngine si nécessaire
                 impactApplier: null,  // TODO: Implémenter IImpactApplier si nécessaire
                 moraleEngine: sp.GetRequiredService<IMoraleEngine>(),
-                financeService: sp.GetRequiredService<IDailyFinanceService>(),
+                dailyServices: sp.GetRequiredService<IDailyServices>(),
                 contextLoader: null,  // Sera fourni par GameRepository
                 statusUpdater: null)); // Sera fourni par ShowRepository
         
-        services.AddSingleton<TimeOrchestratorService>(sp =>
+        services.AddSingleton<ITimeOrchestratorService>(sp =>
             new TimeOrchestratorService(
                 sp.GetRequiredService<IGameRepository>(),
-                statUpdateService: null,  // TODO: Implémenter IDailyStatUpdateService
+                dailyServices: sp.GetRequiredService<IDailyServices>(),
                 eventGenerator: null,     // TODO: Implémenter IEventGeneratorService
-                showDayOrchestrator: sp.GetRequiredService<ShowDayOrchestrator>(),
-                financeService: sp.GetRequiredService<IDailyFinanceService>()));
+                showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>()));
 
         // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
@@ -200,8 +199,8 @@ public sealed class App : Application
             new DashboardViewModel(
                 repository: sp.GetRequiredService<GameRepository>(),
                 showSchedulerStore: null,  // TODO: Implémenter IShowSchedulerStore si nécessaire
-                showDayOrchestrator: sp.GetRequiredService<ShowDayOrchestrator>(),
-                timeOrchestrator: sp.GetRequiredService<TimeOrchestratorService>(),
+                showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>(),
+                timeOrchestrator: sp.GetRequiredService<ITimeOrchestratorService>(),
                 moraleEngine: sp.GetRequiredService<IMoraleEngine>(),
                 crisisEngine: sp.GetRequiredService<ICrisisEngine>()));
 

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RingGeneral.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5c4095bab9b3f0c11651ecc7633b0654db941395")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7c533b587d7e050a96ab48819529d2651aaa3ed1")]
 [assembly: System.Reflection.AssemblyProductAttribute("RingGeneral.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RingGeneral.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
