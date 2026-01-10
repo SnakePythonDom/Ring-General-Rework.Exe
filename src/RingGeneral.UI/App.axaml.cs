@@ -111,27 +111,74 @@ public sealed class App : Application
                     using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={generalDbPath}");
                     connection.Open();
                     
-                    using var cmd = connection.CreateCommand();
-                    cmd.CommandText = "SELECT COUNT(*) FROM Companies";
-                    var companiesCount = Convert.ToInt64(cmd.ExecuteScalar());
+                    // Vérifier si les tables existent
+                    using var checkCmd = connection.CreateCommand();
+                    checkCmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND (name='Companies' OR name='companies')";
+                    var hasCompaniesTable = Convert.ToInt64(checkCmd.ExecuteScalar()) > 0;
                     
-                    cmd.CommandText = "SELECT COUNT(*) FROM Workers";
-                    var workersCount = Convert.ToInt64(cmd.ExecuteScalar());
+                    checkCmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND (name='Workers' OR name='workers')";
+                    var hasWorkersTable = Convert.ToInt64(checkCmd.ExecuteScalar()) > 0;
                     
-                    if (companiesCount == 0 || workersCount == 0)
+                    if (!hasCompaniesTable || !hasWorkersTable)
                     {
-                        logger.Warning($"⚠️ Base de données vide ou incomplète. Remplissage avec données génériques...");
-                        DbSeeder.SeedIfEmpty(connection);
-                        logger.Info($"✅ Données génériques ajoutées : {companiesCount} companies, {workersCount} workers");
+                        logger.Warning($"⚠️ Base de données existe mais schéma manquant. Création du schéma...");
+                        var tempInitializer = new DbInitializer();
+                        tempInitializer.CreateDatabaseIfMissing(generalDbPath);
+                        
+                        // Vérifier à nouveau et remplir avec des données génériques
+                        checkCmd.CommandText = "SELECT COUNT(*) FROM Companies";
+                        var companiesCount = Convert.ToInt64(checkCmd.ExecuteScalar());
+                        
+                        checkCmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                        var workersCount = Convert.ToInt64(checkCmd.ExecuteScalar());
+                        
+                        if (companiesCount == 0 || workersCount == 0)
+                        {
+                            logger.Info($"Remplissage avec données génériques...");
+                            DbSeeder.SeedIfEmpty(connection);
+                            logger.Info($"✅ Base de données initialisée avec données génériques");
+                        }
+                        else
+                        {
+                            logger.Info($"✅ Schéma créé, base contient déjà des données : {companiesCount} companies, {workersCount} workers");
+                        }
                     }
                     else
                     {
-                        logger.Info($"✅ Base de données valide : {companiesCount} companies, {workersCount} workers");
+                        // Tables existent, vérifier le contenu
+                        using var cmd = connection.CreateCommand();
+                        cmd.CommandText = "SELECT COUNT(*) FROM Companies";
+                        var companiesCount = Convert.ToInt64(cmd.ExecuteScalar());
+                        
+                        cmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                        var workersCount = Convert.ToInt64(cmd.ExecuteScalar());
+                        
+                        if (companiesCount == 0 || workersCount == 0)
+                        {
+                            logger.Warning($"⚠️ Base de données vide. Remplissage avec données génériques...");
+                            DbSeeder.SeedIfEmpty(connection);
+                            logger.Info($"✅ Données génériques ajoutées");
+                        }
+                        else
+                        {
+                            logger.Info($"✅ Base de données valide : {companiesCount} companies, {workersCount} workers");
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     logger.Warning($"⚠️ Erreur lors de la validation de la base : {ex.Message}");
+                    // Essayer de créer le schéma même en cas d'erreur
+                    try
+                    {
+                        var tempInitializer = new DbInitializer();
+                        tempInitializer.CreateDatabaseIfMissing(generalDbPath);
+                        logger.Info($"✅ Schéma créé après erreur de validation");
+                    }
+                    catch (Exception initEx)
+                    {
+                        logger.Error($"❌ Impossible de créer le schéma : {initEx.Message}");
+                    }
                 }
             }
         }

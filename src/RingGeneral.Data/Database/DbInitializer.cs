@@ -27,10 +27,89 @@ public sealed class DbInitializer
         {
             using var connexion = new SqliteConnection($"Data Source={cheminDb}");
             connexion.Open();
+            
+            // Créer le schéma de base minimal pour avoir les tables nécessaires
+            CreateBaseSchema(connexion);
+            
+            // S'assurer que toutes les tables essentielles existent (même si 001_init.sql ne les a pas créées)
+            SqliteConnectionFactory.EnsureEssentialTablesExist(connexion);
+        }
+        else
+        {
+            // Même si la base existe, s'assurer que toutes les tables essentielles existent
+            using var connexion = new SqliteConnection($"Data Source={cheminDb}");
+            connexion.Open();
+            SqliteConnectionFactory.EnsureEssentialTablesExist(connexion);
         }
 
         // NE PLUS appeler ApplyMigrations() automatiquement
         // Les migrations sont maintenant appliquées uniquement via DbManager tool
+    }
+
+    /// <summary>
+    /// Crée le schéma de base (001_init.sql) sans appliquer les migrations
+    /// </summary>
+    private static void CreateBaseSchema(SqliteConnection connection)
+    {
+        var schemaPath = Path.Combine(AppContext.BaseDirectory, "data", "migrations", "001_init.sql");
+        
+        // Si le fichier de migration existe, l'exécuter
+        if (File.Exists(schemaPath))
+        {
+            var schemaSql = File.ReadAllText(schemaPath);
+            using var command = connection.CreateCommand();
+            command.CommandText = schemaSql;
+            command.ExecuteNonQuery();
+        }
+        else
+        {
+            // Sinon, créer les tables minimales nécessaires
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+                PRAGMA foreign_keys = ON;
+                
+                CREATE TABLE IF NOT EXISTS Companies (
+                    CompanyId TEXT PRIMARY KEY,
+                    Name TEXT NOT NULL,
+                    CountryId TEXT,
+                    RegionId TEXT NOT NULL,
+                    Prestige INTEGER NOT NULL DEFAULT 0,
+                    Treasury REAL NOT NULL DEFAULT 0,
+                    FoundedYear INTEGER DEFAULT 2024,
+                    IsPlayerControlled INTEGER DEFAULT 0,
+                    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS Workers (
+                    WorkerId TEXT PRIMARY KEY,
+                    Name TEXT NOT NULL,
+                    CompanyId TEXT,
+                    Nationality TEXT NOT NULL,
+                    InRing INTEGER NOT NULL DEFAULT 0,
+                    Entertainment INTEGER NOT NULL DEFAULT 0,
+                    Story INTEGER NOT NULL DEFAULT 0,
+                    Popularity INTEGER NOT NULL DEFAULT 0,
+                    Fatigue INTEGER NOT NULL DEFAULT 0,
+                    RoleTv TEXT NOT NULL DEFAULT 'NONE',
+                    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId)
+                );
+                
+                CREATE TABLE IF NOT EXISTS Countries (
+                    CountryId TEXT PRIMARY KEY,
+                    Code TEXT NOT NULL UNIQUE,
+                    Name TEXT NOT NULL
+                );
+                
+                CREATE TABLE IF NOT EXISTS Regions (
+                    RegionId TEXT PRIMARY KEY,
+                    CountryId TEXT NOT NULL,
+                    Name TEXT NOT NULL,
+                    FOREIGN KEY (CountryId) REFERENCES Countries(CountryId)
+                );
+            ";
+            command.ExecuteNonQuery();
+        }
     }
 
     /// <summary>
