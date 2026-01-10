@@ -16,19 +16,23 @@ public sealed class FinanceViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
     private readonly IDebtManagementService? _debtService;
+    private readonly IRevenueProjectionService? _revenueProjectionService;
     private decimal _currentBalance = 10_000_000m;
     private decimal _weeklyRevenue;
     private decimal _weeklyExpenses;
     private int _currentWeek = 1;
     private decimal _totalDebt = 0m;
     private decimal _monthlyDebtPayments = 0m;
+    private string _financialAlert = string.Empty;
 
     public FinanceViewModel(
         GameRepository? repository = null,
-        IDebtManagementService? debtService = null)
+        IDebtManagementService? debtService = null,
+        IRevenueProjectionService? revenueProjectionService = null)
     {
         _repository = repository;
         _debtService = debtService;
+        _revenueProjectionService = revenueProjectionService;
 
         Transactions = new ObservableCollection<TransactionItemViewModel>();
 
@@ -49,6 +53,8 @@ public sealed class FinanceViewModel : ViewModelBase
 
         LoadFinanceData();
         LoadDebtData();
+        LoadRevenueProjection();
+        CheckFinancialAlerts();
     }
 
     #region Collections

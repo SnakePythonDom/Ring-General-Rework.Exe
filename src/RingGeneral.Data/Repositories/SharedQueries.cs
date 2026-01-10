@@ -107,16 +107,6 @@ internal static class SharedQueries
             Penalty = reader.GetDouble(8),
             Constraints = reader.GetString(9)
         };
-            reader.GetString(0),
-            reader.GetString(1),
-            reader.GetString(2),
-            reader.GetInt32(3),
-            reader.GetInt32(4),
-            reader.GetInt32(5),
-            reader.GetDouble(6),
-            reader.GetDouble(7),
-            reader.GetDouble(8),
-            reader.GetString(9));
     }
 
     internal static List<WorkerSnapshot> ChargerWorkers(SqliteConnection connexion, IReadOnlyList<string> workerIds)
