@@ -10,11 +10,21 @@
     <PackageReference Include="xunit" Version="2.6.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="AutoFixture" Version="4.18.1" />
+    <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Avalonia" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Headless" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="11.0.6" />
+    <PackageReference Include="ReactiveUI" Version="19.5.40" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/RingGeneral.Core/RingGeneral.Core.csproj" />
     <ProjectReference Include="../../src/RingGeneral.Data/RingGeneral.Data.csproj" />
     <ProjectReference Include="../../src/RingGeneral.Specs/RingGeneral.Specs.csproj" />
+    <ProjectReference Include="../../src/RingGeneral.UI/RingGeneral.UI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="../../specs/**/*.json">

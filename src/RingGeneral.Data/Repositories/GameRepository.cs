@@ -131,17 +131,19 @@ public sealed class GameRepository : IGameRepository
             return null;
         }
 
-        return new TvDeal(
-            reader.GetString(0),
-            reader.GetString(1),
-            reader.GetString(2),
-            reader.GetInt32(3),
-            reader.GetInt32(4),
-            reader.GetInt32(5),
-            reader.GetDouble(6),
-            reader.GetDouble(7),
-            reader.GetDouble(8),
-            reader.GetString(9));
+        return new TvDeal
+        {
+            TvDealId = reader.GetString(0),
+            CompanyId = reader.GetString(1),
+            NetworkName = reader.GetString(2),
+            ReachBonus = reader.GetInt32(3),
+            AudienceCap = reader.GetInt32(4),
+            MinimumAudience = reader.GetInt32(5),
+            BaseRevenue = reader.GetDouble(6),
+            RevenuePerPoint = reader.GetDouble(7),
+            Penalty = reader.GetDouble(8),
+            Constraints = reader.GetString(9)
+        };
     }
 
     public BookingPlan ChargerBookingPlan(ShowContext context)
@@ -322,15 +324,15 @@ public sealed class GameRepository : IGameRepository
                 VALUES ((SELECT CompanyId FROM Shows WHERE ShowId = $showId), $showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $type, $montant, $libelle);
                 """;
             command.Parameters.AddWithValue("$showId", showId);
-            command.Parameters.AddWithValue("$type", transactionFin.Type);
-            command.Parameters.AddWithValue("$montant", transactionFin.Montant);
-            command.Parameters.AddWithValue("$libelle", transactionFin.Libelle);
+            command.Parameters.AddWithValue("$type", transactionFin.Id);
+            command.Parameters.AddWithValue("$montant", transactionFin.Amount);
+            command.Parameters.AddWithValue("$libelle", transactionFin.Description);
             command.ExecuteNonQuery();
 
             using var treasuryCommand = connexion.CreateCommand();
             treasuryCommand.Transaction = transaction;
             treasuryCommand.CommandText = "UPDATE Companies SET Treasury = Treasury + $montant WHERE CompanyId = (SELECT CompanyId FROM Shows WHERE ShowId = $showId);";
-            treasuryCommand.Parameters.AddWithValue("$montant", transactionFin.Montant);
+            treasuryCommand.Parameters.AddWithValue("$montant", transactionFin.Amount);
             treasuryCommand.Parameters.AddWithValue("$showId", showId);
             treasuryCommand.ExecuteNonQuery();
         }

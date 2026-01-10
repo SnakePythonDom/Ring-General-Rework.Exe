@@ -14,6 +14,7 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.6" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.6" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/RingGeneral.Core/RingGeneral.Core.csproj" />

@@ -126,7 +126,7 @@ public sealed record GameStateDelta(
     IReadOnlyDictionary<string, int> PopulariteCompagnieDelta,
     IReadOnlyDictionary<string, int> StorylineHeatDelta,
     IReadOnlyDictionary<string, int> TitrePrestigeDelta,
-    IReadOnlyList<FinanceTransaction> Finances);
+    IReadOnlyList<FinanceTransactionModel> Finances);
 
 // ============================================================================
 // CATCH STYLE SYSTEM (Migration 006)

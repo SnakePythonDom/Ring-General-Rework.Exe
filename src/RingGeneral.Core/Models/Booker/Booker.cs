@@ -4,6 +4,76 @@ using System.ComponentModel.DataAnnotations;
 namespace RingGeneral.Core.Models.Booker;
 
 /// <summary>
+/// Types d'archétypes créatifs pour les bookers.
+/// Chaque archétype définit une philosophie de booking et des préférences stylistiques.
+/// </summary>
+public enum BookerCreativeArchetype
+{
+    /// <summary>
+    /// Power Booker : Favorise stabilité, hiérarchie claire, stars établies, règnes longs
+    /// Rotation limitée, main event stable, narration simple et lisible
+    /// </summary>
+    PowerBooker,
+
+    /// <summary>
+    /// Puroresu : Priorité absolue à la qualité in-ring, attributs techniques
+    /// Matchs longs et compétitifs, psychologie de match, endurance
+    /// Popularité/micro passent au second plan
+    /// </summary>
+    Puroresu,
+
+    /// <summary>
+    /// Attitude Era : Segments micro percutants, retournements, angles controversés
+    /// Star Power brut, storylines chaotiques, moments marquants
+    /// Ring n'est plus centre unique, segments et personnalités dominent
+    /// </summary>
+    AttitudeEra,
+
+    /// <summary>
+    /// Modern/Indie : Rotation élevée, renouvellement constant, montées rapides
+    /// Matchs longs/compétitifs, changements fréquents de champions
+    /// Gimmicks organiques, arcs évolutifs, remise en question hiérarchie
+    /// </summary>
+    ModernIndie
+}
+
+/// <summary>
+/// Niveaux de contrôle du joueur sur le booking IA.
+/// Définit le degré d'implication du joueur dans les décisions créatives.
+/// </summary>
+public enum BookingControlLevel
+{
+    /// <summary>
+    /// Spectator : IA contrôle 100% des décisions
+    /// Le joueur observe passivement, l'IA gère tout le booking
+    /// Idéal pour les joueurs qui veulent une expérience narrative pure
+    /// </summary>
+    Spectator,
+
+    /// <summary>
+    /// Producer : IA propose, joueur valide
+    /// L'IA génère les shows complets mais le joueur peut veto certaines décisions
+    /// Collaboration entre IA créative et validation humaine
+    /// </summary>
+    Producer,
+
+    /// <summary>
+    /// CoBooker : Partage des responsabilités
+    /// Le joueur gère les éléments majeurs (titres, main events)
+    /// L'IA développe les midcard et segments secondaires
+    /// Équilibre entre contrôle créatif et délégation
+    /// </summary>
+    CoBooker,
+
+    /// <summary>
+    /// Dictator : Contrôle total du joueur
+    /// Pas d'intervention IA, le joueur décide de tout
+    /// Booking manuel traditionnel, aucune pénalité pour préférer ce mode
+    /// </summary>
+    Dictator
+}
+
+/// <summary>
 /// Représente un booker avec préférences créatives et capacité d'auto-booking.
 /// Influence le style de booking et peut prendre des décisions autonomes si activé.
 /// </summary>
@@ -74,6 +144,12 @@ public sealed record Booker
     /// </summary>
     [Required]
     public string PreferredProductType { get; init; } = "Balanced";
+
+    /// <summary>
+    /// Archétype créatif du booker définissant sa philosophie de booking
+    /// Détermine automatiquement basé sur PreferredProductType et historique
+    /// </summary>
+    public BookerCreativeArchetype CreativeArchetype { get; init; }
 
     /// <summary>
     /// Aime pousser les underdogs (workers peu populaires)
@@ -231,5 +307,38 @@ public sealed record Booker
             return "Chaotic Booker"; // Peu créatif ET peu logique
 
         return "Balanced Booker"; // Mix
+    }
+
+    /// <summary>
+    /// Détermine l'archétype créatif basé sur PreferredProductType et caractéristiques
+    /// </summary>
+    public BookerCreativeArchetype DetermineArchetype()
+    {
+        // Détermination basée sur PreferredProductType
+        return PreferredProductType switch
+        {
+            "Puroresu" => BookerCreativeArchetype.Puroresu,
+            "Entertainment" when CreativityScore >= 70 => BookerCreativeArchetype.AttitudeEra,
+            "Hardcore" => BookerCreativeArchetype.AttitudeEra,
+            "Technical" when LikesSlowBurn => BookerCreativeArchetype.PowerBooker,
+            "Balanced" when LogicScore >= 70 => BookerCreativeArchetype.PowerBooker,
+            "Balanced" when LikesFastRise => BookerCreativeArchetype.ModernIndie,
+            _ => BookerCreativeArchetype.PowerBooker // Défaut conservateur
+        };
+    }
+
+    /// <summary>
+    /// Retourne les préférences stylistiques de l'archétype créatif
+    /// </summary>
+    public (int PreferredMatchDuration, int PreferredSegmentCount, string DominantStyle) GetArchetypePreferences()
+    {
+        return CreativeArchetype switch
+        {
+            BookerCreativeArchetype.PowerBooker => (15, 6, "Traditional"),
+            BookerCreativeArchetype.Puroresu => (25, 4, "Technical"),
+            BookerCreativeArchetype.AttitudeEra => (12, 10, "Entertainment"),
+            BookerCreativeArchetype.ModernIndie => (20, 8, "Innovative"),
+            _ => (15, 6, "Traditional")
+        };
     }
 }

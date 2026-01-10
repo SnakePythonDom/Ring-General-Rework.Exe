@@ -17,9 +17,12 @@ public sealed class TitleService : ITitleService
         var titre = _repository.ChargerTitre(input.TitleId)
             ?? throw new InvalidOperationException($"Titre introuvable : {input.TitleId}");
 
+        // Phase 2.4 - Gérer les titres vacants : utiliser ChampionId si fourni, sinon HolderWorkerId (peut être null)
         var championActuel = input.ChampionId ?? titre.HolderWorkerId;
-        var changement = !string.IsNullOrWhiteSpace(championActuel)
-            && !string.Equals(championActuel, input.WinnerId, StringComparison.OrdinalIgnoreCase);
+        
+        // Phase 2.4 - Si titre vacant (championActuel null), c'est toujours un changement (couronnement)
+        var changement = string.IsNullOrWhiteSpace(championActuel)
+            || !string.Equals(championActuel, input.WinnerId, StringComparison.OrdinalIgnoreCase);
 
         var regneCourant = _repository.ChargerRegneCourant(input.TitleId);
         var defenses = regneCourant is null

@@ -81,7 +81,7 @@
                         Margin="0,0,0,10"
                         Background="{DynamicResource ThemeAccentBrush3}">
 
-                  <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                  <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
 
                     <!-- Informations principales -->
                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="6">
@@ -91,13 +91,18 @@
                                  FontWeight="SemiBold"/>
 
                       <StackPanel Orientation="Horizontal" Spacing="10">
+                        <!-- Phase 2.3 - Améliorer affichage objectif -->
                         <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
                                 BorderThickness="1"
                                 CornerRadius="3"
                                 Padding="3,1">
-                          <TextBlock Text="{Binding Objective}"
-                                     FontSize="11"
-                                     Foreground="{DynamicResource ThemeAccentBrush}"/>
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🎯" FontSize="11"/>
+                            <TextBlock Text="{Binding Objective}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource ThemeAccentBrush}"/>
+                          </StackPanel>
                         </Border>
 
                         <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
@@ -126,14 +131,14 @@
 
                     </StackPanel>
 
-                    <!-- Booker Assigné -->
+                    <!-- Phase 2.3 - Booker Assigné amélioré -->
                     <Border Grid.Column="1"
                             BorderBrush="{DynamicResource ThemeBorderLowBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
                             Padding="8"
                             Background="{DynamicResource ThemeBackgroundBrush}">
-                      <StackPanel HorizontalAlignment="Center">
+                      <StackPanel HorizontalAlignment="Center" Spacing="4">
                         <TextBlock Text="🎩 Booker"
                                    FontSize="10"
                                    FontWeight="SemiBold"/>
@@ -178,6 +183,19 @@
                                    TextAlignment="Center"/>
                       </StackPanel>
                     </Border>
+
+                    <!-- Phase 2.3 - Bouton Gérer Filiale -->
+                    <Button Grid.Column="4"
+                            Content="⚙️ Gérer"
+                            Command="{Binding DataContext.ManageChildCompanyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding ChildCompanyId}"
+                            Background="{DynamicResource ThemeAccentBrush}"
+                            Foreground="White"
+                            Padding="12,6"
+                            CornerRadius="4"
+                            FontSize="11"
+                            FontWeight="SemiBold"
+                            VerticalAlignment="Center"/>
 
                   </Grid>
 

@@ -85,7 +85,7 @@ public sealed class ImpactApplier : IImpactApplier
 
             foreach (var transaction in context.Delta.Finances)
             {
-                changements.Add($"Finance {transaction.Libelle}: {transaction.Montant:+#;-#;0}");
+                changements.Add($"Finance {transaction.Description}: {transaction.Amount:+#;-#;0}");
             }
         }
 
@@ -119,7 +119,7 @@ public sealed class ImpactApplier : IImpactApplier
         foreach (var segmentReport in context.RapportShow.Segments)
         {
             var segmentDef = showContext.Segments.FirstOrDefault(s => s.SegmentId == segmentReport.SegmentId);
-            if (segmentDef is null || segmentDef.TitreId is null || segmentDef.VainqueurId is null)
+            if (segmentDef is null || segmentDef.TitreId is null)
             {
                 continue;
             }
@@ -130,17 +130,31 @@ public sealed class ImpactApplier : IImpactApplier
                 continue;
             }
 
-            var championActuel = titre.DetenteurId;
+            // Phase 2.4 - Gérer les titres vacants : si VainqueurId n'est pas défini, utiliser le premier participant
+            var vainqueurId = segmentDef.VainqueurId;
+            if (string.IsNullOrWhiteSpace(vainqueurId) && segmentDef.Participants.Count > 0)
+            {
+                // Pour un titre vacant, le vainqueur est le premier participant (ou le gagnant du match)
+                vainqueurId = segmentDef.Participants.FirstOrDefault() ?? string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(vainqueurId))
+            {
+                // Pas de vainqueur défini, skip ce segment
+                continue;
+            }
+
+            var championActuel = titre.DetenteurId; // Peut être null pour titre vacant
             var challengerId = segmentDef.Participants
-                .FirstOrDefault(p => p != segmentDef.VainqueurId);
+                .FirstOrDefault(p => p != vainqueurId);
 
             var semaine = showContext.Show.Semaine;
             var input = new TitleMatchInput(
                 segmentDef.TitreId,
                 challengerId ?? string.Empty,
-                segmentDef.VainqueurId,
+                vainqueurId,
                 semaine,
-                championActuel,
+                championActuel, // Peut être null pour titre vacant
                 context.ShowId);
 
             try
@@ -153,9 +167,17 @@ public sealed class ImpactApplier : IImpactApplier
                         ? showContext.Workers.FirstOrDefault(w => w.WorkerId == championActuel)?.NomComplet ?? "Vacant"
                         : "Vacant";
                     var nouveauNom = showContext.Workers
-                        .FirstOrDefault(w => w.WorkerId == segmentDef.VainqueurId)?.NomComplet ?? "Unknown";
+                        .FirstOrDefault(w => w.WorkerId == vainqueurId)?.NomComplet ?? "Unknown";
 
-                    changements.Add($"🏆 TITLE CHANGE: {nouveauNom} remporte le {titre.Nom} (Prestige {outcome.PrestigeDelta:+#;-#;0})");
+                    if (championActuel is null)
+                    {
+                        // Phase 2.4 - Titre vacant couronné
+                        changements.Add($"👑 NEW CHAMPION: {nouveauNom} remporte le {titre.Nom} vacant (Prestige {outcome.PrestigeDelta:+#;-#;0})");
+                    }
+                    else
+                    {
+                        changements.Add($"🏆 TITLE CHANGE: {nouveauNom} remporte le {titre.Nom} (Prestige {outcome.PrestigeDelta:+#;-#;0})");
+                    }
                 }
                 else
                 {

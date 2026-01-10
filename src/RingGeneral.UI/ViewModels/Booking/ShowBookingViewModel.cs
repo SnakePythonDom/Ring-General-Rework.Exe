@@ -23,20 +23,30 @@ public sealed class ShowBookingViewModel : ViewModelBase
     private readonly BookingBuilderService _builder;
     private readonly TemplateService _templateService;
     private readonly IBookerAIEngine? _bookerAIEngine;
+    private readonly IBookingControlService? _bookingControlService;
+    private readonly SettingsRepository? _settingsRepository;
     private ShowContext? _context;
     private string? _showId;
+    private BookingControlLevel _controlLevel = BookingControlLevel.CoBooker; // Phase 1.2
 
     public ShowBookingViewModel(
         GameRepository repository,
         SegmentTypeCatalog catalog,
-        IBookerAIEngine? bookerAIEngine = null)
+        IBookerAIEngine? bookerAIEngine = null,
+        IBookingControlService? bookingControlService = null,
+        SettingsRepository? settingsRepository = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         _bookerAIEngine = bookerAIEngine;
+        _bookingControlService = bookingControlService;
+        _settingsRepository = settingsRepository;
         _validator = new BookingValidator();
         _builder = new BookingBuilderService();
         _templateService = new TemplateService();
+        
+        // Phase 1.2 - Charger le niveau de contrôle depuis GameState
+        LoadBookingControlLevel();
 
         // Collections
         Segments = new ObservableCollection<SegmentViewModel>();
@@ -48,6 +58,15 @@ public sealed class ShowBookingViewModel : ViewModelBase
         WhyNote = new ObservableCollection<string>();
         Tips = new ObservableCollection<string>();
         BookingGuidelines = new ObservableCollection<string>();
+        
+        // Phase 1.2 - Collection des niveaux de contrôle disponibles
+        ControlLevels = new ObservableCollection<BookingControlLevel>
+        {
+            BookingControlLevel.Spectator,
+            BookingControlLevel.Producer,
+            BookingControlLevel.CoBooker,
+            BookingControlLevel.Dictator
+        };
 
         // Commandes
         AddSegmentCommand = ReactiveCommand.Create(AddSegment);
@@ -74,6 +93,11 @@ public sealed class ShowBookingViewModel : ViewModelBase
     public ObservableCollection<string> WhyNote { get; }
     public ObservableCollection<string> Tips { get; }
     public ObservableCollection<string> BookingGuidelines { get; }
+
+    /// <summary>
+    /// Phase 1.2 - Niveaux de contrôle disponibles
+    /// </summary>
+    public ObservableCollection<BookingControlLevel> ControlLevels { get; }
 
     #endregion
 
@@ -117,6 +141,43 @@ public sealed class ShowBookingViewModel : ViewModelBase
     public int SegmentCount => Segments.Count;
     public bool HasSegments => Segments.Any();
     public bool CanSimulate => HasSegments && string.IsNullOrWhiteSpace(ValidationErrors);
+
+    /// <summary>
+    /// Phase 1.2 - Niveau de contrôle du booking
+    /// </summary>
+    public BookingControlLevel ControlLevel
+    {
+        get => _controlLevel;
+        set
+        {
+            if (_controlLevel != value)
+            {
+                _controlLevel = value;
+                this.RaisePropertyChanged();
+                this.RaisePropertyChanged(nameof(CanAutoBook));
+                this.RaisePropertyChanged(nameof(ControlLevelDescription));
+                // Phase 1.2 - Sauvegarder le niveau de contrôle
+                SaveBookingControlLevel();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Phase 1.2 - Description du niveau de contrôle
+    /// </summary>
+    public string ControlLevelDescription => ControlLevel switch
+    {
+        BookingControlLevel.Spectator => "👁️ IA contrôle 100% des décisions",
+        BookingControlLevel.Producer => "🎬 IA propose, vous validez",
+        BookingControlLevel.CoBooker => "🤝 Vous gérez titres majeurs, IA développe midcard",
+        BookingControlLevel.Dictator => "👑 Contrôle total, pas d'intervention IA",
+        _ => "Niveau non défini"
+    };
+
+    /// <summary>
+    /// Phase 1.2 - Indique si l'auto-booking est disponible selon le niveau
+    /// </summary>
+    public bool CanAutoBook => ControlLevel != BookingControlLevel.Dictator;
 
     #endregion
 
@@ -440,13 +501,31 @@ public sealed class ShowBookingViewModel : ViewModelBase
                 ))
                 .ToList();
 
-            // Générer les nouveaux segments
-            var generatedSegments = _bookerAIEngine.GenerateAutoBooking(
-                bookerId,
-                _context,
-                existingSegments,
-                constraints
-            );
+            // Phase 1.2 - Générer les nouveaux segments selon le niveau de contrôle
+            List<SegmentDefinition> generatedSegments;
+            if (_bookingControlService != null)
+            {
+                generatedSegments = _bookingControlService.GenerateShowWithControlLevel(
+                    ControlLevel,
+                    bookerId,
+                    _context,
+                    existingSegments,
+                    constraints);
+            }
+            else if (_bookerAIEngine != null)
+            {
+                // Fallback sur BookerAIEngine si BookingControlService non disponible
+                generatedSegments = _bookerAIEngine.GenerateAutoBooking(
+                    bookerId,
+                    _context,
+                    existingSegments,
+                    constraints);
+            }
+            else
+            {
+                Logger.Warning("Aucun service de booking disponible");
+                return;
+            }
 
             // Ajouter les segments générés à la liste
             foreach (var segment in generatedSegments)
@@ -468,6 +547,48 @@ public sealed class ShowBookingViewModel : ViewModelBase
         catch (Exception ex)
         {
             Logger.Error("Erreur lors de la génération du booking automatique", ex);
+        }
+    }
+
+    /// <summary>
+    /// Phase 1.2 - Charge le niveau de contrôle depuis GameState
+    /// </summary>
+    private void LoadBookingControlLevel()
+    {
+        if (_settingsRepository == null) return;
+
+        try
+        {
+            var levelString = _settingsRepository.ChargerBookingControlLevel();
+            if (Enum.TryParse<BookingControlLevel>(levelString, out var level))
+            {
+                _controlLevel = level;
+                this.RaisePropertyChanged(nameof(ControlLevel));
+                this.RaisePropertyChanged(nameof(CanAutoBook));
+                this.RaisePropertyChanged(nameof(ControlLevelDescription));
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement niveau contrôle: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Phase 1.2 - Sauvegarde le niveau de contrôle dans GameState
+    /// </summary>
+    private void SaveBookingControlLevel()
+    {
+        if (_settingsRepository == null) return;
+
+        try
+        {
+            _settingsRepository.SauvegarderBookingControlLevel(ControlLevel.ToString());
+            Logger.Debug($"Niveau de contrôle sauvegardé: {ControlLevel}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur sauvegarde niveau contrôle: {ex.Message}");
         }
     }
 

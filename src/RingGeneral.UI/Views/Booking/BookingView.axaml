@@ -50,6 +50,27 @@
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Phase 1.2 - Dropdown niveau de contrôle -->
+                    <ComboBox ItemsSource="{Binding ControlLevels}"
+                              SelectedItem="{Binding ControlLevel}" 
+                              Width="200"
+                              Padding="12,8"
+                              Background="#2d2d2d"
+                              Foreground="White"
+                              BorderBrush="#3a3a3a"
+                              CornerRadius="6">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontSize="12"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="{Binding ControlLevelDescription}" 
+                               FontSize="11" 
+                               Foreground="#888888"
+                               VerticalAlignment="Center"
+                               MaxWidth="250"
+                               TextWrapping="Wrap"/>
                     <Button Content="🤖 Laisser le Booker préparer le show"
                             Padding="15,10"
                             Background="#10b981"
@@ -57,6 +78,8 @@
                             CornerRadius="6"
                             FontWeight="SemiBold"
                             Command="{Binding AutoBookCommand}"
+                            IsEnabled="{Binding CanAutoBook}"
+                            IsVisible="{Binding CanAutoBook}"
                             ToolTip.Tip="Le Booker IA génère automatiquement un booking basé sur ses préférences et ses mémoires"/>
                     <Button Content="+ Nouveau segment"
                             Padding="15,10"

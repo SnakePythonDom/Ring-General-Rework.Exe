@@ -24,7 +24,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private readonly IRegionRepository _regionRepository;
 
     private string _companyName = string.Empty;
-    private RegionInfo _selectedRegion;
+    private CountryInfo _selectedCountry;
     private CatchStyle _selectedCatchStyle;
     private int _startingPrestige = 50;
     private double _startingTreasury = 100000.0;
@@ -32,7 +32,6 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     private string? _errorMessage;
     private readonly int _baseStartingPrestige = 50;
     private readonly double _baseStartingTreasury = 100000.0;
-
     public CreateCompanyViewModel(
         GameRepository? repository = null,
         INavigationService? navigationService = null,
@@ -49,9 +48,9 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         _regionRepository = regionRepository ?? throw new ArgumentNullException(nameof(regionRepository));
 
         // Initialiser les données de sélection
-        AvailableRegions = new ObservableCollection<RegionInfo>();
+        AvailableCountries = new ObservableCollection<CountryInfo>();
         AvailableCatchStyles = new ObservableCollection<CatchStyle>();
-        _selectedRegion = new RegionInfo("REGION_PENDING", "Chargement...", "World");
+        _selectedCountry = new CountryInfo("COUNTRY_PENDING", "Chargement...");
         _selectedCatchStyle = new CatchStyle(
             "STYLE_PENDING",
             "Chargement...",
@@ -64,12 +63,16 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         // Commandes
         var canCreateCompany = this.WhenAnyValue(
             vm => vm.CompanyName,
-            vm => vm.SelectedRegion,
+            vm => vm.SelectedCountry,
             vm => vm.FoundedYear,
-            (name, region, year) => !string.IsNullOrWhiteSpace(name)
-                                    && region != null
-                                    && !region.RegionId.StartsWith("REGION_PENDING")
-                                    && year is >= 1950 and <= 2100);
+            (name, country, year) => {
+                var canExecute = !string.IsNullOrWhiteSpace(name)
+                                && country != null
+                                && !country.CountryId.StartsWith("COUNTRY_PENDING")
+                                && year is >= 1950 and <= 2100;
+
+                return canExecute;
+            });
 
         ContinueCommand = ReactiveCommand.Create(CreateCompany, canCreateCompany);
         CreateCompanyCommand = ContinueCommand;
@@ -78,50 +81,62 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         this.WhenAnyValue(vm => vm.SelectedCatchStyle)
             .Subscribe(ApplyStyleModifiers);
 
+        this.WhenAnyValue(vm => vm.FoundedYear)
+            .Subscribe(year => {
+                if (year > 0 && (year < 1950 || year > 2100))
+                {
+                    ErrorMessage = "L'année de fondation doit être comprise entre 1950 et 2100.";
+                }
+                else if (ErrorMessage == "L'année de fondation doit être comprise entre 1950 et 2100.")
+                {
+                    ErrorMessage = null;
+                }
+            });
+
         // Charger les données
-        LoadRegionsFromDatabase();
+        LoadCountriesFromDatabase();
         LoadCatchStylesFromDatabase();
     }
 
     /// <summary>
-    /// Charge les régions depuis la base de données
+    /// Charge les pays depuis la base de données
     /// </summary>
-    private void LoadRegionsFromDatabase()
+    private void LoadCountriesFromDatabase()
     {
         try
         {
-            Logger.Info("[CreateCompanyViewModel] Chargement des régions...");
-            var regions = _regionRepository.GetRegions();
-            Logger.Info($"[CreateCompanyViewModel] {regions.Count} régions chargées");
-
-            if (regions.Count == 0)
+            Logger.Info("[CreateCompanyViewModel] Chargement des pays...");
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT CountryId, Name FROM Countries ORDER BY Name";
+            
+            using var reader = cmd.ExecuteReader();
+            AvailableCountries.Clear();
+            while (reader.Read())
             {
-                Logger.Error("[CreateCompanyViewModel] ⚠️ Aucune région trouvée en DB");
-                AvailableRegions.Add(new RegionInfo("REGION_DEFAULT", "Global", "World"));
-                SelectedRegion = AvailableRegions[0];
+                AvailableCountries.Add(new CountryInfo(reader.GetString(0), reader.GetString(1)));
+            }
+
+            if (AvailableCountries.Count == 0)
+            {
+                Logger.Error("[CreateCompanyViewModel] ⚠️ Aucun pays trouvé en DB");
+                AvailableCountries.Add(new CountryInfo("COUNTRY_DEFAULT", "World"));
+                SelectedCountry = AvailableCountries[0];
                 return;
             }
 
-            foreach (var region in regions)
-            {
-                AvailableRegions.Add(new RegionInfo(region.RegionId, region.RegionName, region.CountryName));
-            }
-
-            // Sélectionner la première région par défaut ou USA si disponible
-            SelectedRegion = AvailableRegions.FirstOrDefault(r => r.CountryName.Contains("United States"))
-                          ?? AvailableRegions.FirstOrDefault(r => r.CountryName.Contains("USA"))
-                          ?? AvailableRegions[0];
+            // Sélectionner USA par défaut si disponible
+            SelectedCountry = AvailableCountries.FirstOrDefault(c => c.Name.Contains("United States"))
+                          ?? AvailableCountries.FirstOrDefault(c => c.CountryId == "COUNTRY_UNITED_STATES")
+                          ?? AvailableCountries[0];
             
-            Logger.Info($"[CreateCompanyViewModel] Région sélectionnée par défaut: {SelectedRegion.RegionName}");
+            Logger.Info($"[CreateCompanyViewModel] Pays sélectionné par défaut: {SelectedCountry.Name}");
         }
         catch (Exception ex)
         {
-            Logger.Error($"[CreateCompanyViewModel] ❌ Erreur lors du chargement des régions: {ex.Message}");
-            Logger.Error($"[CreateCompanyViewModel] Stack: {ex.StackTrace}");
-
-            // Ajouter une région par défaut en cas d'erreur
-            AvailableRegions.Add(new RegionInfo("REGION_DEFAULT", "Global", "World"));
-            SelectedRegion = AvailableRegions[0];
+            Logger.Error($"[CreateCompanyViewModel] ❌ Erreur lors du chargement des pays: {ex.Message}");
+            AvailableCountries.Add(new CountryInfo("COUNTRY_DEFAULT", "World"));
+            SelectedCountry = AvailableCountries[0];
         }
     }
 
@@ -150,7 +165,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
             // Sélectionner "Hybrid" par défaut (le plus équilibré)
             SelectedCatchStyle = AvailableCatchStyles.FirstOrDefault(s => s.CatchStyleId == "STYLE_HYBRID")
-                              ?? AvailableCatchStyles.FirstOrDefault();
+                              ?? AvailableCatchStyles.FirstOrDefault()!;
             
             Logger.Info($"[CreateCompanyViewModel] Style sélectionné par défaut: {SelectedCatchStyle?.Name}");
         }
@@ -201,12 +216,12 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Région sélectionnée
+    /// Pays sélectionné
     /// </summary>
-    public RegionInfo SelectedRegion
+    public CountryInfo SelectedCountry
     {
-        get => _selectedRegion;
-        set => this.RaiseAndSetIfChanged(ref _selectedRegion, value);
+        get => _selectedCountry;
+        set => this.RaiseAndSetIfChanged(ref _selectedCountry, value);
     }
 
     /// <summary>
@@ -242,11 +257,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     public int FoundedYear
     {
         get => _foundedYear;
-        set
-        {
-            var clampedValue = Math.Clamp(value, 1950, 2100);
-            this.RaiseAndSetIfChanged(ref _foundedYear, clampedValue);
-        }
+        set => this.RaiseAndSetIfChanged(ref _foundedYear, value);
     }
 
     /// <summary>
@@ -259,9 +270,9 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Liste des régions disponibles
+    /// Liste des pays disponibles
     /// </summary>
-    public ObservableCollection<RegionInfo> AvailableRegions { get; }
+    public ObservableCollection<CountryInfo> AvailableCountries { get; }
 
     /// <summary>
     /// Liste des styles de catch disponibles
@@ -290,9 +301,9 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         StartingPrestige = _baseStartingPrestige;
         StartingTreasury = _baseStartingTreasury;
 
-        if (AvailableRegions.Count > 0 && SelectedRegion == null)
+        if (AvailableCountries.Count > 0 && SelectedCountry == null)
         {
-            SelectedRegion = AvailableRegions[0];
+            SelectedCountry = AvailableCountries[0];
         }
 
         if (AvailableCatchStyles.Count > 0 && SelectedCatchStyle == null)
@@ -327,7 +338,12 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// </summary>
     private void CreateCompany()
     {
+
         ErrorMessage = null;
+
+        // Validation finale et clamping
+        var finalYear = Math.Clamp(FoundedYear, 1950, 2100);
+        FoundedYear = finalYear; // Mettre à jour l'UI avec la valeur clampée
 
         // Validation
         if (string.IsNullOrWhiteSpace(CompanyName))
@@ -349,19 +365,26 @@ public sealed class CreateCompanyViewModel : ViewModelBase
             // Générer un ID unique
             var companyId = $"COMP_CUSTOM_{Guid.NewGuid():N}".Substring(0, 20);
 
-            // Récupérer le CountryId de la région sélectionnée
-            string? countryId = null;
-            using (var countryCmd = connection.CreateCommand())
+            // Récupérer une région par défaut pour le pays sélectionné
+            string? regionId = null;
+            using (var regionCmd = connection.CreateCommand())
             {
-                countryCmd.CommandText = "SELECT CountryId FROM Regions WHERE RegionId = @regionId";
-                countryCmd.Parameters.AddWithValue("@regionId", SelectedRegion.RegionId);
-                countryId = countryCmd.ExecuteScalar() as string;
+                regionCmd.CommandText = "SELECT RegionId FROM Regions WHERE CountryId = @countryId LIMIT 1";
+                regionCmd.Parameters.AddWithValue("@countryId", SelectedCountry.CountryId);
+                regionId = regionCmd.ExecuteScalar() as string;
             }
 
-            if (countryId == null)
+            // Fallback si aucune région n'est trouvée pour ce pays
+            if (regionId == null)
             {
-                ErrorMessage = "Erreur: Impossible de déterminer le pays de la région sélectionnée.";
-                return;
+                Logger.Warning($"[CreateCompanyViewModel] Aucune région trouvée pour le pays {SelectedCountry.CountryId}. Création d'une région par défaut.");
+                regionId = $"REGION_{SelectedCountry.CountryId}_DEFAULT";
+                using var insertRegionCmd = connection.CreateCommand();
+                insertRegionCmd.CommandText = "INSERT OR IGNORE INTO Regions (RegionId, CountryId, Name) VALUES (@rId, @cId, @name)";
+                insertRegionCmd.Parameters.AddWithValue("@rId", regionId);
+                insertRegionCmd.Parameters.AddWithValue("@cId", SelectedCountry.CountryId);
+                insertRegionCmd.Parameters.AddWithValue("@name", "Générique");
+                insertRegionCmd.ExecuteNonQuery();
             }
 
             // Insérer la nouvelle compagnie avec tous les champs d'identité et de gouvernance
@@ -377,8 +400,8 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
             insertCmd.Parameters.AddWithValue("@companyId", companyId);
             insertCmd.Parameters.AddWithValue("@name", CompanyName.Trim());
-            insertCmd.Parameters.AddWithValue("@countryId", countryId!);
-            insertCmd.Parameters.AddWithValue("@regionId", SelectedRegion.RegionId);
+            insertCmd.Parameters.AddWithValue("@countryId", SelectedCountry.CountryId);
+            insertCmd.Parameters.AddWithValue("@regionId", regionId);
             insertCmd.Parameters.AddWithValue("@prestige", StartingPrestige);
             insertCmd.Parameters.AddWithValue("@treasury", StartingTreasury);
             insertCmd.Parameters.AddWithValue("@foundedYear", FoundedYear);
@@ -514,9 +537,9 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 }
 
 /// <summary>
-/// Informations sur une région pour la sélection
+/// Informations sur un pays pour la sélection
 /// </summary>
-public sealed record RegionInfo(string RegionId, string RegionName, string CountryName)
+public sealed record CountryInfo(string CountryId, string Name)
 {
-    public override string ToString() => $"{RegionName}, {CountryName}";
+    public override string ToString() => Name;
 }

@@ -28,6 +28,7 @@ public sealed class ChildCompaniesViewModel : ViewModelBase
         ChildCompanies = new ObservableCollection<ChildCompanyExtended>();
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshChildCompaniesAsync);
         CreateChildCompanyCommand = ReactiveCommand.CreateFromTask<ChildCompanyObjective>(CreateChildCompanyAsync);
+        ManageChildCompanyCommand = ReactiveCommand.Create<string>(ManageChildCompany);
     }
 
     /// <summary>
@@ -39,6 +40,11 @@ public sealed class ChildCompaniesViewModel : ViewModelBase
     /// Commande pour créer une nouvelle filiale
     /// </summary>
     public ReactiveCommand<ChildCompanyObjective, Unit> CreateChildCompanyCommand { get; }
+
+    /// <summary>
+    /// Phase 2.3 - Commande pour gérer une filiale
+    /// </summary>
+    public ReactiveCommand<string, Unit> ManageChildCompanyCommand { get; }
 
     /// <summary>
     /// Liste des filiales
@@ -109,5 +115,15 @@ public sealed class ChildCompaniesViewModel : ViewModelBase
         {
             Logger.Error($"Erreur lors de la création de la filiale: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>
+    /// Phase 2.3 - Gère une filiale (ouvre la vue de gestion détaillée)
+    /// </summary>
+    private void ManageChildCompany(string childCompanyId)
+    {
+        // TODO: Implémenter l'ouverture de la vue de gestion détaillée de la filiale
+        Logger.Info($"Gestion de la filiale {childCompanyId}");
+        // Pour l'instant, log pour vérifier que la commande fonctionne
     }
 }

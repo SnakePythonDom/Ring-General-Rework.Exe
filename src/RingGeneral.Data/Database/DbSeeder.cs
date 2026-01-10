@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Interfaces;
+using System.IO;
 
 namespace RingGeneral.Data.Database;
 
@@ -22,39 +23,28 @@ public static class DbSeeder
     {
         if (!IsDatabaseEmpty(connection))
         {
-            Log(LogLevel.Debug, "Base de données déjà peuplée. Seed ignoré.");
             return;
         }
-
-        Log(LogLevel.Info, "Base de données vide détectée. Démarrage du seed...");
 
         // Chercher BAKI1.1.db dans plusieurs emplacements possibles
         string? bakiDbPath = FindBakiDatabase();
 
         if (bakiDbPath != null)
         {
-            Log(LogLevel.Info, $"BAKI1.1.db trouvé à: {bakiDbPath}");
-            Log(LogLevel.Info, "Import des données réelles depuis BAKI1.1.db...");
-
             try
             {
                 DbBakiImporter.ImportFromBaki(connection, bakiDbPath);
-                Log(LogLevel.Info, "Import BAKI terminé avec succès");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Log(LogLevel.Error, $"Erreur lors de l'import BAKI: {ex.Message}");
-                Log(LogLevel.Warning, "Fallback vers données de démonstration...");
                 SeedDemoData(connection);
             }
         }
         else
         {
-            Log(LogLevel.Info, "BAKI1.1.db introuvable, utilisation des données de démonstration");
             SeedDemoData(connection);
         }
 
-        Log(LogLevel.Info, "Seed terminé avec succès.");
     }
 
     /// <summary>
@@ -80,12 +70,11 @@ public static class DbSeeder
                     return fullPath;
                 }
             }
-            catch
+            catch (Exception)
             {
                 // Ignorer les erreurs de path
             }
         }
-
         return null;
     }
 
@@ -118,31 +107,50 @@ public static class DbSeeder
 
         try
         {
+            // 0. S'assurer que les pays et régions de base existent
+            SeedBaseGeography(connection);
+
             // 1. Créer une compagnie
             var companyId = SeedCompany(connection);
-            Log(LogLevel.Debug, $"Compagnie créée: {companyId}");
 
             // 2. Créer des workers
             var workerIds = SeedWorkers(connection, companyId);
-            Log(LogLevel.Debug, $"{workerIds.Count} workers créés");
 
             // 3. Créer des titres
             var titleIds = SeedTitles(connection, companyId, workerIds);
-            Log(LogLevel.Debug, $"{titleIds.Count} titres créés");
 
             // 4. Créer un show
             var showId = SeedShow(connection, companyId);
-            Log(LogLevel.Debug, $"Show créé: {showId}");
 
             transaction.Commit();
-            Log(LogLevel.Debug, "Transaction committée.");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             transaction.Rollback();
-            Console.Error.WriteLine($"[DbSeeder] Erreur lors du seed: {ex.Message}");
             throw;
         }
+    }
+
+    /// <summary>
+    /// S'assure que les données géographiques de base existent
+    /// </summary>
+    private static void SeedBaseGeography(SqliteConnection connection)
+    {
+        using var cmd = connection.CreateCommand();
+        
+        // Insérer pays par défaut
+        cmd.CommandText = "INSERT OR IGNORE INTO Countries (CountryId, Code, Name) VALUES ('COUNTRY_DEFAULT', 'WLD', 'World')";
+        cmd.ExecuteNonQuery();
+
+        cmd.CommandText = "INSERT OR IGNORE INTO Countries (CountryId, Code, Name) VALUES ('COUNTRY_UNITED_STATES', 'USA', 'United States')";
+        cmd.ExecuteNonQuery();
+
+        // Insérer régions par défaut
+        cmd.CommandText = "INSERT OR IGNORE INTO Regions (RegionId, CountryId, Name) VALUES ('REGION_DEFAULT', 'COUNTRY_DEFAULT', 'Global')";
+        cmd.ExecuteNonQuery();
+
+        cmd.CommandText = "INSERT OR IGNORE INTO Regions (RegionId, CountryId, Name) VALUES ('REGION_USA_DEFAULT', 'COUNTRY_UNITED_STATES', 'USA East')";
+        cmd.ExecuteNonQuery();
     }
 
     /// <summary>
@@ -154,15 +162,16 @@ public static class DbSeeder
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO Companies (CompanyId, Name, Region, Prestige, Treasury, CurrentWeek, IsPlayerControlled)
-            VALUES (@id, @name, @region, @prestige, @treasury, @week, @player)";
+            INSERT INTO Companies (CompanyId, Name, CountryId, RegionId, Prestige, Treasury, FoundedYear, IsPlayerControlled)
+            VALUES (@id, @name, @countryId, @regionId, @prestige, @treasury, @foundedYear, @player)";
 
         cmd.Parameters.AddWithValue("@id", companyId);
         cmd.Parameters.AddWithValue("@name", "World Wrestling Entertainment");
-        cmd.Parameters.AddWithValue("@region", "USA");
+        cmd.Parameters.AddWithValue("@countryId", "COUNTRY_UNITED_STATES");
+        cmd.Parameters.AddWithValue("@regionId", "REGION_USA_DEFAULT");
         cmd.Parameters.AddWithValue("@prestige", 95);
         cmd.Parameters.AddWithValue("@treasury", 10_000_000.0);
-        cmd.Parameters.AddWithValue("@week", 1);
+        cmd.Parameters.AddWithValue("@foundedYear", 2024);
         cmd.Parameters.AddWithValue("@player", 1);
 
         cmd.ExecuteNonQuery();
@@ -205,18 +214,18 @@ public static class DbSeeder
         {
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Workers (WorkerId, FullName, CompanyId, InRing, Entertainment, Story, Popularity, Fatigue, Morale, TvRole)
-                VALUES (@id, @name, @companyId, @inRing, @entertainment, @story, @popularity, @fatigue, @morale, @role)";
+                INSERT INTO Workers (WorkerId, Name, CompanyId, Nationality, InRing, Entertainment, Story, Popularity, Fatigue, RoleTv)
+                VALUES (@id, @name, @companyId, @nationality, @inRing, @entertainment, @story, @popularity, @fatigue, @role)";
 
             cmd.Parameters.AddWithValue("@id", worker.id);
             cmd.Parameters.AddWithValue("@name", worker.name);
             cmd.Parameters.AddWithValue("@companyId", companyId);
+            cmd.Parameters.AddWithValue("@nationality", "USA"); // Default for demo
             cmd.Parameters.AddWithValue("@inRing", worker.inRing);
             cmd.Parameters.AddWithValue("@entertainment", worker.entertainment);
             cmd.Parameters.AddWithValue("@story", worker.story);
             cmd.Parameters.AddWithValue("@popularity", worker.popularity);
             cmd.Parameters.AddWithValue("@fatigue", new Random().Next(10, 40));
-            cmd.Parameters.AddWithValue("@morale", new Random().Next(70, 95));
             cmd.Parameters.AddWithValue("@role", worker.role);
 
             cmd.ExecuteNonQuery();
@@ -246,7 +255,7 @@ public static class DbSeeder
         {
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Titles (TitleId, Name, CompanyId, Prestige, CurrentChampionId)
+                INSERT INTO Titles (TitleId, Name, CompanyId, Prestige, HolderWorkerId)
                 VALUES (@id, @name, @companyId, @prestige, @championId)";
 
             cmd.Parameters.AddWithValue("@id", title.id);
@@ -263,14 +272,13 @@ public static class DbSeeder
             {
                 using var reignCmd = connection.CreateCommand();
                 reignCmd.CommandText = @"
-                    INSERT INTO TitleReigns (TitleId, WorkerId, StartWeek, DefenseCount, IsActive)
-                    VALUES (@titleId, @workerId, @startWeek, @defenseCount, @isActive)";
+                    INSERT INTO TitleReigns (TitleId, WorkerId, StartDate, IsCurrent)
+                    VALUES (@titleId, @workerId, @startDate, @isCurrent)";
 
                 reignCmd.Parameters.AddWithValue("@titleId", title.id);
                 reignCmd.Parameters.AddWithValue("@workerId", title.championId);
-                reignCmd.Parameters.AddWithValue("@startWeek", 1);
-                reignCmd.Parameters.AddWithValue("@defenseCount", new Random().Next(0, 5));
-                reignCmd.Parameters.AddWithValue("@isActive", 1);
+                reignCmd.Parameters.AddWithValue("@startDate", (int)(DateTime.Now.AddMonths(-3) - new DateTime(1970, 1, 1)).TotalDays);
+                reignCmd.Parameters.AddWithValue("@isCurrent", 1);
 
                 reignCmd.ExecuteNonQuery();
             }
@@ -288,16 +296,15 @@ public static class DbSeeder
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO Shows (ShowId, Name, CompanyId, Week, DurationMinutes, Location, Broadcast)
-            VALUES (@id, @name, @companyId, @week, @duration, @location, @broadcast)";
+            INSERT INTO Shows (ShowId, Name, CompanyId, Week, RegionId, DurationMinutes)
+            VALUES (@id, @name, @companyId, @week, @regionId, @duration)";
 
         cmd.Parameters.AddWithValue("@id", showId);
         cmd.Parameters.AddWithValue("@name", "Monday Night Raw");
         cmd.Parameters.AddWithValue("@companyId", companyId);
         cmd.Parameters.AddWithValue("@week", 1);
+        cmd.Parameters.AddWithValue("@regionId", "REGION_USA_DEFAULT");
         cmd.Parameters.AddWithValue("@duration", 180);
-        cmd.Parameters.AddWithValue("@location", "Madison Square Garden, New York");
-        cmd.Parameters.AddWithValue("@broadcast", "USA Network");
 
         cmd.ExecuteNonQuery();
 

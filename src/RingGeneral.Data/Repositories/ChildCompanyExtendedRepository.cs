@@ -35,17 +35,17 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
                 INSERT INTO ChildCompaniesExtended (
                     ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                     AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                    CreatedAt, IsActive
+                    CreatedAt, IsActive, YouthStructureId
                 ) VALUES (
                     $childCompanyId, $parentCompanyId, $objective, $hasFullAutonomy,
                     $assignedBookerId, $isLaboratory, $testStyle, $nicheType,
-                    $createdAt, $isActive
+                    $createdAt, $isActive, $youthStructureId
                 )
                 ON CONFLICT(ChildCompanyId) DO UPDATE SET
                     ParentCompanyId = $parentCompanyId, Objective = $objective,
                     HasFullAutonomy = $hasFullAutonomy, AssignedBookerId = $assignedBookerId,
                     IsLaboratory = $isLaboratory, TestStyle = $testStyle,
-                    NicheType = $nicheType, IsActive = $isActive;";
+                    NicheType = $nicheType, IsActive = $isActive, YouthStructureId = $youthStructureId;";
 
             AjouterParametre(command, "$childCompanyId", childCompany.ChildCompanyId);
             AjouterParametre(command, "$parentCompanyId", childCompany.ParentCompanyId);
@@ -57,6 +57,7 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             AjouterParametre(command, "$nicheType", childCompany.NicheType?.ToString());
             AjouterParametre(command, "$createdAt", childCompany.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
             AjouterParametre(command, "$isActive", childCompany.IsActive ? 1 : 0);
+            AjouterParametre(command, "$youthStructureId", childCompany.YouthStructureId); // Phase 2.3
 
             command.ExecuteNonQuery();
         });
@@ -72,7 +73,7 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             command.CommandText = @"
                 SELECT ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                        AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                       CreatedAt, IsActive
+                       CreatedAt, IsActive, YouthStructureId
                 FROM ChildCompaniesExtended
                 WHERE ChildCompanyId = $childCompanyId
                 LIMIT 1;";
@@ -99,7 +100,7 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             command.CommandText = @"
                 SELECT ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                        AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                       CreatedAt, IsActive
+                       CreatedAt, IsActive, YouthStructureId
                 FROM ChildCompaniesExtended
                 WHERE ParentCompanyId = $parentCompanyId AND IsActive = 1
                 ORDER BY CreatedAt DESC;";
@@ -128,7 +129,7 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             command.CommandText = @"
                 SELECT ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                        AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                       CreatedAt, IsActive
+                       CreatedAt, IsActive, YouthStructureId
                 FROM ChildCompaniesExtended
                 WHERE Objective = $objective AND IsActive = 1
                 ORDER BY CreatedAt DESC;";
@@ -178,7 +179,8 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             TestStyle = reader.IsDBNull(6) ? null : reader.GetString(6),
             NicheType = reader.IsDBNull(7) ? null : Enum.Parse<NicheType>(reader.GetString(7)),
             CreatedAt = DateTime.Parse(reader.GetString(8)),
-            IsActive = reader.GetInt32(9) == 1
+            IsActive = reader.GetInt32(9) == 1,
+            YouthStructureId = reader.IsDBNull(10) ? null : reader.GetString(10) // Phase 2.3
         };
     }
 }

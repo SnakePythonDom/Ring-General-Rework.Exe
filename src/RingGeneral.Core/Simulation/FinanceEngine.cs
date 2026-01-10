@@ -31,34 +31,34 @@ public sealed class FinanceEngine
             _settings.Production.CoutBase + (context.DureeMinutes * _settings.Production.CoutParMinute) + (attendance * _settings.Production.CoutParSpectateur),
             2);
 
-        var transactions = new List<FinanceTransaction>
+        var transactions = new List<FinanceTransactionModel>
         {
-            new("billetterie", billetterie, "Billetterie"),
-            new("merch", merch, "Merchandising"),
-            new("production", -coutProduction, "Coûts de production")
+            new("billetterie", (decimal)billetterie, "Billetterie"),
+            new("merch", (decimal)merch, "Merchandising"),
+            new("production", (decimal)-coutProduction, "Coûts de production")
         };
 
         if (tv > 0)
         {
-            transactions.Add(new FinanceTransaction("tv", tv, "Droits TV"));
+            transactions.Add(new FinanceTransactionModel("tv", (decimal)tv, "Droits TV"));
         }
 
-        return new FinanceShowResult(billetterie, merch, tv, coutProduction, transactions);
+        return new FinanceShowResult((decimal)billetterie, (decimal)merch, (decimal)tv, (decimal)coutProduction, transactions);
     }
 
     public FinanceTickResult CalculerFinancesHebdo(WeeklyFinanceContext context)
     {
-        var transactions = new List<FinanceTransaction>();
+        var transactions = new List<FinanceTransactionModel>();
         var totalDepenses = 0.0;
 
         var totalPaie = CalculerPaie(context.Semaine, context.Contrats);
         if (totalPaie > 0)
         {
-            transactions.Add(new FinanceTransaction("paie", -totalPaie, "Paie des contrats"));
+            transactions.Add(new FinanceTransactionModel("paie", (decimal)-totalPaie, "Paie des contrats"));
             totalDepenses += totalPaie;
         }
 
-        return new FinanceTickResult(0, totalDepenses, transactions);
+        return new FinanceTickResult(0m, (decimal)totalDepenses, transactions);
     }
 
     private int CalculerCapacite(CompanyState compagnie)
@@ -124,7 +124,7 @@ public sealed class FinanceEngine
 
             if (payer)
             {
-                total += contrat.Salaire;
+                total += (double)contrat.Salaire;
             }
         }
 

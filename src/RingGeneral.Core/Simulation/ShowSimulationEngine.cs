@@ -40,7 +40,7 @@ public sealed class ShowSimulationEngine
         var populariteCompagnie = new Dictionary<string, int>();
         var storylineHeat = new Dictionary<string, int>();
         var titrePrestige = new Dictionary<string, int>();
-        var finances = new List<FinanceTransaction>();
+        var finances = new List<FinanceTransactionModel>();
         var segmentsReports = new List<SegmentReport>();
         var storylinesUtilisees = new HashSet<string>();
         var storylineSegmentsCount = new Dictionary<string, int>();
@@ -193,7 +193,13 @@ public sealed class ShowSimulationEngine
         var stars = CalculerStarPower(context);
         var saturation = CalculerSaturation(context, segmentsReports.Count);
         var reach = Math.Clamp(context.Compagnie.Reach + (context.DealTv?.ReachBonus ?? 0), 0, 100);
-        var audienceDetails = _audienceModel.Evaluer(new AudienceInputs(reach, noteShow, stars, saturation));
+        var audienceDetails = _audienceModel.Evaluer(new AudienceInputs
+        {
+            Reach = reach,
+            ShowScore = noteShow,
+            Stars = stars,
+            Saturation = saturation
+        });
         var audience = audienceDetails.Audience;
 
         var billetterie = Math.Round(1500.0 + audience * 75 + reach * 20, 2);
@@ -215,11 +221,11 @@ public sealed class ShowSimulationEngine
         merch = Math.Round(merch * nicheBenefits.MerchandiseMultiplier, 2);
         tv = Math.Round(tv * (1.0 - nicheBenefits.TvDependencyReduction / 100.0), 2);
 
-        finances.Add(new FinanceTransaction("billetterie", billetterie, "Billetterie"));
-        finances.Add(new FinanceTransaction("merch", merch, "Merchandising"));
+        finances.Add(new FinanceTransactionModel("billetterie", (decimal)billetterie, "Billetterie"));
+        finances.Add(new FinanceTransactionModel("merch", (decimal)merch, "Merchandising"));
         if (tv > 0)
         {
-            finances.Add(new FinanceTransaction("tv", tv, "Droits TV"));
+            finances.Add(new FinanceTransactionModel("tv", (decimal)tv, "Droits TV"));
         }
 
         var totalFinances = billetterie + merch + tv;

@@ -107,4 +107,36 @@ public sealed class SettingsRepository : RepositoryBase
         command.Parameters.AddWithValue("$triColonnes", SerializeJson(settings.Tris));
         command.ExecuteNonQuery();
     }
+
+    /// <summary>
+    /// Phase 1.2 - Charge le niveau de contrôle du booking depuis GameState
+    /// </summary>
+    public string ChargerBookingControlLevel()
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT BookingControlLevel FROM GameState WHERE GameStateId = 1;";
+        var result = command.ExecuteScalar();
+        if (result != null && result != DBNull.Value)
+        {
+            return result.ToString() ?? "CoBooker";
+        }
+        return "CoBooker"; // Valeur par défaut
+    }
+
+    /// <summary>
+    /// Phase 1.2 - Sauvegarde le niveau de contrôle du booking dans GameState
+    /// </summary>
+    public void SauvegarderBookingControlLevel(string controlLevel)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE GameState 
+            SET BookingControlLevel = $controlLevel 
+            WHERE GameStateId = 1;
+            """;
+        command.Parameters.AddWithValue("$controlLevel", controlLevel);
+        command.ExecuteNonQuery();
+    }
 }

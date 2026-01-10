@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:RingGeneral.UI.ViewModels.Finance"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="RingGeneral.UI.Views.Finance.FinanceView"
              x:DataType="vm:FinanceViewModel">
@@ -11,7 +12,7 @@
         <vm:FinanceViewModel />
     </Design.DataContext>
 
-    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,*">
+    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,Auto,20,Auto,20,Auto,20,*">
 
         <!-- En-tête -->
         <StackPanel Grid.Row="0" Spacing="8">
@@ -61,8 +62,141 @@
             </Border>
         </Grid>
 
+        <!-- TV Deals Section -->
+        <Border Grid.Row="4" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+            <Grid RowDefinitions="Auto,15,*">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="TV DEALS" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <Button Grid.Column="1" 
+                            Content="📺 Browse Networks" 
+                            Command="{Binding OpenTvDealNegotiationCommand}"
+                            Background="#1e40af"
+                            Foreground="White"
+                            Padding="12,6"
+                            CornerRadius="4"
+                            FontSize="12"
+                            FontWeight="SemiBold"/>
+                </Grid>
+                
+                <TextBlock Grid.Row="2" 
+                           Text="{Binding TotalTvDeals, StringFormat='{}Active Deals: {0}'}" 
+                           FontSize="14" 
+                           Foreground="#94a3b8"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Phase 2.2 - Financial Alerts -->
+        <Border Grid.Row="6" 
+                Background="#7f1d1d" 
+                CornerRadius="8" 
+                Padding="15" 
+                Margin="0,0,0,15"
+                IsVisible="{Binding HasFinancialAlert}">
+            <StackPanel Spacing="8">
+                <TextBlock Text="⚠️ ALERTES FINANCIÈRES" 
+                           FontSize="14" 
+                           FontWeight="Bold" 
+                           Foreground="#fecaca"/>
+                <TextBlock Text="{Binding FinancialAlert}" 
+                           FontSize="12" 
+                           Foreground="#fee2e2"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Phase 2.2 - Debt Section -->
+        <Border Grid.Row="8" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+            <Grid RowDefinitions="Auto,15,*">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="DEBT MANAGEMENT" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="15">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Total Debt" FontSize="11" Foreground="#94a3b8"/>
+                            <TextBlock Text="{Binding TotalDebtFormatted}" FontSize="16" FontWeight="Bold" Foreground="#ef4444"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Monthly Payments" FontSize="11" Foreground="#94a3b8"/>
+                            <TextBlock Text="{Binding MonthlyDebtPaymentsFormatted}" FontSize="16" FontWeight="Bold" Foreground="#f59e0b"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+                
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" MaxHeight="200">
+                    <ItemsControl ItemsSource="{Binding ActiveDebts}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="{Binding PrincipalAmountFormatted}" FontSize="16" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                            <TextBlock FontSize="12" Foreground="#94a3b8">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}Interest: {0} • Term: {1}">
+                                                        <Binding Path="InterestRateFormatted"/>
+                                                        <Binding Path="TermFormatted"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Monthly Payment" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding MonthlyPaymentFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="#f59e0b"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Interest" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding MonthlyInterestFormatted}" FontSize="14" Foreground="#ef4444"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Remaining" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding RemainingBalanceFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="4" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Time Left" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding RemainingMonthsFormatted}" FontSize="14" Foreground="#94a3b8"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Phase 2.2 - Financial Charts -->
+        <Grid Grid.Row="10" ColumnDefinitions="*,*" Margin="0,0,0,20">
+            <!-- Cash Flow Projection Chart -->
+            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto,15,*">
+                    <TextBlock Grid.Row="0" 
+                               Text="📈 PROJECTION DE TRÉSORERIE (12 MOIS)" 
+                               FontSize="14" 
+                               FontWeight="SemiBold" 
+                               Foreground="#e0e0e0"/>
+                    <lvc:CartesianChart Grid.Row="2"
+                                        Series="{Binding CashFlowSeries}"
+                                        Height="250"/>
+                </Grid>
+            </Border>
+
+            <!-- Revenue vs Expenses Chart -->
+            <Border Grid.Column="1" Background="#1e293b" CornerRadius="8" Padding="20" Margin="10,0,0,0">
+                <Grid RowDefinitions="Auto,15,*">
+                    <TextBlock Grid.Row="0" 
+                               Text="💰 REVENUS VS DÉPENSES (12 MOIS)" 
+                               FontSize="14" 
+                               FontWeight="SemiBold" 
+                               Foreground="#e0e0e0"/>
+                    <lvc:CartesianChart Grid.Row="2"
+                                        Series="{Binding RevenueExpenseSeries}"
+                                        Height="250"/>
+                </Grid>
+            </Border>
+        </Grid>
+
         <!-- Transaction History -->
-        <Border Grid.Row="4" Background="#1e293b" CornerRadius="8" Padding="20">
+        <Border Grid.Row="12" Background="#1e293b" CornerRadius="8" Padding="20">
             <Grid RowDefinitions="Auto,15,*">
                 <TextBlock Grid.Row="0" Text="TRANSACTION HISTORY" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
 

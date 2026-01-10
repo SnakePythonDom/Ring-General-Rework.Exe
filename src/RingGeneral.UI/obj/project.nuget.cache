@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "GdsSjkNlmzs=",
+  "dgSpecHash": "sJ0lELbfivM=",
   "success": true,
   "projectFilePath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\RingGeneral.UI.csproj",
   "expectedPackageFiles": [
@@ -24,6 +24,9 @@
     "C:\\Users\\popo2\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\7.3.0\\harfbuzzsharp.nativeassets.macos.7.3.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\harfbuzzsharp.nativeassets.webassembly\\7.3.0\\harfbuzzsharp.nativeassets.webassembly.7.3.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\7.3.0\\harfbuzzsharp.nativeassets.win32.7.3.0.nupkg.sha512",
+    "C:\\Users\\popo2\\.nuget\\packages\\livechartscore\\2.0.0-rc2\\livechartscore.2.0.0-rc2.nupkg.sha512",
+    "C:\\Users\\popo2\\.nuget\\packages\\livechartscore.skiasharpview\\2.0.0-rc2\\livechartscore.skiasharpview.2.0.0-rc2.nupkg.sha512",
+    "C:\\Users\\popo2\\.nuget\\packages\\livechartscore.skiasharpview.avalonia\\2.0.0-rc2\\livechartscore.skiasharpview.avalonia.2.0.0-rc2.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
@@ -32,6 +35,7 @@
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\reactiveui\\18.3.1\\reactiveui.18.3.1.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\skiasharp\\2.88.6\\skiasharp.2.88.6.nupkg.sha512",
+    "C:\\Users\\popo2\\.nuget\\packages\\skiasharp.harfbuzz\\2.88.6\\skiasharp.harfbuzz.2.88.6.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\skiasharp.nativeassets.linux\\2.88.6\\skiasharp.nativeassets.linux.2.88.6.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.6\\skiasharp.nativeassets.macos.2.88.6.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\skiasharp.nativeassets.webassembly\\2.88.6\\skiasharp.nativeassets.webassembly.2.88.6.nupkg.sha512",

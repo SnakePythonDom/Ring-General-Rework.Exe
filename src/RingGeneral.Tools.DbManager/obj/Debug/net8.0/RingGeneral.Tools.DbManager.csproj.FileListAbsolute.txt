@@ -17,7 +17,10 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\b
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\002_youth.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\002_youth_v1.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\003_consolidate_schema.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\003_contract_templates.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\004_booking_control_level.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\004_owner_booker_governance.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\005_child_youth_integration.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\005_company_identity.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\006_catch_styles.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\007_daily_time_system.sql

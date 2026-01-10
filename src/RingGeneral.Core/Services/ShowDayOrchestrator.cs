@@ -21,6 +21,7 @@ public sealed class ShowDayOrchestrator : IShowDayOrchestrator
     private readonly IDailyServices? _dailyServices;
     private readonly Func<string, ShowContext?>? _contextLoader;
     private readonly Action<string, ShowStatus>? _statusUpdater;
+    private readonly Action<InboxItem>? _inboxItemAdder; // Phase 3.2
 
     public ShowDayOrchestrator(
         IShowSchedulerStore? showScheduler = null,
@@ -31,7 +32,8 @@ public sealed class ShowDayOrchestrator : IShowDayOrchestrator
         IMoraleEngine? moraleEngine = null,
         IDailyServices? dailyServices = null,
         Func<string, ShowContext?>? contextLoader = null,
-        Action<string, ShowStatus>? statusUpdater = null)
+        Action<string, ShowStatus>? statusUpdater = null,
+        Action<InboxItem>? inboxItemAdder = null) // Phase 3.2
     {
         _showScheduler = showScheduler;
         _titleService = titleService;
@@ -42,6 +44,7 @@ public sealed class ShowDayOrchestrator : IShowDayOrchestrator
         _dailyServices = dailyServices;
         _contextLoader = contextLoader;
         _statusUpdater = statusUpdater;
+        _inboxItemAdder = inboxItemAdder; // Phase 3.2
     }
 
     /// <summary>
@@ -308,11 +311,25 @@ public sealed class ShowDayOrchestrator : IShowDayOrchestrator
                 .Where(w => !workersUtilises.Contains(w.WorkerId))
                 .ToList();
 
+            // Phase 3.2 - Créer InboxItems pour workers non utilisés
+            var semaine = context.Show.Semaine;
+
             foreach (var worker in workersNonUtilises)
             {
                 // Impact négatif sur le moral des workers non utilisés
                 _moraleEngine.UpdateMorale(worker.WorkerId, "NotBooked", impact: -3);
                 changements.Add($"📉 {worker.NomComplet} : Moral -3 (non utilisé dans le show)");
+
+                // Phase 3.2 - Créer et enregistrer InboxItem pour notification
+                if (_inboxItemAdder is not null)
+                {
+                    var inboxItem = new InboxItem(
+                        "worker_unused",
+                        "Worker Non Utilisé",
+                        $"{worker.NomComplet} est mécontent de ne pas avoir été utilisé lors du show.",
+                        semaine);
+                    _inboxItemAdder(inboxItem);
+                }
             }
 
             // Recalculer le moral de la compagnie

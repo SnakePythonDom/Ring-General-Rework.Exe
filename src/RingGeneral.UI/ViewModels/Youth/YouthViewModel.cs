@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Data.Database;
 using RingGeneral.Core.Models;
 
 namespace RingGeneral.UI.ViewModels.Youth;
@@ -50,9 +51,17 @@ public sealed class YouthViewModel : ViewModelBase
         AssignCoachCommand = ReactiveCommand.Create(AssignCoach);
         UpdateBudgetCommand = ReactiveCommand.Create<YouthStructureViewModel>(UpdateBudget);
         GenerateTraineesCommand = ReactiveCommand.Create(GenerateTrainees);
+        
+        // Phase 4.1 - Commande pour graduer un trainee manuellement
+        GraduateTraineeCommand = ReactiveCommand.Create<string>(GraduateTrainee);
 
         LoadYouthData();
     }
+
+    /// <summary>
+    /// Phase 4.1 - Commande pour graduer un trainee manuellement
+    /// </summary>
+    public ReactiveCommand<string, Unit> GraduateTraineeCommand { get; }
 
     #region Collections
 
@@ -289,6 +298,52 @@ public sealed class YouthViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Phase 4.1 - Grader un trainee manuellement
+    /// </summary>
+    private void GraduateTrainee(string workerId)
+    {
+        if (_repository == null)
+        {
+            ActionMessage = "Repository non disponible";
+            return;
+        }
+
+        try
+        {
+            // Utiliser YouthRepository pour graduer
+            // Récupérer la connection string depuis la connexion existante
+            string connectionString;
+            using (var tempConnection = _repository.CreateConnection())
+            {
+                connectionString = tempConnection.ConnectionString;
+            }
+            var connectionFactory = new SqliteConnectionFactory(connectionString);
+            var youthRepo = new YouthRepository(connectionFactory);
+            var currentWeek = 1; // TODO: Récupérer depuis GameState
+            youthRepo.DiplomerTrainee(workerId, currentWeek);
+            
+            // Retirer le trainee de la liste
+            var trainee = Trainees.FirstOrDefault(t => t.WorkerId == workerId);
+            if (trainee != null)
+            {
+                Trainees.Remove(trainee);
+                TotalTrainees = Trainees.Count;
+            }
+
+            ActionMessage = $"🎓 {trainee?.Name ?? workerId} a été gradué avec succès. Contrat disponible pour signature.";
+            Logger.Info($"Trainee gradué manuellement: {workerId}");
+            
+            // Phase 4.1 - TODO: Créer contrat automatique via ContractNegotiationService
+            // Pour l'instant, le worker devient disponible pour contrat manuel
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur graduation trainee: {ex.Message}");
+            ActionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    /// <summary>
     /// Phase 6.3 - Assigne un coach à une structure
     /// </summary>
     public void AssignCoach()
@@ -458,13 +513,61 @@ public sealed class YouthViewModel : ViewModelBase
                 }
             }
 
-            // Charger les trainees
+            // Phase 4.1 - Charger les trainees avec leurs attributs
+            Trainees.Clear();
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT COUNT(*) FROM Youth";
-                TotalTrainees = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.CommandText = """
+                    SELECT t.worker_id,
+                           w.prenom,
+                           w.nom,
+                           w.in_ring,
+                           w.entertainment,
+                           w.story,
+                           COALESCE(t.semaine_inscription, 1) as semaine_inscription,
+                           (SELECT COUNT(*) FROM youth_trainees WHERE statut = 'EN_FORMATION') as total
+                    FROM youth_trainees t
+                    JOIN workers w ON w.worker_id = t.worker_id
+                    WHERE t.statut = 'EN_FORMATION'
+                    ORDER BY w.nom;
+                    """;
+                
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var workerId = reader.GetString(0);
+                    var prenom = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                    var nom = reader.GetString(2);
+                    var nomComplet = string.IsNullOrWhiteSpace(prenom) ? nom : $"{prenom} {nom}";
+                    var inRing = reader.GetInt32(3);
+                    var entertainment = reader.GetInt32(4);
+                    var story = reader.GetInt32(5);
+                    var semaineInscription = reader.GetInt32(6);
+                    
+                    // Calculer progression basée sur moyenne des attributs
+                    var moyenne = (inRing + entertainment + story) / 3.0;
+                    var progress = (int)Math.Round((moyenne / 100.0) * 100);
+                    
+                    Trainees.Add(new TraineeItemViewModel
+                    {
+                        WorkerId = workerId,
+                        Name = nomComplet,
+                        Age = 20, // TODO: Charger depuis workers si disponible
+                        Potential = (int)moyenne,
+                        Progress = progress,
+                        InRing = inRing,
+                        Entertainment = entertainment,
+                        Story = story
+                    });
+                }
+                
+                if (!reader.IsClosed)
+                {
+                    reader.Close();
+                }
             }
 
+            TotalTrainees = Trainees.Count;
             Logger.Info($"{TotalTrainees} trainees, Budget: ${Budget:N0}");
         }
         catch (Exception ex)
@@ -582,10 +685,23 @@ public sealed class YouthViewModel : ViewModelBase
 
 public sealed class TraineeItemViewModel : ViewModelBase
 {
+    private string _workerId = string.Empty;
     private string _name = string.Empty;
     private int _age;
     private int _potential;
     private int _progress;
+    private int _inRing;
+    private int _entertainment;
+    private int _story;
+
+    /// <summary>
+    /// Phase 4.1 - WorkerId pour la graduation
+    /// </summary>
+    public string WorkerId
+    {
+        get => _workerId;
+        set => this.RaiseAndSetIfChanged(ref _workerId, value);
+    }
 
     public string Name
     {
@@ -609,6 +725,33 @@ public sealed class TraineeItemViewModel : ViewModelBase
     {
         get => _progress;
         set => this.RaiseAndSetIfChanged(ref _progress, value);
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Attributs InRing
+    /// </summary>
+    public int InRing
+    {
+        get => _inRing;
+        set => this.RaiseAndSetIfChanged(ref _inRing, value);
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Attributs Entertainment
+    /// </summary>
+    public int Entertainment
+    {
+        get => _entertainment;
+        set => this.RaiseAndSetIfChanged(ref _entertainment, value);
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Attributs Story
+    /// </summary>
+    public int Story
+    {
+        get => _story;
+        set => this.RaiseAndSetIfChanged(ref _story, value);
     }
 
     public string AgeDisplay => $"{Age} ans";

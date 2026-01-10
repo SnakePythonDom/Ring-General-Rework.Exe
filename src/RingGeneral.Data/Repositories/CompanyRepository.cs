@@ -1,10 +1,11 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class CompanyRepository : RepositoryBase
+public sealed class CompanyRepository : RepositoryBase, ICompanyRepository, ITvDealRepository
 {
     public CompanyRepository(SqliteConnectionFactory factory) : base(factory)
     {
@@ -218,20 +219,54 @@ public sealed class CompanyRepository : RepositoryBase
         var deals = new List<TvDeal>();
         while (reader.Read())
         {
-            deals.Add(new TvDeal(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetDouble(6),
-                reader.GetDouble(7),
-                reader.GetDouble(8),
-                reader.GetString(9)));
+            deals.Add(new TvDeal
+            {
+                TvDealId = reader.GetString(0),
+                CompanyId = reader.GetString(1),
+                NetworkName = reader.GetString(2),
+                ReachBonus = reader.GetInt32(3),
+                AudienceCap = reader.GetInt32(4),
+                MinimumAudience = reader.GetInt32(5),
+                BaseRevenue = reader.GetDouble(6),
+                RevenuePerPoint = reader.GetDouble(7),
+                Penalty = reader.GetDouble(8),
+                Constraints = reader.GetString(9)
+            });
         }
 
         return deals;
+    }
+
+    /// <summary>
+    /// Phase 2.1 - Enregistre un nouveau TV Deal
+    /// </summary>
+    public void EnregistrerTvDeal(TvDeal deal, int startWeek, int endWeek)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        // Utiliser StartDate et EndDate (en semaines) au lieu de start_week/end_week
+        command.CommandText = """
+            INSERT INTO tv_deals (
+                tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min,
+                base_revenue, revenue_per_point, penalty, constraints, start_date, end_date
+            ) VALUES (
+                $dealId, $companyId, $networkName, $reachBonus, $audienceCap, $audienceMin,
+                $baseRevenue, $revenuePerPoint, $penalty, $constraints, $startWeek, $endWeek
+            );
+            """;
+        command.Parameters.AddWithValue("$dealId", deal.TvDealId);
+        command.Parameters.AddWithValue("$companyId", deal.CompanyId);
+        command.Parameters.AddWithValue("$networkName", deal.NetworkName);
+        command.Parameters.AddWithValue("$reachBonus", deal.ReachBonus);
+        command.Parameters.AddWithValue("$audienceCap", deal.AudienceCap);
+        command.Parameters.AddWithValue("$audienceMin", deal.MinimumAudience);
+        command.Parameters.AddWithValue("$baseRevenue", deal.BaseRevenue);
+        command.Parameters.AddWithValue("$revenuePerPoint", deal.RevenuePerPoint);
+        command.Parameters.AddWithValue("$penalty", deal.Penalty);
+        command.Parameters.AddWithValue("$constraints", deal.Constraints);
+        command.Parameters.AddWithValue("$startWeek", startWeek);
+        command.Parameters.AddWithValue("$endWeek", endWeek);
+        command.ExecuteNonQuery();
     }
 
     public IReadOnlyList<InboxItem> ChargerInbox()
@@ -287,11 +322,11 @@ public sealed class CompanyRepository : RepositoryBase
         var paies = new List<ContractPayroll>();
         while (reader.Read())
         {
-            paies.Add(new ContractPayroll(
-                reader.GetString(0),
-                reader.GetString(1),
-                (double)LireDecimal(reader, 2),
-                ConvertFrequence(reader.GetString(3))));
+            paies.Add(new ContractPayroll
+            {
+                Frequence = ConvertFrequence(reader.GetString(3)),
+                Salaire = LireDecimal(reader, 2)
+            });
         }
 
         return paies;
@@ -317,11 +352,11 @@ public sealed class CompanyRepository : RepositoryBase
         var paies = new List<ContractPayroll>();
         while (reader.Read())
         {
-            paies.Add(new ContractPayroll(
-                reader.GetString(0),
-                reader.GetString(1),
-                (double)LireDecimal(reader, 2),
-                ConvertFrequence(reader.GetString(3))));
+            paies.Add(new ContractPayroll
+            {
+                Frequence = ConvertFrequence(reader.GetString(3)),
+                Salaire = LireDecimal(reader, 2)
+            });
         }
 
         return paies;

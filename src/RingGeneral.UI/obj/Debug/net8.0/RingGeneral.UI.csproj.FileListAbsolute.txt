@@ -8,6 +8,11 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\RingGeneral.UI.AssemblyInfo.cs
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\RingGeneral.UI.csproj.CoreCompileInputs.cache
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\RingGeneral.UI.sourcelink.json
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\references
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\original.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\original.pdb
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\original.ref.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\refint\RingGeneral.UI.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\001_init.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\002_backstage.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\002_booking_segments.sql
@@ -27,7 +32,10 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\002_youth.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\002_youth_v1.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\003_consolidate_schema.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\003_contract_templates.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\004_booking_control_level.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\004_owner_booker_governance.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\005_child_youth_integration.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\005_company_identity.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\006_catch_styles.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\007_daily_time_system.sql
@@ -51,7 +59,10 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\002_youth.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\002_youth_v1.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\003_consolidate_schema.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\003_contract_templates.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\004_booking_control_level.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\004_owner_booker_governance.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\005_child_youth_integration.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\005_company_identity.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\006_catch_styles.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\007_daily_time_system.sql
@@ -85,6 +96,9 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\Avalonia.X11.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\DynamicData.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\HarfBuzzSharp.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\LiveChartsCore.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\LiveChartsCore.SkiaSharpView.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\LiveChartsCore.SkiaSharpView.Avalonia.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\MicroCom.Runtime.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\Microsoft.Data.Sqlite.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
@@ -92,6 +106,7 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\ReactiveUI.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\SkiaSharp.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\SkiaSharp.HarfBuzz.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\Splat.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\SQLitePCLRaw.batteries_v2.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\SQLitePCLRaw.core.dll
@@ -149,11 +164,6 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\RingGeneral.Core.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\RingGeneral.Data.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\RingGeneral.Specs.pdb
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\references
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\original.dll
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\original.pdb
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\Avalonia\original.ref.dll
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\refint\RingGeneral.UI.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\RingGeneral.UI.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\RingGeneral.UI.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\fr\RingGeneral.UI.resources.cs
