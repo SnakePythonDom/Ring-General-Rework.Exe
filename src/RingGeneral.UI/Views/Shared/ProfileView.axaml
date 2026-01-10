@@ -11,9 +11,9 @@
         <vm:ProfileViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*" RowSpacing="20">
+    <Grid RowDefinitions="Auto,*">
         <Border Background="#1e293b" Padding="24" CornerRadius="8">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20">
+            <Grid ColumnDefinitions="Auto,*,Auto">
                 <Border Width="96" Height="96" Background="#0f172a" CornerRadius="8">
                     <TextBlock Text="🧍" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
@@ -36,7 +36,7 @@
             <TabItem Header="PROFIL">
                 <StackPanel Spacing="16" Margin="0,10,0,0">
                     <Border Background="#1e293b" Padding="20" CornerRadius="8">
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="10">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
                             <TextBlock Text="Nationalité" FontSize="12" Foreground="#94a3b8"/>
                             <TextBlock Grid.Column="1" Text="{Binding Nationality}" FontSize="12" Foreground="#e2e8f0"/>
                             <TextBlock Grid.Row="1" Text="Âge" FontSize="12" Foreground="#94a3b8"/>
@@ -128,7 +128,7 @@
                 <StackPanel Spacing="16" Margin="0,10,0,0">
                     <Border Background="#1e293b" Padding="20" CornerRadius="8">
                         <StackPanel Spacing="12">
-                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="10">
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
                                 <TextBlock Text="Salaire" FontSize="12" Foreground="#94a3b8"/>
                                 <TextBlock Grid.Column="1" Text="{Binding Salary}" FontSize="12" Foreground="#e2e8f0"/>
                                 <TextBlock Grid.Row="1" Text="Début" FontSize="12" Foreground="#94a3b8"/>

@@ -11,44 +11,8 @@
         <vm:InboxViewModel />
     </Design.DataContext>
 
-    <UserControl.Resources>
-        <Style Selector="Border.card">
-            <Setter Property="Background" Value="{StaticResource BackgroundCardBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="BoxShadow" Value="0 8 20 #00000055"/>
-        </Style>
 
-        <Style Selector="RadioButton.inbox-tab">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0,0,0,2"/>
-            <Setter Property="Padding" Value="0,0,0,6"/>
-            <Setter Property="Margin" Value="0,0,20,0"/>
-        </Style>
-
-        <Style Selector="RadioButton.inbox-tab:checked">
-            <Setter Property="Foreground" Value="{StaticResource BrandPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
-        </Style>
-
-        <Style Selector="ListBoxItem.inbox-item">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="12,8"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-
-        <Style Selector="ListBoxItem.inbox-item:selected Border">
-            <Setter Property="Background" Value="{StaticResource BackgroundCardDarkBrush}"/>
-        </Style>
-    </UserControl.Resources>
-
-    <Grid Background="{StaticResource BackgroundPrimaryBrush}" RowDefinitions="Auto,*" Padding="24">
+    <Grid Background="{StaticResource BackgroundPrimaryBrush}" RowDefinitions="Auto,*">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
             <TextBlock Text="BOÎTE DE RÉCEPTION"
                        FontSize="24"
@@ -62,7 +26,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,2*" ColumnSpacing="20">
+        <Grid Grid.Row="1" ColumnDefinitions="*,2*">
             <!-- Liste Messages -->
             <Border Classes="card" Grid.Column="0">
                 <ListBox ItemsSource="{Binding FilteredItems}"
@@ -76,7 +40,7 @@
                                     BorderBrush="{Binding AccentColor}"
                                     CornerRadius="8"
                                     Padding="16">
-                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="6">
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                                     <Border Grid.Row="0"
                                             Background="{Binding BadgeBackground}"
                                             CornerRadius="4"
@@ -110,11 +74,6 @@
                             </Border>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
-                    <ListBox.ItemContainerTheme>
-                        <Style Selector="ListBoxItem">
-                            <Setter Property="Classes" Value="inbox-item"/>
-                        </Style>
-                    </ListBox.ItemContainerTheme>
                 </ListBox>
             </Border>
 

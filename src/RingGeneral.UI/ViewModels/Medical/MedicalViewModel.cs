@@ -31,12 +31,10 @@ public sealed class MedicalViewModel : ViewModelBase
         get => _selectedTab;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _selectedTab, value))
-            {
-                this.RaisePropertyChanged(nameof(IsActiveTabSelected));
-                this.RaisePropertyChanged(nameof(IsInjuredTabSelected));
-                this.RaisePropertyChanged(nameof(IsHistoryTabSelected));
-            }
+            this.RaiseAndSetIfChanged(ref _selectedTab, value);
+            this.RaisePropertyChanged(nameof(IsActiveTabSelected));
+            this.RaisePropertyChanged(nameof(IsInjuredTabSelected));
+            this.RaisePropertyChanged(nameof(IsHistoryTabSelected));
         }
     }
 

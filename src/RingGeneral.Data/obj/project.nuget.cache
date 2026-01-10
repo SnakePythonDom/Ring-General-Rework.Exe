@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "qZl9Xf35CiU=",
+  "dgSpecHash": "yViof5KX3+c=",
   "success": true,
-  "projectFilePath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj",
+  "projectFilePath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
@@ -15,15 +15,5 @@
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.22\\microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "message": "Problème de lecture du fichier cache c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\obj\\project.nuget.cache\u00A0: '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0.",
-      "projectPath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj",
-      "warningLevel": 1,
-      "filePath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj",
-      "targetGraphs": []
-    }
-  ]
+  "logs": []
 }

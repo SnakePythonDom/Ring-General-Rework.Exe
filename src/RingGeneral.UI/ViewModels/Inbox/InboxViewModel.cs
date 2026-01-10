@@ -56,13 +56,11 @@ public sealed class InboxViewModel : ViewModelBase
         get => _selectedTab;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _selectedTab, value))
-            {
-                this.RaisePropertyChanged(nameof(IsAllTabSelected));
-                this.RaisePropertyChanged(nameof(IsContractsTabSelected));
-                this.RaisePropertyChanged(nameof(IsMedicalTabSelected));
-                UpdateFilter();
-            }
+            this.RaiseAndSetIfChanged(ref _selectedTab, value);
+            this.RaisePropertyChanged(nameof(IsAllTabSelected));
+            this.RaisePropertyChanged(nameof(IsContractsTabSelected));
+            this.RaisePropertyChanged(nameof(IsMedicalTabSelected));
+            UpdateFilter();
         }
     }
 

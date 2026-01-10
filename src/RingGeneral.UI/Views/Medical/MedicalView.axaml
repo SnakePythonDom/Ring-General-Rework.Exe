@@ -11,62 +11,13 @@
         <vm:MedicalViewModel />
     </Design.DataContext>
 
-    <UserControl.Resources>
-        <Style Selector="Border.card">
-            <Setter Property="Background" Value="{StaticResource BackgroundCardBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="BoxShadow" Value="0 8 20 #00000055"/>
-        </Style>
 
-        <Style Selector="RadioButton.med-tab">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0,0,0,2"/>
-            <Setter Property="Padding" Value="0,0,0,8"/>
-            <Setter Property="Margin" Value="0,0,24,0"/>
-        </Style>
-
-        <Style Selector="RadioButton.med-tab:checked">
-            <Setter Property="Foreground" Value="{StaticResource BrandPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
-        </Style>
-
-        <Style Selector="ProgressBar.condition-bar">
-            <Setter Property="Height" Value="6"/>
-            <Setter Property="CornerRadius" Value="3"/>
-            <Setter Property="Background" Value="{StaticResource BackgroundCardDarkBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
-        </Style>
-
-        <Style Selector="DataGrid">
-            <Setter Property="Background" Value="{StaticResource BackgroundCardBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="GridLinesVisibility" Value="All"/>
-        </Style>
-
-        <Style Selector="DataGridRow">
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-
-        <Style Selector="DataGridCell">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        </Style>
-    </UserControl.Resources>
-
-    <Grid Background="{StaticResource BackgroundPrimaryBrush}" RowDefinitions="Auto,*" Padding="24">
+    <Grid Background="{StaticResource BackgroundPrimaryBrush}" RowDefinitions="Auto,*">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
             <TextBlock Text="CENTRE MÉDICAL"
                        FontSize="24"
                        FontWeight="Black"
-                       Foreground="White"
-                       LetterSpacing="-0.5"/>
+                       Foreground="White"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" VerticalAlignment="Bottom">
                 <RadioButton Classes="med-tab" GroupName="MedTabs" Content="EFFECTIF FIT" IsChecked="{Binding IsActiveTabSelected}"/>
                 <RadioButton Classes="med-tab" GroupName="MedTabs" Content="INFIRMERIE" IsChecked="{Binding IsInjuredTabSelected}"/>
@@ -81,14 +32,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Worker"
                                         Binding="{Binding Name}"
-                                        Width="*">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style Selector="TextBlock">
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrandPrimaryBrush}"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                                        Width="*"/>
 
                     <DataGridTemplateColumn Header="Condition Phys." Width="160">
                         <DataGridTemplateColumn.CellTemplate>
@@ -103,14 +47,7 @@
 
                     <DataGridTextColumn Header="Fatigue"
                                         Binding="{Binding FatiguePercent, StringFormat='{}{0}%'}"
-                                        Width="100">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style Selector="TextBlock">
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                                        Width="100"/>
 
                     <DataGridTemplateColumn Header="Statut" Width="140">
                         <DataGridTemplateColumn.CellTemplate>

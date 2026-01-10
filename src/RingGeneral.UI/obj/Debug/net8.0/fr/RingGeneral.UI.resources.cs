@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RingGeneral.UI")]
 [assembly: System.Reflection.AssemblyCopyrightAttribute(" ")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+81f7261246cadd79d05e6058d36d49035174be97")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eed057c4616e28a92f1e4d93959abba598eb562b")]
 [assembly: System.Reflection.AssemblyProductAttribute("RingGeneral.UI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RingGeneral.UI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
