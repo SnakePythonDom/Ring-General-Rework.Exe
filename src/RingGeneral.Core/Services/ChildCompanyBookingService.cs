@@ -141,10 +141,12 @@ public sealed class ChildCompanyBookingService
                 MaxSegments = Math.Max(4, 8 - playerMainEventSegments.Count)
             };
 
+            // Passer tous les segments existants (y compris main event) pour que l'IA
+            // puisse éviter de réutiliser les workers déjà utilisés dans les segments du joueur
             var aiSegments = _bookerAIEngine.GenerateAutoBooking(
                 bookerId,
                 context,
-                playerMidcardSegments,
+                existingSegments,
                 constraints);
 
             return playerMainEventSegments.Concat(aiSegments).ToList();
