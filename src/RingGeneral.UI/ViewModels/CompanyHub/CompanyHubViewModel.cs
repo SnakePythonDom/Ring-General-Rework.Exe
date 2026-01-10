@@ -96,14 +96,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     public CompanyState? CurrentCompany
     {
         get => _currentCompany;
-        set
-        {
-            if (this.RaiseAndSetIfChanged(ref _currentCompany, value))
-            {
-                this.RaisePropertyChanged(nameof(CompanyDisplayTitle));
-                this.RaisePropertyChanged(nameof(CompanyLogoText));
-            }
-        }
+        set => this.RaiseAndSetIfChanged(ref _currentCompany, value);
     }
 
     /// <summary>

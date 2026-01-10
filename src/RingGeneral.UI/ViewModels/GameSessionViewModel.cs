@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 using System.Collections.ObjectModel;
-=======
 using Avalonia.Animation;
->>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
 using Avalonia.Collections;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using DynamicData;
@@ -20,7 +17,6 @@ using RingGeneral.Data.Repositories;
 using RingGeneral.Specs.Models;
 using RingGeneral.Specs.Services;
 using RingGeneral.UI.Services;
-using System.Collections.ObjectModel;
 using System.Reactive;
 using LogLevel = RingGeneral.Core.Services.LogLevel;
 

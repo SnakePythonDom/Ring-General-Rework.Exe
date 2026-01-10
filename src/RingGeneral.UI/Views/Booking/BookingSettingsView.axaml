@@ -106,7 +106,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Background="#0f172a" Padding="16" CornerRadius="6" Margin="0,0,0,10">
-                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto" RowSpacing="6">
+                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto">
                                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding SeverityIcon}" FontSize="16" Margin="0,0,10,0"/>
                                                     <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2">
                                                         <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#e0e0e0"/>
