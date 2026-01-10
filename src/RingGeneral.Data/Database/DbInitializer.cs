@@ -29,7 +29,62 @@ public sealed class DbInitializer
             connexion.Open();
         }
 
-        ApplyMigrations(cheminDb);
+        // NE PLUS appeler ApplyMigrations() automatiquement
+        // Les migrations sont maintenant appliquées uniquement via DbManager tool
+    }
+
+    /// <summary>
+    /// Initialise une base de données en copiant depuis un template statique pré-rempli.
+    /// Utilisé pour créer ring_general.db au premier lancement.
+    /// </summary>
+    /// <param name="cheminDb">Chemin de destination de la base de données</param>
+    /// <param name="templatePath">Chemin vers le template statique (ring_general_static.db)</param>
+    public void InitializeFromStaticTemplate(string cheminDb, string templatePath)
+    {
+        if (string.IsNullOrWhiteSpace(cheminDb))
+        {
+            throw new InvalidOperationException("Chemin de base de données invalide.");
+        }
+
+        if (string.IsNullOrWhiteSpace(templatePath))
+        {
+            throw new InvalidOperationException("Chemin du template invalide.");
+        }
+
+        // Si la base existe déjà, ne rien faire
+        if (File.Exists(cheminDb))
+        {
+            return;
+        }
+
+        // Créer le répertoire de destination si nécessaire
+        var dossier = Path.GetDirectoryName(cheminDb);
+        if (!string.IsNullOrWhiteSpace(dossier))
+        {
+            Directory.CreateDirectory(dossier);
+        }
+
+        // Vérifier que le template existe
+        if (!File.Exists(templatePath))
+        {
+            throw new FileNotFoundException(
+                $"Template statique introuvable : {templatePath}\n" +
+                "Veuillez créer la base statique via DbManager tool avant le premier lancement.",
+                templatePath);
+        }
+
+        // Copier le template vers la destination
+        try
+        {
+            File.Copy(templatePath, cheminDb, overwrite: false);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Impossible de copier le template vers {cheminDb}.\n" +
+                $"Erreur : {ex.Message}",
+                ex);
+        }
     }
 
     public void ApplyMigrations(string cheminDb)
@@ -58,10 +113,19 @@ public sealed class DbInitializer
             using var transaction = connexion.BeginTransaction();
             try
             {
+                // #region agent log
+                var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+                File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"B\",\"location\":\"DbInitializer.cs:58\",\"message\":\"Before migration execution\",\"data\":{{\"migrationName\":\"{migration.Nom}\",\"migrationVersion\":{migration.Version},\"sqlPreview\":\"{migration.Sql.Substring(0, Math.Min(100, migration.Sql.Length)).Replace("\"", "\\\"")}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                // #endregion
+                
                 using var command = connexion.CreateCommand();
                 command.Transaction = transaction;
                 command.CommandText = migration.Sql;
                 command.ExecuteNonQuery();
+                
+                // #region agent log
+                File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"B\",\"location\":\"DbInitializer.cs:64\",\"message\":\"Migration executed successfully\",\"data\":{{\"migrationName\":\"{migration.Nom}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                // #endregion
 
                 using var versionCommand = connexion.CreateCommand();
                 versionCommand.Transaction = transaction;
@@ -97,6 +161,11 @@ public sealed class DbInitializer
             }
             catch (Exception ex)
             {
+                // #region agent log
+                var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+                File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"B\",\"location\":\"DbInitializer.cs:98\",\"message\":\"Migration failed\",\"data\":{{\"migrationName\":\"{migration.Nom}\",\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\",\"sqliteErrorCode\":{(ex is Microsoft.Data.Sqlite.SqliteException sqliteEx ? sqliteEx.SqliteErrorCode.ToString() : "N/A")}}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                // #endregion
+                
                 transaction.Rollback();
                 Console.WriteLine($"ERREUR lors de la migration {migration.Nom} : {ex.Message}");
                 // On arrête tout pour éviter des incohérences.
@@ -113,6 +182,11 @@ public sealed class DbInitializer
 
     private static void AssurerColonnesIdentity(SqliteConnection connexion)
     {
+        // #region agent log
+        var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+        File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"D\",\"location\":\"DbInitializer.cs:128\",\"message\":\"AssurerColonnesIdentity entry\",\"data\":{{}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+        // #endregion
+        
         string[] colonnes = { 
             "FoundedYear INTEGER DEFAULT 2024",
             "CompanySize TEXT DEFAULT 'Local'",
@@ -125,23 +199,44 @@ public sealed class DbInitializer
         foreach (var colDef in colonnes)
         {
             var nomColonne = colDef.Split(' ')[0];
+            
+            // #region agent log
+            File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"D\",\"location\":\"DbInitializer.cs:142\",\"message\":\"Checking column\",\"data\":{{\"columnName\":\"{nomColonne}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+            // #endregion
+            
             try
             {
                 using var checkCmd = connexion.CreateCommand();
                 checkCmd.CommandText = $"SELECT {nomColonne} FROM Companies LIMIT 0";
                 checkCmd.ExecuteNonQuery();
+                
+                // #region agent log
+                File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"D\",\"location\":\"DbInitializer.cs:146\",\"message\":\"Column exists\",\"data\":{{\"columnName\":\"{nomColonne}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                // #endregion
             }
             catch
             {
                 try
                 {
+                    // #region agent log
+                    File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"D\",\"location\":\"DbInitializer.cs:150\",\"message\":\"Column missing, adding\",\"data\":{{\"columnName\":\"{nomColonne}\",\"columnDef\":\"{colDef.Replace("\"", "\\\"")}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                    // #endregion
+                    
                     using var alterCmd = connexion.CreateCommand();
                     alterCmd.CommandText = $"ALTER TABLE Companies ADD COLUMN {colDef}";
                     alterCmd.ExecuteNonQuery();
                     Console.WriteLine($"Ajout de la colonne manquante : {nomColonne}");
+                    
+                    // #region agent log
+                    File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"D\",\"location\":\"DbInitializer.cs:156\",\"message\":\"Column added successfully\",\"data\":{{\"columnName\":\"{nomColonne}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                    // #endregion
                 }
                 catch (Exception ex)
                 {
+                    // #region agent log
+                    File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"D\",\"location\":\"DbInitializer.cs:160\",\"message\":\"Failed to add column\",\"data\":{{\"columnName\":\"{nomColonne}\",\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                    // #endregion
+                    
                     Console.WriteLine($"Erreur lors de l'ajout de la colonne {nomColonne} : {ex.Message}");
                 }
             }

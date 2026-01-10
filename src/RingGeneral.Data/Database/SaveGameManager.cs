@@ -417,7 +417,7 @@ public sealed class SaveGameManager
     {
         try
         {
-            var worldPath = _connectionFactory.WorldDatabasePath;
+            var worldPath = _connectionFactory.GeneralDatabasePath;
             if (!File.Exists(worldPath))
                 return 1;
 

@@ -40,4 +40,14 @@ public interface IGameRepository
         string companyId,
         DateTime date,
         IReadOnlyList<FinanceTransaction> transactions);
+
+    /// <summary>
+    /// Vérifie si une compagnie est contrôlée par le joueur
+    /// </summary>
+    bool EstCompagnieJoueur(string companyId);
+
+    /// <summary>
+    /// Obtient l'ID de l'owner d'une compagnie
+    /// </summary>
+    string? ObtenirOwnerId(string companyId);
 }

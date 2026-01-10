@@ -1085,4 +1085,52 @@ public sealed class GameRepository : IGameRepository
         IReadOnlyList<FinanceTransaction> transactions)
         => _companyRepository.AppliquerTransactionsFinancieres(companyId, date, transactions);
 
+    /// <summary>
+    /// Vérifie si une compagnie est contrôlée par le joueur
+    /// </summary>
+    public bool EstCompagnieJoueur(string companyId)
+    {
+        try
+        {
+            using var connection = CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT IsPlayerControlled 
+                FROM Companies 
+                WHERE CompanyId = $companyId;
+                """;
+            command.Parameters.AddWithValue("$companyId", companyId);
+            var result = command.ExecuteScalar();
+            return result != null && result != DBNull.Value && Convert.ToInt32(result) == 1;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Obtient l'ID de l'owner d'une compagnie
+    /// </summary>
+    public string? ObtenirOwnerId(string companyId)
+    {
+        try
+        {
+            using var connection = CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT OwnerId 
+                FROM Companies 
+                WHERE CompanyId = $companyId;
+                """;
+            command.Parameters.AddWithValue("$companyId", companyId);
+            var result = command.ExecuteScalar();
+            return result != null && result != DBNull.Value ? result.ToString() : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
 }

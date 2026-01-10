@@ -19,12 +19,12 @@
 | **Repositories spécialisés** | **30+** ⬆️ |
 | Fichiers C# sources | 280+ |
 | ViewModels | 70+ |
-| Services Core | 45+ |
+| Services Core | 50+ |
 | Fichiers de tests | 2 |
 | Framework | .NET 8.0 LTS |
 | UI Framework | Avalonia 11.0.6 |
 | Base de données | SQLite 8.0.0 |
-| Fichiers de migration | 23 |
+| Fichiers de migration | 27 |
 | Packages NuGet externes | 10+ |
 
 ### Notation Globale: **8.5/10** (+1.0)
@@ -40,7 +40,7 @@
 - ✅ **8+ nouveaux systèmes backstage sophistiqués** implémentés
 - ✅ **Dependency Injection complète** : Microsoft.Extensions.DependencyInjection intégré dans App.axaml.cs
 - ✅ **70+ ViewModels** créés avec injection de dépendances
-- ✅ **23 migrations SQL** pour schéma évolutif
+- ✅ **27 migrations SQL** pour schéma évolutif
 - ✅ Initialisation améliorée de la World DB et enregistrement des services (DbInitializer, DbValidator, SaveGameManager) dans l'amorçage UI
 
 ---
@@ -318,7 +318,7 @@ Le système d'attributs a été complètement refondu pour passer d'un modèle s
 
 ### 4.2 Stratégie de Migration
 
-**Localisation**: `/data/migrations/` (23 fichiers)
+**Localisation**: `/data/migrations/` (27 fichiers)
 
 ... (contenu inchangé) ...
 

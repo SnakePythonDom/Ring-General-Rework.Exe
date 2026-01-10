@@ -50,52 +50,54 @@ public sealed class App : Application
         services.AddSingleton<IEventAggregator, EventAggregator>();
 
         // ═════════════════════════════════════════════════════════════════════════
-        // 🗂️ INITIALISATION DE LA WORLD DB
+        // 🗂️ INITIALISATION DE LA GENERAL DB (ring_general.db)
         // ═════════════════════════════════════════════════════════════════════════
         
         try
         {
-            // Chercher BAKI1.1.db dans le répertoire de la solution
-            var solutionRoot = AppContext.BaseDirectory;
-            // Remonter depuis bin/Debug/net8.0 vers la racine du projet
-            var upDirs = new DirectoryInfo(solutionRoot).Parent?.Parent?.Parent;
-            var bakiDbPath = upDirs != null ? Path.Combine(upDirs.FullName, "data", "BAKI1.1.db") : "";
+            var generalDbPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "RingGeneral",
+                "ring_general.db");
 
-            // Fallback : chercher directement dans AppData ou chemins connus
-            if (!File.Exists(bakiDbPath))
+            // Chercher le template statique dans plusieurs emplacements possibles
+            var possibleTemplatePaths = new[]
             {
-                bakiDbPath = @"C:\Users\popo2\source\repos\Ring-General-Rework.Exe\data\BAKI1.1.db";
-            }
+                Path.Combine(AppContext.BaseDirectory, "data", "ring_general_static.db"),
+                Path.Combine(Directory.GetCurrentDirectory(), "data", "ring_general_static.db"),
+                // Remonter depuis bin/Debug/net8.0 vers la racine du projet
+                Path.Combine(new DirectoryInfo(AppContext.BaseDirectory).Parent?.Parent?.Parent?.FullName ?? "", "data", "ring_general_static.db")
+            };
 
-            var worldDbDir = Path.Combine(AppContext.BaseDirectory, "data");
-            var worldDbPath = Path.Combine(worldDbDir, "ring_world.db");
+            var templatePath = possibleTemplatePaths.FirstOrDefault(File.Exists);
 
-            Directory.CreateDirectory(worldDbDir);
-
-            if (File.Exists(bakiDbPath))
+            // Si la base n'existe pas, l'initialiser depuis le template
+            if (!File.Exists(generalDbPath))
             {
-                var worldDbInit = new WorldDbInitializer(bakiDbPath, worldDbPath);
-                worldDbInit.InitializeIfNeeded();
-                logger.Info($"✅ World DB initialisée : {worldDbPath}");
+                if (templatePath != null && File.Exists(templatePath))
+                {
+                    var tempInitializer = new DbInitializer();
+                    tempInitializer.InitializeFromStaticTemplate(generalDbPath, templatePath);
+                    logger.Info($"✅ General DB initialisée depuis template : {generalDbPath}");
+                }
+                else
+                {
+                    logger.Warning($"⚠️ Template statique introuvable. Chemins testés :");
+                    foreach (var path in possibleTemplatePaths)
+                    {
+                        logger.Warning($"  - {path}");
+                    }
+                    logger.Info($"La base sera créée vide au premier accès.");
+                }
             }
             else
             {
-                logger.Warning($"⚠️ BAKI1.1.db introuvable à : {bakiDbPath}");
-                logger.Info($"Tentative de création avec données par défaut...");
-                
-                // Créer une DB vide avec juste le schéma et des données par défaut
-                using var worldConnection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={worldDbPath}");
-                worldConnection.Open();
-                using var transaction = worldConnection.BeginTransaction();
-                var initializer = new WorldDbInitializer(bakiDbPath, worldDbPath);
-                // Forcer la création du schéma et des données par défaut
-                initializer.CreateSchemaWithDefaults(worldConnection);
-                transaction.Commit();
+                logger.Info($"✅ General DB existe déjà : {generalDbPath}");
             }
         }
         catch (Exception ex)
         {
-            logger.Warning($"⚠️ Impossible d'initialiser World DB : {ex.Message}");
+            logger.Warning($"⚠️ Impossible d'initialiser General DB : {ex.Message}");
             // Continuer - la validation se fera lors de l'accès aux données
         }
 
@@ -118,6 +120,21 @@ public sealed class App : Application
         services.AddSingleton(repositories.GameRepository);
         services.AddSingleton(repositories.ShowRepository);
         services.AddSingleton(repositories.CompanyRepository);
+        
+        // Show Scheduling System (Daily Show System)
+        // Note: Ces services sont enregistrés ici mais DailyShowSchedulerService sera créé après IShowDayOrchestrator
+        services.AddSingleton<RingGeneral.Core.Interfaces.IShowSchedulerStore>(sp =>
+            new RingGeneral.Data.Repositories.ShowSchedulerStore(
+                sp.GetRequiredService<ShowRepository>(),
+                sp.GetRequiredService<SqliteConnectionFactory>()));
+        services.AddSingleton<RingGeneral.Core.Services.ShowSchedulerService>(sp =>
+            new RingGeneral.Core.Services.ShowSchedulerService(
+                sp.GetRequiredService<RingGeneral.Core.Interfaces.IShowSchedulerStore>()));
+        
+        // Child Company Booking System
+        services.AddSingleton<RingGeneral.Data.Repositories.ChildCompanyBookingRepository>(sp =>
+            new RingGeneral.Data.Repositories.ChildCompanyBookingRepository(
+                sp.GetRequiredService<SqliteConnectionFactory>()));
         services.AddSingleton(repositories.WorkerRepository);
         services.AddSingleton(repositories.BackstageRepository);
         services.AddSingleton(repositories.ScoutingRepository);
@@ -253,7 +270,7 @@ public sealed class App : Application
         // Show Day Orchestrator (doit être enregistré avant TimeOrchestratorService)
         services.AddSingleton<IShowDayOrchestrator>(sp =>
             new ShowDayOrchestrator(
-                showScheduler: null,  // TODO: Implémenter IShowSchedulerStore si nécessaire
+                showScheduler: sp.GetRequiredService<RingGeneral.Core.Interfaces.IShowSchedulerStore>(),
                 titleService: null,   // TODO: Implémenter ITitleService si nécessaire
                 random: null,
                 bookerAIEngine: null, // TODO: Implémenter IBookerAIEngine si nécessaire
@@ -264,12 +281,30 @@ public sealed class App : Application
                 statusUpdater: null,  // Sera fourni par ShowRepository
                 inboxItemAdder: item => repositories.GameRepository.AjouterInboxItem(item))); // Phase 3.2
         
+        // DailyShowSchedulerService (doit être créé après IShowDayOrchestrator)
+        services.AddSingleton<RingGeneral.Core.Services.DailyShowSchedulerService>(sp =>
+            new RingGeneral.Core.Services.DailyShowSchedulerService(
+                sp.GetRequiredService<RingGeneral.Core.Services.ShowSchedulerService>(),
+                sp.GetService<RingGeneral.Core.Interfaces.IOwnerDecisionEngine>(),
+                sp.GetRequiredService<RingGeneral.Core.Interfaces.IGameRepository>(),
+                sp.GetService<RingGeneral.Core.Interfaces.IShowDayOrchestrator>(),
+                sp.GetService<RingGeneral.Core.Interfaces.IBookerAIEngine>()));
+        
         services.AddSingleton<ITimeOrchestratorService>(sp =>
             new TimeOrchestratorService(
                 sp.GetRequiredService<IGameRepository>(),
                 dailyServices: sp.GetRequiredService<IDailyServices>(),
                 eventGenerator: null,     // TODO: Implémenter IEventGeneratorService
-                showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>()));
+                showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>(),
+                dailyShowScheduler: sp.GetRequiredService<RingGeneral.Core.Services.DailyShowSchedulerService>()));
+
+        // ChildCompanyBookingService (doit être créé après DailyShowSchedulerService)
+        services.AddSingleton<RingGeneral.Core.Services.ChildCompanyBookingService>(sp =>
+            new RingGeneral.Core.Services.ChildCompanyBookingService(
+                sp.GetRequiredService<RingGeneral.Data.Repositories.ChildCompanyBookingRepository>(),
+                sp.GetService<RingGeneral.Core.Services.DailyShowSchedulerService>(),
+                sp.GetService<RingGeneral.Core.Services.ShowSchedulerService>(),
+                sp.GetService<RingGeneral.Core.Interfaces.IBookerAIEngine>()));
 
         // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
@@ -287,7 +322,7 @@ public sealed class App : Application
         services.AddTransient<DashboardViewModel>(sp =>
             new DashboardViewModel(
                 repository: sp.GetRequiredService<GameRepository>(),
-                showSchedulerStore: null,  // TODO: Implémenter IShowSchedulerStore si nécessaire
+                showSchedulerStore: sp.GetRequiredService<RingGeneral.Core.Interfaces.IShowSchedulerStore>(),
                 showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>(),
                 timeOrchestrator: sp.GetRequiredService<ITimeOrchestratorService>(),
                 moraleEngine: sp.GetRequiredService<IMoraleEngine>(),
@@ -333,6 +368,11 @@ public sealed class App : Application
             new ViewModels.Company.ChildCompaniesViewModel(
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
                 sp.GetRequiredService<ChildCompanyService>()));
+        services.AddTransient<ViewModels.Company.ChildCompanyBookingViewModel>(sp =>
+            new ViewModels.Company.ChildCompanyBookingViewModel(
+                sp.GetRequiredService<RingGeneral.Core.Services.ChildCompanyBookingService>(),
+                sp.GetRequiredService<ShowRepository>(),
+                sp.GetRequiredService<GameRepository>()));
 
         // Other ViewModels
         services.AddTransient<StorylinesViewModel>();
@@ -341,7 +381,11 @@ public sealed class App : Application
             new FinanceViewModel(
                 sp.GetRequiredService<GameRepository>(),
                 sp.GetRequiredService<IDebtManagementService>()));
-        services.AddTransient<CalendarViewModel>();
+        services.AddTransient<CalendarViewModel>(sp =>
+            new CalendarViewModel(
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.ShowSchedulerService>(),
+                sp.GetRequiredService<ShowRepository>()));
         services.AddTransient<CompanyHubViewModel>(sp =>
             new CompanyHubViewModel(
                 sp.GetRequiredService<GameRepository>(),
@@ -365,7 +409,7 @@ public sealed class App : Application
         var navigationService = provider.GetRequiredService<INavigationService>();
 
         // Vérifier si une partie est déjà en cours
-        var hasActiveSave = CheckForActiveSave(repositories.GameRepository);
+        var hasActiveSave = CheckForActiveSave(saveGameManager);
 
         if (hasActiveSave)
         {
@@ -399,18 +443,33 @@ public sealed class App : Application
     /// <summary>
     /// Vérifie si une partie active existe dans la base de données
     /// </summary>
-    private static bool CheckForActiveSave(GameRepository repository)
+    private static bool CheckForActiveSave(SaveGameManager saveGameManager)
     {
         try
         {
-            using var connection = repository.CreateConnection();
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM SaveGames WHERE IsActive = 1";
-            var count = Convert.ToInt32(cmd.ExecuteScalar());
-            return count > 0;
+            // #region agent log
+            var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+            File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"A\",\"location\":\"App.axaml.cs:402\",\"message\":\"CheckForActiveSave entry\",\"data\":{{\"saveGameManagerType\":\"{saveGameManager.GetType().Name}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+            // #endregion
+            
+            // Utiliser SaveGameManager qui accède à la Save DB
+            var activeSave = saveGameManager.ChargerSauvegardeActive();
+            
+            // #region agent log
+            File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"A\",\"location\":\"App.axaml.cs:408\",\"message\":\"After ChargerSauvegardeActive\",\"data\":{{\"hasActiveSave\":{activeSave != null}}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+            // #endregion
+            
+            return activeSave != null;
         }
         catch (Exception ex)
         {
+            // #region agent log
+            var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+            File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"A\",\"location\":\"App.axaml.cs:412\",\"message\":\"Exception caught\",\"data\":{{\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\",\"stackTrace\":\"{ex.StackTrace?.Replace("\"", "\\\"").Substring(0, Math.Min(200, ex.StackTrace?.Length ?? 0))}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+            // #endregion
+            
             ApplicationServices.Logger.Error($"Erreur lors de la vérification de sauvegarde: {ex.Message}", ex);
             return false;
         }

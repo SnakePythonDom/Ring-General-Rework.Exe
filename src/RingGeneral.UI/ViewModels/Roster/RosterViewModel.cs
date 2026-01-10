@@ -135,8 +135,16 @@ public sealed class RosterViewModel : ViewModelBase
 
                 // Charger les premiers PAGE_SIZE workers
                 using var cmd = connection.CreateCommand();
+                
+                // #region agent log
+                var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+                File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"C\",\"location\":\"RosterViewModel.cs:137\",\"message\":\"Before query execution\",\"data\":{{\"queryPreview\":\"SELECT w.WorkerId, w.FullName...\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                // #endregion
+                
                 cmd.CommandText = @"
-                    SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                    SELECT w.WorkerId, 
+                           COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as FullName,
+                           w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
                            w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
                     FROM Workers w
                     LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
@@ -146,6 +154,10 @@ public sealed class RosterViewModel : ViewModelBase
                 cmd.Parameters.AddWithValue("@pageSize", PAGE_SIZE);
 
                 using var reader = cmd.ExecuteReader();
+                
+                // #region agent log
+                File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"C\",\"location\":\"RosterViewModel.cs:154\",\"message\":\"Reader created\",\"data\":{{\"fieldCount\":{reader.FieldCount}}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+                // #endregion
                 while (reader.Read())
                 {
                     var worker = new WorkerListItemViewModel
@@ -189,6 +201,11 @@ public sealed class RosterViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            // #region agent log
+            var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+            File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"C\",\"location\":\"RosterViewModel.cs:209\",\"message\":\"Exception in LoadWorkers\",\"data\":{{\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+            // #endregion
+            
             System.Console.Error.WriteLine($"[RosterViewModel] Erreur lors du chargement: {ex.Message}");
             LoadPlaceholderData();
         }
@@ -212,7 +229,9 @@ public sealed class RosterViewModel : ViewModelBase
                 using var connection = _repository.CreateConnection();
                 using var cmd = connection.CreateCommand();
                 cmd.CommandText = @"
-                    SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                    SELECT w.WorkerId, 
+                           COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as FullName,
+                           w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
                            w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
                     FROM Workers w
                     LEFT JOIN Companies c ON w.CompanyId = c.CompanyId

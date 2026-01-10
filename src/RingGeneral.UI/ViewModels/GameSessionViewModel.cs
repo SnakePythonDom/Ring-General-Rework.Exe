@@ -77,20 +77,19 @@ public sealed class GameSessionViewModel : ViewModelBase
             : new ConsoleLoggingService(LogLevel.Info);
 
         var cheminFinal = string.IsNullOrWhiteSpace(cheminDb)
-            ? Path.Combine(AppContext.BaseDirectory, "ring_general.db")
+            ? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "RingGeneral",
+                "ring_general.db")
             : cheminDb;
 
         try
         {
             _logger.Info($"Initializing GameSession with database: {cheminFinal}");
 
-            // 1. Initialisation de la base
-            var initializer = new DbInitializer();
-
-            // 1. Initialisation de la base
-            initializer.CreateDatabaseIfMissing(cheminFinal);
-
-            var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
+            // Utiliser la factory par défaut qui pointe vers ring_general.db dans AppData
+            // La base doit avoir été initialisée depuis le template dans App.axaml.cs
+            var factory = new SqliteConnectionFactory();
 
             // 2. Récupération des repositories depuis la factory
             var repositories = RepositoryFactory.CreateRepositories(factory);

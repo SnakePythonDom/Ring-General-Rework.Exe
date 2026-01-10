@@ -3,57 +3,67 @@ using Microsoft.Data.Sqlite;
 namespace RingGeneral.Data.Database;
 
 /// <summary>
-/// Factory de connexions SQLite avec support de deux bases séparées :
-/// - World DB (Companies, Workers, Shows, Regions, Countries, etc.)
-/// - Save DB (SaveGames, état de partie active)
+/// Factory de connexions SQLite avec support de deux bases s?par?es :
+/// - General DB (ring_general.db) : Donn?es statiques + donn?es de session (Companies, Workers, Shows, etc.)
+/// - Save DB (ring_save.db) : Sauvegardes (SaveGames, ?tat de partie active)
 /// 
-/// Chemins gérés par :
-/// 1. Variable d'environnement RINGGENERAL_WORLD_DB_PATH (override)
-/// 2. Sinon ? AppContext.BaseDirectory/data/ring_world.db (défaut)
-/// 3. Save DB ? %APPDATA%/RingGeneral/ring_save.db (automatique)
+/// Chemins g?r?s par :
+/// 1. Variable d'environnement RINGGENERAL_GENERAL_DB_PATH (override)
+/// 2. Sinon : %APPDATA%/RingGeneral/ring_general.db (d?faut)
+/// 3. Save DB : %APPDATA%/RingGeneral/ring_save.db (automatique)
 /// </summary>
 public sealed class SqliteConnectionFactory
 {
-    private readonly string _worldConnectionString;
+    private readonly string _generalConnectionString;
     private readonly string _saveConnectionString;
 
-    public string WorldDatabasePath { get; }
+    public string GeneralDatabasePath { get; }
     public string SaveDatabasePath { get; }
 
     /// <summary>
-    /// Initialise la factory avec les deux chaînes de connexion
+    /// Propri?t? de compatibilit? : redirige vers GeneralDatabasePath
     /// </summary>
-    /// <param name="worldConnectionString">Connection string pour World DB (si null, cherche via env)</param>
+    [Obsolete("Utiliser GeneralDatabasePath ? la place")]
+    public string WorldDatabasePath => GeneralDatabasePath;
+
+    /// <summary>
+    /// Initialise la factory avec les deux cha?nes de connexion
+    /// </summary>
+    /// <param name="generalConnectionString">Connection string pour General DB (si null, cherche via env ou utilise AppData)</param>
     /// <param name="saveConnectionString">Connection string pour Save DB (si null, utilise AppData)</param>
-    public SqliteConnectionFactory(string? worldConnectionString = null, string? saveConnectionString = null)
+    public SqliteConnectionFactory(string? generalConnectionString = null, string? saveConnectionString = null)
     {
-        // ???????????????????????????????????????????????????????????????????
-        // WORLD DB PATH RESOLUTION
-        // ???????????????????????????????????????????????????????????????????
+        // ???????????????????????????????????????????????????????????????????????????
+        // GENERAL DB PATH RESOLUTION (ring_general.db)
+        // ???????????????????????????????????????????????????????????????????????????
         
-        if (!string.IsNullOrWhiteSpace(worldConnectionString))
+        if (!string.IsNullOrWhiteSpace(generalConnectionString))
         {
-            // ? Path explicite fourni (rare, surtout pour tests)
-            _worldConnectionString = worldConnectionString;
-            var worldBuilder = new SqliteConnectionStringBuilder(worldConnectionString);
-            WorldDatabasePath = worldBuilder.DataSource ?? throw new InvalidOperationException("DataSource non trouvé dans connection string");
+            // Path explicite fourni (rare, surtout pour tests)
+            _generalConnectionString = generalConnectionString;
+            var generalBuilder = new SqliteConnectionStringBuilder(generalConnectionString);
+            GeneralDatabasePath = generalBuilder.DataSource ?? throw new InvalidOperationException("DataSource non trouv? dans connection string");
         }
         else
         {
-            // 1?? Chercher via variable d'environnement (expert override)
-            var envWorldPath = Environment.GetEnvironmentVariable("RINGGENERAL_WORLD_DB_PATH");
-            if (!string.IsNullOrWhiteSpace(envWorldPath))
+            // 1. Chercher via variable d'environnement (expert override)
+            var envGeneralPath = Environment.GetEnvironmentVariable("RINGGENERAL_GENERAL_DB_PATH");
+            if (!string.IsNullOrWhiteSpace(envGeneralPath))
             {
-                WorldDatabasePath = envWorldPath;
+                GeneralDatabasePath = envGeneralPath;
             }
             else
             {
-                // 2?? Sinon ? AppContext.BaseDirectory/data/ring_world.db (défaut)
-                var dataDir = Path.Combine(AppContext.BaseDirectory, "data");
-                WorldDatabasePath = Path.Combine(dataDir, "ring_world.db");
+                // 2. Sinon : %APPDATA%/RingGeneral/ring_general.db (d?faut)
+                var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var ringGenDir = Path.Combine(appDataPath, "RingGeneral");
+                GeneralDatabasePath = Path.Combine(ringGenDir, "ring_general.db");
+                
+                // Cr?er le r?pertoire s'il n'existe pas
+                Directory.CreateDirectory(ringGenDir);
             }
 
-            _worldConnectionString = $"Data Source={WorldDatabasePath}";
+            _generalConnectionString = $"Data Source={GeneralDatabasePath}";
         }
 
         // ???????????????????????????????????????????????????????????????????
@@ -65,17 +75,17 @@ public sealed class SqliteConnectionFactory
             // ? Path explicite fourni
             _saveConnectionString = saveConnectionString;
             var saveBuilder = new SqliteConnectionStringBuilder(saveConnectionString);
-            SaveDatabasePath = saveBuilder.DataSource ?? throw new InvalidOperationException("DataSource non trouvé dans connection string");
+            SaveDatabasePath = saveBuilder.DataSource ?? throw new InvalidOperationException("DataSource non trouv? dans connection string");
         }
         else
         {
-            // ? Défaut : %APPDATA%/RingGeneral/ring_save.db
+            // ? D?faut : %APPDATA%/RingGeneral/ring_save.db
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var ringGenDir = Path.Combine(appDataPath, "RingGeneral");
             SaveDatabasePath = Path.Combine(ringGenDir, "ring_save.db");
             _saveConnectionString = $"Data Source={SaveDatabasePath}";
 
-            // Créer le répertoire s'il n'existe pas
+            // Cr?er le r?pertoire s'il n'existe pas
             Directory.CreateDirectory(ringGenDir);
         }
     }
@@ -85,71 +95,90 @@ public sealed class SqliteConnectionFactory
     // ???????????????????????????????????????????????????????????????????????????
 
     /// <summary>
-    /// ? RECOMMANDÉ : Crée une connexion à la WORLD DB avec validation
+    /// ? RECOMMAND? : Cr?e une connexion ? la WORLD DB avec validation
     /// 
-    /// Validation effectuée :
+    /// Validation effectu?e :
     /// - Fichier doit exister
     /// - Tables 'Companies' et 'Workers' doivent exister
-    /// - Lève InvalidOperationException si validation échoue
+    /// - L?ve InvalidOperationException si validation ?choue
     /// </summary>
-    public SqliteConnection CreateWorldConnection()
+    /// <summary>
+    /// ? RECOMMAND? : Cr?e une connexion ? la GENERAL DB avec validation
+    /// 
+    /// Validation effectu?e :
+    /// - Fichier doit exister
+    /// - Tables 'Companies' et 'Workers' doivent exister
+    /// - L?ve InvalidOperationException si validation ?choue
+    /// </summary>
+    public SqliteConnection CreateGeneralConnection()
     {
-        var connexion = new SqliteConnection(_worldConnectionString);
+        var connexion = new SqliteConnection(_generalConnectionString);
         connexion.Open();
 
-        // ? VALIDATION CRITIQUE : Vérifier que c'est la bonne DB
+        // ? VALIDATION CRITIQUE : V?rifier que c'est la bonne DB
         if (!TableExists(connexion, "companies") && !TableExists(connexion, "Companies"))
         {
             connexion.Dispose();
             throw new InvalidOperationException(
-                $"? Mauvaise base de données chargée.\n" +
+                $"? Mauvaise base de donn?es charg?e.\n" +
                 $"Table 'Companies' introuvable.\n\n" +
-                $"Chemin attendu : {WorldDatabasePath}\n\n" +
+                $"Chemin attendu : {GeneralDatabasePath}\n\n" +
                 $"Conseil :\n" +
-                $"  1. Vérifier que ring_world.db existe et n'est pas vide\n" +
-                $"  2. Vérifier que ring_world.db contient les tables Companies et Workers\n" +
-                $"  3. Chercher la variable d'env RINGGENERAL_WORLD_DB_PATH (si définie)");
+                $"  1. V?rifier que ring_general.db existe et n'est pas vide\n" +
+                $"  2. V?rifier que ring_general.db contient les tables Companies et Workers\n" +
+                $"  3. Chercher la variable d'env RINGGENERAL_GENERAL_DB_PATH (si d?finie)");
         }
 
         if (!TableExists(connexion, "workers") && !TableExists(connexion, "Workers"))
         {
             connexion.Dispose();
             throw new InvalidOperationException(
-                $"? Mauvaise base de données chargée.\n" +
+                $"? Mauvaise base de donn?es charg?e.\n" +
                 $"Table 'Workers' introuvable.\n\n" +
-                $"Chemin attendu : {WorldDatabasePath}\n\n" +
-                $"Conseil : Vérifier que ring_world.db est la bonne base de données.");
+                $"Chemin attendu : {GeneralDatabasePath}\n\n" +
+                $"Conseil : V?rifier que ring_general.db est la bonne base de donn?es.");
         }
 
         return connexion;
     }
 
     /// <summary>
-    /// ? RECOMMANDÉ : Crée une connexion à la SAVE DB avec auto-création
+    /// ?? LEGACY : Redirige vers CreateGeneralConnection() pour backward compatibility
+    /// ? pr?f?rer : Utilisez CreateGeneralConnection() explicitement
+    /// </summary>
+    [Obsolete("Utiliser CreateGeneralConnection() ? la place")]
+    public SqliteConnection CreateWorldConnection()
+    {
+        return CreateGeneralConnection();
+    }
+
+    /// <summary>
+    /// ? RECOMMAND? : Cr?e une connexion ? la SAVE DB avec auto-cr?ation
     /// 
     /// Comportement :
-    /// - Crée le répertoire si absent
-    /// - Crée la table SaveGames si manquante
-    /// - Pas d'exception si table existe déjà
+    /// - Cr?e le r?pertoire si absent
+    /// - Cr?e la table SaveGames si manquante
+    /// - Pas d'exception si table existe d?j?
     /// </summary>
     public SqliteConnection CreateSaveConnection()
     {
         var connexion = new SqliteConnection(_saveConnectionString);
         connexion.Open();
 
-        // ? AUTO-CRÉATION : Créer la table SaveGames si manquante
+        // ? AUTO-CR?ATION : Cr?er la table SaveGames si manquante
         EnsureSaveSchema(connexion);
 
         return connexion;
     }
 
     /// <summary>
-    /// ?? LEGACY : Redirige vers CreateWorldConnection() pour backward compatibility
-    /// À préférer : Utilisez CreateWorldConnection() explicitement
+    /// ?? LEGACY : Redirige vers CreateGeneralConnection() pour backward compatibility
+    /// ? pr?f?rer : Utilisez CreateGeneralConnection() explicitement
     /// </summary>
+    [Obsolete("Utiliser CreateGeneralConnection() ? la place")]
     public SqliteConnection OuvrirConnexion()
     {
-        return CreateWorldConnection();
+        return CreateGeneralConnection();
     }
 
     // ???????????????????????????????????????????????????????????????????????????
@@ -157,12 +186,12 @@ public sealed class SqliteConnectionFactory
     // ???????????????????????????????????????????????????????????????????????????
 
     /// <summary>
-    /// Retourne la chaîne de connexion World DB
+    /// Retourne la cha?ne de connexion General DB
     /// </summary>
-    public string GetConnectionString() => _worldConnectionString;
+    public string GetConnectionString() => _generalConnectionString;
 
     /// <summary>
-    /// Retourne la chaîne de connexion Save DB
+    /// Retourne la cha?ne de connexion Save DB
     /// </summary>
     public string GetSaveConnectionString() => _saveConnectionString;
 
@@ -171,18 +200,28 @@ public sealed class SqliteConnectionFactory
     /// </summary>
     public string GetDbFilePath(bool isSaveDb = false)
     {
-        return isSaveDb ? SaveDatabasePath : WorldDatabasePath;
+        return isSaveDb ? SaveDatabasePath : GeneralDatabasePath;
     }
 
     /// <summary>
     /// Retourne l'état des deux bases (pour logs au démarrage)
     /// </summary>
-    public (bool WorldDbExists, bool SaveDbExists) CheckDatabasesExist()
+    public (bool GeneralDbExists, bool SaveDbExists) CheckDatabasesExist()
     {
         return (
-            File.Exists(WorldDatabasePath),
+            File.Exists(GeneralDatabasePath),
             File.Exists(SaveDatabasePath)
         );
+    }
+
+    /// <summary>
+    /// ?? LEGACY : Propriété de compatibilité
+    /// </summary>
+    [Obsolete("Utiliser CheckDatabasesExist() qui retourne GeneralDbExists")]
+    public (bool WorldDbExists, bool SaveDbExists) CheckDatabasesExistLegacy()
+    {
+        var (generalExists, saveExists) = CheckDatabasesExist();
+        return (generalExists, saveExists);
     }
 
     // ???????????????????????????????????????????????????????????????????????????
@@ -190,7 +229,7 @@ public sealed class SqliteConnectionFactory
     // ???????????????????????????????????????????????????????????????????????????
 
     /// <summary>
-    /// Vérifie l'existence d'une table (case-insensitive)
+    /// V?rifie l'existence d'une table (case-insensitive)
     /// </summary>
     private static bool TableExists(SqliteConnection connexion, string tableName)
     {
@@ -208,7 +247,7 @@ public sealed class SqliteConnectionFactory
     }
 
     /// <summary>
-    /// Crée le schéma Save DB si absent (idempotent)
+    /// Cr?e le sch?ma Save DB si absent (idempotent)
     /// </summary>
     private static void EnsureSaveSchema(SqliteConnection connexion)
     {
@@ -229,18 +268,31 @@ public sealed class SqliteConnectionFactory
             );
             """;
 
+        // #region agent log
+        var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
+        File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"E\",\"location\":\"SqliteConnectionFactory.cs:232\",\"message\":\"EnsureSaveSchema entry\",\"data\":{{\"dataSource\":\"{connexion.DataSource}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+        // #endregion
+        
         try
         {
             using var command = connexion.CreateCommand();
             command.CommandText = createSaveGamesTableSql;
             command.ExecuteNonQuery();
+            
+            // #region agent log
+            File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"E\",\"location\":\"SqliteConnectionFactory.cs:236\",\"message\":\"SaveGames table created/verified\",\"data\":{{}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+            // #endregion
         }
         catch (Exception ex)
         {
+            // #region agent log
+            File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"E\",\"location\":\"SqliteConnectionFactory.cs:238\",\"message\":\"Failed to create SaveGames table\",\"data\":{{\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
+            // #endregion
+            
             throw new InvalidOperationException(
-                "? Impossible de créer la table SaveGames dans la Save DB.\n" +
+                "? Impossible de cr?er la table SaveGames dans la Save DB.\n" +
                 $"Chemin : {connexion.DataSource}\n" +
-                "Vérifier les permissions d'écriture du dossier AppData/RingGeneral.",
+                "V?rifier les permissions d'?criture du dossier AppData/RingGeneral.",
                 ex);
         }
     }

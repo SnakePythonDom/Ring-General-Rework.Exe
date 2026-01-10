@@ -143,7 +143,7 @@ public sealed class TitlesViewModel : ViewModelBase
                     t.Name,
                     t.Prestige,
                     t.CurrentChampionId,
-                    w.FullName as ChampionName
+                    COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as ChampionName
                 FROM Titles t
                 LEFT JOIN Workers w ON t.CurrentChampionId = w.WorkerId
                 WHERE t.IsActive = 1
@@ -260,7 +260,7 @@ public sealed class TitlesViewModel : ViewModelBase
                     t.Name,
                     t.Prestige,
                     t.CurrentChampionId,
-                    w.FullName as ChampionName,
+                    COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as ChampionName,
                     COALESCE(tr.DefenseCount, 0) as DefenseCount
                 FROM Titles t
                 LEFT JOIN Workers w ON t.CurrentChampionId = w.WorkerId
