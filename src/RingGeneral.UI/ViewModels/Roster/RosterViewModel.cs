@@ -28,13 +28,27 @@ public sealed class RosterViewModel : ViewModelBase
         ViewWorkerDetailsCommand = ReactiveCommand.Create<string>(ViewWorkerDetails);
 
         // Charger les workers
-        LoadWorkers();
+        LoadWorkersCommand = ReactiveCommand.Create(LoadWorkers);
+        LoadMoreWorkersCommand = ReactiveCommand.Create(LoadMoreWorkers);
+
+        // Charger les données initiales
+        LoadWorkersCommand.Execute().Subscribe();
     }
 
     /// <summary>
     /// Commande pour afficher les détails d'un worker
     /// </summary>
     public ReactiveCommand<string, Unit> ViewWorkerDetailsCommand { get; }
+
+    /// <summary>
+    /// Commande pour charger les workers
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> LoadWorkersCommand { get; }
+
+    /// <summary>
+    /// Commande pour charger plus de workers
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> LoadMoreWorkersCommand { get; }
 
     /// <summary>
     /// Liste des workers
@@ -91,7 +105,7 @@ public sealed class RosterViewModel : ViewModelBase
     /// <summary>
     /// Charge les workers depuis le repository (avec pagination)
     /// </summary>
-    public void LoadWorkers()
+    public async Task LoadWorkers()
     {
         Workers.Clear();
         _allWorkers.Clear();
@@ -104,49 +118,72 @@ public sealed class RosterViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
-
-            // Obtenir le nombre total de workers
-            using (var countCmd = connection.CreateCommand())
+            // Effectuer le travail de base de données sur un thread background
+            var result = await Task.Run(() =>
             {
-                countCmd.CommandText = "SELECT COUNT(*) FROM Workers";
-                TotalWorkersInDatabase = Convert.ToInt32(countCmd.ExecuteScalar());
-            }
+                using var connection = _repository.CreateConnection();
 
-            // Charger les premiers PAGE_SIZE workers
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
-                       w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
-                FROM Workers w
-                LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
-                ORDER BY w.Popularity DESC
-                LIMIT @pageSize";
-
-            cmd.Parameters.AddWithValue("@pageSize", PAGE_SIZE);
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                var worker = new WorkerListItemViewModel
+                // Obtenir le nombre total de workers
+                int totalCount;
+                using (var countCmd = connection.CreateCommand())
                 {
-                    WorkerId = reader.GetString(0),
-                    Name = reader.GetString(1),
-                    Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
-                    Popularity = reader.GetInt32(3),
-                    InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
-                    Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                    Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
-                    Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
-                    Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
-                    Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
-                    Status = "Actif", // TODO: Calculer depuis blessures/fatigue
-                    Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
-                };
+                    countCmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                    totalCount = Convert.ToInt32(countCmd.ExecuteScalar());
+                }
 
+                var workers = new List<WorkerListItemViewModel>();
+
+                // Charger les premiers PAGE_SIZE workers
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                           w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
+                    FROM Workers w
+                    LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
+                    ORDER BY w.Popularity DESC
+                    LIMIT @pageSize";
+
+                cmd.Parameters.AddWithValue("@pageSize", PAGE_SIZE);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var worker = new WorkerListItemViewModel
+                    {
+                        WorkerId = reader.GetString(0),
+                        Name = reader.GetString(1),
+                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
+                        Popularity = reader.GetInt32(3),
+                        InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                        Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                        Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                        Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
+                        Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                        Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
+                        Status = "Actif", // TODO: Calculer depuis blessures/fatigue
+                        Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
+                    };
+
+                    workers.Add(worker);
+                }
+
+                return (totalCount, workers);
+            });
+
+            // Mettre à jour les propriétés et collections sur le thread UI
+            TotalWorkersInDatabase = result.totalCount;
+
+            Workers.Clear();
+            _allWorkers.Clear();
+
+            foreach (var worker in result.workers)
+            {
                 _allWorkers.Add(worker);
                 Workers.Add(worker);
             }
+
+            this.RaisePropertyChanged(nameof(HasMoreWorkers));
+            this.RaisePropertyChanged(nameof(TotalWorkers));
 
             Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés (pagination)");
         }
@@ -160,7 +197,7 @@ public sealed class RosterViewModel : ViewModelBase
     /// <summary>
     /// Charge plus de workers (pagination)
     /// </summary>
-    public void LoadMoreWorkers()
+    public async Task LoadMoreWorkers()
     {
         if (_repository == null || !HasMoreWorkers)
         {
