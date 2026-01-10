@@ -66,6 +66,11 @@ public sealed record ChildCompanyExtended
     public required bool IsActive { get; init; }
 
     /// <summary>
+    /// Phase 2.3 - Identifiant de la YouthStructure liée si Objective = Development
+    /// </summary>
+    public string? YouthStructureId { get; init; }
+
+    /// <summary>
     /// Valide que le modèle respecte les contraintes métier
     /// </summary>
     public bool IsValid(out string? errorMessage)

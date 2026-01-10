@@ -1,6 +1,8 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Booker;
+using RingGeneral.Core.Models.Attributes;
+using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,14 +18,20 @@ public sealed class BookerAIEngine : IBookerAIEngine
 {
     private readonly IBookerRepository? _bookerRepository;
     private readonly IEraRepository? _eraRepository;
+    private readonly PersonalityDetectorService? _personalityDetector;
+    private readonly IWorkerAttributesRepository? _workerAttributesRepository;
     private readonly System.Random _random = new();
 
     public BookerAIEngine(
         IBookerRepository? bookerRepository = null,
-        IEraRepository? eraRepository = null)
+        IEraRepository? eraRepository = null,
+        PersonalityDetectorService? personalityDetector = null,
+        IWorkerAttributesRepository? workerAttributesRepository = null)
     {
         _bookerRepository = bookerRepository;
         _eraRepository = eraRepository;
+        _personalityDetector = personalityDetector;
+        _workerAttributesRepository = workerAttributesRepository;
     }
 
     /// <summary>
@@ -180,7 +188,7 @@ public sealed class BookerAIEngine : IBookerAIEngine
         int showImportance,
         List<BookerMemory> memories)
     {
-        return booker.CreativeArchetype switch
+        var selected = booker.CreativeArchetype switch
         {
             BookerCreativeArchetype.PowerBooker => SelectPowerBookerWorkers(availableWorkers, showImportance),
             BookerCreativeArchetype.Puroresu => SelectPuroresuWorkers(availableWorkers),
@@ -188,6 +196,9 @@ public sealed class BookerAIEngine : IBookerAIEngine
             BookerCreativeArchetype.ModernIndie => SelectModernIndieWorkers(availableWorkers),
             _ => availableWorkers.OrderByDescending(w => w.Popularite).Take(10).ToList()
         };
+
+        // Phase 3.3 - Filtrer les incompatibilités de personnalité
+        return FilterPersonalityConflicts(selected);
     }
 
     /// <summary>
@@ -267,6 +278,80 @@ public sealed class BookerAIEngine : IBookerAIEngine
             .OrderByDescending(w => w.InRing + w.Entertainment)
             .Take(12) // Plus de rotation
             .ToList();
+    }
+
+    /// <summary>
+    /// Phase 3.3 - Filtre les workers avec des incompatibilités de personnalité connues
+    /// </summary>
+    private List<WorkerSnapshot> FilterPersonalityConflicts(List<WorkerSnapshot> workers)
+    {
+        if (_personalityDetector == null || _workerAttributesRepository == null)
+            return workers; // Pas de filtrage si services non disponibles
+
+        var filtered = new List<WorkerSnapshot>();
+        var detectedProfiles = new Dictionary<string, PersonalityProfile>();
+
+        // Détecter les personnalités pour chaque worker
+        foreach (var worker in workers)
+        {
+            if (int.TryParse(worker.WorkerId, out var workerIdInt))
+            {
+                var mental = _workerAttributesRepository.GetMentalAttributes(workerIdInt);
+                if (mental != null)
+                {
+                    var profile = _personalityDetector.DetectProfile(mental);
+                    detectedProfiles[worker.WorkerId] = profile;
+                }
+            }
+        }
+
+        // Filtrer les profils dangereux/incompatibles
+        var dangerousProfiles = new[]
+        {
+            PersonalityProfile.InstableChronique,
+            PersonalityProfile.SaboteurPassif,
+            PersonalityProfile.PoidsMort
+        };
+
+        // Éviter de mettre ensemble des profils toxiques
+        var toxicProfiles = new[]
+        {
+            PersonalityProfile.Diva,
+            PersonalityProfile.Égoïste,
+            PersonalityProfile.Paresseux
+        };
+
+        // Compter les profils toxiques déjà sélectionnés
+        var toxicCount = detectedProfiles.Values.Count(p => toxicProfiles.Contains(p));
+
+        foreach (var worker in workers)
+        {
+            if (!detectedProfiles.TryGetValue(worker.WorkerId, out var profile))
+            {
+                filtered.Add(worker); // Si pas de profil détecté, inclure quand même
+                continue;
+            }
+
+            // Exclure les profils dangereux sauf si nécessaire
+            if (dangerousProfiles.Contains(profile))
+            {
+                // Ne pas exclure complètement, mais réduire la priorité
+                // (pourrait être utile dans certains contextes narratifs)
+                continue; // Pour l'instant, exclure complètement
+            }
+
+            // Limiter le nombre de profils toxiques ensemble (max 1 par show)
+            if (toxicProfiles.Contains(profile) && toxicCount >= 1)
+            {
+                continue;
+            }
+
+            filtered.Add(worker);
+            if (toxicProfiles.Contains(profile))
+                toxicCount++;
+        }
+
+        return filtered.Any() ? filtered : workers; // Fallback si tous filtrés
     }
 
     public (string Worker1Id, string Worker2Id)? ProposeMainEvent(
@@ -673,15 +758,32 @@ public sealed class BookerAIEngine : IBookerAIEngine
             }
         }
 
-        // Phase 1.1 - Créer des mémoires pour les segments générés (stratégie long terme)
+        // Phase 3.3 - Créer des mémoires pour les segments générés (stratégie long terme)
         foreach (var segment in generatedSegments)
         {
             if (segment.Participants.Count >= 2)
             {
-                // Créer une mémoire pour ce booking (sera utilisé pour cohérence future)
-                var memoryDescription = $"Auto-booking: {segment.TypeSegment} avec {segment.Participants.Count} participants";
-                CreateMemoryFromMatch(bookerId, 60, memoryDescription);
+                // Phase 3.3 - Créer une mémoire pour ce booking avec contexte narratif
+                var participants = segment.Participants.Take(2).ToList();
+                var memoryDescription = segment.EstMainEvent
+                    ? $"Main Event: {string.Join(" vs ", participants)}"
+                    : $"Segment: {segment.TypeSegment} avec {string.Join(" vs ", participants)}";
+                
+                // Phase 3.3 - Créer mémoire avec impact selon importance
+                var impactScore = segment.EstMainEvent ? 70 : 50;
+                CreateMemoryFromMatch(bookerId, impactScore, memoryDescription);
             }
+        }
+
+        // Phase 3.3 - Analyser les mémoires pour créer des arcs narratifs cohérents
+        var ongoingRivalries = DetectOngoingRivalries(memories);
+        var buildingStories = DetectBuildingStories(memories, generatedSegments);
+        
+        // Phase 3.3 - Si une rivalité existe, continuer l'arc narratif
+        if (ongoingRivalries.Any())
+        {
+            var rivalry = ongoingRivalries.First();
+            Logger.Debug($"Continuing rivalry arc: {rivalry.Worker1Id} vs {rivalry.Worker2Id} (Shows: {rivalry.ShowCount})");
         }
 
         return generatedSegments;
@@ -1144,5 +1246,99 @@ public sealed class BookerAIEngine : IBookerAIEngine
 
         var totalRisk = intensityRisk + penetrationRisk + typeRisk;
         return Math.Clamp(totalRisk, 0, 100);
+    }
+
+    /// <summary>
+    /// Phase 3.3 - Détecte les rivalités en cours basées sur les mémoires
+    /// </summary>
+    private List<(string Worker1Id, string Worker2Id, int ShowCount)> DetectOngoingRivalries(List<BookerMemory> memories)
+    {
+        var rivalries = new Dictionary<(string, string), int>();
+
+        foreach (var memory in memories.Where(m => m.EventType == "GoodMatch" || m.EventType == "BadMatch"))
+        {
+            // Extraire les worker IDs de la description (format: "Worker1 vs Worker2")
+            var parts = memory.EventDescription.Split(new[] { " vs ", " VS " }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2)
+            {
+                var worker1 = parts[0].Trim();
+                var worker2 = parts[1].Split(' ').First().Trim(); // Prendre le premier mot après "vs"
+                
+                var key = (worker1, worker2);
+                if (!rivalries.ContainsKey(key))
+                    rivalries[key] = 0;
+                rivalries[key]++;
+            }
+        }
+
+        // Retourner les rivalités avec au moins 2 shows
+        return rivalries
+            .Where(kvp => kvp.Value >= 2)
+            .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Phase 3.3 - Détecte les histoires en construction basées sur les mémoires et segments générés
+    /// </summary>
+    private List<(string WorkerId, string StoryType, int Momentum)> DetectBuildingStories(
+        List<BookerMemory> memories,
+        List<SegmentDefinition> generatedSegments)
+    {
+        var stories = new Dictionary<string, (string StoryType, int Momentum)>();
+
+        // Analyser les mémoires pour détecter les pushes/régressions
+        foreach (var memory in memories)
+        {
+            if (memory.EventType == "PushSuccess")
+            {
+                // Extraire worker ID de la description
+                var workerId = ExtractWorkerIdFromDescription(memory.EventDescription);
+                if (workerId != null)
+                {
+                    stories[workerId] = ("Push", memory.ImpactScore);
+                }
+            }
+            else if (memory.EventType == "PushFailure")
+            {
+                var workerId = ExtractWorkerIdFromDescription(memory.EventDescription);
+                if (workerId != null)
+                {
+                    stories[workerId] = ("Regression", memory.ImpactScore);
+                }
+            }
+        }
+
+        // Analyser les segments générés pour détecter les workers avec momentum
+        foreach (var segment in generatedSegments)
+        {
+            foreach (var participantId in segment.Participants)
+            {
+                if (!stories.ContainsKey(participantId))
+                {
+                    // Worker apparaît dans un segment = momentum positif
+                    stories[participantId] = ("Building", 50);
+                }
+                else
+                {
+                    // Augmenter le momentum si déjà présent
+                    var current = stories[participantId];
+                    stories[participantId] = (current.StoryType, Math.Min(100, current.Momentum + 10));
+                }
+            }
+        }
+
+        return stories.Select(kvp => (kvp.Key, kvp.Value.StoryType, kvp.Value.Momentum)).ToList();
+    }
+
+    /// <summary>
+    /// Phase 3.3 - Extrait un Worker ID d'une description de mémoire
+    /// </summary>
+    private string? ExtractWorkerIdFromDescription(string description)
+    {
+        // Format attendu: "Push de {WorkerId}" ou "{WorkerId} a réussi..."
+        // Pour l'instant, retourner null car le format exact dépend de l'implémentation
+        // TODO: Améliorer avec regex ou parsing plus sophistiqué
+        return null;
     }
 }

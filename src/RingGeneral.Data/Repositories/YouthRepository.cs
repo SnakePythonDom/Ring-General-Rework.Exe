@@ -4,7 +4,7 @@ using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class YouthRepository : RepositoryBase
+public sealed class YouthRepository : RepositoryBase, IYouthRepository
 {
     public YouthRepository(SqliteConnectionFactory factory) : base(factory)
     {
@@ -209,6 +209,47 @@ public sealed class YouthRepository : RepositoryBase
         }
 
         return staff;
+    }
+
+    /// <summary>
+    /// Phase 2.3 - Crée une nouvelle YouthStructure
+    /// </summary>
+    public async Task CreateYouthStructureAsync(
+        string youthStructureId,
+        string companyId,
+        string name,
+        string? regionId,
+        string type,
+        decimal budgetAnnuel,
+        int capaciteMax,
+        int niveauEquipements,
+        int qualiteCoaching,
+        string philosophie)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            INSERT INTO YouthStructures (
+                YouthStructureId, CompanyId, Name, RegionId, Type, 
+                BudgetAnnuel, CapaciteMax, NiveauEquipements, QualiteCoaching, 
+                Philosophie, IsActive, CreatedAt
+            ) VALUES (
+                $youthStructureId, $companyId, $name, $regionId, $type,
+                $budgetAnnuel, $capaciteMax, $niveauEquipements, $qualiteCoaching,
+                $philosophie, 1, datetime('now')
+            );
+            """;
+        command.Parameters.AddWithValue("$youthStructureId", youthStructureId);
+        command.Parameters.AddWithValue("$companyId", companyId);
+        command.Parameters.AddWithValue("$name", name);
+        command.Parameters.AddWithValue("$regionId", (object?)regionId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$type", type);
+        command.Parameters.AddWithValue("$budgetAnnuel", budgetAnnuel);
+        command.Parameters.AddWithValue("$capaciteMax", capaciteMax);
+        command.Parameters.AddWithValue("$niveauEquipements", niveauEquipements);
+        command.Parameters.AddWithValue("$qualiteCoaching", qualiteCoaching);
+        command.Parameters.AddWithValue("$philosophie", philosophie);
+        await Task.Run(() => command.ExecuteNonQuery());
     }
 
     public void ChangerBudgetYouth(string youthId, int nouveauBudget)

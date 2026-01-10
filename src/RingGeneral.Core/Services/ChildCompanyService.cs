@@ -14,13 +14,16 @@ public class ChildCompanyService
 {
     private readonly IChildCompanyExtendedRepository _childCompanyRepository;
     private readonly ITrendRepository _trendRepository;
+    private readonly IYouthRepository? _youthRepository;
 
     public ChildCompanyService(
         IChildCompanyExtendedRepository childCompanyRepository,
-        ITrendRepository trendRepository)
+        ITrendRepository trendRepository,
+        IYouthRepository? youthRepository = null)
     {
         _childCompanyRepository = childCompanyRepository ?? throw new ArgumentNullException(nameof(childCompanyRepository));
         _trendRepository = trendRepository ?? throw new ArgumentNullException(nameof(trendRepository));
+        _youthRepository = youthRepository;
     }
 
     /// <summary>
@@ -29,8 +32,17 @@ public class ChildCompanyService
     public async Task<ChildCompanyExtended> CreateChildCompanyAsync(
         string childCompanyId,
         string parentCompanyId,
-        ChildCompanyObjective objective)
+        ChildCompanyObjective objective,
+        string? regionId = null)
     {
+        string? youthStructureId = null;
+
+        // Phase 2.3 - Si objectif = Development, créer automatiquement une YouthStructure
+        if (objective == ChildCompanyObjective.Development && _youthRepository != null)
+        {
+            youthStructureId = await CreateYouthStructureForChildCompanyAsync(childCompanyId, parentCompanyId, regionId);
+        }
+
         var childCompany = new ChildCompanyExtended
         {
             ChildCompanyId = childCompanyId,
@@ -42,11 +54,43 @@ public class ChildCompanyService
             TestStyle = objective == ChildCompanyObjective.Entertainment ? "Experimental" : null,
             NicheType = objective == ChildCompanyObjective.Niche ? DetermineNicheType(parentCompanyId) : null,
             CreatedAt = DateTime.Now,
-            IsActive = true
+            IsActive = true,
+            YouthStructureId = youthStructureId // Phase 2.3
         };
 
         await _childCompanyRepository.SaveChildCompanyExtendedAsync(childCompany);
         return childCompany;
+    }
+
+    /// <summary>
+    /// Phase 2.3 - Crée une YouthStructure pour une filiale de développement
+    /// </summary>
+    private async Task<string> CreateYouthStructureForChildCompanyAsync(
+        string childCompanyId,
+        string parentCompanyId,
+        string? regionId)
+    {
+        if (_youthRepository == null)
+            throw new InvalidOperationException("YouthRepository non disponible");
+
+        var youthStructureId = $"YS-{Guid.NewGuid():N}".ToUpperInvariant();
+        var name = $"Development Center - {childCompanyId.Substring(0, Math.Min(8, childCompanyId.Length))}";
+
+        // Créer la YouthStructure avec des valeurs par défaut pour une filiale de développement
+        // Utiliser parentCompanyId comme CompanyId car la structure appartient à la compagnie mère
+        await _youthRepository.CreateYouthStructureAsync(
+            youthStructureId,
+            parentCompanyId, // Utiliser parentCompanyId car la structure appartient à la compagnie mère
+            name,
+            regionId,
+            "DEVELOPMENT", // Type
+            100_000m, // BudgetAnnuel par défaut
+            20, // CapaciteMax par défaut
+            1, // NiveauEquipements basique
+            10, // QualiteCoaching par défaut
+            "HYBRIDE"); // Philosophie par défaut
+
+        return youthStructureId;
     }
 
     /// <summary>

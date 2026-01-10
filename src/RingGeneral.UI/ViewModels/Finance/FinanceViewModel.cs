@@ -15,14 +15,20 @@ namespace RingGeneral.UI.ViewModels.Finance;
 public sealed class FinanceViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
+    private readonly IDebtManagementService? _debtService;
     private decimal _currentBalance = 10_000_000m;
     private decimal _weeklyRevenue;
     private decimal _weeklyExpenses;
     private int _currentWeek = 1;
+    private decimal _totalDebt = 0m;
+    private decimal _monthlyDebtPayments = 0m;
 
-    public FinanceViewModel(GameRepository? repository = null)
+    public FinanceViewModel(
+        GameRepository? repository = null,
+        IDebtManagementService? debtService = null)
     {
         _repository = repository;
+        _debtService = debtService;
 
         Transactions = new ObservableCollection<TransactionItemViewModel>();
 
@@ -31,6 +37,9 @@ public sealed class FinanceViewModel : ViewModelBase
         ReachMap = new ObservableCollection<ReachMapItemViewModel>();
         BroadcastConstraints = new ObservableCollection<string>();
         AudienceHistory = new ObservableCollection<AudienceHistoryItemViewModel>();
+        
+        // Phase 2.2 - Dettes actives
+        ActiveDebts = new ObservableCollection<CompanyDebtViewModel>();
 
         // Phase 6.3 - Commandes
         LoadTvDealsCommand = ReactiveCommand.Create(LoadTvDeals);
@@ -39,6 +48,7 @@ public sealed class FinanceViewModel : ViewModelBase
         OpenTvDealNegotiationCommand = ReactiveCommand.Create(OpenTvDealNegotiation);
 
         LoadFinanceData();
+        LoadDebtData();
     }
 
     #region Collections
@@ -64,6 +74,11 @@ public sealed class FinanceViewModel : ViewModelBase
     /// Phase 6.3 - Historique d'audience
     /// </summary>
     public ObservableCollection<AudienceHistoryItemViewModel> AudienceHistory { get; }
+
+    /// <summary>
+    /// Phase 2.2 - Dettes actives de la compagnie
+    /// </summary>
+    public ObservableCollection<CompanyDebtViewModel> ActiveDebts { get; }
 
     #endregion
 
@@ -96,6 +111,28 @@ public sealed class FinanceViewModel : ViewModelBase
     public decimal NetIncome => WeeklyRevenue - WeeklyExpenses;
 
     public string NetIncomeFormatted => $"{(NetIncome >= 0 ? "+" : "")}{NetIncome:N0}";
+
+    /// <summary>
+    /// Phase 2.2 - Total des dettes actives
+    /// </summary>
+    public decimal TotalDebt
+    {
+        get => _totalDebt;
+        set => this.RaiseAndSetIfChanged(ref _totalDebt, value);
+    }
+
+    public string TotalDebtFormatted => $"${TotalDebt:N0}";
+
+    /// <summary>
+    /// Phase 2.2 - Paiements mensuels de dette
+    /// </summary>
+    public decimal MonthlyDebtPayments
+    {
+        get => _monthlyDebtPayments;
+        set => this.RaiseAndSetIfChanged(ref _monthlyDebtPayments, value);
+    }
+
+    public string MonthlyDebtPaymentsFormatted => $"-${MonthlyDebtPayments:N0}/mois";
 
     public int CurrentWeek
     {
@@ -320,6 +357,37 @@ public sealed class FinanceViewModel : ViewModelBase
     #endregion
 
     #region Private Methods
+
+    /// <summary>
+    /// Phase 2.2 - Charge les données de dette
+    /// </summary>
+    private void LoadDebtData()
+    {
+        if (_debtService == null || _repository == null)
+            return;
+
+        try
+        {
+            var companyId = _repository.GetPlayerCompanyId();
+            if (string.IsNullOrWhiteSpace(companyId))
+                return;
+
+            var debts = _debtService.GetActiveDebts(companyId);
+            ActiveDebts.Clear();
+            
+            foreach (var debt in debts)
+            {
+                ActiveDebts.Add(new CompanyDebtViewModel(debt, _debtService));
+            }
+
+            TotalDebt = debts.Sum(d => d.RemainingBalance);
+            MonthlyDebtPayments = _debtService.CalculateTotalMonthlyDebtPayments(companyId);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement dette: {ex.Message}");
+        }
+    }
 
     private void LoadFinanceData()
     {

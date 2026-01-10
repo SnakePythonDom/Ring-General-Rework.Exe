@@ -444,11 +444,16 @@ public sealed class WeeklyLoopService
 
         foreach (var resultat in report.Resultats.Where(item => item.Diplome))
         {
+            // Phase 4.1 - Créer événement Inbox pour graduation
             yield return new InboxItem(
                 "youth",
-                "Graduation Youth",
-                $"{resultat.Nom} est diplômé de la structure Youth.",
+                "🎓 Graduation Youth",
+                $"{resultat.Nom} est diplômé de la structure Youth. InRing: {resultat.InRing}, Entertainment: {resultat.Entertainment}, Story: {resultat.Story}",
                 semaine);
+            
+            // Phase 4.1 - Générer contrat automatique pour le worker gradué
+            // TODO: Intégrer avec ContractNegotiationService pour créer contrat automatique
+            // Pour l'instant, le worker devient disponible pour contrat manuel
         }
     }
 

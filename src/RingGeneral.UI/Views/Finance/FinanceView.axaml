@@ -11,7 +11,7 @@
         <vm:FinanceViewModel />
     </Design.DataContext>
 
-    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,Auto,20,*">
+    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,Auto,20,Auto,20,*">
 
         <!-- En-tête -->
         <StackPanel Grid.Row="0" Spacing="8">
@@ -85,8 +85,67 @@
             </Grid>
         </Border>
 
+        <!-- Phase 2.2 - Debt Section -->
+        <Border Grid.Row="6" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+            <Grid RowDefinitions="Auto,15,*">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="DEBT MANAGEMENT" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="15">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Total Debt" FontSize="11" Foreground="#94a3b8"/>
+                            <TextBlock Text="{Binding TotalDebtFormatted}" FontSize="16" FontWeight="Bold" Foreground="#ef4444"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Monthly Payments" FontSize="11" Foreground="#94a3b8"/>
+                            <TextBlock Text="{Binding MonthlyDebtPaymentsFormatted}" FontSize="16" FontWeight="Bold" Foreground="#f59e0b"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+                
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" MaxHeight="200">
+                    <ItemsControl ItemsSource="{Binding ActiveDebts}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="{Binding PrincipalAmountFormatted}" FontSize="16" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                            <TextBlock FontSize="12" Foreground="#94a3b8">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}Interest: {0} • Term: {1}">
+                                                        <Binding Path="InterestRateFormatted"/>
+                                                        <Binding Path="TermFormatted"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Monthly Payment" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding MonthlyPaymentFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="#f59e0b"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Interest" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding MonthlyInterestFormatted}" FontSize="14" Foreground="#ef4444"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Remaining" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding RemainingBalanceFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="4" Spacing="4" Margin="15,0">
+                                            <TextBlock Text="Time Left" FontSize="11" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding RemainingMonthsFormatted}" FontSize="14" Foreground="#94a3b8"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
         <!-- Transaction History -->
-        <Border Grid.Row="6" Background="#1e293b" CornerRadius="8" Padding="20">
+        <Border Grid.Row="8" Background="#1e293b" CornerRadius="8" Padding="20">
             <Grid RowDefinitions="Auto,15,*">
                 <TextBlock Grid.Row="0" Text="TRANSACTION HISTORY" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
 

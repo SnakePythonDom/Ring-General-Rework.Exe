@@ -126,7 +126,7 @@ public sealed class App : Application
         services.AddSingleton(repositories.YouthRepository);
         services.AddSingleton(repositories.TitleRepository);
         services.AddSingleton(repositories.MedicalRepository);
-        services.AddSingleton(repositories.WorkerAttributesRepository);
+        services.AddSingleton<IWorkerAttributesRepository>(repositories.WorkerAttributesRepository);
 
         // Company Governance & Identity
         services.AddSingleton(repositories.OwnerRepository);
@@ -161,7 +161,8 @@ public sealed class App : Application
         services.AddSingleton<ChildCompanyService>(sp =>
             new ChildCompanyService(
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
-                sp.GetRequiredService<ITrendRepository>()));
+                sp.GetRequiredService<ITrendRepository>(),
+                sp.GetRequiredService<YouthRepository>())); // Phase 2.3
         
         // Child Company Staff Service
         services.AddSingleton<IChildCompanyStaffService>(sp =>
@@ -206,7 +207,16 @@ public sealed class App : Application
         // Owner & Booker Decision Engines
         services.AddSingleton<IOwnerDecisionEngine>(sp =>
             new OwnerDecisionEngine(null)); // Ces services fonctionnent sans repository
+        // Phase 3.3 - BookerAIEngine avec intégration personnalités
         services.AddSingleton<IBookerAIEngine>(sp =>
+            new BookerAIEngine(
+                sp.GetRequiredService<IBookerRepository>(),
+                sp.GetRequiredService<IEraRepository>(),
+                sp.GetRequiredService<PersonalityDetectorService>(),
+                sp.GetRequiredService<IWorkerAttributesRepository>()));
+        
+        // Legacy registration (removed)
+        // services.AddSingleton<IBookerAIEngine>(sp =>
             new BookerAIEngine(null)); // Ces services fonctionnent sans repository
 
         // Phase 2.1 - TV Deal Negotiation Service
@@ -224,6 +234,11 @@ public sealed class App : Application
                 sp.GetRequiredService<ITvDealRepository>()));
         services.AddSingleton<IBudgetAllocationService>(sp =>
             new BudgetAllocationService());
+        
+        // Phase 2.2 - Debt Management Service
+        services.AddSingleton<IDebtManagementService>(sp =>
+            new DebtManagementService(
+                sp.GetRequiredService<ICompanyRepository>()));
 
         // Phase 1.2 - Booking Control Service
         services.AddSingleton<IBookingControlService>(sp =>
@@ -322,7 +337,10 @@ public sealed class App : Application
         // Other ViewModels
         services.AddTransient<StorylinesViewModel>();
         services.AddTransient<YouthViewModel>();
-        services.AddTransient<FinanceViewModel>();
+        services.AddTransient<FinanceViewModel>(sp =>
+            new FinanceViewModel(
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<IDebtManagementService>()));
         services.AddTransient<CalendarViewModel>();
         services.AddTransient<CompanyHubViewModel>(sp =>
             new CompanyHubViewModel(
