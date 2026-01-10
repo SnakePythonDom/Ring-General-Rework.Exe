@@ -67,3 +67,4 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\o
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\obj\Debug\net8.0\RingGeneral.Tools.DbManager.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\obj\Debug\net8.0\RingGeneral.Tools.DbManager.genruntimeconfig.cache
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\obj\Debug\net8.0\ref\RingGeneral.Tools.DbManager.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Tools.DbManager\bin\Debug\net8.0\007_daily_time_system.sql

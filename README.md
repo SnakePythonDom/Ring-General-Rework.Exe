@@ -12,11 +12,11 @@
 ## 📊 État Actuel du Projet
 
 **Version :** Phase 1.9+ — ~50-55% complété
-**Dernière mise à jour :** 8 janvier 2026
+**Dernière mise à jour :** 10 janvier 2026
 
 ### ✅ Ce Qui Est Fait
 
-- **Architecture exemplaire** : 23+ repositories spécialisés, MVVM professionnel
+- **Architecture exemplaire** : 23+ repositories spécialisés créés et enregistrés en DI
 - **Refactoring majeur réussi** : GameRepository réduit de 75% (3,874 → 977 lignes)
 - **Systèmes backstage sophistiqués** : Moral, Rumeurs, Népotisme, Crises, IA Booker/Propriétaire
 - **40 attributs de performance** détaillés (In-Ring, Entertainment, Story, Mental)
@@ -25,6 +25,7 @@
 - **🆕 Flux Show Day complet** : Simulation de bout en bout avec impacts automatiques
 - **48+ ViewModels** créés avec navigation complète
 - **Base de données SQLite** avec import automatique BAKI
+- **Compilation réussie** : Solution complète avec 0 erreurs, 1 avertissement mineur
 
 ### ⏳ En Cours
 
@@ -128,7 +129,7 @@ Ring-General-Rework.Exe/
 │   ├── RingGeneral.Data/   # Accès données (45 fichiers)
 │   ├── RingGeneral.Specs/  # Configuration JSON
 │   └── RingGeneral.Tools.* # Outils CLI
-├── specs/                  # 78 fichiers JSON (source de vérité)
+├── specs/                  # 3 fichiers JSON de configuration
 ├── docs/                   # Documentation complète (10 docs actifs)
 ├── data/                   # Assets & base de test (BAKI1.1.db)
 ├── tests/                  # Projet vide
@@ -181,7 +182,7 @@ Ring-General-Rework.Exe/
 | **Phase 1.5** | Systèmes Personnalité & Attributs | ✅ **Complet** | - |
 | **Phase 1.9** | 🆕 Flux Show Day & Auto-Booking | ✅ **Complet** | - |
 | **Phase 2** | Intégration Données & Features avancées | ⚠️ **En cours** | Jan 2026 |
-| **Phase 3** | Fonctionnalités Métier complètes | ⚠️ **En cours** (15%) | Fév 2026 |
+| **Phase 3** | Fonctionnalités Métier complètes | ⚠️ **En cours** (15%) | Jan 2026 |
 | **Phase 4** | Performance & Optimisation | ❌ **À démarrer** | Mar 2026 |
 | **Phase 5** | QA & Polish | ❌ **À démarrer** | Avr 2026 |
 
