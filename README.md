@@ -11,20 +11,21 @@
 
 ## 📊 État Actuel du Projet
 
-**Version :** Phase 1.9+ — ~50-55% complété
-**Dernière mise à jour :** 10 janvier 2026
+**Version :** Phase 2.0+ — ~55-60% complété
+**Dernière mise à jour :** Janvier 2026
 
 ### ✅ Ce Qui Est Fait
 
-- **Architecture exemplaire** : 23+ repositories spécialisés créés et enregistrés en DI
-- **Refactoring majeur réussi** : GameRepository réduit de 75% (3,874 → 977 lignes)
+- **Architecture exemplaire** : 30+ repositories spécialisés créés et enregistrés en DI
+- **Refactoring majeur réussi** : GameRepository transformé en façade orchestrant les repositories spécialisés
 - **Systèmes backstage sophistiqués** : Moral, Rumeurs, Népotisme, Crises, IA Booker/Propriétaire
 - **40 attributs de performance** détaillés (In-Ring, Entertainment, Story, Mental)
 - **25+ profils de personnalité** automatiques (style Football Manager)
 - **🆕 Système d'Auto-Booking IA** : Le Booker génère automatiquement des cartes complètes 🎯
 - **🆕 Flux Show Day complet** : Simulation de bout en bout avec impacts automatiques
-- **48+ ViewModels** créés avec navigation complète
-- **Base de données SQLite** avec import automatique BAKI
+- **70+ ViewModels** créés avec navigation complète
+- **Base de données SQLite** avec 23 migrations et import automatique BAKI
+- **Dependency Injection complète** : Microsoft.Extensions.DependencyInjection intégré dans App.axaml.cs
 - **Compilation réussie** : Solution complète avec 0 erreurs, 1 avertissement mineur
 
 ### ⏳ En Cours
@@ -98,22 +99,24 @@ dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
 
 ```
 ┌─────────────────────────────────────┐
-│  UI (Avalonia MVVM)                 │ RingGeneral.UI
+│  UI (Avalonia MVVM)                 │ RingGeneral.UI (70+ ViewModels)
 ├─────────────────────────────────────┤
-│  Business Logic (Domain Services)   │ RingGeneral.Core
+│  Business Logic (Domain Services)   │ RingGeneral.Core (45+ Services)
 ├─────────────────────────────────────┤
-│  Data Access (23+ Repositories)     │ RingGeneral.Data
+│  Data Access (30+ Repositories)     │ RingGeneral.Data
 ├─────────────────────────────────────┤
 │  Configuration (JSON Specs)         │ RingGeneral.Specs
 └─────────────────────────────────────┘
 ```
 
 **Points forts :**
-- ✅ 23+ repositories spécialisés (modulaire et maintenable)
+- ✅ 30+ repositories spécialisés (modulaire et maintenable)
+- ✅ GameRepository transformé en façade orchestrant les repositories
 - ✅ Immutable records (C# 12)
-- ✅ Dependency Injection
+- ✅ Dependency Injection complète (Microsoft.Extensions.DependencyInjection)
 - ✅ Clean architecture (pas de dépendances circulaires)
 - ✅ Configuration data-driven (JSON specs)
+- ✅ 23 migrations SQL pour schéma évolutif
 
 **Pour plus de détails :** Consultez l'[Analyse d'architecture](docs/ARCHITECTURE_REVIEW_FR.md)
 
@@ -124,15 +127,17 @@ dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
 ```
 Ring-General-Rework.Exe/
 ├── src/                    # Code source C# (.NET 8.0)
-│   ├── RingGeneral.UI/     # Interface Avalonia (95 fichiers)
-│   ├── RingGeneral.Core/   # Logique métier (124 fichiers)
-│   ├── RingGeneral.Data/   # Accès données (45 fichiers)
-│   ├── RingGeneral.Specs/  # Configuration JSON
-│   └── RingGeneral.Tools.* # Outils CLI
-├── specs/                  # 3 fichiers JSON de configuration
-├── docs/                   # Documentation complète (10 docs actifs)
+│   ├── RingGeneral.UI/     # Interface Avalonia (70+ ViewModels, 14 Views)
+│   ├── RingGeneral.Core/   # Logique métier (205 fichiers C#)
+│   ├── RingGeneral.Data/   # Accès données (60 fichiers C#, 18 SQL)
+│   ├── RingGeneral.Specs/  # Configuration JSON (10 fichiers)
+│   └── RingGeneral.Tools.* # Outils CLI (BakiImporter, DbManager)
+├── sql/                    # Scripts SQL (schema, imports, seeds)
+├── specs/                  # Fichiers JSON de configuration
+├── docs/                   # Documentation complète (24 docs actifs)
 ├── data/                   # Assets & base de test (BAKI1.1.db)
-├── tests/                  # Projet vide
+│   └── migrations/         # 23 migrations SQL
+├── tests/                  # Tests unitaires
 └── _archived_files/        # Archives (30+ docs obsolètes)
 ```
 

@@ -8,24 +8,26 @@
 
 ### Compilation et Build
 - ✅ **Compilation réussie** : Solution complète avec 0 erreurs, 1 avertissement mineur
-- ✅ **23+ repositories spécialisés** : Tous présents et fonctionnels
+- ✅ **30+ repositories spécialisés** : Tous présents et fonctionnels dans RepositoryContainer
 - ✅ **Systèmes d'attributs** : 4 modèles complets (InRing, Entertainment, Story, Mental)
 - ✅ **Système de personnalité** : PersonalityDetectorService et PersonalityProfile fonctionnels
 - ✅ **Systèmes backstage** : Morale, Rumeurs, Népotisme, Crises, IA Booker/Propriétaire
 - ✅ **Flux Show Day** : ShowDayOrchestrator avec méthode ExecuterFluxComplet()
 - ✅ **Auto-Booking IA** : BookerAIEngine et contraintes d'Owner implémentés
+- ✅ **Dependency Injection** : Microsoft.Extensions.DependencyInjection intégré dans App.axaml.cs
 
 ### Structure du Projet
 - ✅ **7 projets** dans la solution (UI, Core, Data, Specs, Tools x3, Tests)
-- ✅ **48+ ViewModels** créés et câblés
-- ✅ **3 fichiers JSON** de configuration (navigation.fr.json, roadmap.fr.json, weekly-loop.fr.json)
-- ✅ **Architecture MVVM** avec ReactiveUI et Dependency Injection
+- ✅ **70+ ViewModels** créés et câblés avec DI
+- ✅ **Fichiers JSON** de configuration (navigation.fr.json, roadmap.fr.json, weekly-loop.fr.json)
+- ✅ **Architecture MVVM** avec ReactiveUI et Dependency Injection complète
+- ✅ **23 migrations SQL** pour schéma évolutif de la base de données
 
 ---
 
 ## 📊 ÉTAT ACTUEL DU PROJET
 
-### Progrès Global: ~50-55% (Phase 0: 100% ✅, Phase 1: 70% En Cours, Phase 3: 15% ✅)
+### Progrès Global: ~55-60% (Phase 0: 100% ✅, Phase 1: 75% En Cours, Phase 2: 40% En Cours, Phase 3: 20% ✅)
 
 **Phase actuelle**: **Phase 3 - Fonctionnalités Métier (15% complété)**
 **Sprint actuel**: **Phase 9 - Flux Show Day (Match Day)** (Complété 8 janvier 2026) ✅
