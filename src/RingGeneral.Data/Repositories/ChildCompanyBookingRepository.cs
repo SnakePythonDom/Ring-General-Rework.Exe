@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Booker;
 using RingGeneral.Data.Database;
@@ -8,7 +9,7 @@ namespace RingGeneral.Data.Repositories;
 /// <summary>
 /// Repository pour gérer le contrôle de booking des child companies
 /// </summary>
-public sealed class ChildCompanyBookingRepository : RepositoryBase
+public sealed class ChildCompanyBookingRepository : RepositoryBase, IChildCompanyBookingRepository
 {
     public ChildCompanyBookingRepository(SqliteConnectionFactory factory) : base(factory)
     {

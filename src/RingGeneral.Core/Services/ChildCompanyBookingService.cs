@@ -1,7 +1,6 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Booker;
-using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.Core.Services;
 
@@ -10,13 +9,13 @@ namespace RingGeneral.Core.Services;
 /// </summary>
 public sealed class ChildCompanyBookingService
 {
-    private readonly ChildCompanyBookingRepository _repository;
+    private readonly IChildCompanyBookingRepository _repository;
     private readonly DailyShowSchedulerService? _dailyShowScheduler;
     private readonly ShowSchedulerService? _showScheduler;
     private readonly IBookerAIEngine? _bookerAIEngine;
 
     public ChildCompanyBookingService(
-        ChildCompanyBookingRepository repository,
+        IChildCompanyBookingRepository repository,
         DailyShowSchedulerService? dailyShowScheduler = null,
         ShowSchedulerService? showScheduler = null,
         IBookerAIEngine? bookerAIEngine = null)

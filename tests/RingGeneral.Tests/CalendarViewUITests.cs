@@ -59,8 +59,7 @@ public class CalendarViewUITests
     {
         // Arrange
         var viewModel = new CalendarViewModel(null);
-        viewModel.CurrentWeek = 1;
-        // CurrentMonthYear property doesn't exist - using CurrentWeek instead
+        // CalendarViewModel utilise CurrentDate (DateOnly) au lieu de CurrentWeek
 
         var view = new CalendarView { DataContext = viewModel };
 

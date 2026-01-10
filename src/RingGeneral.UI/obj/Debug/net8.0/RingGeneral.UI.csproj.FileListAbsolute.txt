@@ -171,3 +171,7 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\RingGene.D8FCC5AF.Up2Date
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\RingGeneral.UI.genruntimeconfig.cache
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\obj\Debug\net8.0\ref\RingGeneral.UI.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\015_daily_show_system.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\016_migrate_shows_week_to_date.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\015_daily_show_system.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.UI\bin\Debug\net8.0\data\migrations\016_migrate_shows_week_to_date.sql

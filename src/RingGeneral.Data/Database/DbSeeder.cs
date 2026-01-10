@@ -17,7 +17,7 @@ public static class DbSeeder
     public static void SetLogger(ILoggingService logger) => _logger = logger;
 
     /// <summary>
-    /// Seed la base de données si elle est vide
+    /// Seed la base de données si elle est vide avec des données génériques de test
     /// </summary>
     public static void SeedIfEmpty(SqliteConnection connection)
     {
@@ -26,56 +26,8 @@ public static class DbSeeder
             return;
         }
 
-        // Chercher BAKI1.1.db dans plusieurs emplacements possibles
-        string? bakiDbPath = FindBakiDatabase();
-
-        if (bakiDbPath != null)
-        {
-            try
-            {
-                DbBakiImporter.ImportFromBaki(connection, bakiDbPath);
-            }
-            catch (Exception)
-            {
-                SeedDemoData(connection);
-            }
-        }
-        else
-        {
-            SeedDemoData(connection);
-        }
-
-    }
-
-    /// <summary>
-    /// Recherche BAKI1.1.db dans plusieurs emplacements
-    /// </summary>
-    private static string? FindBakiDatabase()
-    {
-        var possiblePaths = new[]
-        {
-            Path.Combine(Directory.GetCurrentDirectory(), "BAKI1.1.db"),
-            Path.Combine(AppContext.BaseDirectory, "BAKI1.1.db"),
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "BAKI1.1.db"),
-            "BAKI1.1.db"
-        };
-
-        foreach (var path in possiblePaths)
-        {
-            try
-            {
-                var fullPath = Path.GetFullPath(path);
-                if (File.Exists(fullPath))
-                {
-                    return fullPath;
-                }
-            }
-            catch (Exception)
-            {
-                // Ignorer les erreurs de path
-            }
-        }
-        return null;
+        // Toujours utiliser les données génériques de démo (plus d'import BAKI)
+        SeedDemoData(connection);
     }
 
     /// <summary>
@@ -292,17 +244,18 @@ public static class DbSeeder
     /// </summary>
     private static string SeedShow(SqliteConnection connection, string companyId)
     {
-        var showId = "SHOW_RAW_W1";
+        var showId = "SHOW_RAW_001";
+        var showDate = DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd");
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO Shows (ShowId, Name, CompanyId, Week, RegionId, DurationMinutes)
-            VALUES (@id, @name, @companyId, @week, @regionId, @duration)";
+            INSERT INTO Shows (ShowId, Name, CompanyId, Date, RegionId, DurationMinutes)
+            VALUES (@id, @name, @companyId, @date, @regionId, @duration)";
 
         cmd.Parameters.AddWithValue("@id", showId);
         cmd.Parameters.AddWithValue("@name", "Monday Night Raw");
         cmd.Parameters.AddWithValue("@companyId", companyId);
-        cmd.Parameters.AddWithValue("@week", 1);
+        cmd.Parameters.AddWithValue("@date", showDate);
         cmd.Parameters.AddWithValue("@regionId", "REGION_USA_DEFAULT");
         cmd.Parameters.AddWithValue("@duration", 180);
 

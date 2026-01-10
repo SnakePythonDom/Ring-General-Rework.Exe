@@ -77,6 +77,16 @@ public sealed class DbInitializer
         try
         {
             File.Copy(templatePath, cheminDb, overwrite: false);
+            
+            // Après la copie, vérifier si la base est vide et la remplir avec des données génériques
+            using var connection = new SqliteConnection($"Data Source={cheminDb}");
+            connection.Open();
+            
+            // Vérifier si la base est vide (pas de Companies ou Workers)
+            if (IsDatabaseEmpty(connection))
+            {
+                DbSeeder.SeedIfEmpty(connection);
+            }
         }
         catch (Exception ex)
         {
@@ -84,6 +94,32 @@ public sealed class DbInitializer
                 $"Impossible de copier le template vers {cheminDb}.\n" +
                 $"Erreur : {ex.Message}",
                 ex);
+        }
+    }
+
+    /// <summary>
+    /// Vérifie si la base de données est vide (pas de Companies ou Workers)
+    /// </summary>
+    private static bool IsDatabaseEmpty(SqliteConnection connection)
+    {
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            
+            // Vérifier Companies
+            cmd.CommandText = "SELECT COUNT(*) FROM Companies";
+            var companiesCount = Convert.ToInt64(cmd.ExecuteScalar());
+            
+            // Vérifier Workers
+            cmd.CommandText = "SELECT COUNT(*) FROM Workers";
+            var workersCount = Convert.ToInt64(cmd.ExecuteScalar());
+            
+            return companiesCount == 0 || workersCount == 0;
+        }
+        catch
+        {
+            // Si erreur (table n'existe pas), considérer comme vide
+            return true;
         }
     }
 

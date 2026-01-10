@@ -132,7 +132,7 @@ public sealed class App : Application
                 sp.GetRequiredService<RingGeneral.Core.Interfaces.IShowSchedulerStore>()));
         
         // Child Company Booking System
-        services.AddSingleton<RingGeneral.Data.Repositories.ChildCompanyBookingRepository>(sp =>
+        services.AddSingleton<RingGeneral.Core.Interfaces.IChildCompanyBookingRepository>(sp =>
             new RingGeneral.Data.Repositories.ChildCompanyBookingRepository(
                 sp.GetRequiredService<SqliteConnectionFactory>()));
         services.AddSingleton(repositories.WorkerRepository);
@@ -301,7 +301,7 @@ public sealed class App : Application
         // ChildCompanyBookingService (doit être créé après DailyShowSchedulerService)
         services.AddSingleton<RingGeneral.Core.Services.ChildCompanyBookingService>(sp =>
             new RingGeneral.Core.Services.ChildCompanyBookingService(
-                sp.GetRequiredService<RingGeneral.Data.Repositories.ChildCompanyBookingRepository>(),
+                sp.GetRequiredService<RingGeneral.Core.Interfaces.IChildCompanyBookingRepository>(),
                 sp.GetService<RingGeneral.Core.Services.DailyShowSchedulerService>(),
                 sp.GetService<RingGeneral.Core.Services.ShowSchedulerService>(),
                 sp.GetService<RingGeneral.Core.Interfaces.IBookerAIEngine>()));

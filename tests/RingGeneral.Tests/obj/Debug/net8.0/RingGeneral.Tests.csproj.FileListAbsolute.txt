@@ -341,3 +341,7 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\obj\Debug
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\obj\Debug\net8.0\RingGeneral.Tests.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\obj\Debug\net8.0\RingGeneral.Tests.genruntimeconfig.cache
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\obj\Debug\net8.0\ref\RingGeneral.Tests.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\bin\Debug\net8.0\015_daily_show_system.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\bin\Debug\net8.0\016_migrate_shows_week_to_date.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\bin\Debug\net8.0\data\migrations\015_daily_show_system.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\tests\RingGeneral.Tests\bin\Debug\net8.0\data\migrations\016_migrate_shows_week_to_date.sql

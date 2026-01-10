@@ -4,6 +4,7 @@ using ReactiveUI;
 using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Services;
 using RingGeneral.Data.Repositories;
+using RingGeneral.UI.ViewModels.Calendar;
 
 namespace RingGeneral.UI.ViewModels.Company;
 
