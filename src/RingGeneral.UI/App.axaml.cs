@@ -151,6 +151,38 @@ public sealed class App : Application
         services.AddSingleton<IRumorEngine>(sp =>
             new RumorEngine(sp.GetRequiredService<IRumorRepository>()));
 
+        // Crisis System Services (Phase 5)
+        // Note: CrisisEngine accepte ICrisisRepository optionnel, donc on peut passer null pour l'instant
+        // TODO: Créer un adaptateur ou faire implémenter Core.Interfaces.ICrisisRepository par CrisisRepository
+        services.AddSingleton<ICrisisEngine>(sp =>
+            new CrisisEngine(crisisRepository: null));  // CrisisEngine fonctionne sans repository
+
+        // Daily Time System Services (Phase 7)
+        services.AddSingleton<IGameRepository>(repositories.GameRepository);
+        services.AddSingleton<IDailyFinanceService>(sp =>
+            new DailyFinanceService(sp.GetRequiredService<IGameRepository>()));
+        
+        // Show Day Orchestrator (doit être enregistré avant TimeOrchestratorService)
+        services.AddSingleton<ShowDayOrchestrator>(sp =>
+            new ShowDayOrchestrator(
+                showScheduler: null,  // TODO: Implémenter IShowSchedulerStore si nécessaire
+                titleService: null,   // TODO: Implémenter TitleService si nécessaire
+                random: null,
+                bookerAIEngine: null, // TODO: Implémenter IBookerAIEngine si nécessaire
+                impactApplier: null,  // TODO: Implémenter IImpactApplier si nécessaire
+                moraleEngine: sp.GetRequiredService<IMoraleEngine>(),
+                financeService: sp.GetRequiredService<IDailyFinanceService>(),
+                contextLoader: null,  // Sera fourni par GameRepository
+                statusUpdater: null)); // Sera fourni par ShowRepository
+        
+        services.AddSingleton<TimeOrchestratorService>(sp =>
+            new TimeOrchestratorService(
+                sp.GetRequiredService<IGameRepository>(),
+                statUpdateService: null,  // TODO: Implémenter IDailyStatUpdateService
+                eventGenerator: null,     // TODO: Implémenter IEventGeneratorService
+                showDayOrchestrator: sp.GetRequiredService<ShowDayOrchestrator>(),
+                financeService: sp.GetRequiredService<IDailyFinanceService>()));
+
         // Legacy Personality Services
         services.AddSingleton<PersonalityDetectorService>();
         services.AddSingleton<AgentReportGeneratorService>();
@@ -164,7 +196,14 @@ public sealed class App : Application
         services.AddTransient<CreateCompanyViewModel>();
 
         // ViewModels - Game
-        services.AddTransient<DashboardViewModel>();
+        services.AddTransient<DashboardViewModel>(sp =>
+            new DashboardViewModel(
+                repository: sp.GetRequiredService<GameRepository>(),
+                showSchedulerStore: null,  // TODO: Implémenter IShowSchedulerStore si nécessaire
+                showDayOrchestrator: sp.GetRequiredService<ShowDayOrchestrator>(),
+                timeOrchestrator: sp.GetRequiredService<TimeOrchestratorService>(),
+                moraleEngine: sp.GetRequiredService<IMoraleEngine>(),
+                crisisEngine: sp.GetRequiredService<ICrisisEngine>()));
 
         // Booking ViewModels
         services.AddTransient<BookingViewModel>();

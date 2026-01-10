@@ -17,10 +17,11 @@
             <StackPanel Spacing="8">
                 <TextBlock Text="🏠 TABLEAU DE BORD" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
                 <TextBlock Text="{Binding CompanyName}" FontSize="18" Foreground="#888888"/>
-                <TextBlock FontSize="14" Foreground="#666666">
+                <TextBlock Text="{Binding CurrentDateFormatted}" FontSize="16" Foreground="#888888" FontWeight="SemiBold"/>
+                <TextBlock FontSize="12" Foreground="#666666">
                     <TextBlock.Text>
-                        <MultiBinding StringFormat="Semaine {0}">
-                            <Binding Path="CurrentWeek"/>
+                        <MultiBinding StringFormat="Jour {0}">
+                            <Binding Path="CurrentDay"/>
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
@@ -112,6 +113,17 @@
                 </StackPanel>
             </Border>
 
+            <!-- Bouton Jour Suivant -->
+            <Button Content="{Binding MainButtonLabel}"
+                    Command="{Binding ContinueCommand}"
+                    HorizontalAlignment="Stretch"
+                    Padding="20,12"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    CornerRadius="8"
+                    Background="#3b82f6"
+                    Foreground="White"
+                    Margin="0,10,0,0"/>
             
         </StackPanel>
     </ScrollViewer>

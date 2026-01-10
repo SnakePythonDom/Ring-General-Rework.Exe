@@ -18,6 +18,7 @@ public sealed class ShowDayOrchestrator
     private readonly IRandomProvider _random;
     private readonly IImpactApplier? _impactApplier;
     private readonly IMoraleEngine? _moraleEngine;
+    private readonly IDailyFinanceService? _financeService;
     private readonly Func<string, ShowContext?>? _contextLoader;
     private readonly Action<string, ShowStatus>? _statusUpdater;
 
@@ -28,6 +29,7 @@ public sealed class ShowDayOrchestrator
         IBookerAIEngine? bookerAIEngine = null,
         IImpactApplier? impactApplier = null,
         IMoraleEngine? moraleEngine = null,
+        IDailyFinanceService? financeService = null,
         Func<string, ShowContext?>? contextLoader = null,
         Action<string, ShowStatus>? statusUpdater = null)
     {
@@ -37,6 +39,7 @@ public sealed class ShowDayOrchestrator
         _random = random ?? new SeededRandomProvider((int)DateTime.Now.Ticks);
         _impactApplier = impactApplier;
         _moraleEngine = moraleEngine;
+        _financeService = financeService;
         _contextLoader = contextLoader;
         _statusUpdater = statusUpdater;
     }
@@ -259,6 +262,36 @@ public sealed class ShowDayOrchestrator
         else
         {
             changements.Add("⚠️ ImpactApplier non configuré, impacts non appliqués.");
+        }
+
+        // 3.5. FLUX 2 : Traiter les frais d'apparition (IMMÉDIATEMENT après le show)
+        // IMPORTANT : Les frais d'apparition sont traités ici, pas dans TimeOrchestratorService
+        if (_financeService is not null)
+        {
+            // Récupérer tous les participants du show (tous segments confondus)
+            var participants = context.Segments
+                .SelectMany(s => s.Participants)
+                .Distinct()
+                .ToList();
+
+            // Traiter les frais d'apparition IMMÉDIATEMENT après le show
+            // Ceci est le FLUX 2 (per-appearance), indépendant du FLUX 1 (mensuel)
+            // Convertir la semaine en date (1 semaine = 7 jours depuis 2024-01-01)
+            var showDate = new DateTime(2024, 1, 1).AddDays((context.Show.Semaine - 1) * 7);
+            _financeService.ProcessAppearanceFees(
+                companyId,
+                participants,
+                showDate);
+
+            var workersPayes = participants.Count(p =>
+            {
+                // Note: Cette vérification nécessiterait d'accéder aux contrats
+                // Pour l'instant, on compte tous les participants
+                // Une optimisation future pourrait filtrer ici
+                return true;
+            });
+
+            changements.Add($"💰 Frais d'apparition déduits pour {participants.Count} worker(s)");
         }
 
         // 4. Gérer le moral post-show (workers non utilisés)

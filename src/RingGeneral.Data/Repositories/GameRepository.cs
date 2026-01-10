@@ -7,6 +7,8 @@ using MatchType = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.Data.Repositories;
 
+using RingGeneral.Core.Interfaces;
+
 /// <summary>
 /// GameRepository acts as a Façade orchestrating specialized repositories.
 ///
@@ -30,7 +32,7 @@ namespace RingGeneral.Data.Repositories;
 /// Note: GameRepository no longer implements IScoutingRepository or IContractRepository.
 /// Use RepositoryContainer from RepositoryFactory.CreateRepositories() to access specialized repositories directly.
 /// </summary>
-public sealed class GameRepository
+public sealed class GameRepository : IGameRepository
 {
     private readonly SqliteConnectionFactory _factory;
     private readonly ShowRepository _showRepository;
@@ -985,5 +987,100 @@ public sealed class GameRepository
 
         transaction.Commit();
     }
+
+    // ============================================================================
+    // SYSTÈME TEMPOREL QUOTIDIEN
+    // ============================================================================
+
+    /// <summary>
+    /// Incrémente le jour actuel et retourne le nouveau jour
+    /// </summary>
+    public int IncrementerJour(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        
+        // Récupérer le SaveGameId actif pour cette compagnie
+        command.CommandText = """
+            SELECT SaveGameId FROM SaveGames 
+            WHERE PlayerCompanyId = $companyId AND IsActive = 1;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        var saveGameIdObj = command.ExecuteScalar();
+        
+        if (saveGameIdObj is null)
+        {
+            throw new InvalidOperationException($"Aucune sauvegarde active trouvée pour la compagnie {companyId}");
+        }
+        
+        var saveGameId = Convert.ToInt32(saveGameIdObj);
+        
+        // Incrémenter CurrentDay et CurrentDate
+        using var updateCommand = connexion.CreateCommand();
+        updateCommand.CommandText = """
+            UPDATE SaveGames 
+            SET CurrentDay = CurrentDay + 1,
+                CurrentDate = date(CurrentDate, '+1 day')
+            WHERE SaveGameId = $saveGameId;
+            
+            SELECT CurrentDay FROM SaveGames WHERE SaveGameId = $saveGameId;
+            """;
+        updateCommand.Parameters.AddWithValue("$saveGameId", saveGameId);
+        return Convert.ToInt32(updateCommand.ExecuteScalar());
+    }
+
+    /// <summary>
+    /// Récupère la date actuelle du jeu pour une compagnie
+    /// </summary>
+    public DateTime GetCurrentDate(string companyId)
+    {
+        using var connexion = _factory.OuvrirConnexion();
+        using var command = connexion.CreateCommand();
+        
+        command.CommandText = """
+            SELECT CurrentDate FROM SaveGames 
+            WHERE PlayerCompanyId = $companyId AND IsActive = 1;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        var dateStr = command.ExecuteScalar()?.ToString();
+        
+        if (string.IsNullOrWhiteSpace(dateStr))
+        {
+            return new DateTime(2024, 1, 1); // Date par défaut
+        }
+        
+        return DateTime.Parse(dateStr);
+    }
+
+    // ============================================================================
+    // CONTRATS HYBRIDES
+    // ============================================================================
+
+    /// <summary>
+    /// Charge les contrats hybrides actifs pour une compagnie
+    /// </summary>
+    public IReadOnlyList<HybridContract> ChargerContratsHybrides(string companyId)
+        => _companyRepository.ChargerContratsHybrides(companyId);
+
+    /// <summary>
+    /// Met à jour la date de dernier paiement mensuel pour un contrat
+    /// </summary>
+    public void MettreAJourDatePaiement(string contractId, DateTime paymentDate)
+        => _companyRepository.MettreAJourDatePaiement(contractId, paymentDate);
+
+    /// <summary>
+    /// Met à jour la date de dernière apparition payée pour un contrat
+    /// </summary>
+    public void MettreAJourDateApparition(string contractId, DateTime appearanceDate)
+        => _companyRepository.MettreAJourDateApparition(contractId, appearanceDate);
+
+    /// <summary>
+    /// Applique des transactions financières avec une date (pour système quotidien)
+    /// </summary>
+    public double AppliquerTransactionsFinancieres(
+        string companyId,
+        DateTime date,
+        IReadOnlyList<FinanceTransaction> transactions)
+        => _companyRepository.AppliquerTransactionsFinancieres(companyId, date, transactions);
 
 }
