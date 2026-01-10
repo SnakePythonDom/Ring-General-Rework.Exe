@@ -14,8 +14,8 @@ namespace RingGeneral.UI.ViewModels.Dashboard;
 public sealed class DashboardViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
-    private readonly ShowDayOrchestrator? _showDayOrchestrator;
-    private readonly TimeOrchestratorService? _timeOrchestrator;
+    private readonly IShowDayOrchestrator? _showDayOrchestrator;
+    private readonly ITimeOrchestratorService? _timeOrchestrator;
     private readonly IShowSchedulerStore? _showSchedulerStore;
     private readonly IMoraleEngine? _moraleEngine;
     private readonly ICrisisEngine? _crisisEngine;
@@ -41,8 +41,8 @@ public sealed class DashboardViewModel : ViewModelBase
     public DashboardViewModel(
         GameRepository? repository = null,
         IShowSchedulerStore? showSchedulerStore = null,
-        ShowDayOrchestrator? showDayOrchestrator = null,
-        TimeOrchestratorService? timeOrchestrator = null,
+        IShowDayOrchestrator? showDayOrchestrator = null,
+        ITimeOrchestratorService? timeOrchestrator = null,
         IMoraleEngine? moraleEngine = null,
         ICrisisEngine? crisisEngine = null)
     {

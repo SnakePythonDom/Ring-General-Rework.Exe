@@ -3,7 +3,7 @@ using RingGeneral.Core.Models;
 
 namespace RingGeneral.Core.Services;
 
-public sealed class TitleService
+public sealed class TitleService : ITitleService
 {
     private readonly ITitleRepository _repository;
 

@@ -3,7 +3,7 @@ using RingGeneral.Core.Models;
 
 namespace RingGeneral.Core.Validation;
 
-public sealed class BookingValidator : IValidator
+public sealed class BookingValidator
 {
     public ValidationResult ValiderBooking(BookingPlan plan)
     {

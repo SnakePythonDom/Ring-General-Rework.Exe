@@ -1,5 +1,5 @@
 using Microsoft.Data.Sqlite;
-using RingGeneral.Core.Services;
+using RingGeneral.Core.Interfaces;
 
 namespace RingGeneral.Data.Database;
 

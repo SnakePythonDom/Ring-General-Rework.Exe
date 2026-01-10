@@ -8,13 +8,23 @@ namespace RingGeneral.Core.Services;
 /// 1. Paiement mensuel garanti (fixe) - déclenché uniquement le dernier jour du mois
 /// 2. Frais d'apparition (per-appearance) - déclenché immédiatement après chaque show
 /// </summary>
-public sealed class DailyFinanceService : IDailyFinanceService
+public sealed class DailyFinanceService : IDailyServices
 {
     private readonly IGameRepository _repository;
 
     public DailyFinanceService(IGameRepository repository)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    }
+
+    /// <summary>
+    /// Met à jour les statistiques quotidiennes (implémentation vide pour l'instant)
+    /// TODO: Implémenter la logique de mise à jour des stats quotidiennes
+    /// </summary>
+    public void UpdateDailyStats(string companyId, int currentDay)
+    {
+        // TODO: Implémenter la mise à jour des stats quotidiennes (fatigue, blessures, etc.)
+        // Pour l'instant, cette méthode est vide car IDailyStatUpdateService a été fusionné dans IDailyServices
     }
 
     /// <summary>

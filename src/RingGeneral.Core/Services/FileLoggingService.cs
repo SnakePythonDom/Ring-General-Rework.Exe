@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using RingGeneral.Core.Interfaces;
 
 namespace RingGeneral.Core.Services;
 

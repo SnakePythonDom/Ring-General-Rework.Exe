@@ -1,3 +1,5 @@
+using RingGeneral.Core.Interfaces;
+
 namespace RingGeneral.Core.Services;
 
 /// <summary>

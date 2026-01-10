@@ -18,7 +18,7 @@ using RingGeneral.Specs.Models;
 using RingGeneral.Specs.Services;
 using RingGeneral.UI.Services;
 using System.Reactive;
-using LogLevel = RingGeneral.Core.Services.LogLevel;
+using LogLevel = RingGeneral.Core.Interfaces.LogLevel;
 
 namespace RingGeneral.UI.ViewModels;
 

@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Services;
 using RingGeneral.UI.ViewModels;
 

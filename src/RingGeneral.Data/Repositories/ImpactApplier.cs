@@ -10,13 +10,13 @@ public sealed class ImpactApplier : IImpactApplier
     private readonly GameRepository _repository;
     private readonly MedicalRepository _medicalRepository;
     private readonly InjuryService _injuryService;
-    private readonly TitleService? _titleService;
+    private readonly ITitleService? _titleService;
 
     public ImpactApplier(
         GameRepository repository,
         MedicalRepository medicalRepository,
         InjuryService injuryService,
-        TitleService? titleService = null)
+        ITitleService? titleService = null)
     {
         _repository = repository;
         _medicalRepository = medicalRepository;
