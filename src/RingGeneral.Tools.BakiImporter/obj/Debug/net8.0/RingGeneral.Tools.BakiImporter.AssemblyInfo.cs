@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RingGeneral.Tools.BakiImporter")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eed057c4616e28a92f1e4d93959abba598eb562b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5c4095bab9b3f0c11651ecc7633b0654db941395")]
 [assembly: System.Reflection.AssemblyProductAttribute("RingGeneral.Tools.BakiImporter")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RingGeneral.Tools.BakiImporter")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
