@@ -21,11 +21,16 @@ CREATE TABLE IF NOT EXISTS Brands (
 -- EXTENSIONS TABLE SHOWS
 -- =============================================================================
 
--- Ajouter colonne Date à Shows (si absente)
--- Note: Utilise ALTER TABLE qui échoue silencieusement si colonne existe déjà
+-- Ajouter colonne Date à Shows
+-- Note: SQLite lance une erreur "duplicate column name" si la colonne existe déjà.
+-- Cette erreur est gérée gracieusement par DbInitializer.cs qui marque la migration
+-- comme appliquée même si certaines colonnes existent déjà.
 ALTER TABLE Shows ADD COLUMN Date TEXT;
 
--- Ajouter colonne BrandId à Shows (si absente)
+-- Ajouter colonne BrandId à Shows
+-- Note: SQLite lance une erreur "duplicate column name" si la colonne existe déjà.
+-- Cette erreur est gérée gracieusement par DbInitializer.cs qui marque la migration
+-- comme appliquée même si certaines colonnes existent déjà.
 ALTER TABLE Shows ADD COLUMN BrandId TEXT;
 
 -- =============================================================================
