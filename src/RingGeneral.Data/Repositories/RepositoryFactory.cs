@@ -24,6 +24,7 @@ public sealed class RepositoryContainer
     public IOwnerRepository OwnerRepository { get; }
     public IBookerRepository BookerRepository { get; }
     public ICatchStyleRepository CatchStyleRepository { get; }
+    public IEraRepository EraRepository { get; }
     
     // Structural Analysis & Niche Strategies (Phase 6)
     public IRosterAnalysisRepository RosterAnalysisRepository { get; }
@@ -51,6 +52,7 @@ public sealed class RepositoryContainer
         IOwnerRepository ownerRepository,
         IBookerRepository bookerRepository,
         ICatchStyleRepository catchStyleRepository,
+        IEraRepository eraRepository,
         IRosterAnalysisRepository rosterAnalysisRepository,
         ITrendRepository trendRepository,
         INicheFederationRepository nicheFederationRepository,
@@ -73,6 +75,7 @@ public sealed class RepositoryContainer
         OwnerRepository = ownerRepository;
         BookerRepository = bookerRepository;
         CatchStyleRepository = catchStyleRepository;
+        EraRepository = eraRepository;
         RosterAnalysisRepository = rosterAnalysisRepository;
         TrendRepository = trendRepository;
         NicheFederationRepository = nicheFederationRepository;
@@ -109,6 +112,7 @@ public static class RepositoryFactory
         var ownerRepository = new OwnerRepository(connectionString);
         var bookerRepository = new BookerRepository(connectionString);
         var catchStyleRepository = new CatchStyleRepository(factory);
+        var eraRepository = new EraRepository(connectionString);
 
         var gameRepository = new GameRepository(
             factory,
@@ -145,6 +149,7 @@ public static class RepositoryFactory
             ownerRepository,
             bookerRepository,
             catchStyleRepository,
+            eraRepository,
             rosterAnalysisRepository,
             trendRepository,
             nicheFederationRepository,

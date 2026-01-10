@@ -146,6 +146,39 @@ public sealed class SqliteConnectionFactory
         // ✅ TOUJOURS s'assurer que toutes les tables essentielles existent
         // Cela permet de créer les tables manquantes même si Companies/Workers existent déjà
         EnsureEssentialTablesExist(connexion);
+        
+        // ✅ Vérification finale : tester que la table shows a bien la colonne show_id
+        // Si la vérification échoue, forcer la recréation
+        if (TableExists(connexion, "shows"))
+        {
+            try
+            {
+                using var testCmd = connexion.CreateCommand();
+                testCmd.CommandText = "SELECT show_id FROM shows LIMIT 0;"; // Test de préparation, pas d'exécution réelle
+                testCmd.Prepare(); // Préparer la commande pour vérifier la structure
+            }
+            catch
+            {
+                // Si la préparation échoue, la colonne n'existe pas - forcer la recréation
+                try
+                {
+                    using var dropCmd = connexion.CreateCommand();
+                    dropCmd.CommandText = "PRAGMA foreign_keys = OFF;";
+                    dropCmd.ExecuteNonQuery();
+                    dropCmd.CommandText = "DROP TABLE IF EXISTS shows;";
+                    dropCmd.ExecuteNonQuery();
+                    dropCmd.CommandText = "PRAGMA foreign_keys = ON;";
+                    dropCmd.ExecuteNonQuery();
+                    
+                    // Recréer la table
+                    EnsureEssentialTablesExist(connexion);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de la recréation forcée de shows: {ex.Message}");
+                }
+            }
+        }
 
         return connexion;
     }
@@ -290,8 +323,9 @@ public sealed class SqliteConnectionFactory
 
     /// <summary>
     /// S'assure que toutes les tables essentielles existent (crée celles qui manquent)
+    /// Méthode publique pour permettre l'appel depuis l'extérieur (ex: App.axaml.cs)
     /// </summary>
-    internal static void EnsureEssentialTablesExist(SqliteConnection connection)
+    public static void EnsureEssentialTablesExist(SqliteConnection connection)
     {
         // Vérifier et créer les tables une par une si elles n'existent pas
         if (!TableExists(connection, "ui_table_settings"))
@@ -425,61 +459,79 @@ public sealed class SqliteConnectionFactory
             cmd.ExecuteNonQuery();
         }
 
-        // Table: shows (shows/événements legacy)
-        // Vérifier si la table existe et a la bonne structure
+        // Table: shows (shows/événements legacy) - CRITIQUE pour GameRepository.ChargerShow()
+        // Cette table DOIT exister avec la colonne show_id, même si Shows (majuscule) existe
         var showsTableExists = TableExists(connection, "shows");
+        var needsRecreateShowsLegacy = false;
         
         if (showsTableExists)
         {
-            // Vérifier si la colonne show_id existe en utilisant PRAGMA table_info
-            var hasShowId = false;
+            // Test direct : essayer de préparer une commande avec show_id
             try
             {
-                using var pragmaCmd = connection.CreateCommand();
-                pragmaCmd.CommandText = "PRAGMA table_info(shows);";
-                using var reader = pragmaCmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    var columnName = reader.GetString(1); // name column
-                    if (columnName.Equals("show_id", StringComparison.OrdinalIgnoreCase))
-                    {
-                        hasShowId = true;
-                        break;
-                    }
-                }
+                using var testCmd = connection.CreateCommand();
+                testCmd.CommandText = "SELECT show_id FROM shows LIMIT 0;";
+                testCmd.Prepare(); // Préparer pour vérifier que la colonne existe
             }
             catch
             {
-                hasShowId = false;
-            }
-            
-            if (!hasShowId)
-            {
-                // La table existe mais sans la colonne show_id - la recréer
-                try
-                {
-                    // Sauvegarder les données existantes si nécessaire (optionnel)
-                    // Pour l'instant, on supprime et recrée car la structure est incompatible
-                    using var dropCmd = connection.CreateCommand();
-                    dropCmd.CommandText = "DROP TABLE IF EXISTS shows;";
-                    dropCmd.ExecuteNonQuery();
-                    
-                    showsTableExists = false; // Marquer comme non existante pour la recréer
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Erreur lors de la suppression de la table shows: {ex.Message}");
-                }
+                // Si la préparation échoue, la colonne show_id n'existe pas - FORCER la recréation
+                needsRecreateShowsLegacy = true;
             }
         }
-        
-        if (!showsTableExists)
+        else
         {
-            // Créer la table avec la bonne structure
+            // La table n'existe pas du tout - la créer
+            needsRecreateShowsLegacy = true;
+        }
+        
+        if (needsRecreateShowsLegacy)
+        {
+            // Supprimer les tables dépendantes et shows si nécessaire
+            try
+            {
+                using var dropCmd = connection.CreateCommand();
+                dropCmd.CommandText = "PRAGMA foreign_keys = OFF;";
+                dropCmd.ExecuteNonQuery();
+                
+                // Supprimer les tables dépendantes (si elles existent)
+                dropCmd.CommandText = "DROP TABLE IF EXISTS segments;";
+                dropCmd.ExecuteNonQuery();
+                
+                dropCmd.CommandText = "DROP TABLE IF EXISTS show_history;";
+                dropCmd.ExecuteNonQuery();
+                
+                dropCmd.CommandText = "DROP TABLE IF EXISTS segment_history;";
+                dropCmd.ExecuteNonQuery();
+                
+                dropCmd.CommandText = "DROP TABLE IF EXISTS audience_history;";
+                dropCmd.ExecuteNonQuery();
+                
+                // Supprimer shows (legacy)
+                dropCmd.CommandText = "DROP TABLE IF EXISTS shows;";
+                dropCmd.ExecuteNonQuery();
+                
+                dropCmd.CommandText = "PRAGMA foreign_keys = ON;";
+                dropCmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur lors de la suppression de la table shows: {ex.Message}");
+                try
+                {
+                    using var pragmaCmd = connection.CreateCommand();
+                    pragmaCmd.CommandText = "PRAGMA foreign_keys = ON;";
+                    pragmaCmd.ExecuteNonQuery();
+                }
+                catch { }
+            }
+            
+            // Créer la table avec la bonne structure (SANS IF NOT EXISTS pour forcer la création)
             try
             {
                 using var cmd = connection.CreateCommand();
                 cmd.CommandText = @"
+                    PRAGMA foreign_keys = ON;
                     CREATE TABLE shows (
                         show_id TEXT PRIMARY KEY,
                         nom TEXT NOT NULL,
@@ -494,22 +546,48 @@ public sealed class SqliteConnectionFactory
                     );
                 ";
                 cmd.ExecuteNonQuery();
+                
+                // Vérification finale : tester que show_id est accessible
+                using var verifyCmd = connection.CreateCommand();
+                verifyCmd.CommandText = "SELECT show_id FROM shows LIMIT 0;";
+                verifyCmd.Prepare();
             }
-            catch (Exception ex)
+            catch
             {
-                // Ignorer si la table existe déjà (peut arriver en cas de race condition)
-                if (!ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+                // Si la création échoue, essayer avec IF NOT EXISTS comme fallback
+                try
                 {
-                    System.Diagnostics.Debug.WriteLine($"Erreur lors de la création de la table shows: {ex.Message}");
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = @"
+                        PRAGMA foreign_keys = ON;
+                        CREATE TABLE IF NOT EXISTS shows (
+                            show_id TEXT PRIMARY KEY,
+                            nom TEXT NOT NULL,
+                            semaine INTEGER NOT NULL,
+                            region TEXT NOT NULL,
+                            duree INTEGER NOT NULL,
+                            compagnie_id TEXT NOT NULL,
+                            tv_deal_id TEXT,
+                            lieu TEXT NOT NULL DEFAULT '',
+                            diffusion TEXT NOT NULL DEFAULT '',
+                            FOREIGN KEY (compagnie_id) REFERENCES Companies(CompanyId)
+                        );
+                    ";
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex2)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de la création de la table shows (fallback): {ex2.Message}");
                 }
             }
         }
         
-        // Vérifier et corriger la table Companies pour ajouter FoundedYear si manquant
+        // Vérifier et corriger la table Companies pour ajouter les colonnes manquantes
         if (TableExists(connection, "Companies") || TableExists(connection, "companies"))
         {
             var tableName = TableExists(connection, "Companies") ? "Companies" : "companies";
-            var hasFoundedYear = false;
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            
             try
             {
                 using var pragmaCmd = connection.CreateCommand();
@@ -518,56 +596,192 @@ public sealed class SqliteConnectionFactory
                 while (reader.Read())
                 {
                     var columnName = reader.GetString(1);
-                    if (columnName.Equals("FoundedYear", StringComparison.OrdinalIgnoreCase))
-                    {
-                        hasFoundedYear = true;
-                        break;
-                    }
+                    existingColumns.Add(columnName);
                 }
             }
             catch
             {
-                hasFoundedYear = false;
+                // Si on ne peut pas lire les colonnes, on assume qu'elles n'existent pas
             }
             
-            if (!hasFoundedYear)
+            // Ajouter les colonnes manquantes une par une
+            var requiredColumns = new Dictionary<string, string>
             {
-                try
+                { "FoundedYear", "INTEGER DEFAULT 2024" },
+                { "IsPlayerControlled", "INTEGER DEFAULT 0" },
+                { "CreatedAt", "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP" },
+                { "CompanySize", "TEXT DEFAULT 'Local'" },
+                { "CurrentEra", "TEXT DEFAULT 'Foundation Era'" },
+                { "CatchStyleId", "TEXT" },
+                { "MonthlyBurnRate", "REAL DEFAULT 0.0" },
+                { "CurrentWeek", "INTEGER DEFAULT 1" },
+                { "YouthBudget", "REAL DEFAULT 0.0" }
+            };
+            
+            foreach (var (columnName, columnDef) in requiredColumns)
+            {
+                if (!existingColumns.Contains(columnName))
                 {
-                    using var alterCmd = connection.CreateCommand();
-                    alterCmd.CommandText = $"ALTER TABLE {tableName} ADD COLUMN FoundedYear INTEGER DEFAULT 2024;";
-                    alterCmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    // Ignorer si la colonne existe déjà ou si l'ALTER échoue
-                    System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de FoundedYear à {tableName}: {ex.Message}");
+                    try
+                    {
+                        using var alterCmd = connection.CreateCommand();
+                        alterCmd.CommandText = $"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnDef};";
+                        alterCmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Ignorer si la colonne existe déjà ou si l'ALTER échoue
+                        System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de {columnName} à {tableName}: {ex.Message}");
+                    }
                 }
             }
         }
 
         // Table: Shows (nouvelle version, peut coexister avec shows)
-        if (!TableExists(connection, "Shows"))
+        var showsTableExistsUpper = TableExists(connection, "Shows");
+        var needsRecreateShowsUpper = false;
+        
+        if (showsTableExistsUpper)
         {
+            // Vérifier si les colonnes essentielles existent (ShowId et Week)
+            var hasShowId = false;
+            var hasWeek = false;
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(Shows);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    if (columnName.Equals("ShowId", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasShowId = true;
+                    }
+                    if (columnName.Equals("Week", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasWeek = true;
+                    }
+                }
+            }
+            catch
+            {
+                hasShowId = false;
+                hasWeek = false;
+            }
+            
+            // Si ShowId manque, on doit recréer la table (colonne primaire)
+            if (!hasShowId)
+            {
+                needsRecreateShowsUpper = true;
+            }
+            else if (!hasWeek)
+            {
+                // Ajouter la colonne Week si elle manque
+                try
+                {
+                    using var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE Shows ADD COLUMN Week INTEGER NOT NULL DEFAULT 1;";
+                    alterCmd.ExecuteNonQuery();
+                }
+                catch
+                {
+                    // Si l'ALTER échoue (par exemple si Week existe déjà avec un autre type), recréer la table
+                    needsRecreateShowsUpper = true;
+                }
+            }
+        }
+        
+        if (!showsTableExistsUpper || needsRecreateShowsUpper)
+        {
+            if (needsRecreateShowsUpper)
+            {
+                // Supprimer la table si elle existe avec une mauvaise structure
+                try
+                {
+                    using var dropCmd = connection.CreateCommand();
+                    dropCmd.CommandText = "PRAGMA foreign_keys = OFF;";
+                    dropCmd.ExecuteNonQuery();
+                    dropCmd.CommandText = "DROP TABLE IF EXISTS ShowSegments;";
+                    dropCmd.ExecuteNonQuery();
+                    dropCmd.CommandText = "DROP TABLE IF EXISTS Shows;";
+                    dropCmd.ExecuteNonQuery();
+                    dropCmd.CommandText = "PRAGMA foreign_keys = ON;";
+                    dropCmd.ExecuteNonQuery();
+                }
+                catch { }
+            }
+            
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Shows (
                     ShowId TEXT PRIMARY KEY,
                     CompanyId TEXT NOT NULL,
                     Name TEXT NOT NULL,
-                    Week INTEGER NOT NULL,
+                    Week INTEGER NOT NULL DEFAULT 1,
                     Date TEXT,
                     RegionId TEXT NOT NULL,
                     VenueId TEXT,
                     DurationMinutes INTEGER NOT NULL,
                     ShowType TEXT,
                     TvDealId TEXT,
+                    Broadcast TEXT,
+                    TicketPrice REAL DEFAULT 0.0,
+                    Status TEXT DEFAULT 'ABOOKER',
+                    BrandId TEXT,
                     CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId),
                     FOREIGN KEY (RegionId) REFERENCES Regions(RegionId)
                 );
             ";
             cmd.ExecuteNonQuery();
+        }
+        else if (showsTableExistsUpper)
+        {
+            // Vérifier et ajouter les colonnes manquantes si la table existe déjà
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(Shows);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch
+            {
+                // Si on ne peut pas lire les colonnes, on assume qu'elles n'existent pas
+            }
+            
+            // Ajouter les colonnes manquantes une par une
+            var requiredColumns = new Dictionary<string, string>
+            {
+                { "Broadcast", "TEXT" },
+                { "TicketPrice", "REAL DEFAULT 0.0" },
+                { "Status", "TEXT DEFAULT 'ABOOKER'" },
+                { "BrandId", "TEXT" }
+            };
+            
+            foreach (var (columnName, columnDef) in requiredColumns)
+            {
+                if (!existingColumns.Contains(columnName))
+                {
+                    try
+                    {
+                        using var alterCmd = connection.CreateCommand();
+                        alterCmd.CommandText = $"ALTER TABLE Shows ADD COLUMN {columnName} {columnDef};";
+                        alterCmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Ignorer si la colonne existe déjà ou si l'ALTER échoue
+                        System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de {columnName} à Shows: {ex.Message}");
+                    }
+                }
+            }
         }
 
         // Table: ShowSegments (segments de shows)
@@ -624,6 +838,431 @@ public sealed class SqliteConnectionFactory
                 );
             ";
             cmd.ExecuteNonQuery();
+        }
+
+        // Table: youth_structures (legacy - utilisée par YouthRepository)
+        if (!TableExists(connection, "youth_structures"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS youth_structures (
+                    youth_id TEXT PRIMARY KEY,
+                    company_id TEXT NOT NULL,
+                    nom TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    region TEXT NOT NULL,
+                    budget_annuel INTEGER NOT NULL DEFAULT 0,
+                    capacite_max INTEGER NOT NULL DEFAULT 10,
+                    niveau_equipements INTEGER NOT NULL DEFAULT 50,
+                    qualite_coaching INTEGER NOT NULL DEFAULT 50,
+                    philosophie TEXT NOT NULL DEFAULT '',
+                    actif INTEGER NOT NULL DEFAULT 1,
+                    FOREIGN KEY (company_id) REFERENCES Companies(CompanyId)
+                );
+                CREATE INDEX IF NOT EXISTS idx_youth_company ON youth_structures(company_id);
+                CREATE INDEX IF NOT EXISTS idx_youth_region ON youth_structures(region);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Table: youth_trainees (legacy - utilisée par YouthRepository)
+        if (!TableExists(connection, "youth_trainees"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS youth_trainees (
+                    worker_id TEXT NOT NULL,
+                    youth_id TEXT NOT NULL,
+                    statut TEXT NOT NULL DEFAULT 'EN_FORMATION',
+                    semaine_inscription INTEGER,
+                    semaine_graduation INTEGER,
+                    PRIMARY KEY (worker_id, youth_id),
+                    FOREIGN KEY (worker_id) REFERENCES Workers(WorkerId),
+                    FOREIGN KEY (youth_id) REFERENCES youth_structures(youth_id)
+                );
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Table: youth_generation_state (legacy - utilisée par YouthRepository)
+        if (!TableExists(connection, "youth_generation_state"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS youth_generation_state (
+                    youth_id TEXT PRIMARY KEY,
+                    derniere_generation_semaine INTEGER,
+                    FOREIGN KEY (youth_id) REFERENCES youth_structures(youth_id)
+                );
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Table: youth_programs (legacy - utilisée par YouthRepository)
+        if (!TableExists(connection, "youth_programs"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS youth_programs (
+                    program_id TEXT PRIMARY KEY,
+                    youth_id TEXT NOT NULL,
+                    nom TEXT NOT NULL,
+                    duree_semaines INTEGER NOT NULL DEFAULT 12,
+                    focus TEXT,
+                    FOREIGN KEY (youth_id) REFERENCES youth_structures(youth_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_youth_programs_youth ON youth_programs(youth_id);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Table: youth_staff_assignments (legacy - utilisée par YouthRepository)
+        if (!TableExists(connection, "youth_staff_assignments"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS youth_staff_assignments (
+                    assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    youth_id TEXT NOT NULL,
+                    worker_id TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    semaine_debut INTEGER,
+                    FOREIGN KEY (youth_id) REFERENCES youth_structures(youth_id),
+                    FOREIGN KEY (worker_id) REFERENCES Workers(WorkerId)
+                );
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Table: CatchStyles (styles de catch - utilisée par CatchStyleRepository)
+        if (!TableExists(connection, "CatchStyles"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS CatchStyles (
+                    CatchStyleId TEXT PRIMARY KEY,
+                    Name TEXT NOT NULL UNIQUE,
+                    Description TEXT,
+                    WrestlingPurity INTEGER DEFAULT 50,
+                    EntertainmentFocus INTEGER DEFAULT 50,
+                    HardcoreIntensity INTEGER DEFAULT 0,
+                    LuchaInfluence INTEGER DEFAULT 0,
+                    StrongStyleInfluence INTEGER DEFAULT 0,
+                    FanExpectationMatchQuality INTEGER DEFAULT 50,
+                    FanExpectationStorylines INTEGER DEFAULT 50,
+                    FanExpectationPromos INTEGER DEFAULT 50,
+                    FanExpectationSpectacle INTEGER DEFAULT 50,
+                    MatchRatingMultiplier REAL DEFAULT 1.0,
+                    PromoRatingMultiplier REAL DEFAULT 1.0,
+                    IconName TEXT,
+                    AccentColor TEXT,
+                    IsActive INTEGER NOT NULL DEFAULT 1
+                );
+                CREATE INDEX IF NOT EXISTS idx_catch_styles_active ON CatchStyles(IsActive);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Table: Owners (propriétaires de compagnies - utilisée par OwnerRepository)
+        if (!TableExists(connection, "Owners"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS Owners (
+                    OwnerId TEXT PRIMARY KEY,
+                    CompanyId TEXT NOT NULL,
+                    Name TEXT NOT NULL,
+                    VisionType TEXT NOT NULL DEFAULT 'Balanced',
+                    RiskTolerance INTEGER NOT NULL DEFAULT 50,
+                    PreferredProductType TEXT NOT NULL DEFAULT 'Entertainment',
+                    ShowFrequencyPreference TEXT NOT NULL DEFAULT 'Weekly',
+                    TalentDevelopmentFocus INTEGER NOT NULL DEFAULT 50,
+                    FinancialPriority INTEGER NOT NULL DEFAULT 50,
+                    FanSatisfactionPriority INTEGER NOT NULL DEFAULT 50,
+                    CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+                    FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_owners_company ON Owners(CompanyId);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Table: Bookers (bookers avec préférences créatives - utilisée par BookerRepository)
+        if (!TableExists(connection, "Bookers"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS Bookers (
+                    BookerId TEXT PRIMARY KEY,
+                    CompanyId TEXT NOT NULL,
+                    Name TEXT NOT NULL,
+                    CreativityScore INTEGER NOT NULL DEFAULT 50,
+                    LogicScore INTEGER NOT NULL DEFAULT 50,
+                    BiasResistance INTEGER NOT NULL DEFAULT 50,
+                    PreferredStyle TEXT,
+                    LikesUnderdog INTEGER NOT NULL DEFAULT 0,
+                    LikesVeteran INTEGER NOT NULL DEFAULT 0,
+                    LikesFastRise INTEGER NOT NULL DEFAULT 0,
+                    LikesSlowBurn INTEGER NOT NULL DEFAULT 0,
+                    IsAutoBookingEnabled INTEGER NOT NULL DEFAULT 0,
+                    EmploymentStatus TEXT NOT NULL DEFAULT 'Active',
+                    HireDate TEXT,
+                    CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+                    FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_bookers_company ON Bookers(CompanyId);
+                CREATE INDEX IF NOT EXISTS idx_bookers_employment ON Bookers(EmploymentStatus);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Vérifier et corriger la table Workers pour ajouter les colonnes manquantes
+        if (TableExists(connection, "Workers"))
+        {
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(Workers);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch { }
+
+            var requiredColumns = new Dictionary<string, string>
+            {
+                { "TvRole", "INTEGER DEFAULT 50" },
+                { "Morale", "INTEGER DEFAULT 50" }
+            };
+            
+            foreach (var (columnName, columnDef) in requiredColumns)
+            {
+                if (!existingColumns.Contains(columnName))
+                {
+                    try
+                    {
+                        using var alterCmd = connection.CreateCommand();
+                        alterCmd.CommandText = $"ALTER TABLE Workers ADD COLUMN {columnName} {columnDef};";
+                        alterCmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de {columnName} à Workers: {ex.Message}");
+                    }
+                }
+            }
+        }
+        
+        // Vérifier et corriger la table workers (minuscule legacy) pour ajouter la colonne prenom
+        if (TableExists(connection, "workers"))
+        {
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(workers);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch { }
+            
+            if (!existingColumns.Contains("prenom"))
+            {
+                try
+                {
+                    using var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE workers ADD COLUMN prenom TEXT DEFAULT '';";
+                    alterCmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de prenom à workers: {ex.Message}");
+                }
+            }
+        }
+
+        // Vérifier et corriger la table Storylines pour ajouter les colonnes manquantes
+        if (TableExists(connection, "Storylines"))
+        {
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(Storylines);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch { }
+
+            var requiredColumns = new Dictionary<string, string>
+            {
+                { "Status", "TEXT NOT NULL DEFAULT 'ACTIVE'" },
+                { "Phase", "TEXT DEFAULT 'Setup'" }
+            };
+            
+            foreach (var (columnName, columnDef) in requiredColumns)
+            {
+                if (!existingColumns.Contains(columnName))
+                {
+                    try
+                    {
+                        using var alterCmd = connection.CreateCommand();
+                        alterCmd.CommandText = $"ALTER TABLE Storylines ADD COLUMN {columnName} {columnDef};";
+                        alterCmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de {columnName} à Storylines: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        // Vérifier et corriger la table Titles pour ajouter les colonnes manquantes
+        if (TableExists(connection, "Titles"))
+        {
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(Titles);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch { }
+
+            if (!existingColumns.Contains("CurrentChampionId"))
+            {
+                try
+                {
+                    using var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE Titles ADD COLUMN CurrentChampionId TEXT;";
+                    alterCmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de CurrentChampionId à Titles: {ex.Message}");
+                }
+            }
+        }
+
+        // Table: TitleReigns (règnes de titres - vérifier DefenseCount)
+        if (TableExists(connection, "TitleReigns"))
+        {
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(TitleReigns);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch { }
+            
+            if (!existingColumns.Contains("DefenseCount"))
+            {
+                try
+                {
+                    using var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE TitleReigns ADD COLUMN DefenseCount INTEGER DEFAULT 0;";
+                    alterCmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de DefenseCount à TitleReigns: {ex.Message}");
+                }
+            }
+        }
+        
+        // Table: CompanyBalanceSnapshots (snapshots de balance de compagnie - utilisée par FinanceViewModel)
+        if (!TableExists(connection, "CompanyBalanceSnapshots"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS CompanyBalanceSnapshots (
+                    SnapshotId TEXT PRIMARY KEY,
+                    CompanyId TEXT NOT NULL,
+                    Week INTEGER NOT NULL,
+                    Revenues REAL NOT NULL DEFAULT 0.0,
+                    Expenses REAL NOT NULL DEFAULT 0.0,
+                    Balance REAL NOT NULL DEFAULT 0.0,
+                    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId)
+                );
+                CREATE INDEX IF NOT EXISTS idx_balance_snapshots_company_week ON CompanyBalanceSnapshots(CompanyId, Week);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+        
+        // Table: CalendarEntries (entrées de calendrier - utilisée par CalendarViewModel)
+        var calendarEntriesExists = TableExists(connection, "CalendarEntries");
+        if (!calendarEntriesExists)
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS CalendarEntries (
+                    CalendarEntryId TEXT PRIMARY KEY,
+                    CompanyId TEXT NOT NULL,
+                    Date TEXT NOT NULL,
+                    EntryType TEXT NOT NULL,
+                    Title TEXT,
+                    Notes TEXT,
+                    FOREIGN KEY (CompanyId) REFERENCES Companies(CompanyId)
+                );
+                CREATE INDEX IF NOT EXISTS idx_calendar_entries_company_date ON CalendarEntries(CompanyId, Date);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+        else
+        {
+            // Vérifier si CompanyId existe dans CalendarEntries
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(CalendarEntries);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch { }
+
+            if (!existingColumns.Contains("CompanyId"))
+            {
+                try
+                {
+                    using var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE CalendarEntries ADD COLUMN CompanyId TEXT NOT NULL DEFAULT '';";
+                    alterCmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de CompanyId à CalendarEntries: {ex.Message}");
+                }
+            }
         }
     }
 
@@ -755,6 +1394,7 @@ public sealed class SqliteConnectionFactory
                 WorldVersion INTEGER NOT NULL DEFAULT 1,
                 CurrentWeek INTEGER NOT NULL DEFAULT 1,
                 CurrentYear INTEGER NOT NULL DEFAULT 2024,
+                CurrentDate TEXT,
                 CreatedAt TEXT NOT NULL,
                 LastPlayedAt TEXT,
                 TotalHoursPlayed REAL NOT NULL DEFAULT 0.0,
@@ -770,9 +1410,76 @@ public sealed class SqliteConnectionFactory
         
         try
         {
-            using var command = connexion.CreateCommand();
-            command.CommandText = createSaveGamesTableSql;
-            command.ExecuteNonQuery();
+            var tableExists = TableExists(connexion, "SaveGames");
+            
+            if (!tableExists)
+            {
+                // Créer la table si elle n'existe pas
+                using var command = connexion.CreateCommand();
+                command.CommandText = createSaveGamesTableSql;
+                command.ExecuteNonQuery();
+            }
+            else
+            {
+                // Vérifier que la table a la bonne structure en testant les colonnes essentielles
+                var requiredColumns = new[] { "SaveId", "CompanyId", "CompanyName", "WorldVersion", "CurrentWeek", "CurrentYear", "CurrentDate", "TotalHoursPlayed", "GameDifficulty" };
+                var missingColumns = new List<string>();
+                
+                try
+                {
+                    using var pragmaCmd = connexion.CreateCommand();
+                    pragmaCmd.CommandText = "PRAGMA table_info(SaveGames);";
+                    using var reader = pragmaCmd.ExecuteReader();
+                    var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    
+                    while (reader.Read())
+                    {
+                        var columnName = reader.GetString(1);
+                        existingColumns.Add(columnName);
+                    }
+                    
+                    foreach (var requiredCol in requiredColumns)
+                    {
+                        if (!existingColumns.Contains(requiredCol))
+                        {
+                            missingColumns.Add(requiredCol);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Si on ne peut pas lire les colonnes, recréer la table
+                    missingColumns.AddRange(requiredColumns);
+                }
+                
+                // Si des colonnes manquent, recréer la table
+                if (missingColumns.Count > 0)
+                {
+                    // Sauvegarder les données existantes si nécessaire
+                    using var transaction = connexion.BeginTransaction();
+                    try
+                    {
+                        // Supprimer l'ancienne table
+                        using var dropCmd = connexion.CreateCommand();
+                        dropCmd.Transaction = transaction;
+                        dropCmd.CommandText = "DROP TABLE IF EXISTS SaveGames;";
+                        dropCmd.ExecuteNonQuery();
+                        
+                        // Recréer avec la bonne structure
+                        using var createCmd = connexion.CreateCommand();
+                        createCmd.Transaction = transaction;
+                        createCmd.CommandText = createSaveGamesTableSql;
+                        createCmd.ExecuteNonQuery();
+                        
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
             
             // #region agent log
             File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"E\",\"location\":\"SqliteConnectionFactory.cs:236\",\"message\":\"SaveGames table created/verified\",\"data\":{{}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
@@ -785,9 +1492,9 @@ public sealed class SqliteConnectionFactory
             // #endregion
             
             throw new InvalidOperationException(
-                "? Impossible de cr?er la table SaveGames dans la Save DB.\n" +
+                "❌ Impossible de créer la table SaveGames dans la Save DB.\n" +
                 $"Chemin : {connexion.DataSource}\n" +
-                "V?rifier les permissions d'?criture du dossier AppData/RingGeneral.",
+                "Vérifier les permissions d'écriture du dossier AppData/RingGeneral.",
                 ex);
         }
     }

@@ -167,12 +167,15 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
         using var connexion = _factory.OuvrirConnexion();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO Shows (ShowId, CompanyId, Name, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId)
-            VALUES ($showId, $companyId, $name, $showType, $date, $duration, $venueId, $broadcast, $ticketPrice, $status, $brandId);
+            INSERT INTO Shows (ShowId, CompanyId, Name, Week, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId)
+            VALUES ($showId, $companyId, $name, $week, $showType, $date, $duration, $venueId, $broadcast, $ticketPrice, $status, $brandId);
             """;
         command.Parameters.AddWithValue("$showId", show.ShowId);
         command.Parameters.AddWithValue("$companyId", show.CompanyId);
         command.Parameters.AddWithValue("$name", show.Nom);
+        // Calculer la semaine à partir de la date (simplifié: utiliser 1 si pas disponible)
+        var week = show.Date.Year * 52 + (show.Date.DayOfYear / 7); // Approximation
+        command.Parameters.AddWithValue("$week", week);
         command.Parameters.AddWithValue("$showType", show.Type.ToString().ToUpperInvariant());
         command.Parameters.AddWithValue("$date", show.Date.ToString("yyyy-MM-dd"));
         command.Parameters.AddWithValue("$duration", show.RuntimeMinutes);

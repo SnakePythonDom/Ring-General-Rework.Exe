@@ -96,6 +96,10 @@ public sealed class App : Application
                     // Remplir avec des données génériques
                     using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={generalDbPath}");
                     connection.Open();
+                    
+                    // S'assurer que toutes les tables essentielles existent avant de seed
+                    SqliteConnectionFactory.EnsureEssentialTablesExist(connection);
+                    
                     DbSeeder.SeedIfEmpty(connection);
                     
                     logger.Info($"✅ General DB créée avec données génériques : {generalDbPath}");
@@ -235,7 +239,11 @@ public sealed class App : Application
         // Company Governance & Identity
         services.AddSingleton(repositories.OwnerRepository);
         services.AddSingleton(repositories.BookerRepository);
+        // Enregistrer aussi avec l'interface Core pour compatibilité
+        services.AddSingleton<RingGeneral.Core.Interfaces.IBookerRepository>(sp => 
+            (RingGeneral.Core.Interfaces.IBookerRepository)repositories.BookerRepository);
         services.AddSingleton(repositories.CatchStyleRepository);
+        services.AddSingleton(repositories.EraRepository);
         services.AddSingleton<IRegionRepository>(_ => new RegionRepository(factory));
 
         // Structural Analysis & Niche Strategies Repositories (Phase 6)
@@ -416,7 +424,13 @@ public sealed class App : Application
                 crisisEngine: sp.GetRequiredService<ICrisisEngine>()));
 
         // Booking ViewModels
-        services.AddTransient<BookingViewModel>();
+        services.AddTransient<BookingViewModel>(sp =>
+            new BookingViewModel(
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<BookingValidator>(),
+                sp.GetRequiredService<SegmentTypeCatalog>(),
+                sp.GetRequiredService<IEventAggregator>(),
+                sp.GetService<SettingsRepository>()));
         services.AddTransient<LibraryViewModel>();
         services.AddTransient<ShowHistoryPageViewModel>();
         services.AddTransient<BookingSettingsViewModel>();

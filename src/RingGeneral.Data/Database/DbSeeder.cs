@@ -249,12 +249,14 @@ public static class DbSeeder
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO Shows (ShowId, Name, CompanyId, Date, RegionId, DurationMinutes)
-            VALUES (@id, @name, @companyId, @date, @regionId, @duration)";
+            INSERT INTO Shows (ShowId, Name, CompanyId, Week, Date, RegionId, DurationMinutes)
+            VALUES (@id, @name, @companyId, @week, @date, @regionId, @duration)";
 
         cmd.Parameters.AddWithValue("@id", showId);
         cmd.Parameters.AddWithValue("@name", "Monday Night Raw");
         cmd.Parameters.AddWithValue("@companyId", companyId);
+        // Calculer la semaine à partir de la date (simplifié: semaine 1 pour la première date)
+        cmd.Parameters.AddWithValue("@week", 1);
         cmd.Parameters.AddWithValue("@date", showDate);
         cmd.Parameters.AddWithValue("@regionId", "REGION_USA_DEFAULT");
         cmd.Parameters.AddWithValue("@duration", 180);
