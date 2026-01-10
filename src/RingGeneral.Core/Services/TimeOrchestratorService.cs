@@ -8,26 +8,23 @@ namespace RingGeneral.Core.Services;
 /// Gère UNIQUEMENT le paiement mensuel garanti (fin du mois)
 /// Les frais d'apparition sont gérés séparément par ShowDayOrchestrator
 /// </summary>
-public sealed class TimeOrchestratorService
+public sealed class TimeOrchestratorService : ITimeOrchestratorService
 {
     private readonly IGameRepository _repository;
-    private readonly IDailyStatUpdateService? _statUpdateService;
+    private readonly IDailyServices? _dailyServices;
     private readonly IEventGeneratorService? _eventGenerator;
-    private readonly ShowDayOrchestrator? _showDayOrchestrator;
-    private readonly IDailyFinanceService? _financeService;
+    private readonly IShowDayOrchestrator? _showDayOrchestrator;
 
     public TimeOrchestratorService(
         IGameRepository repository,
-        IDailyStatUpdateService? statUpdateService = null,
+        IDailyServices? dailyServices = null,
         IEventGeneratorService? eventGenerator = null,
-        ShowDayOrchestrator? showDayOrchestrator = null,
-        IDailyFinanceService? financeService = null)
+        IShowDayOrchestrator? showDayOrchestrator = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _statUpdateService = statUpdateService;
+        _dailyServices = dailyServices;
         _eventGenerator = eventGenerator;
         _showDayOrchestrator = showDayOrchestrator;
-        _financeService = financeService;
     }
 
     /// <summary>
@@ -40,7 +37,7 @@ public sealed class TimeOrchestratorService
         var currentDate = _repository.GetCurrentDate(companyId);
 
         // 2. Mise à jour des états (fatigue, blessures)
-        _statUpdateService?.UpdateDailyStats(companyId, newDay);
+        _dailyServices?.UpdateDailyStats(companyId, newDay);
 
         // 3. Génération d'événements aléatoires
         var events = _eventGenerator?.GenerateDailyEvents(companyId, newDay) ?? [];
@@ -61,7 +58,7 @@ public sealed class TimeOrchestratorService
         var eventsList = events.ToList();
         if (EstFinDuMois(currentDate))
         {
-            _financeService?.ProcessMonthlyPayroll(companyId, currentDate);
+            _dailyServices?.ProcessMonthlyPayroll(companyId, currentDate);
             eventsList.Add($"💰 Paiements mensuels effectués pour {currentDate:MMMM yyyy}");
         }
 

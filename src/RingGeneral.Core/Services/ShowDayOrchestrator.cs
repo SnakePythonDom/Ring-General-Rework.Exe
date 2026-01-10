@@ -10,26 +10,26 @@ namespace RingGeneral.Core.Services;
 /// Orchestre le flux "Show Day" (Match Day).
 /// Gère la détection d'événements, la simulation et l'application des impacts.
 /// </summary>
-public sealed class ShowDayOrchestrator
+public sealed class ShowDayOrchestrator : IShowDayOrchestrator
 {
     private readonly IShowSchedulerStore? _showScheduler;
-    private readonly TitleService? _titleService;
+    private readonly ITitleService? _titleService;
     private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly IRandomProvider _random;
     private readonly IImpactApplier? _impactApplier;
     private readonly IMoraleEngine? _moraleEngine;
-    private readonly IDailyFinanceService? _financeService;
+    private readonly IDailyServices? _dailyServices;
     private readonly Func<string, ShowContext?>? _contextLoader;
     private readonly Action<string, ShowStatus>? _statusUpdater;
 
     public ShowDayOrchestrator(
         IShowSchedulerStore? showScheduler = null,
-        TitleService? titleService = null,
+        ITitleService? titleService = null,
         IRandomProvider? random = null,
         IBookerAIEngine? bookerAIEngine = null,
         IImpactApplier? impactApplier = null,
         IMoraleEngine? moraleEngine = null,
-        IDailyFinanceService? financeService = null,
+        IDailyServices? dailyServices = null,
         Func<string, ShowContext?>? contextLoader = null,
         Action<string, ShowStatus>? statusUpdater = null)
     {
@@ -39,15 +39,15 @@ public sealed class ShowDayOrchestrator
         _random = random ?? new SeededRandomProvider((int)DateTime.Now.Ticks);
         _impactApplier = impactApplier;
         _moraleEngine = moraleEngine;
-        _financeService = financeService;
+        _dailyServices = dailyServices;
         _contextLoader = contextLoader;
         _statusUpdater = statusUpdater;
     }
 
     /// <summary>
-    /// Vérifie s'il existe un événement (show) planifié à la semaine spécifiée
+    /// Vérifie s'il existe un événement (show) planifié pour le jour spécifié
     /// </summary>
-    public ShowDayDetectionResult DetecterShowAVenir(string companyId, int currentWeek)
+    public ShowDayDetectionResult DetecterShowAVenir(string companyId, int currentDay)
     {
         if (_showScheduler is null)
         {
@@ -55,11 +55,13 @@ public sealed class ShowDayOrchestrator
         }
 
         var shows = _showScheduler.ChargerShows(companyId);
+        // Pour l'instant, on cherche simplement un show à booker
+        // TODO: Filtrer par date si nécessaire (convertir currentDay en date et comparer avec Show.Date)
         var show = shows.FirstOrDefault(s => s.Statut == ShowStatus.ABooker);
 
         if (show is null)
         {
-            return new ShowDayDetectionResult(false, null, "Aucun show prévu cette semaine");
+            return new ShowDayDetectionResult(false, null, "Aucun show prévu aujourd'hui");
         }
 
         return new ShowDayDetectionResult(true, show, $"Show '{show.Nom}' prévu");
@@ -266,7 +268,7 @@ public sealed class ShowDayOrchestrator
 
         // 3.5. FLUX 2 : Traiter les frais d'apparition (IMMÉDIATEMENT après le show)
         // IMPORTANT : Les frais d'apparition sont traités ici, pas dans TimeOrchestratorService
-        if (_financeService is not null)
+        if (_dailyServices is not null)
         {
             // Récupérer tous les participants du show (tous segments confondus)
             var participants = context.Segments
@@ -278,7 +280,7 @@ public sealed class ShowDayOrchestrator
             // Ceci est le FLUX 2 (per-appearance), indépendant du FLUX 1 (mensuel)
             // Convertir la semaine en date (1 semaine = 7 jours depuis 2024-01-01)
             var showDate = new DateTime(2024, 1, 1).AddDays((context.Show.Semaine - 1) * 7);
-            _financeService.ProcessAppearanceFees(
+            _dailyServices.ProcessAppearanceFees(
                 companyId,
                 participants,
                 showDate);
@@ -330,38 +332,3 @@ public sealed class ShowDayOrchestrator
     }
 }
 
-/// <summary>
-/// Résultat de la détection d'un show
-/// </summary>
-public sealed record ShowDayDetectionResult(
-    bool ShowDetecte,
-    ShowSchedule? Show,
-    string Message);
-
-/// <summary>
-/// Résultat de la finalisation d'un show
-/// </summary>
-public sealed record ShowDayFinalizationResult(
-    bool Succes,
-    IReadOnlyList<string> Changements,
-    IReadOnlyList<TitleChangeInfo> TitresChanges,
-    GameStateDelta? Delta);
-
-/// <summary>
-/// Information sur un changement de titre
-/// </summary>
-public sealed record TitleChangeInfo(
-    string TitreId,
-    string TitreNom,
-    string AncienChampion,
-    string NouveauChampion,
-    int PrestigeDelta);
-
-/// <summary>
-/// Résultat du flux complet Show Day
-/// </summary>
-public sealed record ShowDayFluxCompletResult(
-    bool Succes,
-    IReadOnlyList<string> Erreurs,
-    IReadOnlyList<string> Changements,
-    ShowReport? Rapport);

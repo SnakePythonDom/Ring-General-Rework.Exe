@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using RingGeneral.Core.Interfaces;
 
 namespace RingGeneral.Core.Services;
 
