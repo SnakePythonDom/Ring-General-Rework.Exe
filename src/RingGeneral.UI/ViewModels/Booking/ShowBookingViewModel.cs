@@ -150,8 +150,10 @@ public sealed class ShowBookingViewModel : ViewModelBase
         get => _controlLevel;
         set
         {
-            if (this.RaiseAndSetIfChanged(ref _controlLevel, value))
+            if (_controlLevel != value)
             {
+                _controlLevel = value;
+                this.RaisePropertyChanged();
                 this.RaisePropertyChanged(nameof(CanAutoBook));
                 this.RaisePropertyChanged(nameof(ControlLevelDescription));
                 // Phase 1.2 - Sauvegarder le niveau de contrôle

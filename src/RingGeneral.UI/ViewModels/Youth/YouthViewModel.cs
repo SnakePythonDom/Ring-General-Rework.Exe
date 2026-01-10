@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Data.Database;
 using RingGeneral.Core.Models;
 
 namespace RingGeneral.UI.ViewModels.Youth;
@@ -310,7 +311,14 @@ public sealed class YouthViewModel : ViewModelBase
         try
         {
             // Utiliser YouthRepository pour graduer
-            var youthRepo = new YouthRepository(_repository.CreateConnectionFactory());
+            // Récupérer la connection string depuis la connexion existante
+            string connectionString;
+            using (var tempConnection = _repository.CreateConnection())
+            {
+                connectionString = tempConnection.ConnectionString;
+            }
+            var connectionFactory = new SqliteConnectionFactory(connectionString);
+            var youthRepo = new YouthRepository(connectionFactory);
             var currentWeek = 1; // TODO: Récupérer depuis GameState
             youthRepo.DiplomerTrainee(workerId, currentWeek);
             

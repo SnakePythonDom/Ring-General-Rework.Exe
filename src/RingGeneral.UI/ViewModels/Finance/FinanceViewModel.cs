@@ -409,7 +409,17 @@ public sealed class FinanceViewModel : ViewModelBase
 
         try
         {
-            var companyId = _repository.GetPlayerCompanyId();
+            string? companyId = null;
+            using var connection = _repository.CreateConnection();
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT CompanyId FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    companyId = reader.GetString(0);
+                }
+            }
             if (string.IsNullOrWhiteSpace(companyId))
                 return;
 
@@ -715,7 +725,7 @@ public sealed class FinanceViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(RevenueExpenseSeries));
             this.RaisePropertyChanged(nameof(MonthLabels));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Logger.Error($"Erreur chargement projection revenus : {ex.Message}");
             LoadPlaceholderProjection();

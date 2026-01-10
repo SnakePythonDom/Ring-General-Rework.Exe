@@ -1971,7 +1971,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             delta.PopulariteWorkersDelta.Select(kv => $"{NommerWorker(kv.Key)} {kv.Value:+#;-#;0}"));
 
         AjouterDeltas("impacts.finances",
-            delta.Finances.Select(tx => $"{tx.Libelle} {tx.Montant:+#;-#;0}"));
+            delta.Finances.Select(tx => $"{tx.Description} {tx.Amount:+#;-#;0}"));
 
         AjouterDeltas("impacts.fatigue",
             delta.FatigueDelta.Select(kv => $"{NommerWorker(kv.Key)} +{kv.Value}"),

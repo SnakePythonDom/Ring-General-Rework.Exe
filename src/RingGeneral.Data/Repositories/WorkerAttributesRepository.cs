@@ -9,7 +9,7 @@ namespace RingGeneral.Data.Repositories;
 /// Repository for managing worker performance attributes (30 attributes total).
 /// Handles InRing, Entertainment, and Story attributes with full CRUD operations.
 /// </summary>
-public sealed class WorkerAttributesRepository : RepositoryBase, IWorkerAttributesRepository
+public sealed class WorkerAttributesRepository : RepositoryBase, IWorkerAttributesRepository, RingGeneral.Core.Interfaces.IWorkerAttributesRepository
 {
     public WorkerAttributesRepository(SqliteConnectionFactory factory) : base(factory)
     {

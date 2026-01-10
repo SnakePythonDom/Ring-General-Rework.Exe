@@ -29,8 +29,9 @@
 
         <!-- Step Content -->
         <Border Grid.Row="2" Background="#1e293b" CornerRadius="8" Padding="20">
-            <!-- Step 1: Network Selection -->
-            <StackPanel Spacing="15" IsVisible="{Binding IsStep1}">
+            <Grid>
+                <!-- Step 1: Network Selection -->
+                <StackPanel Spacing="15" IsVisible="{Binding IsStep1}">
                 <TextBlock Text="Select a Network" FontSize="18" FontWeight="SemiBold" Foreground="#e0e0e0"/>
                 <ListBox ItemsSource="{Binding AvailableNetworks}" SelectedItem="{Binding SelectedNetwork}" Height="300">
                     <ListBox.ItemTemplate>
@@ -148,6 +149,7 @@
 
                 <TextBlock Text="{Binding NegotiationMessage}" Foreground="#10b981" TextWrapping="Wrap"/>
             </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Navigation Buttons -->

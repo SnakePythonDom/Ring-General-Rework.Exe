@@ -1,4 +1,5 @@
 using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Services;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.ViewModels.Dashboard;
 using Xunit;

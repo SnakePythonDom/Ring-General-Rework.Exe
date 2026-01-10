@@ -61,11 +61,7 @@
                               CornerRadius="6">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock FontSize="12">
-                                    <TextBlock.Text>
-                                        <Binding Converter="{x:Static StringConverters.ToString}"/>
-                                    </TextBlock.Text>
-                                </TextBlock>
+                                <TextBlock Text="{Binding}" FontSize="12"/>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>

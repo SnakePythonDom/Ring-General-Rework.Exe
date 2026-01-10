@@ -18,11 +18,13 @@
     <PackageReference Include="Avalonia" Version="11.0.6" />
     <PackageReference Include="Avalonia.Headless" Version="11.0.6" />
     <PackageReference Include="Avalonia.Headless.XUnit" Version="11.0.6" />
+    <PackageReference Include="ReactiveUI" Version="19.5.40" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/RingGeneral.Core/RingGeneral.Core.csproj" />
     <ProjectReference Include="../../src/RingGeneral.Data/RingGeneral.Data.csproj" />
     <ProjectReference Include="../../src/RingGeneral.Specs/RingGeneral.Specs.csproj" />
+    <ProjectReference Include="../../src/RingGeneral.UI/RingGeneral.UI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="../../specs/**/*.json">

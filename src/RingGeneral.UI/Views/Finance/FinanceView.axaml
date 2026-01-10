@@ -165,9 +165,9 @@
         </Border>
 
         <!-- Phase 2.2 - Financial Charts -->
-        <Grid Grid.Row="10" ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,0,0,20">
+        <Grid Grid.Row="10" ColumnDefinitions="*,*" Margin="0,0,0,20">
             <!-- Cash Flow Projection Chart -->
-            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,10,0">
                 <Grid RowDefinitions="Auto,15,*">
                     <TextBlock Grid.Row="0" 
                                Text="📈 PROJECTION DE TRÉSORERIE (12 MOIS)" 
@@ -176,17 +176,12 @@
                                Foreground="#e0e0e0"/>
                     <lvc:CartesianChart Grid.Row="2"
                                         Series="{Binding CashFlowSeries}"
-                                        XAxes="{Binding MonthLabels}"
-                                        Height="250">
-                        <lvc:CartesianChart.XAxes>
-                            <lvc:Axis Labels="{Binding MonthLabels}"/>
-                        </lvc:CartesianChart.XAxes>
-                    </lvc:CartesianChart>
+                                        Height="250"/>
                 </Grid>
             </Border>
 
             <!-- Revenue vs Expenses Chart -->
-            <Border Grid.Column="1" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Border Grid.Column="1" Background="#1e293b" CornerRadius="8" Padding="20" Margin="10,0,0,0">
                 <Grid RowDefinitions="Auto,15,*">
                     <TextBlock Grid.Row="0" 
                                Text="💰 REVENUS VS DÉPENSES (12 MOIS)" 
@@ -195,11 +190,7 @@
                                Foreground="#e0e0e0"/>
                     <lvc:CartesianChart Grid.Row="2"
                                         Series="{Binding RevenueExpenseSeries}"
-                                        Height="250">
-                        <lvc:CartesianChart.XAxes>
-                            <lvc:Axis Labels="{Binding MonthLabels}"/>
-                        </lvc:CartesianChart.XAxes>
-                    </lvc:CartesianChart>
+                                        Height="250"/>
                 </Grid>
             </Border>
         </Grid>

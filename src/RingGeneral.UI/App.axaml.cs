@@ -126,7 +126,7 @@ public sealed class App : Application
         services.AddSingleton(repositories.YouthRepository);
         services.AddSingleton(repositories.TitleRepository);
         services.AddSingleton(repositories.MedicalRepository);
-        services.AddSingleton<IWorkerAttributesRepository>(repositories.WorkerAttributesRepository);
+        services.AddSingleton<RingGeneral.Core.Interfaces.IWorkerAttributesRepository>(sp => (RingGeneral.Core.Interfaces.IWorkerAttributesRepository)repositories.WorkerAttributesRepository);
 
         // Company Governance & Identity
         services.AddSingleton(repositories.OwnerRepository);
@@ -213,11 +213,11 @@ public sealed class App : Application
                 sp.GetRequiredService<IBookerRepository>(),
                 sp.GetRequiredService<IEraRepository>(),
                 sp.GetRequiredService<PersonalityDetectorService>(),
-                sp.GetRequiredService<IWorkerAttributesRepository>()));
+                sp.GetRequiredService<RingGeneral.Core.Interfaces.IWorkerAttributesRepository>()));
         
         // Legacy registration (removed)
         // services.AddSingleton<IBookerAIEngine>(sp =>
-            new BookerAIEngine(null)); // Ces services fonctionnent sans repository
+        //     new BookerAIEngine(null)); // Ces services fonctionnent sans repository
 
         // Phase 2.1 - TV Deal Negotiation Service
         services.AddSingleton<ICompanyRepository>(repositories.CompanyRepository);

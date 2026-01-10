@@ -15,7 +15,7 @@ public sealed class TvDealNegotiationViewModel : ViewModelBase
     private readonly string _companyId;
     private int _currentStep = 1;
     private AvailableNetwork? _selectedNetwork;
-    private TvDealTerms _terms = new(2, false, 52);
+    private TvDealTerms _terms = new TvDealTerms { DurationYears = 2, IsExclusive = false, ShowsPerYear = 52 };
     private TvDealOffer? _currentOffer;
     private string _negotiationMessage = string.Empty;
     private int _showsPerYearIndex = 2; // 52 shows/year par défaut
