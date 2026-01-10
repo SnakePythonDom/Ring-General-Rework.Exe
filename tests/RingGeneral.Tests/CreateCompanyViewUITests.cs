@@ -81,7 +81,7 @@ public class CreateCompanyViewUITests
     {
         // Arrange
         var viewModel = new CreateCompanyViewModel(null, null);
-        viewModel.StartingBudget = 1000000m;
+        viewModel.StartingTreasury = 1000000.0;
 
         var view = new CreateCompanyView { DataContext = viewModel };
 
@@ -125,7 +125,7 @@ public class CreateCompanyViewUITests
     {
         // Arrange
         var viewModel = new CreateCompanyViewModel(null, null);
-        viewModel.SelectedDifficulty = "Normal";
+        // SelectedDifficulty property doesn't exist
 
         var view = new CreateCompanyView { DataContext = viewModel };
 
@@ -191,7 +191,7 @@ public class CreateCompanyViewUITests
         // Arrange
         var viewModel = new CreateCompanyViewModel(null, null);
         viewModel.CompanyName = "Test Wrestling";
-        viewModel.StartingBudget = 500000m;
+        viewModel.StartingTreasury = 500000.0;
 
         var view = new CreateCompanyView { DataContext = viewModel };
 

@@ -1,5 +1,6 @@
 using RingGeneral.UI.Views.CompanyHub;
 using RingGeneral.UI.ViewModels.CompanyHub;
+using RingGeneral.Core.Models;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -40,7 +41,15 @@ public class CompanyHubViewUITests
         // Arrange
         var viewModel = new CompanyHubViewModel(null, null, null);
         // Simuler une compagnie avec une trésorerie
-        var mockCompany = new { Tresorerie = 2500000m };
+        var mockCompany = new CompanyState(
+            CompagnieId: "C001",
+            Nom: "Test Company",
+            Region: "US",
+            Prestige: 50,
+            Tresorerie: 2500000.0,
+            AudienceMoyenne: 50,
+            Reach: 50
+        );
         viewModel.CurrentCompany = mockCompany;
 
         var view = new CompanyHubView { DataContext = viewModel };
@@ -196,7 +205,15 @@ public class CompanyHubViewUITests
     {
         // Arrange
         var viewModel = new CompanyHubViewModel(null, null, null);
-        var mockCompany = new { Tresorerie = 1000000m };
+        var mockCompany = new CompanyState(
+            CompagnieId: "C001",
+            Nom: "Test Company",
+            Region: "US",
+            Prestige: 50,
+            Tresorerie: 1000000.0,
+            AudienceMoyenne: 50,
+            Reach: 50
+        );
         viewModel.CurrentCompany = mockCompany;
 
         var view = new CompanyHubView { DataContext = viewModel };
@@ -207,7 +224,15 @@ public class CompanyHubViewUITests
         await Task.Delay(100);
 
         // Changer la trésorerie
-        mockCompany = new { Tresorerie = 2000000m };
+        mockCompany = new CompanyState(
+            CompagnieId: "C001",
+            Nom: "Test Company",
+            Region: "US",
+            Prestige: 50,
+            Tresorerie: 2000000.0,
+            AudienceMoyenne: 50,
+            Reach: 50
+        );
         viewModel.CurrentCompany = mockCompany;
         await Task.Delay(50);
 

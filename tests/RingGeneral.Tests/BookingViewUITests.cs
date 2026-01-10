@@ -1,5 +1,8 @@
 using RingGeneral.UI.Views.Booking;
 using RingGeneral.UI.ViewModels.Booking;
+using RingGeneral.UI.ViewModels;
+using RingGeneral.Core.Validation;
+using RingGeneral.Core.Models;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -8,6 +11,7 @@ using FluentAssertions;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Primitives;
+using System.Collections.Generic;
 
 namespace RingGeneral.Tests;
 
@@ -107,9 +111,10 @@ public class BookingViewUITests
         );
 
         // Ajouter quelques segments
-        viewModel.Segments.Add(new SegmentViewModel());
-        viewModel.Segments.Add(new SegmentViewModel());
-        viewModel.Segments.Add(new SegmentViewModel());
+        var catalog = new SegmentTypeCatalog();
+        viewModel.Segments.Add(new SegmentViewModel("SEG1", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
+        viewModel.Segments.Add(new SegmentViewModel("SEG2", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
+        viewModel.Segments.Add(new SegmentViewModel("SEG3", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
 
         var view = new BookingView { DataContext = viewModel };
 
@@ -138,11 +143,8 @@ public class BookingViewUITests
         );
 
         // Ajouter un segment de test
-        var testSegment = new SegmentViewModel
-        {
-            Title = "Test Match",
-            Type = "Singles Match"
-        };
+        var catalog = new SegmentTypeCatalog();
+        var testSegment = new SegmentViewModel("SEG_TEST", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>());
         viewModel.Segments.Add(testSegment);
 
         var view = new BookingView { DataContext = viewModel };
@@ -199,11 +201,7 @@ public class BookingViewUITests
         );
 
         // Ajouter un worker disponible
-        viewModel.WorkersAvailable.Add(new ParticipantViewModel
-        {
-            Name = "John Cena",
-            Role = "Wrestler"
-        });
+        viewModel.WorkersAvailable.Add(new ParticipantViewModel("W001", "John Cena"));
 
         var view = new BookingView { DataContext = viewModel };
 
@@ -262,11 +260,13 @@ public class BookingViewUITests
         );
 
         // Ajouter un problème de validation
-        viewModel.ValidationIssues.Add(new BookingIssueViewModel
-        {
-            Severity = "Warning",
-            Message = "Test validation issue"
-        });
+        viewModel.ValidationIssues.Add(new BookingIssueViewModel(
+            Code: "TEST001",
+            Message: "Test validation issue",
+            Severity: RingGeneral.Core.Models.ValidationSeverity.Avertissement,
+            SegmentId: null,
+            ActionLabel: "Fix"
+        ));
 
         var view = new BookingView { DataContext = viewModel };
 
@@ -297,11 +297,7 @@ public class BookingViewUITests
         );
 
         // Ajouter une storyline disponible
-        viewModel.StorylinesAvailable.Add(new StorylineOptionViewModel
-        {
-            Title = "Test Storyline",
-            Description = "A test storyline"
-        });
+        viewModel.StorylinesAvailable.Add(new StorylineOptionViewModel("ST001", "Test Storyline"));
 
         var view = new BookingView { DataContext = viewModel };
 
@@ -332,11 +328,7 @@ public class BookingViewUITests
         );
 
         // Ajouter un titre disponible
-        viewModel.TitlesAvailable.Add(new TitleOptionViewModel
-        {
-            Name = "World Heavyweight Championship",
-            IsVacant = false
-        });
+        viewModel.TitlesAvailable.Add(new TitleOptionViewModel("T001", "World Heavyweight Championship"));
 
         var view = new BookingView { DataContext = viewModel };
 
@@ -374,7 +366,8 @@ public class BookingViewUITests
         await Task.Delay(100);
 
         // Simuler un changement de validation
-        viewModel.IsBookingValid = true;
+        // IsBookingValid is readonly - clear validation issues to make it valid
+        viewModel.ValidationIssues.Clear();
         await Task.Delay(50);
 
         // Assert - Vérifier que le statut de validation s'est mis à jour

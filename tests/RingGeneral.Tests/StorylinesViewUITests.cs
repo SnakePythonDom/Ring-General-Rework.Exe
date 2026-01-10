@@ -61,13 +61,13 @@ public class StorylinesViewUITests
         var viewModel = new StorylinesViewModel(null);
 
         // Ajouter une storyline active
-        viewModel.ActiveStorylines.Add(new StorylineViewModel
+        viewModel.ActiveStorylines.Add(new StorylineListItemViewModel
         {
-            Title = "Championship Rivalry",
-            Description = "John Cena vs The Rock for the WWE Championship",
-            Participants = "John Cena, The Rock",
+            StorylineId = "S001",
+            Name = "Championship Rivalry",
             Heat = 85,
-            WeeksActive = 3
+            Status = "Active",
+            Phase = "Climax"
         });
 
         var view = new StorylinesView { DataContext = viewModel };
@@ -91,14 +91,13 @@ public class StorylinesViewUITests
         // Arrange
         var viewModel = new StorylinesViewModel(null);
 
-        var storyline = new StorylineViewModel
+        var storyline = new StorylineListItemViewModel
         {
-            Title = "Betrayal Angle",
-            Description = "A shocking betrayal that will change everything",
-            Participants = "Triple H, Shawn Michaels, Kevin Nash",
+            StorylineId = "S002",
+            Name = "Betrayal Angle",
             Heat = 92,
-            WeeksActive = 5,
-            Status = "Building"
+            Status = "Active",
+            Phase = "Building"
         };
         viewModel.ActiveStorylines.Add(storyline);
         viewModel.SelectedStoryline = storyline;
@@ -133,9 +132,12 @@ public class StorylinesViewUITests
     {
         // Arrange
         var viewModel = new StorylinesViewModel(null);
-        viewModel.TotalActiveStorylines = 8;
-        viewModel.AverageHeat = 76;
-        viewModel.CompletedThisMonth = 3;
+        // TotalActiveStorylines, AverageHeat, CompletedThisMonth properties don't exist
+        // TotalActive is readonly and calculated from ActiveStorylines.Count
+        for (int i = 0; i < 8; i++)
+        {
+            viewModel.ActiveStorylines.Add(new StorylineListItemViewModel { StorylineId = $"S{i}", Name = $"Storyline {i}", Heat = 70 + i });
+        }
 
         var view = new StorylinesView { DataContext = viewModel };
 
@@ -210,11 +212,13 @@ public class StorylinesViewUITests
         // Arrange
         var viewModel = new StorylinesViewModel(null);
 
-        var highHeatStoryline = new StorylineViewModel
+        var highHeatStoryline = new StorylineListItemViewModel
         {
-            Title = "Main Event Feud",
+            StorylineId = "S003",
+            Name = "Main Event Feud",
             Heat = 95,
-            Status = "Red Hot"
+            Status = "Active",
+            Phase = "Climax"
         };
         viewModel.ActiveStorylines.Add(highHeatStoryline);
 
@@ -239,11 +243,13 @@ public class StorylinesViewUITests
         // Arrange
         var viewModel = new StorylinesViewModel(null);
 
-        var storyline = new StorylineViewModel
+        var storyline = new StorylineListItemViewModel
         {
-            Title = "Tag Team Saga",
-            Participants = "The Hardy Boyz, Edge & Christian, Dudley Boyz",
-            InvolvedWorkers = 6
+            StorylineId = "S004",
+            Name = "Tag Team Saga",
+            Heat = 75,
+            Status = "Active",
+            Phase = "Rising"
         };
         viewModel.ActiveStorylines.Add(storyline);
         viewModel.SelectedStoryline = storyline;
@@ -274,8 +280,8 @@ public class StorylinesViewUITests
         // Arrange
         var viewModel = new StorylinesViewModel(null);
 
-        var storyline1 = new StorylineViewModel { Title = "Storyline A", Heat = 70 };
-        var storyline2 = new StorylineViewModel { Title = "Storyline B", Heat = 80 };
+        var storyline1 = new StorylineListItemViewModel { StorylineId = "S1", Name = "Storyline A", Heat = 70 };
+        var storyline2 = new StorylineListItemViewModel { StorylineId = "S2", Name = "Storyline B", Heat = 80 };
 
         viewModel.ActiveStorylines.Add(storyline1);
         viewModel.ActiveStorylines.Add(storyline2);
@@ -307,11 +313,13 @@ public class StorylinesViewUITests
         await Task.Delay(100);
 
         // Ajouter une storyline dynamiquement
-        var newStoryline = new StorylineViewModel
+        var newStoryline = new StorylineListItemViewModel
         {
-            Title = "New Dramatic Storyline",
+            StorylineId = "S005",
+            Name = "New Dramatic Storyline",
             Heat = 60,
-            Status = "Starting"
+            Status = "Active",
+            Phase = "Building"
         };
         viewModel.ActiveStorylines.Add(newStoryline);
         await Task.Delay(50);

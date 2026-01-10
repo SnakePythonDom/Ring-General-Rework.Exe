@@ -19,7 +19,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -38,7 +38,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldDisplaySettingsTitle()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -58,10 +58,9 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldDisplayGameplaySettings()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
-        viewModel.AutoSaveEnabled = true;
-        viewModel.DifficultyLevel = "Normal";
-        viewModel.ShowTutorials = false;
+        var viewModel = new SettingsViewModel();
+        viewModel.AutoSave = true;
+        // DifficultyLevel and ShowTutorials properties don't exist
 
         var view = new SettingsView { DataContext = viewModel };
 
@@ -82,10 +81,9 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldDisplayAudioSettings()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
-        viewModel.MasterVolume = 80;
-        viewModel.MusicVolume = 70;
-        viewModel.SfxVolume = 90;
+        var viewModel = new SettingsViewModel();
+        viewModel.SoundVolume = 80;
+        // MasterVolume, MusicVolume, SfxVolume properties don't exist - using SoundVolume instead
 
         var view = new SettingsView { DataContext = viewModel };
 
@@ -106,10 +104,9 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldDisplayVideoSettings()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
-        viewModel.Resolution = "1920x1080";
-        viewModel.FullscreenEnabled = true;
-        viewModel.VsyncEnabled = false;
+        var viewModel = new SettingsViewModel();
+        // Resolution, FullscreenEnabled, VsyncEnabled properties don't exist
+        viewModel.Theme = "Clair";
 
         var view = new SettingsView { DataContext = viewModel };
 
@@ -130,7 +127,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldHaveSaveButton()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -151,7 +148,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldHaveResetButton()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -172,7 +169,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldDisplayCheckboxes()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -189,7 +186,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldDisplaySliders()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -206,7 +203,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldDisplayComboBoxes()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -223,7 +220,7 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldHandleVolumeChanges()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act
@@ -248,8 +245,8 @@ public class SettingsViewUITests
     public async Task SettingsView_ShouldUpdateSettingsDisplay()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
-        viewModel.DifficultyLevel = "Easy";
+        var viewModel = new SettingsViewModel();
+        viewModel.Theme = "Light";
 
         var view = new SettingsView { DataContext = viewModel };
 
@@ -259,22 +256,22 @@ public class SettingsViewUITests
         await Task.Delay(100);
 
         // Changer un paramètre
-        viewModel.DifficultyLevel = "Hard";
+        viewModel.Theme = "Dark";
         await Task.Delay(50);
 
         // Assert - Vérifier que l'affichage s'est mis à jour
-        var hardTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Hard"))
+        var themeTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
+            .Where(tb => tb.Text.Contains("Dark"))
             .ToList();
 
-        hardTextBlocks.Should().NotBeEmpty();
+        themeTextBlocks.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
     public async Task SettingsView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new SettingsViewModel(null);
+        var viewModel = new SettingsViewModel();
         var view = new SettingsView { DataContext = viewModel };
 
         // Act

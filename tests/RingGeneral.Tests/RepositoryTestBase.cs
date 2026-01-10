@@ -20,7 +20,7 @@ public abstract class RepositoryTestBase : IDisposable
         Connection = new SqliteConnection(connectionString);
         Connection.Open();
 
-        ConnectionFactory = new SqliteConnectionFactory(() => Connection);
+        ConnectionFactory = new SqliteConnectionFactory(connectionString);
 
         // Initialiser la base de données
         InitializeDatabase();

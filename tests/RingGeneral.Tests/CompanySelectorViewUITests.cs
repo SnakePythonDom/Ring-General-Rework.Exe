@@ -19,7 +19,7 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
         var view = new CompanySelectorView { DataContext = viewModel };
 
         // Act
@@ -38,7 +38,7 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldDisplaySelectorTitle()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
         var view = new CompanySelectorView { DataContext = viewModel };
 
         // Act
@@ -58,15 +58,16 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldDisplayCompanyList()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
 
         // Ajouter une compagnie de test
-        viewModel.AvailableCompanies.Add(new CompanySummaryViewModel
+        viewModel.Companies.Add(new CompanyListItem
         {
+            CompanyId = "C001",
             Name = "WWE",
             Prestige = 95,
-            FoundedDate = DateTime.Now.AddYears(-30),
-            CurrentWeek = 150
+            Region = "US",
+            Treasury = 1000000.0
         });
 
         var view = new CompanySelectorView { DataContext = viewModel };
@@ -88,17 +89,17 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldDisplayCompanyDetails()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
 
-        var company = new CompanySummaryViewModel
+        var company = new CompanyListItem
         {
+            CompanyId = "C002",
             Name = "Test Wrestling Company",
             Prestige = 75,
-            FoundedDate = DateTime.Now.AddYears(-5),
-            CurrentWeek = 25,
-            Description = "A test wrestling company"
+            Region = "US",
+            Treasury = 500000.0
         };
-        viewModel.AvailableCompanies.Add(company);
+        viewModel.Companies.Add(company);
         viewModel.SelectedCompany = company;
 
         var view = new CompanySelectorView { DataContext = viewModel };
@@ -125,17 +126,17 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldDisplayCompanyStatistics()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
 
-        var company = new CompanySummaryViewModel
+        var company = new CompanyListItem
         {
+            CompanyId = "C003",
             Name = "Sample Company",
             Prestige = 85,
-            CurrentWeek = 100,
-            TotalWorkers = 25,
-            TotalRevenue = 5000000m
+            Region = "US",
+            Treasury = 5000000.0
         };
-        viewModel.AvailableCompanies.Add(company);
+        viewModel.Companies.Add(company);
         viewModel.SelectedCompany = company;
 
         var view = new CompanySelectorView { DataContext = viewModel };
@@ -162,7 +163,7 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldHaveSelectButton()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
         var view = new CompanySelectorView { DataContext = viewModel };
 
         // Act
@@ -183,7 +184,7 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldHaveCreateNewButton()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
         var view = new CompanySelectorView { DataContext = viewModel };
 
         // Act
@@ -204,13 +205,13 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldHandleCompanySelection()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
 
-        var company1 = new CompanySummaryViewModel { Name = "Company A", Prestige = 70 };
-        var company2 = new CompanySummaryViewModel { Name = "Company B", Prestige = 80 };
+        var company1 = new CompanyListItem { Name = "Company A", Prestige = 70 };
+        var company2 = new CompanyListItem { Name = "Company B", Prestige = 80 };
 
-        viewModel.AvailableCompanies.Add(company1);
-        viewModel.AvailableCompanies.Add(company2);
+        viewModel.Companies.Add(company1);
+        viewModel.Companies.Add(company2);
         viewModel.SelectedCompany = company1;
 
         var view = new CompanySelectorView { DataContext = viewModel };
@@ -230,16 +231,17 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldDisplayCompanyPreview()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
 
-        var company = new CompanySummaryViewModel
+        var company = new CompanyListItem
         {
+            CompanyId = "C004",
             Name = "Preview Company",
             Prestige = 90,
-            Description = "This is a preview of the company",
-            FoundedDate = DateTime.Now.AddYears(-10)
+            Region = "US",
+            Treasury = 2000000.0
         };
-        viewModel.AvailableCompanies.Add(company);
+        viewModel.Companies.Add(company);
         viewModel.SelectedCompany = company;
 
         var view = new CompanySelectorView { DataContext = viewModel };
@@ -261,13 +263,13 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldUpdateWhenSelectionChanges()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
 
-        var company1 = new CompanySummaryViewModel { Name = "Company 1", Prestige = 60 };
-        var company2 = new CompanySummaryViewModel { Name = "Company 2", Prestige = 85 };
+        var company1 = new CompanyListItem { CompanyId = "C005", Name = "Company 1", Prestige = 60, Region = "US", Treasury = 100000.0 };
+        var company2 = new CompanyListItem { CompanyId = "C006", Name = "Company 2", Prestige = 85, Region = "US", Treasury = 200000.0 };
 
-        viewModel.AvailableCompanies.Add(company1);
-        viewModel.AvailableCompanies.Add(company2);
+        viewModel.Companies.Add(company1);
+        viewModel.Companies.Add(company2);
 
         var view = new CompanySelectorView { DataContext = viewModel };
 
@@ -292,7 +294,7 @@ public class CompanySelectorViewUITests
     public async Task CompanySelectorView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new CompanySelectorViewModel(null);
+        var viewModel = new CompanySelectorViewModel(null!, null!, null!);
         var view = new CompanySelectorView { DataContext = viewModel };
 
         // Act

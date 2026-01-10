@@ -111,7 +111,15 @@ public class FinanceEngineTests
     {
         // Arrange
         var engine = new FinanceEngine(_defaultSettings);
-        var company = new CompanyState { Reach = reach, Prestige = prestige };
+        var company = new CompanyState(
+            CompagnieId: "C001",
+            Nom: "Test Company",
+            Region: "US",
+            Prestige: prestige,
+            Tresorerie: 1000000.0,
+            AudienceMoyenne: 50,
+            Reach: reach
+        );
         var method = typeof(FinanceEngine).GetMethod("CalculerCapacite",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -132,7 +140,15 @@ public class FinanceEngineTests
     {
         // Arrange
         var engine = new FinanceEngine(_defaultSettings);
-        var company = new CompanyState { Prestige = audience >= 1000 ? 200 : 0 };
+        var company = new CompanyState(
+            CompagnieId: "C002",
+            Nom: "Test Company",
+            Region: "US",
+            Prestige: audience >= 1000 ? 200 : 0,
+            Tresorerie: 1000000.0,
+            AudienceMoyenne: audience,
+            Reach: 50
+        );
         var method = typeof(FinanceEngine).GetMethod("CalculerPrixBillet",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -223,7 +239,7 @@ public class FinanceEngineTests
         var engine = new FinanceEngine(_defaultSettings);
         var contracts = new[]
         {
-            new ContractPayroll { Frequence = frequency, Salaire = 100.0 }
+            new ContractPayroll { Frequence = frequency, Salaire = 100.0m }
         };
         var method = typeof(FinanceEngine).GetMethod("CalculerPaie",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -242,8 +258,8 @@ public class FinanceEngineTests
         var engine = new FinanceEngine(_defaultSettings);
         var contracts = new[]
         {
-            new ContractPayroll { Frequence = PayrollFrequency.Hebdomadaire, Salaire = 1000.0 },
-            new ContractPayroll { Frequence = PayrollFrequency.Mensuelle, Salaire = 500.0 }
+            new ContractPayroll { Frequence = PayrollFrequency.Hebdomadaire, Salaire = 1000.0m },
+            new ContractPayroll { Frequence = PayrollFrequency.Mensuelle, Salaire = 500.0m }
         };
         var context = new WeeklyFinanceContext(1, contracts);
 
@@ -251,7 +267,7 @@ public class FinanceEngineTests
         var result = engine.CalculerFinancesHebdo(context);
 
         // Assert
-        result.TotalDepenses.Should().Be(1000.0); // Seulement le contrat hebdomadaire
+        result.Depenses.Should().Be(1000.0m); // Seulement le contrat hebdomadaire
         result.Transactions.Should().Contain(t => t.Description == "Paie des contrats");
     }
 
@@ -266,18 +282,27 @@ public class FinanceEngineTests
         var result = engine.CalculerFinancesHebdo(context);
 
         // Assert
-        result.TotalDepenses.Should().Be(0);
+        result.Depenses.Should().Be(0m);
         result.Transactions.Should().BeEmpty();
     }
 
     private ShowFinanceContext CreateBasicShowFinanceContext(bool diffuseTv = false)
     {
-        return new ShowFinanceContext(
-            compagnie: new CompanyState { Reach = 50, Prestige = 50, AudienceMoyenne = 50 },
-            audience: 50,
-            dureeMinutes: 120,
-            popularitesWorkers: new[] { 80, 70, 60 },
-            diffuseTv: diffuseTv
-        );
+        return new ShowFinanceContext
+        {
+            Compagnie = new CompanyState(
+                CompagnieId: "C003",
+                Nom: "Test Company",
+                Region: "US",
+                Prestige: 50,
+                Tresorerie: 1000000.0,
+                AudienceMoyenne: 50,
+                Reach: 50
+            ),
+            Audience = 50,
+            DureeMinutes = 120,
+            PopularitesWorkers = new[] { 80, 70, 60 },
+            DiffuseTv = diffuseTv
+        };
     }
 }

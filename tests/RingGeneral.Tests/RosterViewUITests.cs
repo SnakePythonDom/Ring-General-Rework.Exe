@@ -20,10 +20,12 @@ public class RosterViewUITests
     public async Task RosterView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new RosterViewModel
+        var viewModel = new RosterViewModel();
+        // TotalWorkers is readonly - add workers to update it
+        for (int i = 0; i < 42; i++)
         {
-            TotalWorkers = 42
-        };
+            viewModel.Workers.Add(new WorkerListItemViewModel { WorkerId = $"W{i}", Name = $"Worker {i}" });
+        }
 
         var view = new RosterView { DataContext = viewModel };
 
@@ -44,10 +46,12 @@ public class RosterViewUITests
     {
         // Arrange
         var expectedTotal = 156;
-        var viewModel = new RosterViewModel
+        var viewModel = new RosterViewModel();
+        // TotalWorkers is readonly - add workers to update it
+        for (int i = 0; i < expectedTotal; i++)
         {
-            TotalWorkers = expectedTotal
-        };
+            viewModel.Workers.Add(new WorkerListItemViewModel { WorkerId = $"W{i}", Name = $"Worker {i}" });
+        }
 
         var view = new RosterView { DataContext = viewModel };
 
@@ -95,7 +99,7 @@ public class RosterViewUITests
             Name = "Test Worker",
             Role = "Wrestler",
             Popularity = 75,
-            Health = 90
+            // Health property doesn't exist in WorkerListItemViewModel
         });
 
         var view = new RosterView { DataContext = viewModel };
@@ -110,7 +114,8 @@ public class RosterViewUITests
             view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
 
         dataGrid.Should().NotBeNull();
-        dataGrid!.Items.Should().NotBeEmpty();
+        dataGrid!.ItemsSource.Should().NotBeNull();
+        ((System.Collections.IEnumerable?)dataGrid.ItemsSource)?.Cast<object>().Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -143,9 +148,8 @@ public class RosterViewUITests
             Name = "John Cena",
             Role = "Main Event Star",
             Popularity = 95,
-            Health = 85,
-            Morale = 80,
-            Age = 46
+            Morale = 80
+            // Health and Age properties don't exist in WorkerListItemViewModel
         };
         viewModel.Workers.Add(testWorker);
         viewModel.SelectedWorker = testWorker;
@@ -181,7 +185,7 @@ public class RosterViewUITests
         {
             Name = "Test Worker",
             Popularity = 78,
-            Health = 92,
+            // Health property doesn't exist
             Morale = 85
         };
         viewModel.Workers.Add(testWorker);
@@ -285,7 +289,7 @@ public class RosterViewUITests
         // Assert - Vérifier que l'UI s'est mise à jour
         var dataGrid = view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
         dataGrid.Should().NotBeNull();
-        dataGrid!.Items.Should().Contain(newWorker);
+        ((System.Collections.IEnumerable?)dataGrid.ItemsSource)?.Cast<object>().Should().Contain(newWorker);
     }
 
     [AvaloniaFact]

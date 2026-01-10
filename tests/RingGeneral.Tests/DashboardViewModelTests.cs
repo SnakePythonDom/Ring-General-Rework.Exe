@@ -39,7 +39,7 @@ public class DashboardViewModelTests
 
         // Assert
         viewModel.CompanyName.Should().Be("Ma Compagnie");
-        viewModel.CompanyId.Should().BeEmpty();
+        // CompanyId property doesn't exist in DashboardViewModel (it's private _companyId)
         viewModel.CurrentDay.Should().Be(1);
         viewModel.TotalWorkers.Should().Be(0);
         viewModel.ActiveStorylines.Should().Be(0);
