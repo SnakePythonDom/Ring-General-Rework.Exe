@@ -1,4 +1,5 @@
 using ReactiveUI;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Services;
 
 namespace RingGeneral.UI.ViewModels;
