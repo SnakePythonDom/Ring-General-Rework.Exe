@@ -10,7 +10,7 @@ namespace RingGeneral.UI.ViewModels.Roster;
 /// <summary>
 /// ViewModel pour la liste des workers (roster)
 /// </summary>
-public sealed class RosterViewModel : ViewModelBase
+public sealed class RosterViewModel : ViewModelBase, INavigableViewModel
 {
     private readonly GameRepository? _repository;
     private readonly INavigationService? _navigationService;
@@ -33,7 +33,19 @@ public sealed class RosterViewModel : ViewModelBase
         LoadMoreWorkersCommand = ReactiveCommand.Create(LoadMoreWorkers);
 
         // Ne pas charger les données dans le constructeur
-        // Le chargement sera déclenché par la vue quand elle sera prête (événement Loaded)
+        // Le chargement sera déclenché lors de la navigation (OnNavigatedTo)
+    }
+
+    /// <summary>
+    /// Appelé quand on navigue vers ce ViewModel
+    /// </summary>
+    public void OnNavigatedTo(object? parameter)
+    {
+        // Charger les workers automatiquement lors de la navigation
+        if (Workers.Count == 0)
+        {
+            _ = LoadWorkers();
+        }
     }
 
     /// <summary>
@@ -183,6 +195,9 @@ public sealed class RosterViewModel : ViewModelBase
                 {
                     try
                     {
+                        var companyName = reader.IsDBNull(11) ? "Free Agent" : (reader.GetString(11) ?? "Free Agent");
+                        var companyId = reader.IsDBNull(10) ? null : reader.GetString(10);
+                        
                         var worker = new WorkerListItemViewModel
                         {
                             WorkerId = reader.GetString(0),
@@ -196,8 +211,14 @@ public sealed class RosterViewModel : ViewModelBase
                             Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
                             Morale = reader.IsDBNull(9) ? 50 : reader.GetInt32(9),
                             Status = "Actif", // TODO: Calculer depuis blessures/fatigue
-                            Company = reader.IsDBNull(11) ? "Free Agent" : (reader.GetString(11) ?? "Free Agent")
+                            Company = companyName
                         };
+                        
+                        // Log de debug pour vérifier les données
+                        if (rowCount < 3)
+                        {
+                            Logger.Info($"Worker chargé: {worker.Name}, CompanyId: {companyId ?? "NULL"}, CompanyName: {companyName}");
+                        }
 
                         workers.Add(worker);
                         rowCount++;
@@ -243,6 +264,17 @@ public sealed class RosterViewModel : ViewModelBase
                 this.RaisePropertyChanged(nameof(Workers));
 
                 Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés (pagination)");
+                
+                // Log de debug pour vérifier les données chargées
+                if (Workers.Count > 0)
+                {
+                    var firstWorker = Workers[0];
+                    Logger.Info($"Premier worker chargé: {firstWorker.Name} (ID: {firstWorker.WorkerId}, Popularity: {firstWorker.Popularity}, Company: {firstWorker.Company})");
+                }
+                else
+                {
+                    Logger.Warning("Aucun worker dans la collection après chargement !");
+                }
             });
         }
         catch (Exception ex)

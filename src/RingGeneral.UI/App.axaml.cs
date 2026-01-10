@@ -411,7 +411,10 @@ public sealed class App : Application
         services.AddSingleton<AgentReportGeneratorService>();
 
         // ViewModels - Core
-        services.AddSingleton<ViewModels.Core.ShellViewModel>();
+        services.AddSingleton<ViewModels.Core.ShellViewModel>(sp =>
+            new ViewModels.Core.ShellViewModel(
+                navigationService: sp.GetRequiredService<INavigationService>(),
+                repository: sp.GetService<GameRepository>()));
 
         // ViewModels - Start
         services.AddTransient<StartViewModel>();

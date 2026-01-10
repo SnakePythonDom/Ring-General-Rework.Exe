@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:RingGeneral.UI.ViewModels.Youth"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Youth;assembly=RingGeneral.UI"
              xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="RingGeneral.UI.Views.Youth.YouthView"
@@ -62,11 +62,11 @@
                               BorderThickness="0">
 
                 <controls:DataGrid.Columns>
-                    <controls:DataGridTextColumn Header="NOM" Binding="{Binding Name}" Width="2*"/>
-                    <controls:DataGridTextColumn Header="IN-RING" Binding="{Binding InRing}" Width="*"/>
-                    <controls:DataGridTextColumn Header="ENTERTAINMENT" Binding="{Binding Entertainment}" Width="*"/>
-                    <controls:DataGridTextColumn Header="STORY" Binding="{Binding Story}" Width="*"/>
-                    <controls:DataGridTextColumn Header="PROGRESSION" Binding="{Binding ProgressDisplay}" Width="*"/>
+                    <controls:DataGridTextColumn Header="NOM" Binding="{Binding Name}" Width="200"/>
+                    <controls:DataGridTextColumn Header="IN-RING" Binding="{Binding InRing}" Width="80"/>
+                    <controls:DataGridTextColumn Header="ENTERTAINMENT" Binding="{Binding Entertainment}" Width="100"/>
+                    <controls:DataGridTextColumn Header="STORY" Binding="{Binding Story}" Width="80"/>
+                    <controls:DataGridTextColumn Header="PROGRESSION" Binding="{Binding ProgressDisplay}" Width="120"/>
                     <!-- Phase 4.1 - Bouton Graduer -->
                     <controls:DataGridTemplateColumn Header="ACTIONS" Width="Auto">
                         <controls:DataGridTemplateColumn.CellTemplate>
@@ -77,14 +77,9 @@
                                         Foreground="White"
                                         CornerRadius="4"
                                         FontSize="11"
-                                        FontWeight="SemiBold">
-                                    <Button.Command>
-                                        <Binding Path="DataContext.GraduateTraineeCommand" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-                                    </Button.Command>
-                                    <Button.CommandParameter>
-                                        <Binding Path="WorkerId"/>
-                                    </Button.CommandParameter>
-                                </Button>
+                                        FontWeight="SemiBold"
+                                        Command="{Binding $parent[DataGrid].DataContext.GraduateTraineeCommand}"
+                                        CommandParameter="{Binding WorkerId}"/>
                             </DataTemplate>
                         </controls:DataGridTemplateColumn.CellTemplate>
                     </controls:DataGridTemplateColumn>
@@ -92,11 +87,11 @@
 
                 <controls:DataGrid.Styles>
                     <Style Selector="DataGridRow">
-                        <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                        <Setter Property="MinHeight" Value="35"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
                     </Style>
                     <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
-                        <Setter Property="Fill" Value="{StaticResource BackgroundSecondaryBrush}"/>
+                        <Setter Property="Fill" Value="{StaticResource BackgroundHoverBrush}"/>
                     </Style>
                     <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
                         <Setter Property="Fill" Value="{StaticResource BorderMediumBrush}"/>
@@ -106,9 +101,15 @@
                         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
                         <Setter Property="FontWeight" Value="SemiBold"/>
                         <Setter Property="Padding" Value="12,8"/>
+                        <Setter Property="MinHeight" Value="40"/>
                     </Style>
                     <Style Selector="DataGridCell">
                         <Setter Property="Padding" Value="12,8"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+                    <Style Selector="DataGridCell TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
                     </Style>
                 </controls:DataGrid.Styles>
 

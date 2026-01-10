@@ -46,6 +46,13 @@ public sealed class NavigationService : INavigationService
         }
 
         _logger.Debug($"ViewModel {viewModelType.FullName} résolu avec succès, type réel: {viewModel.GetType().FullName}");
+        
+        // Appeler OnNavigatedTo même sans paramètre si le ViewModel implémente INavigableViewModel
+        if (viewModel is INavigableViewModel navigable)
+        {
+            navigable.OnNavigatedTo(null);
+        }
+        
         NavigateToViewModel(viewModel);
     }
 

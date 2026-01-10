@@ -19,6 +19,7 @@ using RingGeneral.UI.ViewModels.Settings;
 using RingGeneral.UI.ViewModels.Medical;
 using RingGeneral.UI.ViewModels.CompanyHub;
 using RingGeneral.UI.ViewModels; // provide access to GameSessionViewModel
+using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Core;
 
@@ -29,7 +30,9 @@ namespace RingGeneral.UI.ViewModels.Core;
 public sealed class ShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;
+    private readonly GameRepository? _repository;
     private NavigationItemViewModel? _selectedNavigationItem;
+    private NavigationItemViewModel? _workersNavigationItem;
     private ViewModelBase? _currentContentViewModel;
     private ViewModelBase? _currentContextViewModel;
     private bool _isInGameMode = false;
@@ -37,15 +40,19 @@ public sealed class ShellViewModel : ViewModelBase
     // Expose a live GameSession so XAML can bind to its commands/props
     public GameSessionViewModel GameSession { get; }
 
-    public ShellViewModel(INavigationService navigationService)
+    public ShellViewModel(INavigationService navigationService, GameRepository? repository = null)
     {
         _navigationService = navigationService;
+        _repository = repository;
 
         // Ensure game session exists as early as possible so bindings (commands) are available
         GameSession = new GameSessionViewModel();
 
         // Construction de l'arbre de navigation
         NavigationItems = BuildNavigationTree();
+        
+        // Charger le nombre de workers dynamiquement
+        _ = LoadWorkersCountAsync();
 
         // Observer les changements de ViewModel
         _navigationService.CurrentViewModelObservable
@@ -284,13 +291,14 @@ public sealed class ShellViewModel : ViewModelBase
             "ROSTER",
             "👤"
         );
-        roster.Children.Add(new NavigationItemViewModel(
+        _workersNavigationItem = new NavigationItemViewModel(
             "roster.workers",
             "Workers",
             "  🤼",
             typeof(RosterViewModel),
             roster
-        ) { Badge = "(47)" });
+        );
+        roster.Children.Add(_workersNavigationItem);
         roster.Children.Add(new NavigationItemViewModel(
             "roster.titles",
             "Titres",
@@ -553,5 +561,42 @@ public sealed class ShellViewModel : ViewModelBase
         // TODO: Créer ReportsViewModel si nécessaire
         _navigationService.NavigateTo<FinanceViewModel>();
         Logger.Info("Navigation vers FinanceViewModel (rapports)");
+    }
+
+    /// <summary>
+    /// Charge le nombre de workers depuis la base de données et met à jour le badge
+    /// </summary>
+    private async System.Threading.Tasks.Task LoadWorkersCountAsync()
+    {
+        if (_repository == null || _workersNavigationItem == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var count = await System.Threading.Tasks.Task.Run(() =>
+            {
+                using var connection = _repository.CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                var result = cmd.ExecuteScalar();
+                return result != null ? Convert.ToInt32(result) : 0;
+            });
+
+            // Mettre à jour le badge sur le thread UI
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (_workersNavigationItem != null)
+                {
+                    _workersNavigationItem.Badge = $"({count})";
+                    Logger.Info($"Badge Workers mis à jour: ({count})");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur lors du chargement du nombre de workers: {ex.Message}", ex);
+        }
     }
 }

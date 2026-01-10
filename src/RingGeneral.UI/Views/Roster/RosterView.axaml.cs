@@ -1,6 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using RingGeneral.UI.ViewModels.Roster;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Linq;
 
 namespace RingGeneral.UI.Views.Roster;
 
@@ -30,10 +33,17 @@ public sealed partial class RosterView : UserControl
             {
                 System.Diagnostics.Debug.WriteLine("[RosterView] Collection vide, lancement du chargement...");
                 // Lancer le chargement si la collection est vide
-                _ = viewModel.LoadWorkersCommand.Execute().Subscribe(
-                    _ => System.Diagnostics.Debug.WriteLine("[RosterView] Chargement terminé"),
-                    ex => System.Diagnostics.Debug.WriteLine($"[RosterView] Erreur lors du chargement: {ex.Message}")
-                );
+                _ = viewModel.LoadWorkersCommand.Execute(Unit.Default)
+                    .SelectMany(task => System.Reactive.Linq.Observable.FromAsync(() => task))
+                    .Subscribe(
+                        _ => 
+                        {
+                            System.Diagnostics.Debug.WriteLine("[RosterView] Chargement terminé");
+                            // Forcer le rafraîchissement du DataGrid
+                            RefreshDataGrid();
+                        },
+                        ex => System.Diagnostics.Debug.WriteLine($"[RosterView] Erreur lors du chargement: {ex.Message}")
+                    );
             }
         }
         else
@@ -56,10 +66,17 @@ public sealed partial class RosterView : UserControl
             {
                 System.Diagnostics.Debug.WriteLine("[RosterView] Collection vide au chargement, lancement du chargement...");
                 // Lancer le chargement si la collection est vide
-                _ = viewModel.LoadWorkersCommand.Execute().Subscribe(
-                    _ => System.Diagnostics.Debug.WriteLine("[RosterView] Chargement terminé depuis Loaded"),
-                    ex => System.Diagnostics.Debug.WriteLine($"[RosterView] Erreur lors du chargement depuis Loaded: {ex.Message}")
-                );
+                _ = viewModel.LoadWorkersCommand.Execute(Unit.Default)
+                    .SelectMany(task => System.Reactive.Linq.Observable.FromAsync(() => task))
+                    .Subscribe(
+                        _ => 
+                        {
+                            System.Diagnostics.Debug.WriteLine("[RosterView] Chargement terminé depuis Loaded");
+                            // Forcer le rafraîchissement du DataGrid
+                            RefreshDataGrid();
+                        },
+                        ex => System.Diagnostics.Debug.WriteLine($"[RosterView] Erreur lors du chargement depuis Loaded: {ex.Message}")
+                    );
             }
         }
         else
@@ -71,5 +88,51 @@ public sealed partial class RosterView : UserControl
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+
+    private void RefreshDataGrid()
+    {
+        // Forcer le rafraîchissement du DataGrid après le chargement
+        // Utiliser Dispatcher pour s'assurer qu'on est sur le thread UI
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (this.FindControl<DataGrid>("WorkersDataGrid") is DataGrid dataGrid)
+            {
+                var itemsCount = dataGrid.ItemsSource?.Cast<object>().Count() ?? 0;
+                System.Diagnostics.Debug.WriteLine($"[RosterView] Rafraîchissement du DataGrid, ItemsSource count: {itemsCount}");
+                
+                if (DataContext is RosterViewModel viewModel)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[RosterView] ViewModel Workers.Count: {viewModel.Workers.Count}");
+                    
+                    // Log des premiers workers pour vérifier les données
+                    if (viewModel.Workers.Count > 0)
+                    {
+                        var firstWorker = viewModel.Workers[0];
+                        System.Diagnostics.Debug.WriteLine($"[RosterView] Premier worker: {firstWorker.Name}, Company: {firstWorker.Company}, Role: {firstWorker.Role}");
+                    }
+                    
+                    // Forcer la mise à jour en réassignant temporairement l'ItemsSource
+                    var currentSource = dataGrid.ItemsSource;
+                    dataGrid.ItemsSource = null;
+                    dataGrid.ItemsSource = currentSource;
+                    
+                    // Forcer la mise à jour visuelle
+                    dataGrid.InvalidateVisual();
+                    dataGrid.InvalidateArrange();
+                    
+                    // Vérifier après rafraîchissement
+                    var newCount = dataGrid.ItemsSource?.Cast<object>().Count() ?? 0;
+                    System.Diagnostics.Debug.WriteLine($"[RosterView] DataGrid rafraîchi, nouveau count: {newCount}");
+                    
+                    // Vérifier si le DataGrid est visible
+                    System.Diagnostics.Debug.WriteLine($"[RosterView] DataGrid IsVisible: {dataGrid.IsVisible}, Opacity: {dataGrid.Opacity}, Height: {dataGrid.Height}, ActualHeight: {dataGrid.Bounds.Height}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[RosterView] WorkersDataGrid non trouvé !");
+            }
+        }, Avalonia.Threading.DispatcherPriority.Loaded);
     }
 }

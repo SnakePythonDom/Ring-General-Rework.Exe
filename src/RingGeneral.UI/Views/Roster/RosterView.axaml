@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Roster;assembly=RingGeneral.UI"
+             xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="RingGeneral.UI.Views.Roster.RosterView"
              x:DataType="vm:RosterViewModel">
@@ -20,7 +21,7 @@
                 <TextBlock FontSize="14" Foreground="{StaticResource TextSecondaryBrush}">
                     <TextBlock.Text>
                         <MultiBinding StringFormat="{}{0} workers au total">
-                            <Binding Path="TotalWorkers"/>
+                            <Binding Path="TotalWorkersInDatabase"/>
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
@@ -41,75 +42,75 @@
 
         <!-- Liste des workers -->
         <Border Grid.Row="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="0">
-                <DataGrid x:Name="WorkersDataGrid"
+                <controls:DataGrid x:Name="WorkersDataGrid"
                               ItemsSource="{Binding Workers}"
                               SelectedItem="{Binding SelectedWorker, Mode=TwoWay}"
                               AutoGenerateColumns="False"
                               CanUserSortColumns="True"
                               CanUserReorderColumns="False"
                               CanUserResizeColumns="True"
-                              GridLinesVisibility="Horizontal"
+                              GridLinesVisibility="All"
                               HeadersVisibility="Column"
                               IsReadOnly="True"
                               Background="{StaticResource BackgroundSecondaryBrush}"
                               BorderThickness="0"
                               MinHeight="200">
 
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="NOM"
+                <controls:DataGrid.Columns>
+                    <controls:DataGridTextColumn Header="NOM"
                                                 Binding="{Binding Name}"
-                                                Width="2*"
+                                                Width="200"
                                                 SortMemberPath="Name"/>
 
-                    <DataGridTextColumn Header="RÔLE"
+                    <controls:DataGridTextColumn Header="RÔLE"
                                                 Binding="{Binding Role}"
-                                                Width="*"
+                                                Width="120"
                                                 SortMemberPath="Role"/>
 
-                    <DataGridTextColumn Header="OVR"
+                    <controls:DataGridTextColumn Header="OVR"
                                                 Binding="{Binding Overall}"
-                                                Width="*"
+                                                Width="60"
                                                 SortMemberPath="Overall"/>
 
-                    <DataGridTextColumn Header="IN-RING"
+                    <controls:DataGridTextColumn Header="IN-RING"
                                                 Binding="{Binding InRing}"
-                                                Width="*"
+                                                Width="80"
                                                 SortMemberPath="InRing"/>
 
-                    <DataGridTextColumn Header="ENT."
+                    <controls:DataGridTextColumn Header="ENT."
                                                 Binding="{Binding Entertainment}"
-                                                Width="*"
+                                                Width="70"
                                                 SortMemberPath="Entertainment"/>
 
-                    <DataGridTextColumn Header="STORY"
+                    <controls:DataGridTextColumn Header="STORY"
                                                 Binding="{Binding Story}"
-                                                Width="*"
+                                                Width="80"
                                                 SortMemberPath="Story"/>
 
-                    <DataGridTextColumn Header="POP"
+                    <controls:DataGridTextColumn Header="POP"
                                                 Binding="{Binding Popularity}"
-                                                Width="*"
+                                                Width="70"
                                                 SortMemberPath="Popularity"/>
 
-                    <DataGridTextColumn Header="MOM"
+                    <controls:DataGridTextColumn Header="MOM"
                                                 Binding="{Binding Momentum}"
-                                                Width="*"
+                                                Width="70"
                                                 SortMemberPath="Momentum"/>
 
-                    <DataGridTextColumn Header="FAT"
+                    <controls:DataGridTextColumn Header="FAT"
                                                 Binding="{Binding Fatigue}"
-                                                Width="*"
+                                                Width="70"
                                                 SortMemberPath="Fatigue"/>
 
-                    <DataGridTextColumn Header="MOR"
+                    <controls:DataGridTextColumn Header="MOR"
                                                 Binding="{Binding Morale}"
-                                                Width="*"
+                                                Width="70"
                                                 SortMemberPath="Morale"/>
 
-                    <DataGridTemplateColumn Header="STATUT"
-                                                     Width="*"
+                    <controls:DataGridTemplateColumn Header="STATUT"
+                                                     Width="100"
                                                      SortMemberPath="Status">
-                        <DataGridTemplateColumn.CellTemplate>
+                        <controls:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Background="{Binding StatusBackground}"
                                         CornerRadius="4"
@@ -117,19 +118,15 @@
                                     <TextBlock Text="{Binding Status}"
                                                FontSize="10"
                                                FontWeight="Bold"
-                                               Foreground="{Binding StatusForeground}"/>
+                                               Foreground="{Binding StatusForeground}"
+                                               HorizontalAlignment="Center"/>
                                 </Border>
                             </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="COMPAGNIE"
-                                                Binding="{Binding Company}"
-                                                Width="*"
-                                                SortMemberPath="Company"/>
-
-                    <DataGridTemplateColumn Header="ACTIONS" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
+                    <controls:DataGridTemplateColumn Header="ACTIONS" Width="Auto">
+                        <controls:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Content="📋 Voir"
                                         Padding="8,4"
@@ -137,20 +134,20 @@
                                         Foreground="White"
                                         CornerRadius="4"
                                         FontSize="12"
-                                        Command="{Binding $parent[UserControl].((vm:RosterViewModel)DataContext).ViewWorkerDetailsCommand}"
+                                        Command="{Binding $parent[DataGrid].DataContext.ViewWorkerDetailsCommand}"
                                         CommandParameter="{Binding WorkerId}"/>
                             </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                </controls:DataGrid.Columns>
 
-                <DataGrid.Styles>
+                <controls:DataGrid.Styles>
                     <Style Selector="DataGridRow">
-                        <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                        <Setter Property="MinHeight" Value="35"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
                     </Style>
                     <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
-                        <Setter Property="Fill" Value="{StaticResource BackgroundSecondaryBrush}"/>
+                        <Setter Property="Fill" Value="{StaticResource BackgroundHoverBrush}"/>
                     </Style>
                     <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
                         <Setter Property="Fill" Value="{StaticResource BorderMediumBrush}"/>
@@ -160,13 +157,19 @@
                         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
                         <Setter Property="FontWeight" Value="SemiBold"/>
                         <Setter Property="Padding" Value="12,8"/>
+                        <Setter Property="MinHeight" Value="40"/>
                     </Style>
                     <Style Selector="DataGridCell">
                         <Setter Property="Padding" Value="12,8"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                        <Setter Property="Background" Value="Transparent"/>
                     </Style>
-                </DataGrid.Styles>
+                    <Style Selector="DataGridCell TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                    </Style>
+                </controls:DataGrid.Styles>
 
-            </DataGrid>
+            </controls:DataGrid>
         </Border>
 
     </Grid>

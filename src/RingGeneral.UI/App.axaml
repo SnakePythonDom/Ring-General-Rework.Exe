@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="RingGeneral.UI.App">
+             x:Class="RingGeneral.UI.App"
+             RequestedThemeVariant="Dark">
 
   <!-- Application Resources (Theme) -->
   <Application.Resources>
@@ -14,5 +15,6 @@
   <!-- Application Styles -->
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
   </Application.Styles>
 </Application>
