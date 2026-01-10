@@ -519,27 +519,30 @@ public sealed class YouthViewModel : ViewModelBase
             {
                 cmd.CommandText = """
                     SELECT t.worker_id,
-                           COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as FullName,
-                           COALESCE(w.InRing, 0) as InRing,
-                           COALESCE(w.Entertainment, 0) as Entertainment,
-                           COALESCE(w.Story, 0) as Story,
+                           w.prenom,
+                           w.nom,
+                           w.in_ring,
+                           w.entertainment,
+                           w.story,
                            COALESCE(t.semaine_inscription, 1) as semaine_inscription,
                            (SELECT COUNT(*) FROM youth_trainees WHERE statut = 'EN_FORMATION') as total
                     FROM youth_trainees t
-                    JOIN Workers w ON w.WorkerId = t.worker_id
+                    JOIN workers w ON w.worker_id = t.worker_id
                     WHERE t.statut = 'EN_FORMATION'
-                    ORDER BY FullName;
+                    ORDER BY w.nom;
                     """;
                 
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
                     var workerId = reader.GetString(0);
-                    var nomComplet = reader.GetString(1);
-                    var inRing = reader.GetInt32(2);
-                    var entertainment = reader.GetInt32(3);
-                    var story = reader.GetInt32(4);
-                    var semaineInscription = reader.GetInt32(5);
+                    var prenom = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                    var nom = reader.GetString(2);
+                    var nomComplet = string.IsNullOrWhiteSpace(prenom) ? nom : $"{prenom} {nom}";
+                    var inRing = reader.GetInt32(3);
+                    var entertainment = reader.GetInt32(4);
+                    var story = reader.GetInt32(5);
+                    var semaineInscription = reader.GetInt32(6);
                     
                     // Calculer progression basée sur moyenne des attributs
                     var moyenne = (inRing + entertainment + story) / 3.0;
