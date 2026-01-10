@@ -255,6 +255,9 @@ public sealed class ShowSchedulerService
         var results = new List<ShowSchedulerResult>();
         var currentDate = startDate;
         
+        // Obtenir les valeurs par défaut pour le type de show, notamment le prix du ticket
+        var defaults = GetDefaultValuesForType(template.ShowType);
+        
         for (int i = 0; i < numberOfOccurrences; i++)
         {
             var draft = new ShowScheduleDraft(
@@ -265,7 +268,7 @@ public sealed class ShowSchedulerService
                 template.DefaultDuration,
                 template.DefaultVenueId,
                 template.DefaultBroadcast,
-                0m);
+                defaults.TicketPrice);
             
             var result = CreerShow(draft);
             results.Add(result);
