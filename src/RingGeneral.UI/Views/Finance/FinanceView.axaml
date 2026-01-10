@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:RingGeneral.UI.ViewModels.Finance"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="RingGeneral.UI.Views.Finance.FinanceView"
              x:DataType="vm:FinanceViewModel">
@@ -11,7 +12,7 @@
         <vm:FinanceViewModel />
     </Design.DataContext>
 
-    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,Auto,20,Auto,20,*">
+    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,Auto,20,Auto,20,Auto,20,*">
 
         <!-- En-tête -->
         <StackPanel Grid.Row="0" Spacing="8">
@@ -85,8 +86,27 @@
             </Grid>
         </Border>
 
+        <!-- Phase 2.2 - Financial Alerts -->
+        <Border Grid.Row="6" 
+                Background="#7f1d1d" 
+                CornerRadius="8" 
+                Padding="15" 
+                Margin="0,0,0,15"
+                IsVisible="{Binding HasFinancialAlert}">
+            <StackPanel Spacing="8">
+                <TextBlock Text="⚠️ ALERTES FINANCIÈRES" 
+                           FontSize="14" 
+                           FontWeight="Bold" 
+                           Foreground="#fecaca"/>
+                <TextBlock Text="{Binding FinancialAlert}" 
+                           FontSize="12" 
+                           Foreground="#fee2e2"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
         <!-- Phase 2.2 - Debt Section -->
-        <Border Grid.Row="6" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+        <Border Grid.Row="8" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,0,15">
             <Grid RowDefinitions="Auto,15,*">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                     <TextBlock Grid.Column="0" Text="DEBT MANAGEMENT" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
@@ -144,8 +164,48 @@
             </Grid>
         </Border>
 
+        <!-- Phase 2.2 - Financial Charts -->
+        <Grid Grid.Row="10" ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,0,0,20">
+            <!-- Cash Flow Projection Chart -->
+            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto,15,*">
+                    <TextBlock Grid.Row="0" 
+                               Text="📈 PROJECTION DE TRÉSORERIE (12 MOIS)" 
+                               FontSize="14" 
+                               FontWeight="SemiBold" 
+                               Foreground="#e0e0e0"/>
+                    <lvc:CartesianChart Grid.Row="2"
+                                        Series="{Binding CashFlowSeries}"
+                                        XAxes="{Binding MonthLabels}"
+                                        Height="250">
+                        <lvc:CartesianChart.XAxes>
+                            <lvc:Axis Labels="{Binding MonthLabels}"/>
+                        </lvc:CartesianChart.XAxes>
+                    </lvc:CartesianChart>
+                </Grid>
+            </Border>
+
+            <!-- Revenue vs Expenses Chart -->
+            <Border Grid.Column="1" Background="#1e293b" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto,15,*">
+                    <TextBlock Grid.Row="0" 
+                               Text="💰 REVENUS VS DÉPENSES (12 MOIS)" 
+                               FontSize="14" 
+                               FontWeight="SemiBold" 
+                               Foreground="#e0e0e0"/>
+                    <lvc:CartesianChart Grid.Row="2"
+                                        Series="{Binding RevenueExpenseSeries}"
+                                        Height="250">
+                        <lvc:CartesianChart.XAxes>
+                            <lvc:Axis Labels="{Binding MonthLabels}"/>
+                        </lvc:CartesianChart.XAxes>
+                    </lvc:CartesianChart>
+                </Grid>
+            </Border>
+        </Grid>
+
         <!-- Transaction History -->
-        <Border Grid.Row="8" Background="#1e293b" CornerRadius="8" Padding="20">
+        <Border Grid.Row="12" Background="#1e293b" CornerRadius="8" Padding="20">
             <Grid RowDefinitions="Auto,15,*">
                 <TextBlock Grid.Row="0" Text="TRANSACTION HISTORY" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
 

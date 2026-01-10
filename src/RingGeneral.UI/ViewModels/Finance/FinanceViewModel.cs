@@ -1,10 +1,16 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Services;
+using RingGeneral.Core.Models;
 using RingGeneral.UI.Views.Finance;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 
 namespace RingGeneral.UI.ViewModels.Finance;
 
@@ -51,10 +57,10 @@ public sealed class FinanceViewModel : ViewModelBase
         CalculateReachCommand = ReactiveCommand.Create(CalculateReach);
         OpenTvDealNegotiationCommand = ReactiveCommand.Create(OpenTvDealNegotiation);
 
-        LoadFinanceData();
-        LoadDebtData();
-        LoadRevenueProjection();
-        CheckFinancialAlerts();
+            LoadFinanceData();
+            LoadDebtData();
+            LoadRevenueProjection();
+            CheckFinancialAlerts();
     }
 
     #region Collections
@@ -148,6 +154,35 @@ public sealed class FinanceViewModel : ViewModelBase
 
     public int TotalTvDeals => TvDeals.Count;
     public decimal TotalReach => ReachMap.Sum(r => r.Population);
+
+    /// <summary>
+    /// Phase 2.2 - Alerte financière (trésorerie faible, dette élevée, etc.)
+    /// </summary>
+    public string FinancialAlert
+    {
+        get => _financialAlert;
+        set => this.RaiseAndSetIfChanged(ref _financialAlert, value);
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Indique si une alerte financière est active
+    /// </summary>
+    public bool HasFinancialAlert => !string.IsNullOrWhiteSpace(FinancialAlert);
+
+    /// <summary>
+    /// Phase 2.2 - Données pour graphique de projection de trésorerie (12 mois)
+    /// </summary>
+    public ISeries[] CashFlowSeries { get; private set; } = Array.Empty<ISeries>();
+
+    /// <summary>
+    /// Phase 2.2 - Données pour graphique revenus/dépenses
+    /// </summary>
+    public ISeries[] RevenueExpenseSeries { get; private set; } = Array.Empty<ISeries>();
+
+    /// <summary>
+    /// Phase 2.2 - Labels pour les axes X (mois)
+    /// </summary>
+    public string[] MonthLabels { get; private set; } = Array.Empty<string>();
 
     #endregion
 
@@ -584,6 +619,199 @@ public sealed class FinanceViewModel : ViewModelBase
             Population = 125_000_000m,
             Penetration = 0.45
         });
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Charge les projections de revenus et génère les données de graphiques
+    /// </summary>
+    private void LoadRevenueProjection()
+    {
+        if (_revenueProjectionService == null || _repository == null)
+        {
+            LoadPlaceholderProjection();
+            return;
+        }
+
+        try
+        {
+            // Récupérer l'ID de la compagnie du joueur
+            string? companyId = null;
+            using var connection = _repository.CreateConnection();
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT CompanyId FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    companyId = reader.GetString(0);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(companyId))
+            {
+                LoadPlaceholderProjection();
+                return;
+            }
+
+            // Calculer la projection sur 12 mois
+            var currentMonth = (CurrentWeek / 4) + 1; // Approximation: 4 semaines = 1 mois
+            var projection = _revenueProjectionService.ProjectRevenue(companyId, currentMonth);
+
+            // Générer les données pour le graphique de trésorerie projetée
+            var cashFlowData = new List<decimal>();
+            var revenueData = new List<decimal>();
+            var expenseData = new List<decimal>();
+            var labels = new List<string>();
+
+            decimal runningBalance = CurrentBalance;
+
+            foreach (var monthlyRevenue in projection.MonthlyRevenues)
+            {
+                // Estimation des dépenses mensuelles (basée sur dépenses hebdomadaires * 4)
+                var monthlyExpenses = WeeklyExpenses * 4m + MonthlyDebtPayments;
+                var netCashFlow = monthlyRevenue.TotalRevenue - monthlyExpenses;
+                runningBalance += netCashFlow;
+
+                cashFlowData.Add(runningBalance);
+                revenueData.Add(monthlyRevenue.TotalRevenue);
+                expenseData.Add(monthlyExpenses);
+                labels.Add($"M{monthlyRevenue.Month}");
+            }
+
+            // Créer les séries pour le graphique de trésorerie
+            CashFlowSeries = new ISeries[]
+            {
+                new LineSeries<decimal>
+                {
+                    Values = cashFlowData,
+                    Name = "Trésorerie Projetée",
+                    Stroke = new SolidColorPaint(SKColors.Cyan, 3),
+                    Fill = null,
+                    GeometryStroke = new SolidColorPaint(SKColors.Cyan, 3),
+                    GeometryFill = new SolidColorPaint(SKColors.Cyan)
+                }
+            };
+
+            // Créer les séries pour le graphique revenus/dépenses
+            RevenueExpenseSeries = new ISeries[]
+            {
+                new ColumnSeries<decimal>
+                {
+                    Values = revenueData,
+                    Name = "Revenus",
+                    Fill = new SolidColorPaint(SKColors.Green)
+                },
+                new ColumnSeries<decimal>
+                {
+                    Values = expenseData,
+                    Name = "Dépenses",
+                    Fill = new SolidColorPaint(SKColors.Red)
+                }
+            };
+
+            MonthLabels = labels.ToArray();
+
+            this.RaisePropertyChanged(nameof(CashFlowSeries));
+            this.RaisePropertyChanged(nameof(RevenueExpenseSeries));
+            this.RaisePropertyChanged(nameof(MonthLabels));
+        }
+        catch (Exception ex)
+        {
+            // Logger.Error($"Erreur chargement projection revenus : {ex.Message}");
+            LoadPlaceholderProjection();
+        }
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Charge des données placeholder pour les graphiques
+    /// </summary>
+    private void LoadPlaceholderProjection()
+    {
+        var placeholderCashFlow = new List<decimal>();
+        var placeholderRevenue = new List<decimal>();
+        var placeholderExpense = new List<decimal>();
+        var labels = new List<string>();
+
+        decimal balance = CurrentBalance;
+        for (int i = 1; i <= 12; i++)
+        {
+            var revenue = 500_000m + (i * 10_000m);
+            var expense = 400_000m + (i * 5_000m);
+            balance += (revenue - expense);
+
+            placeholderCashFlow.Add(balance);
+            placeholderRevenue.Add(revenue);
+            placeholderExpense.Add(expense);
+            labels.Add($"M{i}");
+        }
+
+        CashFlowSeries = new ISeries[]
+        {
+            new LineSeries<decimal>
+            {
+                Values = placeholderCashFlow,
+                Name = "Trésorerie Projetée",
+                Stroke = new SolidColorPaint(SKColors.Cyan, 3),
+                Fill = null
+            }
+        };
+
+        RevenueExpenseSeries = new ISeries[]
+        {
+            new ColumnSeries<decimal>
+            {
+                Values = placeholderRevenue,
+                Name = "Revenus",
+                Fill = new SolidColorPaint(SKColors.Green)
+            },
+            new ColumnSeries<decimal>
+            {
+                Values = placeholderExpense,
+                Name = "Dépenses",
+                Fill = new SolidColorPaint(SKColors.Red)
+            }
+        };
+
+        MonthLabels = labels.ToArray();
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Vérifie les alertes financières (trésorerie faible, dette élevée)
+    /// </summary>
+    private void CheckFinancialAlerts()
+    {
+        var alerts = new List<string>();
+
+        // Alerte si trésorerie < 100k
+        if (CurrentBalance < 100_000m)
+        {
+            alerts.Add($"⚠️ Trésorerie critique : ${CurrentBalance:N0}");
+        }
+
+        // Alerte si dette > 50% de la trésorerie
+        if (TotalDebt > 0 && TotalDebt > CurrentBalance * 0.5m)
+        {
+            alerts.Add($"⚠️ Dette élevée : ${TotalDebt:N0} ({TotalDebt / CurrentBalance * 100m:F1}% de la trésorerie)");
+        }
+
+        // Vérifier la projection de trésorerie (si < 100k dans 3 mois)
+        if (CashFlowSeries.Length > 0 && CashFlowSeries[0] is LineSeries<decimal> lineSeries)
+        {
+            var values = lineSeries.Values?.ToArray() ?? Array.Empty<decimal>();
+            if (values.Length >= 3 && values[2] < 100_000m)
+            {
+                alerts.Add($"⚠️ Trésorerie projetée faible dans 3 mois : ${values[2]:N0}");
+            }
+        }
+
+        // Vérifier si dépenses > revenus
+        if (WeeklyExpenses > WeeklyRevenue)
+        {
+            alerts.Add($"⚠️ Dépenses hebdomadaires supérieures aux revenus (déficit : ${WeeklyExpenses - WeeklyRevenue:N0})");
+        }
+
+        FinancialAlert = alerts.Count > 0 ? string.Join(" | ", alerts) : string.Empty;
+        this.RaisePropertyChanged(nameof(HasFinancialAlert));
     }
 
     #endregion
