@@ -116,7 +116,8 @@ public sealed class RosterViewModel : ViewModelBase
             // Charger les premiers PAGE_SIZE workers
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.CompanyId, c.Name as CompanyName
+                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                       w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
                 FROM Workers w
                 LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
                 ORDER BY w.Popularity DESC
@@ -133,8 +134,14 @@ public sealed class RosterViewModel : ViewModelBase
                     Name = reader.GetString(1),
                     Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
                     Popularity = reader.GetInt32(3),
+                    InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                    Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                    Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                    Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
+                    Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                    Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
                     Status = "Actif", // TODO: Calculer depuis blessures/fatigue
-                    Company = reader.IsDBNull(5) ? "Free Agent" : reader.GetString(5)
+                    Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
                 };
 
                 _allWorkers.Add(worker);
@@ -165,7 +172,8 @@ public sealed class RosterViewModel : ViewModelBase
             using var connection = _repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.CompanyId, c.Name as CompanyName
+                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                       w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
                 FROM Workers w
                 LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
                 ORDER BY w.Popularity DESC
@@ -183,8 +191,14 @@ public sealed class RosterViewModel : ViewModelBase
                     Name = reader.GetString(1),
                     Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
                     Popularity = reader.GetInt32(3),
+                    InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                    Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                    Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                    Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
+                    Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                    Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
                     Status = "Actif",
-                    Company = reader.IsDBNull(5) ? "Free Agent" : reader.GetString(5)
+                    Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
                 };
 
                 _allWorkers.Add(worker);
@@ -211,6 +225,12 @@ public sealed class RosterViewModel : ViewModelBase
             Name = "John Cena",
             Role = "Main Eventer",
             Popularity = 95,
+            InRing = 85,
+            Entertainment = 92,
+            Story = 88,
+            Momentum = 78,
+            Fatigue = 25,
+            Morale = 85,
             Status = "Actif",
             Company = "WWE"
         };
@@ -220,6 +240,12 @@ public sealed class RosterViewModel : ViewModelBase
             Name = "Randy Orton",
             Role = "Main Eventer",
             Popularity = 92,
+            InRing = 84,
+            Entertainment = 88,
+            Story = 86,
+            Momentum = 72,
+            Fatigue = 30,
+            Morale = 80,
             Status = "Actif",
             Company = "WWE"
         };
@@ -229,6 +255,12 @@ public sealed class RosterViewModel : ViewModelBase
             Name = "CM Punk",
             Role = "Upper Midcard",
             Popularity = 88,
+            InRing = 86,
+            Entertainment = 90,
+            Story = 87,
+            Momentum = 65,
+            Fatigue = 40,
+            Morale = 70,
             Status = "Blessé",
             Company = "WWE"
         };
@@ -306,6 +338,12 @@ public sealed class WorkerListItemViewModel : ViewModelBase
     private string _name = string.Empty;
     private string _role = string.Empty;
     private int _popularity;
+    private int _inRing;
+    private int _entertainment;
+    private int _story;
+    private int _momentum;
+    private int _fatigue;
+    private int _morale;
     private string _status = string.Empty;
     private string _company = string.Empty;
 
@@ -333,11 +371,75 @@ public sealed class WorkerListItemViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _popularity, value);
     }
 
+    public int InRing
+    {
+        get => _inRing;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _inRing, value);
+            this.RaisePropertyChanged(nameof(Overall));
+        }
+    }
+
+    public int Entertainment
+    {
+        get => _entertainment;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _entertainment, value);
+            this.RaisePropertyChanged(nameof(Overall));
+        }
+    }
+
+    public int Story
+    {
+        get => _story;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _story, value);
+            this.RaisePropertyChanged(nameof(Overall));
+        }
+    }
+
+    public int Momentum
+    {
+        get => _momentum;
+        set => this.RaiseAndSetIfChanged(ref _momentum, value);
+    }
+
+    public int Fatigue
+    {
+        get => _fatigue;
+        set => this.RaiseAndSetIfChanged(ref _fatigue, value);
+    }
+
+    public int Morale
+    {
+        get => _morale;
+        set => this.RaiseAndSetIfChanged(ref _morale, value);
+    }
+
+    public int Overall => (InRing + Entertainment + Story) / 3;
+
     public string Status
     {
         get => _status;
         set => this.RaiseAndSetIfChanged(ref _status, value);
     }
+
+    public string StatusBackground => Status switch
+    {
+        "Blessé" => "#7f1d1d",
+        "Suspendu" => "#7c2d12",
+        _ => "#065f46"
+    };
+
+    public string StatusForeground => Status switch
+    {
+        "Blessé" => "#fecaca",
+        "Suspendu" => "#fde68a",
+        _ => "#a7f3d0"
+    };
 
     public string Company
     {

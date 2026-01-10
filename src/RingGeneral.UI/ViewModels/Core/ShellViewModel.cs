@@ -14,6 +14,7 @@ using RingGeneral.UI.ViewModels.OwnerBooker;
 using RingGeneral.UI.ViewModels.Crisis;
 using RingGeneral.UI.ViewModels.Inbox;
 using RingGeneral.UI.ViewModels.Settings;
+using RingGeneral.UI.ViewModels.Medical;
 using RingGeneral.UI.ViewModels; // provide access to GameSessionViewModel
 
 namespace RingGeneral.UI.ViewModels.Core;
@@ -240,6 +241,15 @@ public sealed class ShellViewModel : ViewModelBase
             roster
         ));
         root.Add(roster);
+
+        // 🏥 MEDICAL
+        var medical = new NavigationItemViewModel(
+            "medical",
+            "MÉDICAL",
+            "🏥",
+            typeof(MedicalViewModel)
+        );
+        root.Add(medical);
 
         // 🏢 COMPANY HUB
         var companyHub = new NavigationItemViewModel(

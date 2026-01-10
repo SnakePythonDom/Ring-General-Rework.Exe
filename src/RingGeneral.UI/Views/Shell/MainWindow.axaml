@@ -6,23 +6,31 @@
 	   xmlns:vmDashboard="using:RingGeneral.UI.ViewModels.Dashboard"
 	   xmlns:vmBooking="using:RingGeneral.UI.ViewModels.Booking"
 	   xmlns:vmRoster="using:RingGeneral.UI.ViewModels.Roster"
+	   xmlns:vmCompanyHub="using:RingGeneral.UI.ViewModels.CompanyHub"
 	   xmlns:vmStorylines="using:RingGeneral.UI.ViewModels.Storylines"
 	   xmlns:vmYouth="using:RingGeneral.UI.ViewModels.Youth"
 	   xmlns:vmFinance="using:RingGeneral.UI.ViewModels.Finance"
 	   xmlns:vmCalendar="using:RingGeneral.UI.ViewModels.Calendar"
+	   xmlns:vmOwnerBooker="using:RingGeneral.UI.ViewModels.OwnerBooker"
+	   xmlns:vmCrisis="using:RingGeneral.UI.ViewModels.Crisis"
 	   xmlns:vmStart="using:RingGeneral.UI.ViewModels.Start"
 	   xmlns:vmInbox="using:RingGeneral.UI.ViewModels.Inbox"
 	   xmlns:vmSettings="using:RingGeneral.UI.ViewModels.Settings"
+	   xmlns:vmMedical="using:RingGeneral.UI.ViewModels.Medical"
 	   xmlns:dashboard="using:RingGeneral.UI.Views.Dashboard"
 	   xmlns:booking="using:RingGeneral.UI.Views.Booking"
 	   xmlns:roster="using:RingGeneral.UI.Views.Roster"
+	   xmlns:companyHub="using:RingGeneral.UI.Views.CompanyHub"
 	   xmlns:storylines="using:RingGeneral.UI.Views.Storylines"
 	   xmlns:youth="using:RingGeneral.UI.Views.Youth"
 	   xmlns:finance="using:RingGeneral.UI.Views.Finance"
 	   xmlns:calendar="using:RingGeneral.UI.Views.Calendar"
+	   xmlns:ownerBooker="using:RingGeneral.UI.Views.OwnerBooker"
+	   xmlns:crisis="using:RingGeneral.UI.Views.Crisis"
 	   xmlns:start="using:RingGeneral.UI.Views.Start"
 	   xmlns:inbox="using:RingGeneral.UI.Views.Inbox"
 	   xmlns:settings="using:RingGeneral.UI.Views.Settings"
+	   xmlns:medical="using:RingGeneral.UI.Views.Medical"
 	   mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
 	   x:Class="RingGeneral.UI.Views.Shell.MainWindow"
 	   x:DataType="vm:ShellViewModel"
@@ -53,6 +61,9 @@
 		<DataTemplate DataType="vmRoster:TitlesViewModel">
 			<roster:TitlesView />
 		</DataTemplate>
+		<DataTemplate DataType="vmCompanyHub:CompanyHubViewModel">
+			<companyHub:CompanyHubView />
+		</DataTemplate>
 		<DataTemplate DataType="vmStorylines:StorylinesViewModel">
 			<storylines:StorylinesView />
 		</DataTemplate>
@@ -64,6 +75,12 @@
 		</DataTemplate>
 		<DataTemplate DataType="vmCalendar:CalendarViewModel">
 			<calendar:CalendarView />
+		</DataTemplate>
+		<DataTemplate DataType="vmOwnerBooker:OwnerBookerViewModel">
+			<ownerBooker:OwnerBookerView />
+		</DataTemplate>
+		<DataTemplate DataType="vmCrisis:CrisisViewModel">
+			<crisis:CrisisManagementView />
 		</DataTemplate>
 		<DataTemplate DataType="vmStart:StartViewModel">
 			<start:StartView />
@@ -86,8 +103,14 @@
 		<DataTemplate DataType="vmBooking:ShowHistoryPageViewModel">
 			<booking:ShowHistoryPageView />
 		</DataTemplate>
+		<DataTemplate DataType="vmBooking:BookingSettingsViewModel">
+			<booking:BookingSettingsView />
+		</DataTemplate>
 		<DataTemplate DataType="vmSettings:SettingsViewModel">
 			<settings:SettingsView />
+		</DataTemplate>
+		<DataTemplate DataType="vmMedical:MedicalViewModel">
+			<medical:MedicalView />
 		</DataTemplate>
 		<DataTemplate DataType="vm:ShellViewModel">
 			<ContentControl Content="{Binding}"/>

@@ -11,212 +11,167 @@
         <vm:InboxViewModel />
     </Design.DataContext>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="400"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <UserControl.Resources>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource BackgroundCardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="BoxShadow" Value="0 8 20 #00000055"/>
+        </Style>
 
-        <!-- Liste des messages (gauche) -->
-        <Border Grid.Column="0" Background="#1e1e1e" BorderBrush="#2a2a2a" BorderThickness="0,0,1,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+        <Style Selector="RadioButton.inbox-tab">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+            <Setter Property="Padding" Value="0,0,0,6"/>
+            <Setter Property="Margin" Value="0,0,20,0"/>
+        </Style>
 
-                <!-- En-tête -->
-                <Border Grid.Row="0" Background="#242424" Padding="20,15" BorderBrush="#3a3a3a" BorderThickness="0,0,0,1">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="📥 INBOX" FontSize="22" FontWeight="Bold" Foreground="#e0e0e0"/>
-                        <StackPanel Orientation="Horizontal" Spacing="15">
-                            <TextBlock FontSize="12" Foreground="#888888">
-                                <Run Text="{Binding TotalMessages}"/>
-                                <Run Text="messages"/>
-                            </TextBlock>
-                            <TextBlock FontSize="12" Foreground="#ef4444" FontWeight="SemiBold">
-                                <Run Text="{Binding UnreadCount}"/>
-                                <Run Text="non lus"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
+        <Style Selector="RadioButton.inbox-tab:checked">
+            <Setter Property="Foreground" Value="{StaticResource BrandPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
+        </Style>
 
-                <!-- Filtres -->
-                <Border Grid.Row="1" Padding="15" Background="#1e1e1e">
-                    <ComboBox ItemsSource="{Binding FilterCategories}"
-                            SelectedItem="{Binding FilterCategory}"
-                            Background="#2d2d2d"
-                            BorderBrush="#3a3a3a"
-                            Foreground="#e0e0e0"
-                            HorizontalAlignment="Stretch"/>
-                </Border>
+        <Style Selector="ListBoxItem.inbox-item">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="12,8"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
 
-                <!-- Liste des messages -->
-                <ScrollViewer Grid.Row="2">
-                    <ItemsControl ItemsSource="{Binding Messages}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Background="Transparent"
-                                      Padding="0"
-                                      HorizontalAlignment="Stretch"
-                                      HorizontalContentAlignment="Stretch"
-                                      Command="{Binding $parent[UserControl].DataContext.MarkAsReadCommand}"
-                                      CommandParameter="{Binding}">
-                                    <Border Padding="15,12"
-                                          Margin="8,4"
-                                          CornerRadius="6">
-                                        <Border.Styles>
-                                            <Style Selector="Border">
-                                                <Setter Property="Background" Value="#242424"/>
-                                            </Style>
-                                            <Style Selector="Button:pointerover > Border">
-                                                <Setter Property="Background" Value="#2d2d2d"/>
-                                            </Style>
-                                        </Border.Styles>
+        <Style Selector="ListBoxItem.inbox-item:selected Border">
+            <Setter Property="Background" Value="{StaticResource BackgroundCardDarkBrush}"/>
+        </Style>
+    </UserControl.Resources>
 
-                                        <Grid ColumnDefinitions="Auto,*,Auto">
-                                            <!-- Indicateur non lu -->
-                                            <Border Grid.Column="0"
-                                                  Width="8"
-                                                  Height="8"
-                                                  CornerRadius="4"
-                                                  Background="#ef4444"
-                                                  VerticalAlignment="Top"
-                                                  Margin="0,6,12,0"
-                                                  IsVisible="{Binding !IsRead}"/>
+    <Grid Background="{StaticResource BackgroundPrimaryBrush}" RowDefinitions="Auto,*" Padding="24">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <TextBlock Text="BOÎTE DE RÉCEPTION"
+                       FontSize="24"
+                       FontWeight="Black"
+                       Foreground="White"
+                       LetterSpacing="-0.5"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" VerticalAlignment="Bottom">
+                <RadioButton Classes="inbox-tab" GroupName="InboxTabs" Content="TOUS" IsChecked="{Binding IsAllTabSelected}"/>
+                <RadioButton Classes="inbox-tab" GroupName="InboxTabs" Content="CONTRATS" IsChecked="{Binding IsContractsTabSelected}"/>
+                <RadioButton Classes="inbox-tab" GroupName="InboxTabs" Content="MÉDICAL" IsChecked="{Binding IsMedicalTabSelected}"/>
+            </StackPanel>
+        </Grid>
 
-                                            <!-- Contenu -->
-                                            <StackPanel Grid.Column="1" Spacing="6">
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <TextBlock Text="{Binding PriorityIcon}" FontSize="14"/>
-                                                    <TextBlock Text="{Binding Title}"
-                                                             FontSize="13"
-                                                             Foreground="#e0e0e0"
-                                                             FontWeight="{Binding IsRead, Converter={StaticResource BoolToWeightConverter}}"
-                                                             TextTrimming="CharacterEllipsis"/>
-                                                </StackPanel>
-                                                <TextBlock Text="{Binding Content}"
-                                                         FontSize="11"
-                                                         Foreground="#888888"
-                                                         TextTrimming="CharacterEllipsis"
-                                                         MaxLines="2"/>
-                                                <TextBlock Text="{Binding TimestampFormatted}"
-                                                         FontSize="10"
-                                                         Foreground="#666666"/>
-                                            </StackPanel>
-
-                                            <!-- Catégorie badge -->
-                                            <Border Grid.Column="2"
-                                                  Background="#3b82f6"
-                                                  Padding="8,4"
-                                                  CornerRadius="4"
-                                                  VerticalAlignment="Top">
-                                                <TextBlock Text="{Binding Category}"
-                                                         FontSize="9"
-                                                         Foreground="White"
-                                                         FontWeight="Bold"/>
-                                            </Border>
-                                        </Grid>
+        <Grid Grid.Row="1" ColumnDefinitions="*,2*" ColumnSpacing="20">
+            <!-- Liste Messages -->
+            <Border Classes="card" Grid.Column="0">
+                <ListBox ItemsSource="{Binding FilteredItems}"
+                         SelectedItem="{Binding SelectedItem}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         VerticalAlignment="Stretch">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderThickness="4,0,0,0"
+                                    BorderBrush="{Binding AccentColor}"
+                                    CornerRadius="8"
+                                    Padding="16">
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="6">
+                                    <Border Grid.Row="0"
+                                            Background="{Binding BadgeBackground}"
+                                            CornerRadius="4"
+                                            Padding="6,2"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding BadgeLabel}"
+                                                   FontSize="10"
+                                                   FontWeight="Black"
+                                                   Foreground="{Binding BadgeForeground}"/>
                                     </Border>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                                        <TextBlock Grid.Row="0"
+                                                   Grid.Column="1"
+                                                   Text="{Binding FormattedDate}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Row="1"
+                                               Grid.ColumnSpan="2"
+                                               Text="{Binding Titre}"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               Foreground="White"
+                                               TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Row="2"
+                                                   Grid.ColumnSpan="2"
+                                                   Text="{Binding Message}"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerTheme>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Classes" Value="inbox-item"/>
+                        </Style>
+                    </ListBox.ItemContainerTheme>
+                </ListBox>
+            </Border>
 
-                <!-- Actions -->
-                <Border Grid.Row="3" Background="#242424" Padding="15" BorderBrush="#3a3a3a" BorderThickness="0,1,0,0">
-                    <Button Content="✅ Tout marquer comme lu"
-                          Command="{Binding MarkAllAsReadCommand}"
-                          Padding="0,10"
-                          Background="#10b981"
-                          Foreground="White"
-                          CornerRadius="6"
-                          FontWeight="Bold"
-                          HorizontalAlignment="Stretch"
-                          HorizontalContentAlignment="Center"/>
-                </Border>
-            </Grid>
-        </Border>
+            <!-- Lecture Message -->
+            <Border Grid.Column="1" Classes="card" Padding="24">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Text="DÉTAILS DU MESSAGE"
+                               FontSize="18"
+                               FontWeight="Black"
+                               Foreground="White"
+                               LetterSpacing="-0.5"
+                               Margin="0,0,0,16"/>
 
-        <!-- Détail du message (droite) -->
-        <Border Grid.Column="1" Background="#1a1a1a">
-            <ScrollViewer>
-                <StackPanel Margin="40" Spacing="20">
-                    <Panel IsVisible="{Binding SelectedMessage, Converter={x:Static ObjectConverters.IsNull}}">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="15">
-                            <TextBlock Text="📬"
-                                     FontSize="64"
-                                     HorizontalAlignment="Center"
-                                     Foreground="#3a3a3a"/>
-                            <TextBlock Text="Sélectionnez un message pour voir les détails"
-                                     FontSize="14"
-                                     Foreground="#666666"
-                                     HorizontalAlignment="Center"/>
+                    <Grid Grid.Row="1">
+                        <StackPanel IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNull}}"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    Spacing="12">
+                            <TextBlock Text="Sélectionnez un message pour le lire."
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextMutedBrush}"/>
                         </StackPanel>
-                    </Panel>
 
-                    <StackPanel Spacing="20" IsVisible="{Binding SelectedMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
-                        <!-- En-tête message -->
-                        <StackPanel Spacing="12">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="{Binding SelectedMessage.PriorityIcon}" FontSize="24"/>
-                                <TextBlock Text="{Binding SelectedMessage.Title}"
-                                         FontSize="24"
-                                         FontWeight="Bold"
-                                         Foreground="#e0e0e0"
-                                         TextWrapping="Wrap"/>
+                        <StackPanel IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" Spacing="16">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding SelectedItem.Titre}"
+                                           FontSize="20"
+                                           FontWeight="Black"
+                                           Foreground="White"
+                                           TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="{Binding SelectedItem.BadgeBackground}"
+                                            CornerRadius="4"
+                                            Padding="6,2">
+                                        <TextBlock Text="{Binding SelectedItem.BadgeLabel}"
+                                                   FontSize="10"
+                                                   FontWeight="Black"
+                                                   Foreground="{Binding SelectedItem.BadgeForeground}"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding SelectedItem.FormattedDate}"
+                                               FontSize="11"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Spacing="20">
-                                <Border Background="#3b82f6" Padding="10,6" CornerRadius="4">
-                                    <TextBlock Text="{Binding SelectedMessage.Category}"
-                                             FontSize="11"
-                                             Foreground="White"
-                                             FontWeight="Bold"/>
-                                </Border>
-                                <TextBlock Text="{Binding SelectedMessage.TimestampFormatted}"
-                                         FontSize="12"
-                                         Foreground="#888888"
-                                         VerticalAlignment="Center"/>
-                            </StackPanel>
+                            <Border Background="{StaticResource BackgroundCardDarkBrush}" CornerRadius="8" Padding="18">
+                                <TextBlock Text="{Binding SelectedItem.Message}"
+                                           FontSize="13"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           LineHeight="22"/>
+                            </Border>
                         </StackPanel>
-
-                        <!-- Contenu message -->
-                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
-                            <TextBlock Text="{Binding SelectedMessage.Content}"
-                                     FontSize="14"
-                                     Foreground="#cbd5e1"
-                                     TextWrapping="Wrap"
-                                     LineHeight="24"/>
-                        </Border>
-
-                        <!-- Actions -->
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Content="✅ Marquer comme lu"
-                                  Command="{Binding MarkAsReadCommand}"
-                                  CommandParameter="{Binding SelectedMessage}"
-                                  Padding="15,10"
-                                  Background="#10b981"
-                                  Foreground="White"
-                                  CornerRadius="6"
-                                  FontWeight="SemiBold"/>
-                            <Button Content="🗑️ Supprimer"
-                                  Command="{Binding DeleteMessageCommand}"
-                                  CommandParameter="{Binding SelectedMessage}"
-                                  Padding="15,10"
-                                  Background="#ef4444"
-                                  Foreground="White"
-                                  CornerRadius="6"
-                                  FontWeight="SemiBold"/>
-                        </StackPanel>
-                    </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
-        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
-
 </UserControl>
