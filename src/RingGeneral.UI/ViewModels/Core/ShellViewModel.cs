@@ -6,6 +6,8 @@ using RingGeneral.UI.ViewModels.Shared.Navigation;
 using RingGeneral.UI.ViewModels.Booking;
 using RingGeneral.UI.ViewModels.Dashboard;
 using RingGeneral.UI.ViewModels.Roster;
+using RingGeneral.UI.ViewModels.Trends;
+using RingGeneral.UI.ViewModels.Company;
 using RingGeneral.UI.ViewModels.Storylines;
 using RingGeneral.UI.ViewModels.Youth;
 using RingGeneral.UI.ViewModels.Finance;
@@ -240,6 +242,13 @@ public sealed class ShellViewModel : ViewModelBase
             typeof(InjuriesViewModel),
             roster
         ));
+        roster.Children.Add(new NavigationItemViewModel(
+            "roster.analysis",
+            "Analyse Structurelle",
+            "  📊",
+            typeof(ViewModels.Roster.StructuralDashboardViewModel),
+            roster
+        ));
         root.Add(roster);
 
         // 🏥 MEDICAL
@@ -259,6 +268,35 @@ public sealed class ShellViewModel : ViewModelBase
             typeof(ViewModels.CompanyHub.CompanyHubViewModel)
         );
         root.Add(companyHub);
+
+        // 📈 ANALYSIS (Analyse Structurelle & Stratégies de Niche)
+        var analysis = new NavigationItemViewModel(
+            "analysis",
+            "ANALYSE",
+            "📈"
+        );
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.trends",
+            "Tendances",
+            "  📈",
+            typeof(ViewModels.Trends.TrendsViewModel),
+            analysis
+        ));
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.niche",
+            "Gestion Niche",
+            "  🎯",
+            typeof(ViewModels.Company.NicheManagementViewModel),
+            analysis
+        ));
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.childcompanies",
+            "Filiales",
+            "  🏢",
+            typeof(ViewModels.Company.ChildCompaniesViewModel),
+            analysis
+        ));
+        root.Add(analysis);
 
         // 📖 STORYLINES
         var storylines = new NavigationItemViewModel(
