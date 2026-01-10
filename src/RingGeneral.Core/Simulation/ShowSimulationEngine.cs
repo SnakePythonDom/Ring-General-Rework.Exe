@@ -8,15 +8,26 @@ public sealed class ShowSimulationEngine
     private readonly IRandomProvider _random;
     private readonly AudienceModel _audienceModel;
     private readonly DealRevenueModel _dealRevenueModel;
+    
+    // Services pour l'analyse structurelle et les tendances
+    private readonly RingGeneral.Core.Interfaces.ITrendRepository? _trendRepository;
+    private readonly RingGeneral.Core.Interfaces.IRosterAnalysisRepository? _rosterAnalysisRepository;
+    private readonly RingGeneral.Core.Interfaces.INicheFederationRepository? _nicheRepository;
 
     public ShowSimulationEngine(
         IRandomProvider random,
         AudienceModel? audienceModel = null,
-        DealRevenueModel? dealRevenueModel = null)
+        DealRevenueModel? dealRevenueModel = null,
+        RingGeneral.Core.Interfaces.ITrendRepository? trendRepository = null,
+        RingGeneral.Core.Interfaces.IRosterAnalysisRepository? rosterAnalysisRepository = null,
+        RingGeneral.Core.Interfaces.INicheFederationRepository? nicheRepository = null)
     {
         _random = random;
         _audienceModel = audienceModel ?? new AudienceModel();
         _dealRevenueModel = dealRevenueModel ?? new DealRevenueModel();
+        _trendRepository = trendRepository;
+        _rosterAnalysisRepository = rosterAnalysisRepository;
+        _nicheRepository = nicheRepository;
     }
 
     public ShowSimulationResult Simuler(ShowContext context)
@@ -96,6 +107,10 @@ public sealed class ShowSimulationEngine
                 : (int)Math.Round((participants.Average(worker => worker.Morale) - 50) / 10.0);
             var note = Math.Clamp(baseScore + crowdBonus + pacingPenalty + chimieBonus, 0, 100);
             note = Math.Clamp(note + moraleBonus, 0, 100);
+
+            // Bonus de compatibilité avec les tendances (Phase 6)
+            var compatibilityBonus = CalculateCompatibilityBonus(context.Compagnie.CompagnieId);
+            note = Math.Clamp(note + (int)compatibilityBonus, 0, 100);
 
             var events = new List<string>();
             if (segment.TypeSegment == "match")
@@ -193,6 +208,13 @@ public sealed class ShowSimulationEngine
         {
             tv = Math.Round(5000.0 + audience * 40, 2);
         }
+
+        // Appliquer les bénéfices de niche (Phase 6)
+        var nicheBenefits = CalculateNicheBenefits(context.Compagnie.CompagnieId);
+        billetterie = Math.Round(billetterie * nicheBenefits.TicketStabilityMultiplier, 2);
+        merch = Math.Round(merch * nicheBenefits.MerchandiseMultiplier, 2);
+        tv = Math.Round(tv * (1.0 - nicheBenefits.TvDependencyReduction / 100.0), 2);
+
         finances.Add(new FinanceTransaction("billetterie", billetterie, "Billetterie"));
         finances.Add(new FinanceTransaction("merch", merch, "Merchandising"));
         if (tv > 0)
@@ -430,5 +452,81 @@ public sealed class ShowSimulationEngine
             : delta;
         deltaLocal[segment.TitreId] = delta;
         return deltaLocal;
+    }
+
+    /// <summary>
+    /// Calcule le bonus de compatibilité avec les tendances actives
+    /// </summary>
+    private double CalculateCompatibilityBonus(string companyId)
+    {
+        if (_trendRepository == null || _rosterAnalysisRepository == null)
+        {
+            return 0;
+        }
+
+        try
+        {
+            var dna = _rosterAnalysisRepository.GetRosterDNAByCompanyIdAsync(companyId).Result;
+            if (dna == null) return 0;
+
+            var activeTrends = _trendRepository.GetActiveTrendsAsync().Result;
+            if (activeTrends.Count == 0) return 0;
+
+            // Calculer le bonus moyen de toutes les tendances actives
+            double totalBonus = 0;
+            int count = 0;
+
+            foreach (var trend in activeTrends)
+            {
+                var matrix = _trendRepository.GetCompatibilityMatrixAsync(companyId, trend.TrendId).Result;
+                if (matrix != null && matrix.Level == RingGeneral.Core.Enums.CompatibilityLevel.Alignment)
+                {
+                    totalBonus += matrix.QualityBonus;
+                    count++;
+                }
+            }
+
+            return count > 0 ? totalBonus / count : 0;
+        }
+        catch
+        {
+            // En cas d'erreur, retourner 0 pour ne pas bloquer la simulation
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// Calcule les bénéfices de niche pour une compagnie
+    /// </summary>
+    private (double TicketStabilityMultiplier, double MerchandiseMultiplier, double TvDependencyReduction) CalculateNicheBenefits(string companyId)
+    {
+        if (_nicheRepository == null)
+        {
+            return (1.0, 1.0, 0.0);
+        }
+
+        try
+        {
+            var nicheProfile = _nicheRepository.GetNicheFederationProfileByCompanyIdAsync(companyId).Result;
+            if (nicheProfile == null || !nicheProfile.IsNicheFederation)
+            {
+                return (1.0, 1.0, 0.0);
+            }
+
+            // Appliquer les multiplicateurs de niche
+            // La stabilité de billetterie réduit la variance mais maintient le niveau moyen
+            var ticketMultiplier = 1.0 + (nicheProfile.TicketSalesStability / 200.0); // Légère augmentation de stabilité
+            
+            return (
+                TicketStabilityMultiplier: ticketMultiplier,
+                MerchandiseMultiplier: nicheProfile.MerchandiseMultiplier,
+                TvDependencyReduction: nicheProfile.TvDependencyReduction
+            );
+        }
+        catch
+        {
+            // En cas d'erreur, retourner les valeurs par défaut
+            return (1.0, 1.0, 0.0);
+        }
     }
 }
