@@ -1,0 +1,535 @@
+# Règles de Projet Cursor - Ring General
+
+## 📋 Contexte du Projet
+
+**Nom** : Ring General  
+**Type** : Simulateur de gestion de catch professionnel (Wrestling Management Simulator)  
+**Plateforme** : Application Desktop multiplateforme (Windows, macOS, Linux)
+
+### Stack Technique
+
+- **Langage** : C# 12
+- **Framework** : .NET 8.0 LTS
+- **UI Framework** : Avalonia UI 11.0.6
+- **Reactive UI** : ReactiveUI (via Avalonia)
+- **Base de données** : SQLite 8.0.0
+- **Dependency Injection** : Microsoft.Extensions.DependencyInjection 8.0.0
+- **Architecture** : MVVM avec architecture en couches (Layered Architecture)
+
+---
+
+## 🏗️ Architecture en Couches
+
+Le projet suit une architecture en couches stricte avec séparation claire des responsabilités :
+
+```
+RingGeneral.UI (Présentation)
+  ├─> RingGeneral.Core (Logique Métier)
+  ├─> RingGeneral.Data (Accès Données)
+  └─> RingGeneral.Specs (Configuration)
+
+RingGeneral.Data
+  ├─> RingGeneral.Core
+  └─> RingGeneral.Specs
+
+RingGeneral.Core
+  └─> RingGeneral.Specs
+
+RingGeneral.Specs
+  └─> (Aucune dépendance)
+```
+
+### Projets de la Solution
+
+- **RingGeneral.UI** : Couche présentation (Views, ViewModels, Services UI)
+- **RingGeneral.Core** : Logique métier (Models, Services, Simulation, Interfaces)
+- **RingGeneral.Data** : Accès aux données (Repositories, Database, Migrations)
+- **RingGeneral.Specs** : Configuration JSON (modèles et services de chargement)
+- **RingGeneral.Tools.BakiImporter** : Outil CLI pour import BAKI
+- **RingGeneral.Tools.DbManager** : Utilitaires de gestion DB
+- **RingGeneral.Tests** : Projet de tests (actuellement vide)
+
+### Règles de Dépendances
+
+✅ **Autorisé** :
+- UI → Core, Data, Specs
+- Data → Core, Specs
+- Core → Specs uniquement
+- Tools → Core, Data, Specs
+- Tests → Core, Data, Specs
+
+❌ **Interdit** :
+- Dépendances circulaires
+- Core → UI ou Data
+- Specs → Autre projet
+- Data → UI
+
+---
+
+## 🎯 Conventions MVVM Strictes
+
+### Structure MVVM
+
+#### Models (RingGeneral.Core/Models/)
+- **Type** : `sealed record` (immuables)
+- **Localisation** : `src/RingGeneral.Core/Models/`
+- **Exemples** : `WorkerSnapshot`, `ShowDefinition`, `SegmentDefinition`, `StorylineInfo`
+- **Règles** :
+  - Records immuables uniquement
+  - Pas de logique métier dans les models
+  - Propriétés publiques en français (PascalCase)
+
+#### ViewModels (RingGeneral.UI/ViewModels/)
+- **Type** : Classes héritant de `ViewModelBase` (qui hérite de `ReactiveObject`)
+- **Localisation** : `src/RingGeneral.UI/ViewModels/` organisés par domaine
+- **Exemples** : `BookingViewModel`, `RosterViewModel`, `DashboardViewModel`
+- **Règles** :
+  - Hériter de `ViewModelBase` (fournit `ILoggingService Logger`)
+  - Utiliser `RaiseAndSetIfChanged(ref _field, value)` pour les propriétés
+  - Utiliser `ReactiveCommand` pour les commandes
+  - Injection de dépendances via constructeur
+  - Pas de références aux Views
+
+#### Views (RingGeneral.UI/Views/)
+- **Type** : Fichiers AXAML avec code-behind minimal
+- **Localisation** : `src/RingGeneral.UI/Views/`
+- **Règles** :
+  - Code-behind contient UNIQUEMENT `InitializeComponent()`
+  - Pas de logique métier dans le code-behind
+  - Data binding exclusif via XAML
+  - Pas d'événements dans code-behind (utiliser les commandes du ViewModel)
+
+#### Services
+- **Services Métier** : `src/RingGeneral.Core/Services/`
+- **Services UI** : `src/RingGeneral.UI/Services/`
+- **Règles** :
+  - Services stateless (pas d'état mutable)
+  - Injection de dépendances obligatoire
+  - Interfaces dans `RingGeneral.Core/Interfaces/`
+
+### Règles MVVM Strictes
+
+❌ **JAMAIS** :
+- Logique métier dans les Views
+- Références aux Views dans les ViewModels
+- Instanciation manuelle de services (`new Service()`) dans les ViewModels
+- Accès direct à la DB depuis les ViewModels
+- Code-behind avec logique (sauf `InitializeComponent`)
+
+✅ **TOUJOURS** :
+- Data binding via ReactiveUI
+- Dependency Injection pour toutes les dépendances
+- Navigation via `INavigationService` (pas de références directes aux Views)
+- Logique métier dans les Services
+- Validation dans les Services ou Validators
+
+---
+
+## 📝 Conventions de Nommage
+
+### Types et Classes
+- **Format** : PascalCase en anglais
+- **Exemples** : `WorkerSnapshot`, `BookingViewModel`, `ShowSimulationEngine`
+- **Interfaces** : Préfixe `I` + PascalCase (`IRepository`, `INavigationService`)
+
+### Propriétés Publiques
+- **Format** : PascalCase en français
+- **Exemples** : `NomComplet`, `Popularite`, `Fatigue`, `Momentum`, `Morale`
+
+### Champs Privés
+- **Format** : camelCase avec underscore préfixe
+- **Exemples** : `_gameRepository`, `_selectedTabIndex`, `_currentCompany`
+
+### Méthodes
+- **Format** : PascalCase en français pour méthodes publiques
+- **Exemples** : `ChargerDonnees()`, `Sauvegarder()`, `ValiderSegment()`
+
+### Namespaces
+- **Règle CRITIQUE** : Le namespace DOIT correspondre EXACTEMENT au chemin du fichier
+- **Exemple** :
+  ```csharp
+  // Fichier : src/RingGeneral.UI/ViewModels/Booking/BookingViewModel.cs
+  namespace RingGeneral.UI.ViewModels.Booking;
+  
+  // Fichier : src/RingGeneral.Core/Models/WorkerSnapshot.cs
+  namespace RingGeneral.Core.Models;
+  ```
+- **Vérification** : Toujours vérifier après déplacement/renommage de fichiers
+
+### Fichiers
+- **Classes** : Un fichier par classe, nom du fichier = nom de la classe
+- **Records** : Un fichier par record
+- **Enums** : Un fichier par enum dans `RingGeneral.Core/Enums/`
+
+---
+
+## 🔧 Patterns et Conventions C#
+
+### Records Immuables
+- **Utilisation** : Tous les modèles du domaine utilisent `sealed record`
+- **Exemple** :
+  ```csharp
+  public sealed record WorkerSnapshot(
+      string WorkerId,
+      string NomComplet,
+      int InRing,
+      int Entertainment,
+      int Story,
+      int Popularite);
+  ```
+
+### Nullable Reference Types
+- **Activé** : `<Nullable>enable</Nullable>` dans tous les projets
+- **Règles** :
+  - Utiliser `string?` pour les valeurs nullable
+  - Utiliser `int?` pour les entiers nullable
+  - Vérifier les nulls avant utilisation (`?.`, `??`, `!`)
+
+### Dependency Injection
+- **Conteneur** : Microsoft.Extensions.DependencyInjection
+- **Configuration** : `App.axaml.cs` (méthode `OnFrameworkInitializationCompleted`)
+- **Règles** :
+  - Services enregistrés comme Singleton ou Transient
+  - ViewModels enregistrés comme Transient (sauf ShellViewModel = Singleton)
+  - Repositories enregistrés comme Singleton
+  - Injection via constructeur uniquement
+
+### Repository Pattern
+- **Interfaces** : `RingGeneral.Core/Interfaces/` (ex: `IWorkerRepository`, `IShowRepository`)
+- **Implémentations** : `RingGeneral.Data/Repositories/` (ex: `WorkerRepository`, `ShowRepository`)
+- **Règles** :
+  - Un repository par domaine (23+ repositories spécialisés)
+  - Méthodes asynchrones pour opérations DB
+  - Transactions pour modifications multiples
+  - Paramètres SQL (jamais de concaténation)
+
+### ReactiveUI
+- **Propriétés** : Utiliser `RaiseAndSetIfChanged(ref _field, value)`
+- **Commandes** : Utiliser `ReactiveCommand.Create()` ou `ReactiveCommand.CreateFromTask()`
+- **Collections** : `ObservableCollection<T>` pour listes dynamiques
+- **Exemple** :
+  ```csharp
+  private string _nom = string.Empty;
+  public string Nom
+  {
+      get => _nom;
+      set => this.RaiseAndSetIfChanged(ref _nom, value);
+  }
+  
+  public ReactiveCommand<Unit, Unit> SauvegarderCommand { get; }
+  ```
+
+### Async/Await
+- **Règles** :
+  - Utiliser `async Task` pour méthodes asynchrones
+  - Utiliser `ConfigureAwait(false)` dans les libraries (pas dans UI)
+  - Gérer les exceptions avec try-catch
+
+---
+
+## 🎯 Règles Spécifiques au Projet
+
+### Namespace = Chemin Fichier
+- **Règle ABSOLUE** : Vérifier après chaque modification/déplacement
+- **Outils** : Utiliser File Cleaner si nécessaire
+- **Exemple d'erreur** :
+  ```csharp
+  // ❌ INCORRECT
+  // Fichier : src/RingGeneral.UI/ViewModels/Booking/BookingViewModel.cs
+  namespace RingGeneral.UI.ViewModels; // ❌ Ne correspond pas !
+  
+  // ✅ CORRECT
+  namespace RingGeneral.UI.ViewModels.Booking;
+  ```
+
+### Injection de Dépendances
+- **TOUJOURS** utiliser le conteneur DI
+- **JAMAIS** d'instanciation manuelle (`new Service()`) dans les ViewModels
+- **Pattern** : Injection via constructeur
+- **Exemple** :
+  ```csharp
+  // ✅ CORRECT
+  public sealed class BookingViewModel : ViewModelBase
+  {
+      private readonly IShowRepository _showRepository;
+      
+      public BookingViewModel(IShowRepository showRepository)
+      {
+          _showRepository = showRepository ?? throw new ArgumentNullException(nameof(showRepository));
+      }
+  }
+  
+  // ❌ INCORRECT
+  public sealed class BookingViewModel : ViewModelBase
+  {
+      private readonly IShowRepository _showRepository = new ShowRepository(); // ❌
+  }
+  ```
+
+### Logging
+- **Méthode 1** : Via `ApplicationServices.Logger` (dans ViewModelBase)
+- **Méthode 2** : Injection de `ILoggingService` via constructeur
+- **Exemple** :
+  ```csharp
+  protected ViewModelBase()
+  {
+      Logger = ApplicationServices.Logger; // Disponible automatiquement
+  }
+  
+  // Utilisation
+  Logger.Info("Message informatif");
+  Logger.Error("Erreur", exception);
+  ```
+
+### Base de Données
+- **Paramètres SQL** : TOUJOURS utiliser des paramètres (jamais de concaténation)
+- **Transactions** : Utiliser des transactions pour modifications multiples
+- **Exemple** :
+  ```csharp
+  // ✅ CORRECT
+  command.CommandText = "INSERT INTO Workers (Name, Popularite) VALUES (@name, @popularite)";
+  command.Parameters.AddWithValue("@name", workerName);
+  command.Parameters.AddWithValue("@popularite", popularite);
+  
+  // ❌ DANGEREUX (SQL Injection)
+  command.CommandText = $"INSERT INTO Workers (Name) VALUES ('{workerName}')";
+  ```
+
+### Fichiers de Specs
+- **Localisation** : `/specs` à la racine du projet
+- **Source de vérité** : Navigation, pages UI, aide/Codex, boucles de jeu
+- **Règles** :
+  - Ne pas modifier les IDs existants (casse les références)
+  - Ajouter du contenu via les fichiers JSON appropriés
+  - Vérifier la validité JSON avant commit
+
+---
+
+## 📁 Structure des Fichiers
+
+### ViewModels
+Organisés par domaine dans `src/RingGeneral.UI/ViewModels/` :
+- `Booking/` : BookingViewModel, LibraryViewModel, ShowHistoryPageViewModel
+- `Roster/` : RosterViewModel, WorkerDetailViewModel, TitlesViewModel
+- `Storylines/` : StorylinesViewModel
+- `Finance/` : FinanceViewModel
+- `Calendar/` : CalendarViewModel
+- `CompanyHub/` : CompanyHubViewModel
+- `OwnerBooker/` : OwnerBookerViewModel
+- `Crisis/` : CrisisViewModel
+- `Medical/` : MedicalViewModel
+- `Start/` : StartViewModel, CompanySelectorViewModel, CreateCompanyViewModel
+- `Dashboard/` : DashboardViewModel
+- `Core/` : ShellViewModel, ViewModelBase
+
+### Repositories
+Un repository par domaine dans `src/RingGeneral.Data/Repositories/` :
+- `GameRepository` : Gestion partie/sauvegarde
+- `WorkerRepository` : Workers/catcheurs
+- `ShowRepository` : Shows/événements
+- `CompanyRepository` : Compagnies
+- `TitleRepository` : Titres/ceintures
+- `ContractRepository` : Contrats
+- `MedicalRepository` : Blessures
+- `BackstageRepository` : Systèmes backstage
+- `ScoutingRepository` : Scouting
+- Et 14+ autres repositories spécialisés
+
+### Services
+Groupés par responsabilité dans `src/RingGeneral.Core/Services/` :
+- Services métier : BookingBuilderService, StorylineService, TitleService
+- Services simulation : ShowSimulationEngine, FinanceEngine, BackstageService
+- Services contrats : ContractNegotiationService, AIContractDecisionService
+- Services médicaux : InjuryService, MedicalRecommendations
+- Services validation : BookingValidator
+
+### Migrations
+- **Localisation** : `data/migrations/`
+- **Format** : `001_*.sql`, `002_*.sql`, etc. (numérotation séquentielle)
+- **Règles** : Ne jamais modifier une migration existante, créer une nouvelle
+
+---
+
+## ✅ Bonnes Pratiques
+
+### SOLID Principles
+- **S**ingle Responsibility : Une classe = une responsabilité
+- **O**pen/Closed : Ouvert à l'extension, fermé à la modification
+- **L**iskov Substitution : Les interfaces doivent être respectées
+- **I**nterface Segregation : Interfaces spécifiques plutôt que générales
+- **D**ependency Inversion : Dépendre des abstractions, pas des implémentations
+
+### DRY (Don't Repeat Yourself)
+- Factoriser le code dupliqué
+- Utiliser des services partagés
+- Créer des contrôles XAML réutilisables
+- Extraire les méthodes communes
+
+### YAGNI (You Aren't Gonna Need It)
+- Implémenter uniquement ce qui est demandé
+- Pas de sur-ingénierie
+- Pas de features "au cas où"
+
+### Validation
+- Valider les entrées avant traitement
+- Utiliser `BookingValidator` pour les segments
+- Validation métier dans les Services
+- Messages d'erreur clairs en français
+
+### Error Handling
+- Try-catch autour des opérations risquées (DB, I/O)
+- Logger les erreurs avec contexte
+- Afficher des messages utilisateur compréhensibles
+- Ne pas exposer les détails techniques aux utilisateurs
+
+### Sécurité
+- Paramètres SQL uniquement (pas de concaténation)
+- Valider les entrées utilisateur
+- Gérer les nulls correctement
+- Transactions pour cohérence des données
+
+---
+
+## 🚀 Commandes Essentielles
+
+### Build et Compilation
+```bash
+# Build du projet
+dotnet build
+
+# Build en Release
+dotnet build -c Release
+
+# Nettoyer les outputs
+dotnet clean
+
+# Restaurer les packages NuGet
+dotnet restore
+```
+
+### Exécution
+```bash
+# Lancer l'application
+dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
+
+# Avec hot reload (watch)
+dotnet watch run --project src/RingGeneral.UI/RingGeneral.UI.csproj
+```
+
+### Tests
+```bash
+# Exécuter tous les tests
+dotnet test
+
+# Tests avec détails
+dotnet test --verbosity normal
+```
+
+### Publication
+```bash
+# Publier un exécutable Windows
+dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+
+# Publier pour Linux
+dotnet publish src/RingGeneral.UI/RingGeneral.UI.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true
+```
+
+---
+
+## 🔄 Workflow de Développement
+
+### Ordre d'Implémentation Standard
+
+1. **Models** (`RingGeneral.Core/Models/`)
+   - Créer les records immuables
+   - Définir les propriétés en français
+
+2. **Interfaces** (`RingGeneral.Core/Interfaces/`)
+   - Définir les contrats des repositories/services
+
+3. **Services** (`RingGeneral.Core/Services/`)
+   - Implémenter la logique métier
+   - Validation et règles métier
+
+4. **Repositories** (`RingGeneral.Data/Repositories/`)
+   - Implémenter les interfaces
+   - Accès aux données SQLite
+
+5. **ViewModels** (`RingGeneral.UI/ViewModels/`)
+   - Logique de présentation
+   - Commandes et propriétés bindables
+
+6. **Views** (`RingGeneral.UI/Views/`)
+   - Fichiers AXAML
+   - Data binding vers ViewModel
+
+### Checklist après Modification
+
+- [ ] Vérifier que les namespaces correspondent aux chemins de fichiers
+- [ ] Vérifier l'injection de dépendances (pas d'instanciation manuelle)
+- [ ] Compiler le projet (`dotnet build`)
+- [ ] Vérifier les erreurs de compilation
+- [ ] Vérifier les warnings (corriger si nécessaire)
+- [ ] Tester l'application (`dotnet run`)
+
+### Vérifications Critiques
+
+1. **Namespace** : Correspond au chemin du fichier ?
+2. **DI** : Toutes les dépendances injectées via constructeur ?
+3. **MVVM** : Pas de logique dans les Views ?
+4. **SQL** : Paramètres utilisés (pas de concaténation) ?
+5. **Nullable** : Types nullable gérés correctement ?
+6. **Compilation** : Le projet compile sans erreurs ?
+
+---
+
+## 📚 Références Techniques
+
+### Documentation Externe
+- **Avalonia UI** : https://docs.avaloniaui.net/
+- **ReactiveUI** : https://www.reactiveui.net/
+- **.NET 8.0** : https://learn.microsoft.com/dotnet/
+- **C# 12** : https://learn.microsoft.com/dotnet/csharp/
+
+### Documentation Projet
+- **Architecture** : `docs/ARCHITECTURE_REVIEW_FR.md`
+- **Guide Dev** : `docs/DEV_GUIDE_FR.md`
+- **Guide DB** : `docs/DATABASE_GUIDE_FR.md`
+- **Guide Import** : `docs/IMPORT_GUIDE_FR.md`
+- **Index Docs** : `docs/INDEX.md`
+
+### Fichiers de Configuration
+- **Specs Navigation** : `specs/navigation.fr.json`
+- **Specs UI** : `specs/ui/pages/*.fr.json`
+- **Specs Help** : `specs/help/*.fr.json`
+
+---
+
+## ⚠️ Avertissements Importants
+
+1. **JAMAIS de logique dans les Views** : Toute logique doit être dans les ViewModels ou Services
+2. **TOUJOURS vérifier les namespaces** : Utiliser File Cleaner si nécessaire
+3. **TOUJOURS compiler avant de commiter** : `dotnet build` doit réussir
+4. **JAMAIS de code dupliqué** : Factoriser via services ou helpers
+5. **TOUJOURS utiliser l'injection de dépendances** : Pas de `new Service()` dans les ViewModels
+6. **TOUJOURS utiliser des paramètres SQL** : Jamais de concaténation de chaînes SQL
+7. **TOUJOURS gérer les nulls** : Vérifier avant utilisation, utiliser `?.` et `??`
+
+---
+
+## 🎯 Objectif Final
+
+Construire **Ring General** comme un simulateur de gestion de catch professionnel avec :
+
+- ✅ Architecture propre et maintenable
+- ✅ Interface utilisateur fluide et intuitive
+- ✅ Simulation réaliste et équilibrée
+- ✅ Contenu riche et captivant
+- ✅ Code de qualité professionnelle
+
+---
+
+**Version** : 1.0  
+**Dernière mise à jour** : 2026-01-08  
+**Projet** : Ring General - Wrestling Management Simulator  
+**Architecture** : MVVM avec Avalonia UI et architecture en couches

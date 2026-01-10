@@ -1,0 +1,135 @@
+# Data Logic Standards - Ring General
+
+## 🗄️ Standards Accès aux Données
+
+### SQL Sécurisé - RÈGLE ABSOLUE
+- **TOUJOURS** utiliser des paramètres SQL
+- **JAMAIS** de concaténation de chaînes SQL
+- **JAMAIS** de string interpolation dans les requêtes
+
+### Exemples SQL Corrects
+```csharp
+// ✅ CORRECT - Paramètres nommés
+command.CommandText = "INSERT INTO Workers (Name, Popularite) VALUES (@name, @popularite)";
+command.Parameters.AddWithValue("@name", workerName);
+command.Parameters.AddWithValue("@popularite", popularite);
+
+// ✅ CORRECT - Paramètres positionnels
+command.CommandText = "SELECT * FROM Workers WHERE Popularite > ? AND Fatigue < ?";
+command.Parameters.Add(populariteMin);
+command.Parameters.Add(fatigueMax);
+```
+
+### Exemples SQL DANGEREUX (INTERDITS)
+```csharp
+// ❌ DANGEREUX - SQL Injection
+command.CommandText = $"INSERT INTO Workers (Name) VALUES ('{workerName}')";
+
+// ❌ DANGEREUX - Concaténation
+command.CommandText = "SELECT * FROM Workers WHERE Name = '" + workerName + "'";
+```
+
+### Pattern Repository
+- Un repository par domaine (23+ repositories spécialisés)
+- Interfaces dans `RingGeneral.Core/Interfaces/`
+- Implémentations dans `RingGeneral.Data/Repositories/`
+- Méthodes asynchrones pour toutes les opérations DB
+
+### Transactions Obligatoires
+```csharp
+using var connection = _factory.CreateConnection();
+using var transaction = connection.BeginTransaction();
+
+try
+{
+    // Opérations multiples
+    await ExecuteCommand1Async(command1, connection);
+    await ExecuteCommand2Async(command2, connection);
+
+    transaction.Commit();
+}
+catch
+{
+    transaction.Rollback();
+    throw;
+}
+```
+
+### Gestion des Connexions SQLite
+- Utiliser `SqliteConnectionFactory` pour créer les connexions
+- **TOUJOURS** utiliser `using` pour les connexions et commandes
+- Configurer correctement les pragmas SQLite si nécessaire
+
+### Migrations Database
+- Localisation : `/data/migrations/`
+- Format : `001_description.sql`, `002_description.sql`
+- **JAMAIS** modifier une migration existante
+- Créer une nouvelle migration pour chaque changement de schéma
+
+### Gestion d'Erreurs DB
+```csharp
+try
+{
+    // Opération DB
+}
+catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // Constraint violation
+{
+    Logger.Error("Violation de contrainte", ex);
+    throw new DomainException("Données invalides", ex);
+}
+catch (SqliteException ex)
+{
+    Logger.Error("Erreur base de données", ex);
+    throw new InfrastructureException("Erreur d'accès aux données", ex);
+}
+```
+
+### Validation des Données
+- Valider les entrées avant insertion/modification
+- Utiliser des contraintes DB quand possible
+- Gérer les valeurs null correctement avec les types nullable
+
+### Optimisations SQLite
+- Utiliser des indexes appropriés
+- Éviter les requêtes N+1
+- Utiliser les transactions pour les opérations batch
+- Considérer les pragmas de performance (WAL mode, etc.)
+
+## 🏗️ Architecture Repositories
+
+### Structure Standard Repository
+```csharp
+public interface IWorkerRepository
+{
+    Task<IEnumerable<WorkerSnapshot>> GetAllAsync();
+    Task<WorkerSnapshot?> GetByIdAsync(string workerId);
+    Task SaveAsync(WorkerSnapshot worker);
+    Task DeleteAsync(string workerId);
+}
+
+public class WorkerRepository : IWorkerRepository
+{
+    private readonly SqliteConnectionFactory _factory;
+
+    public WorkerRepository(SqliteConnectionFactory factory)
+    {
+        _factory = factory;
+    }
+
+    // Implémentations...
+}
+```
+
+### Injection et Enregistrement
+- Tous les repositories enregistrés comme Singleton dans `App.axaml.cs`
+- Injection via constructeur obligatoire
+- Utiliser `RepositoryFactory` pour la création groupée
+
+## ⚠️ RÈGLES CRITIQUES
+
+1. **PARAMÈTRES SQL** : Toujours, sans exception
+2. **TRANSACTIONS** : Pour toute modification multiple
+3. **ASYNC/AWAIT** : Toutes les méthodes DB
+4. **USING STATEMENTS** : Pour toutes les ressources DB
+5. **VALIDATION** : Entrées validées avant DB
+6. **LOGGING** : Toutes les erreurs DB loguées
