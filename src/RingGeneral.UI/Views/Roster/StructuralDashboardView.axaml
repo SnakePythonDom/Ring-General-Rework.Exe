@@ -1,0 +1,306 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="RingGeneral.UI.Views.Roster.StructuralDashboardView"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Roster;assembly=RingGeneral.UI">
+
+  <Design.DataContext>
+    <vm:StructuralDashboardViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="20" Spacing="20">
+
+      <!-- Header -->
+      <TextBlock Text="📊 Tableau de Bord Structurel"
+                 FontSize="24"
+                 FontWeight="Bold"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,20"/>
+
+      <!-- Refresh Button -->
+      <Button Content="🔄 Rafraîchir Analyse"
+              Command="{Binding RefreshCommand}"
+              HorizontalAlignment="Right"
+              Margin="0,0,0,10"/>
+
+      <!-- Indicateurs Principaux -->
+      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="📈 Indicateurs Globaux"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"/>
+
+          <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Gap="15">
+
+            <!-- Star Power Moyen -->
+            <Border Grid.Row="0" Grid.Column="0"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="⭐ Star Power Moyen"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding StarPowerMoyen, StringFormat={}{0:F1}}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Workrate Moyen -->
+            <Border Grid.Row="0" Grid.Column="1"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="⚡ Workrate Moyen"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding WorkrateMoyen, StringFormat={}{0:F1}}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Spécialisation Dominante -->
+            <Border Grid.Row="0" Grid.Column="2"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="🎯 Spécialisation Dominante"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding SpecialisationDominante}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Profondeur -->
+            <Border Grid.Row="1" Grid.Column="0"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="🏊 Profondeur"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding Profondeur}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Talents Main Event"
+                           FontSize="10"
+                           HorizontalAlignment="Center"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Indice de Dépendance -->
+            <Border Grid.Row="1" Grid.Column="1"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="⚖️ Indice de Dépendance"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding IndiceDependance, StringFormat={}{0:F1}%}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="% lié aux 2 stars"
+                           FontSize="10"
+                           HorizontalAlignment="Center"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Polyvalence -->
+            <Border Grid.Row="1" Grid.Column="2"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="🎭 Polyvalence"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding Polyvalence, StringFormat={}{0:F1}}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Capacité adaptation"
+                           FontSize="10"
+                           HorizontalAlignment="Center"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+          </Grid>
+
+        </StackPanel>
+      </Border>
+
+      <!-- ADN du Roster -->
+      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="🧬 ADN du Roster"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"/>
+
+          <Grid ColumnDefinitions="*,*,*" Gap="15">
+
+            <!-- Composition Stylistique -->
+            <Border Grid.Column="0"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10">
+              <StackPanel Spacing="8">
+                <TextBlock Text="🎨 Composition Stylistique"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <TextBlock Text="{Binding CurrentDNA.HardcorePercentage, StringFormat='Hardcore: {0:F1}%'}"
+                           FontSize="12"/>
+                <TextBlock Text="{Binding CurrentDNA.TechnicalPercentage, StringFormat='Technical: {0:F1}%'}"
+                           FontSize="12"/>
+                <TextBlock Text="{Binding CurrentDNA.LuchaPercentage, StringFormat='Lucha: {0:F1}%'}"
+                           FontSize="12"/>
+                <TextBlock Text="{Binding CurrentDNA.EntertainmentPercentage, StringFormat='Entertainment: {0:F1}%'}"
+                           FontSize="12"/>
+                <TextBlock Text="{Binding CurrentDNA.StrongStylePercentage, StringFormat='Strong Style: {0:F1}%'}"
+                           FontSize="12"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Style Dominant -->
+            <Border Grid.Column="1"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10">
+              <StackPanel Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="👑 Style Dominant"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="{Binding CurrentDNA.DominantStyle}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Score de Cohérence -->
+            <Border Grid.Column="2"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10">
+              <StackPanel Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="🎯 Cohérence"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="{Binding CurrentDNA.CoherenceScore, StringFormat='{0:F1}/100'}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Homogénéité stylistique"
+                           FontSize="10"
+                           HorizontalAlignment="Center"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+          </Grid>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Workers Capables de Main Event -->
+      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="🏆 Talents Main Event Capables"
+                     FontSize="18"
+                     FontWeight="SemiBold"/>
+
+          <TextBlock Text="Nombre total de workers capables de porter un Main Event :"
+                     FontSize="14"/>
+          <TextBlock Text="{Binding MainEventCapableWorkers.Count}"
+                     FontSize="24"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center"
+                     Foreground="{DynamicResource ThemeAccentBrush}"/>
+
+          <ItemsControl ItemsSource="{Binding MainEventCapableWorkers}"
+                       Margin="0,10,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="8"
+                        Margin="0,2,0,2">
+                  <TextBlock Text="{Binding}" FontSize="12"/>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>
