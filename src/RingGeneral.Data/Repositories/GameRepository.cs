@@ -324,15 +324,15 @@ public sealed class GameRepository : IGameRepository
                 VALUES ((SELECT CompanyId FROM Shows WHERE ShowId = $showId), $showId, (SELECT Week FROM Shows WHERE ShowId = $showId), $type, $montant, $libelle);
                 """;
             command.Parameters.AddWithValue("$showId", showId);
-            command.Parameters.AddWithValue("$type", transactionFin.Type);
-            command.Parameters.AddWithValue("$montant", transactionFin.Montant);
-            command.Parameters.AddWithValue("$libelle", transactionFin.Libelle);
+            command.Parameters.AddWithValue("$type", transactionFin.Id);
+            command.Parameters.AddWithValue("$montant", transactionFin.Amount);
+            command.Parameters.AddWithValue("$libelle", transactionFin.Description);
             command.ExecuteNonQuery();
 
             using var treasuryCommand = connexion.CreateCommand();
             treasuryCommand.Transaction = transaction;
             treasuryCommand.CommandText = "UPDATE Companies SET Treasury = Treasury + $montant WHERE CompanyId = (SELECT CompanyId FROM Shows WHERE ShowId = $showId);";
-            treasuryCommand.Parameters.AddWithValue("$montant", transactionFin.Montant);
+            treasuryCommand.Parameters.AddWithValue("$montant", transactionFin.Amount);
             treasuryCommand.Parameters.AddWithValue("$showId", showId);
             treasuryCommand.ExecuteNonQuery();
         }

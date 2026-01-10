@@ -119,7 +119,7 @@ public sealed class FinanceShowResult
 public sealed class WeeklyFinanceContext
 {
     public int Semaine { get; set; }
-    public required IReadOnlyList<ContractPayroll> Contrats { get; set; }
+    public IReadOnlyList<ContractPayroll> Contrats { get; set; }
 
     public WeeklyFinanceContext(int semaine, IReadOnlyList<ContractPayroll> contrats)
     {

@@ -85,7 +85,7 @@ public sealed class ImpactApplier : IImpactApplier
 
             foreach (var transaction in context.Delta.Finances)
             {
-                changements.Add($"Finance {transaction.Libelle}: {transaction.Montant:+#;-#;0}");
+                changements.Add($"Finance {transaction.Description}: {transaction.Amount:+#;-#;0}");
             }
         }
 
