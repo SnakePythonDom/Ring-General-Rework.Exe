@@ -2269,11 +2269,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\RingGeneral.UI.csproj",
+      "projectUniqueName": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\RingGeneral.UI.csproj",
       "projectName": "RingGeneral.UI",
-      "projectPath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\RingGeneral.UI.csproj",
+      "projectPath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\RingGeneral.UI.csproj",
       "packagesPath": "C:\\Users\\popo2\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\obj\\",
+      "outputPath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2295,14 +2295,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj": {
-              "projectPath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj"
+            "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj": {
+              "projectPath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Core\\RingGeneral.Core.csproj"
             },
-            "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj": {
-              "projectPath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj"
+            "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj": {
+              "projectPath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Data\\RingGeneral.Data.csproj"
             },
-            "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj": {
-              "projectPath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj"
+            "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj": {
+              "projectPath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj"
             }
           }
         }
@@ -2389,13 +2389,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problème de lecture du fichier cache c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.UI\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0."
-    }
-  ]
+  }
 }
