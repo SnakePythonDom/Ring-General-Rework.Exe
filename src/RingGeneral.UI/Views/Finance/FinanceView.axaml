@@ -100,7 +100,7 @@
                            Foreground="{StaticResource ErrorLightBrush}"/>
                 <TextBlock Text="{Binding FinancialAlert}" 
                            FontSize="12" 
-                           Foreground="#fee2e2"
+                           Foreground="{StaticResource ErrorLightBrush}"
                            TextWrapping="Wrap"/>
             </StackPanel>
         </Border>

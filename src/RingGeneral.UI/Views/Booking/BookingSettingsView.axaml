@@ -117,7 +117,7 @@
                                                             Command="{Binding $parent[UserControl].DataContext.RemoveValidationRuleCommand}"
                                                             CommandParameter="{Binding}"
                                                             Background="{StaticResource BorderMediumBrush}"
-                                                            Foreground="#e2e8f0"
+                                                            Foreground="{StaticResource TextPrimaryBrush}"
                                                             CornerRadius="6"
                                                             Padding="10,4"/>
                                                     <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -128,8 +128,8 @@
                                 </ItemsControl>
 
                                 <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                                    <Button Content="Tester" Command="{Binding TestValidationCommand}" Background="{StaticResource BackgroundTertiaryBrush}" Foreground="#e2e8f0" CornerRadius="6" Padding="12,6"/>
-                                    <Button Content="Réinitialiser" Command="{Binding ResetToDefaultsCommand}" Background="#475569" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Tester" Command="{Binding TestValidationCommand}" Classes="secondary" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Réinitialiser" Command="{Binding ResetToDefaultsCommand}" Classes="secondary" CornerRadius="6" Padding="12,6"/>
                                     <Button Content="Enregistrer" Command="{Binding SaveSettingsCommand}" Background="{StaticResource AccentGreenBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
                                 </StackPanel>
                             </StackPanel>

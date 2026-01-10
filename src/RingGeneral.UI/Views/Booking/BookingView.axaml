@@ -30,7 +30,7 @@
                         <Border Background="{StaticResource SuccessDarkBrush}" Padding="8,4" CornerRadius="4" IsVisible="{Binding IsBookingValid}">
                             <TextBlock Text="✅ Valide" FontSize="11" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
                         </Border>
-                        <Border Background="#92400e" Padding="8,4" CornerRadius="4" IsVisible="{Binding ValidationWarnings, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <Border Background="{StaticResource WarningDarkBrush}" Padding="8,4" CornerRadius="4" IsVisible="{Binding ValidationWarnings, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                             <TextBlock FontSize="11" Foreground="{StaticResource WarningBrush}" FontWeight="SemiBold">
                                 <TextBlock.Text>
                                     <MultiBinding StringFormat="⚠️ {0} warnings">
@@ -128,13 +128,13 @@
                                     </Style>
                                     <!-- Style Main Event -->
                                     <Style Selector="Border[Tag=MainEvent]">
-                                        <Setter Property="Background" Value="#1e3a8a"/>
+                                        <Setter Property="Background" Value="{StaticResource AccentBlueBrush}"/>
                                         <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
                                         <Setter Property="BorderThickness" Value="2"/>
                                     </Style>
                                     <!-- Style hover -->
                                     <Style Selector="Border:pointerover">
-                                        <Setter Property="Background" Value="#374151"/>
+                                        <Setter Property="Background" Value="{StaticResource BackgroundHoverBrush}"/>
                                     </Style>
                                 </Border.Styles>
 
@@ -188,7 +188,7 @@
                                     </TextBlock>
 
                                     <!-- Intensité -->
-                                    <Border Grid.Column="4" Background="#92400e" Padding="8,4" CornerRadius="4" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    <Border Grid.Column="4" Background="{StaticResource WarningDarkBrush}" Padding="8,4" CornerRadius="4" VerticalAlignment="Center" HorizontalAlignment="Center"
                                             IsVisible="{Binding Intensite, Converter={x:Static ObjectConverters.IsNotNull}}">
                                         <TextBlock FontSize="12" Foreground="{StaticResource WarningBrush}" FontWeight="Bold">
                                             <TextBlock.Text>
@@ -203,8 +203,8 @@
                                     <TextBlock Grid.Column="5" Text="{Binding StorylineNom}" FontSize="12" Foreground="{StaticResource AccentBlueBrush}" VerticalAlignment="Center"/>
 
                                     <!-- Note estimée (Placeholder) -->
-                                    <Border Grid.Column="6" Background="#374151" Width="50" Height="50" CornerRadius="25" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock Text="--" FontSize="18" Foreground="#d1d5db" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="6" Background="{StaticResource BackgroundSecondaryBrush}" Width="50" Height="50" CornerRadius="25" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="--" FontSize="18" Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -229,7 +229,7 @@
                     <StackPanel>
                         <TextBlock Text="DURÉE TOTALE" FontSize="10" Foreground="{StaticResource TextDisabledBrush}"/>
                         <TextBlock Text="{Binding DurationSummary}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" Margin="0,4,0,0"/>
-                        <ProgressBar Value="{Binding TotalDuration}" Maximum="{Binding ShowDuration}" Height="4" Background="#374151" Foreground="{StaticResource AccentBlueBrush}" Margin="0,6,0,0" Width="120"/>
+                        <ProgressBar Value="{Binding TotalDuration}" Maximum="{Binding ShowDuration}" Height="4" Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource AccentBlueBrush}" Margin="0,6,0,0" Width="120"/>
                     </StackPanel>
                     <Border Width="1" Background="{StaticResource BorderLightBrush}"/>
                     <StackPanel>

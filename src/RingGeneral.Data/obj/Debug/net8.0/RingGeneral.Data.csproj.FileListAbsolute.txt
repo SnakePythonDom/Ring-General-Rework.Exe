@@ -1,9 +1,3 @@
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.csproj.AssemblyReference.cache
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.AssemblyInfoInputs.cache
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.AssemblyInfo.cs
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.csproj.CoreCompileInputs.cache
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.sourcelink.json
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\001_init.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\002_backstage.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\002_booking_segments.sql
@@ -31,6 +25,8 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\ne
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\006_catch_styles.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\007_daily_time_system.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\011_child_companies_staff.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\015_daily_show_system.sql
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\016_migrate_shows_week_to_date.sql
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\RingGeneral.Data.deps.json
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\RingGeneral.Data.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\RingGeneral.Data.pdb
@@ -38,10 +34,14 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\ne
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\RingGeneral.Specs.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\RingGeneral.Core.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\RingGeneral.Specs.pdb
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.csproj.AssemblyReference.cache
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.AssemblyInfoInputs.cache
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.AssemblyInfo.cs
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.csproj.CoreCompileInputs.cache
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.sourcelink.json
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGene.0EDE0806.Up2Date
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\refint\RingGeneral.Data.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\ref\RingGeneral.Data.dll
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\015_daily_show_system.sql
-C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\016_migrate_shows_week_to_date.sql

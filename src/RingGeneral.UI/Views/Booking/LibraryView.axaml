@@ -40,7 +40,7 @@
                 <Border Grid.Column="2" Background="{StaticResource WarningDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,0,0">
                     <StackPanel Spacing="8">
                         <TextBlock Text="🎤 PROMOS" FontSize="12" Foreground="{StaticResource WarningLightBrush}" FontWeight="SemiBold"/>
-                        <TextBlock Text="2" FontSize="32" FontWeight="Bold" Foreground="#fb923c"/>
+                        <TextBlock Text="2" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
                         <TextBlock Text="Templates" FontSize="11" Foreground="{StaticResource WarningLightBrush}"/>
                     </StackPanel>
                 </Border>

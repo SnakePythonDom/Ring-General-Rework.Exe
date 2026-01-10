@@ -1,14 +1,19 @@
 using System.Collections.ObjectModel;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
+using RingGeneral.UI.ViewModels.Roster;
+using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Medical;
 
 public sealed class MedicalViewModel : ViewModelBase
 {
     private MedicalTab _selectedTab = MedicalTab.Active;
+    private readonly InjuriesViewModel? _injuriesViewModel;
 
-    public MedicalViewModel()
+    public MedicalViewModel(
+        GameRepository? gameRepository = null,
+        MedicalRepository? medicalRepository = null)
     {
         Workers = new ObservableCollection<MedicalWorkerRow>
         {
@@ -22,9 +27,20 @@ public sealed class MedicalViewModel : ViewModelBase
                 StatusForeground = "#6ee7b7"
             }
         };
+
+        // Créer InjuriesViewModel si les repositories sont disponibles
+        if (gameRepository != null && medicalRepository != null)
+        {
+            _injuriesViewModel = new InjuriesViewModel(gameRepository, medicalRepository);
+        }
     }
 
     public ObservableCollection<MedicalWorkerRow> Workers { get; }
+
+    /// <summary>
+    /// ViewModel pour l'onglet Infirmerie (blessures)
+    /// </summary>
+    public InjuriesViewModel? InjuriesViewModel => _injuriesViewModel;
 
     public MedicalTab SelectedTab
     {

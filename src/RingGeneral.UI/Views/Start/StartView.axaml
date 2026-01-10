@@ -16,9 +16,9 @@
         <Border>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                    <GradientStop Color="#0a0a0a" Offset="0.0"/>
-                    <GradientStop Color="#1a1a2e" Offset="0.5"/>
-                    <GradientStop Color="#0a0a0a" Offset="1.0"/>
+                    <GradientStop Color="{StaticResource BackgroundTertiary}" Offset="0.0"/>
+                    <GradientStop Color="{StaticResource BackgroundSecondary}" Offset="0.5"/>
+                    <GradientStop Color="{StaticResource BackgroundTertiary}" Offset="1.0"/>
                 </LinearGradientBrush>
             </Border.Background>
         </Border>
@@ -97,7 +97,7 @@
                         HorizontalContentAlignment="Center"
                         Padding="0,20"
                         CornerRadius="8"
-                        Background="#dc2626">
+                        Classes="danger">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <TextBlock Text="❌" FontSize="24"/>
                         <TextBlock Text="QUITTER" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
@@ -109,7 +109,7 @@
             <!-- Version info -->
             <TextBlock Text="v1.0.0 Alpha • Build 2026-01-07"
                       FontSize="12"
-                      Foreground="{StaticResource TextDark}"
+                      Foreground="{StaticResource TextDisabledBrush}"
                       HorizontalAlignment="Center"
                       Margin="0,40,0,0"/>
 

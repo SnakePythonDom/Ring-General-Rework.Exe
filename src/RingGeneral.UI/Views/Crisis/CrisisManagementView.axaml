@@ -73,14 +73,14 @@
                         <ItemsControl ItemsSource="{Binding CriticalCrises}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#991b1b" Padding="14,12" Margin="0,0,0,8" CornerRadius="6">
+                                    <Border Background="{StaticResource ErrorDarkBrush}" Padding="14,12" Margin="0,0,0,8" CornerRadius="6">
                                         <Grid ColumnDefinitions="Auto,*,Auto">
                                             <TextBlock Grid.Column="0" Text="{Binding CrisisTypeIcon}" FontSize="20" Margin="0,0,12,0"/>
                                             <StackPanel Grid.Column="1" Spacing="4">
                                                 <TextBlock Text="{Binding Description}" FontSize="13" Foreground="{StaticResource ErrorLightBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                                     <TextBlock Text="{Binding StageLabel}" FontSize="11" Foreground="{StaticResource ErrorLightBrush}"/>
-                                                    <TextBlock Text="•" Foreground="#dc2626"/>
+                                                    <TextBlock Text="•" Foreground="{StaticResource AccentRedBrush}"/>
                                                     <TextBlock Text="{Binding SeverityLabel}" FontSize="11"/>
                                                 </StackPanel>
                                             </StackPanel>
@@ -88,7 +88,7 @@
                                                     Command="{Binding $parent[UserControl].DataContext.OpenCommunicationDialogCommand}"
                                                     CommandParameter="{Binding}"
                                                     Padding="12,8"
-                                                    Background="#dc2626"
+                                                    Classes="danger"
                                                     Foreground="White"
                                                     CornerRadius="6"
                                                     Margin="12,0,0,0"/>
@@ -169,13 +169,13 @@
                                                 </StackPanel>
 
                                                 <!-- Date de création -->
-                                                <TextBlock Text="{Binding CreatedAtFormatted}" FontSize="9" Foreground="#475569"/>
+                                                <TextBlock Text="{Binding CreatedAtFormatted}" FontSize="9" Foreground="{StaticResource TextSubtleBrush}"/>
                                             </StackPanel>
 
                                             <!-- Badge critique (si applicable) -->
                                             <Border Grid.Column="2" IsVisible="{Binding IsCritical}"
                                                     Padding="8,4"
-                                                    Background="#dc2626"
+                                                    Classes="danger"
                                                     CornerRadius="4"
                                                     Margin="12,0,12,0"
                                                     VerticalAlignment="Center">
@@ -223,7 +223,7 @@
 
         <!-- Dialogue de Communication (Overlay) -->
         <Border IsVisible="{Binding IsCommunicationDialogOpen}"
-                Background="#CC000000"
+                Background="{StaticResource BackgroundTertiaryBrush}" Opacity="0.8"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
             <Border Background="{StaticResource BackgroundSecondaryBrush}"
@@ -323,8 +323,7 @@
                                 Command="{Binding CancelCommunicationCommand}"
                                 Content="❌ Annuler"
                                 Padding="12,10"
-                                Background="#475569"
-                                Foreground="White"
+                                Classes="secondary"
                                 CornerRadius="6"
                                 Margin="0,0,6,0"
                                 FontSize="13"

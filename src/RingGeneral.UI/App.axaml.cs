@@ -238,6 +238,8 @@ public sealed class App : Application
         services.AddSingleton(repositories.SettingsRepository);
         services.AddSingleton(repositories.YouthRepository);
         services.AddSingleton(repositories.TitleRepository);
+        services.AddSingleton<RingGeneral.Core.Interfaces.ITitleRepository>(sp => repositories.TitleRepository);
+        services.AddSingleton<RingGeneral.Core.Interfaces.IContenderRepository>(sp => repositories.TitleRepository);
         services.AddSingleton(repositories.MedicalRepository);
         services.AddSingleton<RingGeneral.Core.Interfaces.IWorkerAttributesRepository>(sp => (RingGeneral.Core.Interfaces.IWorkerAttributesRepository)repositories.WorkerAttributesRepository);
 
@@ -281,15 +283,21 @@ public sealed class App : Application
                 sp.GetRequiredService<ITrendRepository>(),
                 sp.GetRequiredService<YouthRepository>())); // Phase 2.3
         
+        // Staff Repository
+        services.AddSingleton<IStaffRepository>(sp =>
+        {
+            var connectionString = sp.GetRequiredService<SqliteConnectionFactory>().GetConnectionString();
+            return new StaffRepository(connectionString);
+        });
+        
         // Child Company Staff Service
         services.AddSingleton<IChildCompanyStaffService>(sp =>
         {
             var connectionString = sp.GetRequiredService<SqliteConnectionFactory>().GetConnectionString();
             var childCompanyRepository = new ChildCompanyRepository(connectionString);
-            var staffRepository = new StaffRepository(connectionString);
             return new ChildCompanyStaffService(
                 sp.GetRequiredService<IChildCompanyStaffRepository>(),
-                staffRepository,
+                sp.GetRequiredService<IStaffRepository>(),
                 childCompanyRepository);
         });
 
@@ -361,6 +369,10 @@ public sealed class App : Application
         services.AddSingleton<IBookingControlService>(sp =>
             new BookingControlService(
                 sp.GetRequiredService<IBookerAIEngine>()));
+        
+        // Booking Builder & Template Services
+        services.AddSingleton<RingGeneral.Core.Services.BookingBuilderService>();
+        services.AddSingleton<RingGeneral.Core.Services.TemplateService>();
 
         // Daily Time System Services (Phase 7)
         services.AddSingleton<IGameRepository>(repositories.GameRepository);
@@ -397,6 +409,38 @@ public sealed class App : Application
                 eventGenerator: null,     // TODO: Implémenter IEventGeneratorService
                 showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>(),
                 dailyShowScheduler: sp.GetRequiredService<RingGeneral.Core.Services.DailyShowSchedulerService>()));
+        
+        // Additional Core Services
+        services.AddSingleton<RingGeneral.Core.Services.TitleService>(sp =>
+            new RingGeneral.Core.Services.TitleService(
+                sp.GetRequiredService<ITitleRepository>()));
+        services.AddSingleton<RingGeneral.Core.Services.ContenderService>(sp =>
+            new RingGeneral.Core.Services.ContenderService(
+                sp.GetRequiredService<IContenderRepository>()));
+        services.AddSingleton<RingGeneral.Core.Services.BrandManagementService>();
+        services.AddSingleton<RingGeneral.Core.Services.EraTransitionService>();
+        services.AddSingleton<RingGeneral.Core.Services.StorylineService>();
+        services.AddSingleton<ICommunicationEngine>(sp =>
+            new RingGeneral.Core.Services.CommunicationEngine(
+                crisisRepository: null)); // CommunicationEngine fonctionne sans repository
+        services.AddSingleton<RingGeneral.Core.Services.StaffCompatibilityCalculator>(sp =>
+        {
+            var connectionString = sp.GetRequiredService<SqliteConnectionFactory>().GetConnectionString();
+            var childCompanyRepository = new ChildCompanyRepository(connectionString);
+            return new RingGeneral.Core.Services.StaffCompatibilityCalculator(childCompanyRepository);
+        });
+        services.AddSingleton<RingGeneral.Core.Services.StaffProposalService>(sp =>
+            new RingGeneral.Core.Services.StaffProposalService(
+                sp.GetRequiredService<RingGeneral.Core.Services.StaffCompatibilityCalculator>()));
+        services.AddSingleton<RingGeneral.Core.Services.StaffSharingEngine>(sp =>
+        {
+            var connectionString = sp.GetRequiredService<SqliteConnectionFactory>().GetConnectionString();
+            var childCompanyRepository = new ChildCompanyRepository(connectionString);
+            return new RingGeneral.Core.Services.StaffSharingEngine(
+                sp.GetRequiredService<IChildCompanyStaffService>(),
+                sp.GetRequiredService<IStaffRepository>(),
+                childCompanyRepository);
+        });
 
         // ChildCompanyBookingService (doit être créé après DailyShowSchedulerService)
         services.AddSingleton<RingGeneral.Core.Services.ChildCompanyBookingService>(sp =>
@@ -524,7 +568,10 @@ public sealed class App : Application
         // Inbox & Settings ViewModels
         services.AddTransient<ViewModels.Inbox.InboxViewModel>();
         services.AddTransient<ViewModels.Settings.SettingsViewModel>();
-        services.AddTransient<MedicalViewModel>();
+        services.AddTransient<MedicalViewModel>(sp =>
+            new MedicalViewModel(
+                gameRepository: sp.GetRequiredService<GameRepository>(),
+                medicalRepository: sp.GetRequiredService<MedicalRepository>()));
 
         var provider = services.BuildServiceProvider();
 
