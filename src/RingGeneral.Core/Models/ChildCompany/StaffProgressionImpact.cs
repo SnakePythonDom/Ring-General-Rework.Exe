@@ -363,7 +363,7 @@ public sealed record StaffCompatibilityRanking(
     /// <summary>
     /// Membre du staff
     /// </summary>
-    StaffMember Staff,
+    RingGeneral.Core.Models.Staff.StaffMember Staff,
 
     /// <summary>
     /// Compatibilité détaillée

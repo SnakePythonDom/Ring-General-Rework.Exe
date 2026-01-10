@@ -16,14 +16,11 @@ namespace RingGeneral.Core.Services;
 public sealed class StaffCompatibilityCalculator
 {
     private readonly IChildCompanyRepository _childCompanyRepository;
-    private readonly IYouthRepository _youthRepository;
 
     public StaffCompatibilityCalculator(
-        IChildCompanyRepository childCompanyRepository,
-        IYouthRepository youthRepository)
+        IChildCompanyRepository childCompanyRepository)
     {
         _childCompanyRepository = childCompanyRepository ?? throw new ArgumentNullException(nameof(childCompanyRepository));
-        _youthRepository = youthRepository ?? throw new ArgumentNullException(nameof(youthRepository));
     }
 
     // ====================================================================
