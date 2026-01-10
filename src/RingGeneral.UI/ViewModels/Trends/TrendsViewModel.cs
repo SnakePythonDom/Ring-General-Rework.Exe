@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using RingGeneral.Core.Enums;
 using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Models.Roster;
 using RingGeneral.Core.Models.Trends;
 using RingGeneral.Core.Services;
 

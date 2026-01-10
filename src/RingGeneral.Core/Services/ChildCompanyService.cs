@@ -118,7 +118,7 @@ public class ChildCompanyService
         var monthsActive = (DateTime.Now - childCompany.CreatedAt).TotalDays / 30;
         if (monthsActive < 6) return null;
 
-        var random = new Random();
+        var random = new System.Random();
         if (random.Next(100) < 10) // 10% de chance
         {
             // Générer une tendance locale basée sur l'objectif de la filiale

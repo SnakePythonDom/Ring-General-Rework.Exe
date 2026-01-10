@@ -408,7 +408,7 @@ public class TrendRepository : RepositoryBase, ITrendRepository
             Intensity = reader.GetInt32(12),
             DurationWeeks = reader.GetInt32(13),
             MarketPenetration = reader.GetDouble(14),
-            AffectedRegions = affectedRegions,
+            AffectedRegions = string.Join(",", affectedRegions),
             IsActive = reader.GetInt32(16) == 1,
             CreatedAt = DateTime.Parse(reader.GetString(17))
         };

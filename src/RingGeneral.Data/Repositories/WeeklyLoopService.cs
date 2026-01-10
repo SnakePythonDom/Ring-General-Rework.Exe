@@ -125,7 +125,7 @@ public sealed class WeeklyLoopService
             {
                 _trendEngine.ProgressTrendsAsync().Wait();
                 // Générer de nouvelles tendances si nécessaire (10% de chance chaque semaine)
-                if (_random.Next(100) < 10)
+                if (_random.Next(0, 100) < 10)
                 {
                     _trendEngine.GenerateRandomTrendsIfNeededAsync().Wait();
                 }

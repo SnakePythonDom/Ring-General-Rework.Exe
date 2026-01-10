@@ -14,12 +14,12 @@ namespace RingGeneral.Core.Services;
 public class TrendEngine
 {
     private readonly ITrendRepository _trendRepository;
-    private readonly Random _random;
+    private readonly System.Random _random;
 
     public TrendEngine(ITrendRepository trendRepository)
     {
         _trendRepository = trendRepository ?? throw new ArgumentNullException(nameof(trendRepository));
-        _random = new Random();
+        _random = new System.Random();
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class TrendEngine
             Intensity = intensity,
             DurationWeeks = durationWeeks,
             MarketPenetration = marketPenetration,
-            AffectedRegions = affectedRegions,
+            AffectedRegions = string.Join(",", affectedRegions),
             IsActive = true,
             CreatedAt = DateTime.Now
         };

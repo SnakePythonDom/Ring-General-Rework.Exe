@@ -382,7 +382,7 @@ public sealed class StaffSharingEngine
         // Ajustement selon le temps
         var timeMultiplier = (decimal)timePercentage;
 
-        return baseMonthlyCost * typeMultiplier * timeMultiplier;
+        return (decimal)baseMonthlyCost * typeMultiplier * timeMultiplier;
     }
 
     private int CalculateRecommendationScore(
@@ -512,7 +512,7 @@ public sealed class StaffSharingEngine
         var timeMultiplier = (decimal)arrangement.TimePercentage;
 
         // Calculs détaillés
-        var baseCost = monthlyBaseCost * timeMultiplier;
+        var baseCost = (decimal)monthlyBaseCost * timeMultiplier;
         var typeAdjustment = baseCost * (typeMultiplier - 1.0m);
         var totalMonthly = baseCost * typeMultiplier;
 
@@ -521,7 +521,7 @@ public sealed class StaffSharingEngine
         var proratedCost = totalMonthly * durationRatio;
 
         return new SharingCostBreakdown(
-            BaseMonthlyCost: monthlyBaseCost,
+            BaseMonthlyCost: (decimal)monthlyBaseCost,
             TimeAdjustedCost: baseCost,
             TypeAdjustedCost: typeAdjustment,
             TotalMonthlyCost: totalMonthly,
