@@ -377,19 +377,27 @@ public sealed class DashboardViewModel : ViewModelBase
             LoadCrisisData();
 
             // Mettre à jour l'activité récente
-            RecentActivity.Clear();
-            RecentActivity.Add($"✅ Données chargées avec succès");
-            RecentActivity.Add($"🤼 {TotalWorkers} workers dans le roster");
-            RecentActivity.Add($"🏆 Titres et storylines actives");
+            var activityUpdates = new List<string>
+            {
+                "✅ Données chargées avec succès",
+                $"🤼 {TotalWorkers} workers dans le roster",
+                "🏆 Titres et storylines actives"
+            };
 
             if (HasCriticalCrises)
             {
-                RecentActivity.Add($"⚠️ {CriticalCrisesCount} crise(s) critique(s) !");
+                activityUpdates.Add($"⚠️ {CriticalCrisesCount} crise(s) critique(s) !");
             }
 
             if (HasUpcomingShow)
             {
-                RecentActivity.Add($"📺 Show à préparer: {UpcomingShowName}");
+                activityUpdates.Add($"📺 Show à préparer: {UpcomingShowName}");
+            }
+
+            RecentActivity.Clear();
+            foreach (var activity in activityUpdates)
+            {
+                RecentActivity.Add(activity);
             }
 
             Logger.Info($"Dashboard chargé: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
@@ -529,18 +537,23 @@ public sealed class DashboardViewModel : ViewModelBase
             {
                 // Avancer d'un jour avec TimeOrchestratorService
                 var result = _timeOrchestrator.PasserJourSuivant(_companyId);
-                
+
                 // Mettre à jour les propriétés
                 CurrentDay = result.Day;
                 CurrentDate = result.CurrentDate;
-                
+
                 // Afficher les événements dans le Daily Log
+                var activityUpdates = new List<string> { $"⏭️ Jour {CurrentDay} terminé - {CurrentDateFormatted}" };
                 foreach (var evt in result.Events)
                 {
-                    RecentActivity.Insert(0, $"📅 {evt}");
+                    activityUpdates.Add($"📅 {evt}");
                 }
-                
-                RecentActivity.Insert(0, $"⏭️ Jour {CurrentDay} terminé - {CurrentDateFormatted}");
+
+                foreach (var update in activityUpdates)
+                {
+                    RecentActivity.Insert(0, update);
+                }
+
                 Logger.Info($"Jour {CurrentDay} terminé ({CurrentDateFormatted})");
             }
 
@@ -575,7 +588,7 @@ public sealed class DashboardViewModel : ViewModelBase
             }
 
             var showId = detection.Show.ShowId;
-            RecentActivity.Insert(0, $"🎬 Simulation du show: {detection.Show.Nom}");
+            var activityUpdates = new List<string> { $"🎬 Simulation du show: {detection.Show.Nom}" };
             Logger.Info($"Début simulation show: {detection.Show.Nom} ({showId})");
 
             // Exécuter le flux complet Show Day
@@ -583,29 +596,35 @@ public sealed class DashboardViewModel : ViewModelBase
 
             if (resultat.Succes)
             {
-                RecentActivity.Insert(0, $"✅ Show simulé avec succès !");
+                activityUpdates.Add("✅ Show simulé avec succès !");
                 if (resultat.Rapport is not null)
                 {
-                    RecentActivity.Insert(0, $"📊 Note: {resultat.Rapport.NoteGlobale}/100");
-                    RecentActivity.Insert(0, $"👥 Audience: {resultat.Rapport.Audience}");
-                    RecentActivity.Insert(0, $"💰 Revenus: ${resultat.Rapport.Billetterie + resultat.Rapport.Merch + resultat.Rapport.Tv:N2}");
+                    activityUpdates.Add($"📊 Note: {resultat.Rapport.NoteGlobale}/100");
+                    activityUpdates.Add($"👥 Audience: {resultat.Rapport.Audience}");
+                    activityUpdates.Add($"💰 Revenus: ${resultat.Rapport.Billetterie + resultat.Rapport.Merch + resultat.Rapport.Tv:N2}");
                 }
 
                 foreach (var changement in resultat.Changements.Take(5))
                 {
-                    RecentActivity.Insert(0, changement);
+                    activityUpdates.Add(changement);
                 }
 
                 Logger.Info($"Show simulé avec succès: {detection.Show.Nom}");
             }
             else
             {
-                RecentActivity.Insert(0, $"⚠️ Erreurs lors de la simulation:");
+                activityUpdates.Add("⚠️ Erreurs lors de la simulation:");
                 foreach (var erreur in resultat.Erreurs)
                 {
-                    RecentActivity.Insert(0, $"  - {erreur}");
+                    activityUpdates.Add($"  - {erreur}");
                     Logger.Error($"[DashboardViewModel] Erreur simulation: {erreur}");
                 }
+            }
+
+            // Mettre à jour l'activité récente
+            foreach (var update in activityUpdates)
+            {
+                RecentActivity.Insert(0, update);
             }
 
             // Recharger les données

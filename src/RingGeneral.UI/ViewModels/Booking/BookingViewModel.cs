@@ -53,6 +53,7 @@ public sealed class BookingViewModel : ViewModelBase
 
         // Initialisation
         InitializeSegmentTypes();
+        UpdateCalculatedProperties();
     }
 
     // ========== COLLECTIONS ==========
@@ -92,11 +93,21 @@ public sealed class BookingViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _validationWarnings, value);
     }
 
-    public int TotalDuration => Segments.Sum(s => s.DureeMinutes);
+    private int _totalDuration;
+    public int TotalDuration
+    {
+        get => _totalDuration;
+        private set => this.RaiseAndSetIfChanged(ref _totalDuration, value);
+    }
 
     public int ShowDuration { get; set; } = 120; // TODO: Charger depuis le contexte
 
-    public string DurationSummary => $"{TotalDuration}/{ShowDuration} min";
+    private string _durationSummary = "0/120 min";
+    public string DurationSummary
+    {
+        get => _durationSummary;
+        private set => this.RaiseAndSetIfChanged(ref _durationSummary, value);
+    }
 
     public bool IsBookingValid => ValidationIssues.Count == 0;
 
@@ -144,6 +155,7 @@ public sealed class BookingViewModel : ViewModelBase
         );
 
         Segments.Add(newSegment);
+        UpdateCalculatedProperties();
         SelectedSegment = newSegment;
         ValidateBooking();
     }
@@ -152,6 +164,7 @@ public sealed class BookingViewModel : ViewModelBase
     {
         // Logique extraite de GameSessionViewModel.SupprimerSegment() (ligne 768)
         Segments.Remove(segment);
+        UpdateCalculatedProperties();
         if (SelectedSegment == segment)
         {
             SelectedSegment = Segments.FirstOrDefault();
@@ -326,9 +339,16 @@ public sealed class BookingViewModel : ViewModelBase
 
         Segments.Add(mainEvent);
         Segments.Add(promo);
+        UpdateCalculatedProperties();
         SelectedSegment = mainEvent;
 
         ValidateBooking();
+    }
+
+    private void UpdateCalculatedProperties()
+    {
+        TotalDuration = Segments.Sum(s => s.DureeMinutes);
+        DurationSummary = $"{TotalDuration}/{ShowDuration} min";
     }
 }
 

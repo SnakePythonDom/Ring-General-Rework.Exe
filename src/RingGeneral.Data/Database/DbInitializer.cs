@@ -1,10 +1,13 @@
 using Microsoft.Data.Sqlite;
+using System.IO;
+using System.Text.Json;
+using System.Diagnostics;
 
 namespace RingGeneral.Data.Database;
 
 public sealed class DbInitializer 
 {
-    public const int SchemaVersionActuelle = 2;
+    public const int SchemaVersionActuelle = 3;
 
     public void CreateDatabaseIfMissing(string cheminDb)
     {

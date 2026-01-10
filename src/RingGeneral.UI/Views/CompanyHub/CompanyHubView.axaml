@@ -175,6 +175,63 @@
                      Foreground="{StaticResource TextMutedBrush}"/>
         </Border>
       </TabItem>
+
+      <TabItem Header="FILIALES">
+        <Border Classes="card" Padding="20">
+          <StackPanel Spacing="16">
+            <TextBlock Text="MES FILIALES"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="White"/>
+            
+            <ItemsControl ItemsSource="{Binding PlayerCompanies}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Background="{StaticResource BackgroundCardDarkBrush}"
+                          BorderBrush="{StaticResource BorderMediumBrush}"
+                          BorderThickness="1"
+                          CornerRadius="8"
+                          Padding="16"
+                          Margin="0,0,0,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding ChildCompanyId}"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                          <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
+                            <Run Text="Objectif: "/>
+                            <Run Text="{Binding Objective}" FontWeight="Bold" Foreground="White"/>
+                          </TextBlock>
+                          <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
+                            <Run Text="Autonomie: "/>
+                            <Run Text="{Binding HasFullAutonomy}" FontWeight="Bold" Foreground="White"/>
+                          </TextBlock>
+                        </StackPanel>
+                      </StackPanel>
+                      <Button Grid.Column="1"
+                              Content="RECRUTER MANAGER"
+                              Command="{Binding DataContext.HireStaffCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              CommandParameter="{Binding ChildCompanyId}"
+                              Background="{StaticResource BrandPrimaryBrush}"
+                              Foreground="White"
+                              Padding="12,6"
+                              CornerRadius="6"
+                              FontWeight="Bold"/>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="{Binding PlayerCompanies.Count, StringFormat='Total: {0} filiale(s)'}"
+                       FontSize="12"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Right"/>
+          </StackPanel>
+        </Border>
+      </TabItem>
     </TabControl>
   </Grid>
 </UserControl>

@@ -42,7 +42,7 @@
 
         <!-- Liste des workers -->
         <Border Grid.Row="2" Background="#1e293b" CornerRadius="8" Padding="0">
-            <controls:DataGrid ItemsSource="{Binding Workers}"
+                <controls:DataGrid ItemsSource="{Binding Workers}"
                               SelectedItem="{Binding SelectedWorker, Mode=TwoWay}"
                               AutoGenerateColumns="False"
                               CanUserSortColumns="True"

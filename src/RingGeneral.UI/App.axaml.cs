@@ -24,6 +24,8 @@ using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;
 using IOwnerRepo = RingGeneral.Data.Repositories.IOwnerRepository;
 using IBookerRepo = RingGeneral.Data.Repositories.IBookerRepository;
+using IOwnerRepository = RingGeneral.Core.Interfaces.IOwnerRepository;
+using IBookerRepository = RingGeneral.Core.Interfaces.IBookerRepository;
 using RingGeneral.UI.ViewModels;
 
 namespace RingGeneral.UI;
@@ -137,6 +139,7 @@ public sealed class App : Application
         services.AddSingleton<INicheFederationRepository>(repositories.NicheFederationRepository);
         services.AddSingleton<IChildCompanyExtendedRepository>(repositories.ChildCompanyExtendedRepository);
         services.AddSingleton<IDNATransitionRepository>(repositories.DNATransitionRepository);
+        services.AddSingleton<IChildCompanyStaffRepository>(repositories.ChildCompanyStaffRepository);
 
         // Structural Analysis & Niche Strategies Services (Phase 6)
         services.AddSingleton<RosterAnalysisService>(sp =>
@@ -158,6 +161,18 @@ public sealed class App : Application
             new ChildCompanyService(
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
                 sp.GetRequiredService<ITrendRepository>()));
+        
+        // Child Company Staff Service
+        services.AddSingleton<IChildCompanyStaffService>(sp =>
+        {
+            var connectionString = sp.GetRequiredService<SqliteConnectionFactory>().GetConnectionString();
+            var childCompanyRepository = new ChildCompanyRepository(connectionString);
+            var staffRepository = new StaffRepository(connectionString);
+            return new ChildCompanyStaffService(
+                sp.GetRequiredService<IChildCompanyStaffRepository>(),
+                staffRepository,
+                childCompanyRepository);
+        });
 
         // Core Services
         services.AddSingleton<BookingValidator>();
@@ -279,7 +294,15 @@ public sealed class App : Application
         services.AddTransient<YouthViewModel>();
         services.AddTransient<FinanceViewModel>();
         services.AddTransient<CalendarViewModel>();
-        services.AddTransient<CompanyHubViewModel>();
+        services.AddTransient<CompanyHubViewModel>(sp =>
+            new CompanyHubViewModel(
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<IOwnerRepository>(),
+                sp.GetRequiredService<IBookerRepository>(),
+                sp.GetRequiredService<ICatchStyleRepository>(),
+                sp.GetRequiredService<IChildCompanyExtendedRepository>(),
+                sp.GetRequiredService<IChildCompanyStaffService>(),
+                sp.GetRequiredService<IChildCompanyStaffRepository>()));
         services.AddTransient<OwnerBookerViewModel>();
         services.AddTransient<CrisisViewModel>();
 

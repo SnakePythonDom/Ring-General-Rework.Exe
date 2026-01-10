@@ -1,8 +1,14 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Models.Company;
+using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Enums;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
 
@@ -14,9 +20,12 @@ namespace RingGeneral.UI.ViewModels.CompanyHub;
 public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
 {
     private readonly GameRepository _gameRepository;
-    private readonly IOwnerRepository _ownerRepository;
-    private readonly IBookerRepository _bookerRepository;
+    private readonly RingGeneral.Core.Interfaces.IOwnerRepository _ownerRepository;
+    private readonly RingGeneral.Core.Interfaces.IBookerRepository _bookerRepository;
     private readonly ICatchStyleRepository _catchStyleRepository;
+    private readonly IChildCompanyExtendedRepository _childCompanyRepository;
+    private readonly IChildCompanyStaffService _childCompanyStaffService;
+    private readonly IChildCompanyStaffRepository _childCompanyStaffRepository;
 
     private int _selectedTabIndex = 0;
     private bool _isViewingRival = false;
@@ -26,23 +35,38 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     private BookerSnapshot? _currentBooker;
     private CatchStyle? _currentStyle;
     private ObservableCollection<CompanyState> _rivalCompanies;
+    private ObservableCollection<ChildCompanyExtended> _playerCompanies;
 
     public CompanyHubViewModel(
         GameRepository? gameRepository = null,
-        IOwnerRepository? ownerRepository = null,
-        IBookerRepository? bookerRepository = null,
-        ICatchStyleRepository? catchStyleRepository = null)
+        RingGeneral.Core.Interfaces.IOwnerRepository? ownerRepository = null,
+        RingGeneral.Core.Interfaces.IBookerRepository? bookerRepository = null,
+        ICatchStyleRepository? catchStyleRepository = null,
+        IChildCompanyExtendedRepository? childCompanyRepository = null,
+        IChildCompanyStaffService? childCompanyStaffService = null,
+        IChildCompanyStaffRepository? childCompanyStaffRepository = null)
     {
         _gameRepository = gameRepository ?? throw new ArgumentNullException(nameof(gameRepository));
         _ownerRepository = ownerRepository ?? throw new ArgumentNullException(nameof(ownerRepository));
         _bookerRepository = bookerRepository ?? throw new ArgumentNullException(nameof(bookerRepository));
         _catchStyleRepository = catchStyleRepository ?? throw new ArgumentNullException(nameof(catchStyleRepository));
+        _childCompanyRepository = childCompanyRepository ?? throw new ArgumentNullException(nameof(childCompanyRepository));
+        _childCompanyStaffService = childCompanyStaffService ?? throw new ArgumentNullException(nameof(childCompanyStaffService));
+        _childCompanyStaffRepository = childCompanyStaffRepository ?? throw new ArgumentNullException(nameof(childCompanyStaffRepository));
 
         _rivalCompanies = new ObservableCollection<CompanyState>();
+        _playerCompanies = new ObservableCollection<ChildCompanyExtended>();
+
+        // Prédicat pour HireStaffCommand : vérifie budget et absence de Manager
+        // Le prédicat sera vérifié dynamiquement dans la commande avec le childCompanyId
+        var canHireStaff = this.WhenAnyValue(
+            x => x.CurrentCompany)
+            .Select(company => company != null && company.Tresorerie > 50000);
 
         // Commandes
         SwitchToRivalsCommand = ReactiveCommand.Create(SwitchToRivals);
         SwitchToMyCompanyCommand = ReactiveCommand.Create(SwitchToMyCompany);
+        HireStaffCommand = ReactiveCommand.CreateFromTask<string>(HireStaffAsync, canHireStaff);
     }
 
     #region Properties
@@ -136,6 +160,15 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     }
 
     /// <summary>
+    /// Liste des filiales du joueur (ChildCompanies)
+    /// </summary>
+    public ObservableCollection<ChildCompanyExtended> PlayerCompanies
+    {
+        get => _playerCompanies;
+        private set => this.RaiseAndSetIfChanged(ref _playerCompanies, value);
+    }
+
+    /// <summary>
     /// Texte du bouton de switch
     /// </summary>
     public string SwitchButtonText => IsViewingRival ? "📊 Ma Compagnie" : "👁️ Voir Rivales";
@@ -166,6 +199,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
 
     public ReactiveCommand<Unit, Unit> SwitchToRivalsCommand { get; }
     public ReactiveCommand<Unit, Unit> SwitchToMyCompanyCommand { get; }
+    public ReactiveCommand<string, Unit> HireStaffCommand { get; }
 
     #endregion
 
@@ -175,6 +209,8 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     {
         // Charger la compagnie du joueur par défaut
         LoadPlayerCompany();
+        // Charger les filiales du joueur
+        _ = LoadPlayerCompaniesAsync();
     }
 
     #endregion
@@ -225,6 +261,9 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
                 // Charger Owner, Booker, Style
                 await LoadGovernanceData(_currentCompanyId);
 
+                // Charger les filiales du joueur
+                await LoadPlayerCompaniesAsync();
+
                 IsViewingRival = false;
                 Logger.Info($"Company Hub chargé pour: {CurrentCompany.Nom}");
             }
@@ -236,6 +275,59 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
         catch (Exception ex)
         {
             Logger.Error($"[CompanyHubViewModel] Erreur chargement compagnie: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Charge les filiales du joueur (ChildCompanies)
+    /// </summary>
+    private async Task LoadPlayerCompaniesAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_currentCompanyId))
+            {
+                // Récupérer le PlayerCompanyId depuis SaveGames
+                using var connection = _gameRepository.CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT PlayerCompanyId
+                    FROM SaveGames
+                    WHERE IsActive = 1
+                    LIMIT 1";
+
+                var result = cmd.ExecuteScalar();
+                if (result == null)
+                {
+                    Logger.Warning("[CompanyHubViewModel] Aucune SaveGame active trouvée");
+                    return;
+                }
+
+                _currentCompanyId = result.ToString() ?? string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(_currentCompanyId))
+            {
+                return;
+            }
+
+            // Charger les filiales sur un thread de fond
+            var companies = await Task.Run(async () =>
+            {
+                return await _childCompanyRepository.GetChildCompaniesByParentIdAsync(_currentCompanyId);
+            });
+
+            // Mettre à jour sur le thread UI
+            PlayerCompanies.Clear();
+            foreach (var company in companies)
+            {
+                PlayerCompanies.Add(company);
+            }
+            Logger.Info($"[CompanyHubViewModel] {PlayerCompanies.Count} filiales chargées");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[CompanyHubViewModel] Erreur chargement filiales: {ex.Message}", ex);
         }
     }
 
@@ -265,8 +357,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
             }
 
             // Charger Booker actif
-            var bookers = await _bookerRepository.GetActiveBookersByCompanyIdAsync(companyId);
-            var activeBooker = bookers.FirstOrDefault();
+            var activeBooker = await _bookerRepository.GetActiveBookerAsync(companyId);
             if (activeBooker != null)
             {
                 CurrentBooker = new BookerSnapshot(
@@ -319,6 +410,75 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     {
         LoadPlayerCompany();
         IsViewingRival = false;
+    }
+
+    /// <summary>
+    /// Recrute un staff et l'assigne comme Manager d'une filiale
+    /// </summary>
+    private async Task HireStaffAsync(string childCompanyId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(childCompanyId))
+            {
+                Logger.Error("[CompanyHubViewModel] ChildCompanyId requis pour recruter un Manager");
+                return;
+            }
+
+            // Vérifier que la filiale n'a pas déjà de Manager
+            var activeAssignments = await Task.Run(async () =>
+                await _childCompanyStaffRepository.GetActiveStaffAssignmentsAsync(childCompanyId));
+            
+            var hasManager = activeAssignments.Any(a =>
+                a.AssignmentType == StaffAssignmentType.DedicatedRotation &&
+                a.TimePercentage >= 1.0 &&
+                (a.MissionObjective?.Contains("Manager", StringComparison.OrdinalIgnoreCase) == true || 
+                 a.MissionObjective?.Contains("Gestionnaire", StringComparison.OrdinalIgnoreCase) == true));
+
+            if (hasManager)
+            {
+                Logger.Warning($"[CompanyHubViewModel] La filiale {childCompanyId} a déjà un Manager");
+                return;
+            }
+
+            // Vérifier le budget
+            if (CurrentCompany == null || CurrentCompany.Tresorerie < 50000) // Coût minimum estimé
+            {
+                Logger.Warning("[CompanyHubViewModel] Budget insuffisant pour recruter un Manager");
+                return;
+            }
+
+            // TODO: Récupérer le StaffMember à recruter depuis une sélection ou un paramètre
+            // Pour l'instant, on génère un ID temporaire pour la démonstration
+            // Dans une implémentation complète, il faudrait ouvrir une fenêtre de sélection de staff
+            var tempStaffId = Guid.NewGuid().ToString("N");
+            
+            Logger.Info($"[CompanyHubViewModel] Recrutement Manager pour filiale {childCompanyId}");
+            
+            // Assigner le staff comme Manager
+            var result = await _childCompanyStaffService.AssignStaffToChildCompanyAsync(
+                staffId: tempStaffId,
+                childCompanyId: childCompanyId,
+                assignmentType: StaffAssignmentType.DedicatedRotation,
+                timePercentage: 1.0,
+                missionObjective: "Manager"
+            );
+
+            if (result.Success)
+            {
+                Logger.Info($"[CompanyHubViewModel] Manager assigné avec succès à la filiale {childCompanyId}");
+                // Recharger les filiales après l'assignation
+                await LoadPlayerCompaniesAsync();
+            }
+            else
+            {
+                Logger.Error($"[CompanyHubViewModel] Erreur lors de l'assignation: {result.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[CompanyHubViewModel] Erreur recrutement Manager: {ex.Message}", ex);
+        }
     }
 
     #endregion

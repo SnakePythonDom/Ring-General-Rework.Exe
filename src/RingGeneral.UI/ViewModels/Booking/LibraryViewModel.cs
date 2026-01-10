@@ -78,7 +78,12 @@ public sealed class LibraryViewModel : ViewModelBase
         }
     }
 
-    public int TemplateCount => Templates.Count;
+    private int _templateCount;
+    public int TemplateCount
+    {
+        get => _templateCount;
+        private set => this.RaiseAndSetIfChanged(ref _templateCount, value);
+    }
 
     // ========== COMMANDS ==========
 
@@ -99,7 +104,7 @@ public sealed class LibraryViewModel : ViewModelBase
 
         // Données de test
         LoadTestData();
-        this.RaisePropertyChanged(nameof(TemplateCount));
+        UpdateTemplateCount();
     }
 
     // ========== MÉTHODES PRIVÉES ==========
@@ -119,6 +124,7 @@ public sealed class LibraryViewModel : ViewModelBase
         );
 
         Templates.Add(newTemplate);
+        UpdateTemplateCount();
         SelectedTemplate = newTemplate;
         this.RaisePropertyChanged(nameof(TemplateCount));
     }
@@ -132,6 +138,7 @@ public sealed class LibraryViewModel : ViewModelBase
     private void DeleteTemplate(SegmentTemplateViewModel template)
     {
         Templates.Remove(template);
+        UpdateTemplateCount();
         if (SelectedTemplate == template)
         {
             SelectedTemplate = Templates.FirstOrDefault();
@@ -154,6 +161,7 @@ public sealed class LibraryViewModel : ViewModelBase
         );
 
         Templates.Add(duplicate);
+        UpdateTemplateCount();
         SelectedTemplate = duplicate;
         this.RaisePropertyChanged(nameof(TemplateCount));
     }
@@ -233,5 +241,10 @@ public sealed class LibraryViewModel : ViewModelBase
             null,
             null
         ));
+    }
+
+    private void UpdateTemplateCount()
+    {
+        TemplateCount = Templates.Count;
     }
 }

@@ -31,6 +31,9 @@ public sealed class RepositoryContainer
     public INicheFederationRepository NicheFederationRepository { get; }
     public IChildCompanyExtendedRepository ChildCompanyExtendedRepository { get; }
     public IDNATransitionRepository DNATransitionRepository { get; }
+    
+    // Child Company Staff Management
+    public IChildCompanyStaffRepository ChildCompanyStaffRepository { get; }
 
     public RepositoryContainer(
         GameRepository gameRepository,
@@ -52,7 +55,8 @@ public sealed class RepositoryContainer
         ITrendRepository trendRepository,
         INicheFederationRepository nicheFederationRepository,
         IChildCompanyExtendedRepository childCompanyExtendedRepository,
-        IDNATransitionRepository dnaTransitionRepository)
+        IDNATransitionRepository dnaTransitionRepository,
+        IChildCompanyStaffRepository childCompanyStaffRepository)
     {
         GameRepository = gameRepository;
         ShowRepository = showRepository;
@@ -74,6 +78,7 @@ public sealed class RepositoryContainer
         NicheFederationRepository = nicheFederationRepository;
         ChildCompanyExtendedRepository = childCompanyExtendedRepository;
         DNATransitionRepository = dnaTransitionRepository;
+        ChildCompanyStaffRepository = childCompanyStaffRepository;
     }
 }
 
@@ -122,6 +127,7 @@ public static class RepositoryFactory
         var nicheFederationRepository = new NicheFederationRepository(factory);
         var childCompanyExtendedRepository = new ChildCompanyExtendedRepository(factory);
         var dnaTransitionRepository = new DNATransitionRepository(factory);
+        var childCompanyStaffRepository = new ChildCompanyStaffRepository(connectionString);
 
         return new RepositoryContainer(
             gameRepository,
@@ -143,7 +149,8 @@ public static class RepositoryFactory
             trendRepository,
             nicheFederationRepository,
             childCompanyExtendedRepository,
-            dnaTransitionRepository);
+            dnaTransitionRepository,
+            childCompanyStaffRepository);
     }
 
     /// <summary>

@@ -82,16 +82,33 @@ public sealed class ShowHistoryPageViewModel : ViewModelBase
 
     // ========== STATISTIQUES ==========
 
-    public int TotalShows => HistoryEntries.Count;
-    public double AverageRating => HistoryEntries.Count > 0
-        ? HistoryEntries.Average(e => e.Rating)
-        : 0.0;
-    public int AverageAttendance => HistoryEntries.Count > 0
-        ? (int)HistoryEntries.Average(e => e.Attendance)
-        : 0;
-    public string BestShow => HistoryEntries
-        .OrderByDescending(e => e.Rating)
-        .FirstOrDefault()?.ShowName ?? "N/A";
+    private int _totalShows;
+    public int TotalShows
+    {
+        get => _totalShows;
+        private set => this.RaiseAndSetIfChanged(ref _totalShows, value);
+    }
+
+    private double _averageRating;
+    public double AverageRating
+    {
+        get => _averageRating;
+        private set => this.RaiseAndSetIfChanged(ref _averageRating, value);
+    }
+
+    private int _averageAttendance;
+    public int AverageAttendance
+    {
+        get => _averageAttendance;
+        private set => this.RaiseAndSetIfChanged(ref _averageAttendance, value);
+    }
+
+    private string _bestShow = "N/A";
+    public string BestShow
+    {
+        get => _bestShow;
+        private set => this.RaiseAndSetIfChanged(ref _bestShow, value);
+    }
 
     // ========== COMMANDS ==========
 
@@ -133,13 +150,6 @@ public sealed class ShowHistoryPageViewModel : ViewModelBase
         LoadHistory();
     }
 
-    private void UpdateStatistics()
-    {
-        this.RaisePropertyChanged(nameof(TotalShows));
-        this.RaisePropertyChanged(nameof(AverageRating));
-        this.RaisePropertyChanged(nameof(AverageAttendance));
-        this.RaisePropertyChanged(nameof(BestShow));
-    }
 
     private void LoadTestData()
     {
@@ -209,6 +219,20 @@ public sealed class ShowHistoryPageViewModel : ViewModelBase
             "Show moyen, manque d'intensité",
             DateTime.Now.AddDays(-21)
         ));
+    }
+
+    private void UpdateStatistics()
+    {
+        TotalShows = HistoryEntries.Count;
+        AverageRating = HistoryEntries.Count > 0
+            ? HistoryEntries.Average(e => e.Rating)
+            : 0.0;
+        AverageAttendance = HistoryEntries.Count > 0
+            ? (int)HistoryEntries.Average(e => e.Attendance)
+            : 0;
+        BestShow = HistoryEntries
+            .OrderByDescending(e => e.Rating)
+            .FirstOrDefault()?.ShowName ?? "N/A";
     }
 }
 
