@@ -38,7 +38,7 @@
                      FontWeight="SemiBold"
                      Margin="0,0,0,10"/>
 
-          <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Gap="15">
+          <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" >
 
             <!-- Star Power Moyen -->
             <Border Grid.Row="0" Grid.Column="0"
@@ -189,7 +189,7 @@
                      FontWeight="SemiBold"
                      Margin="0,0,0,10"/>
 
-          <Grid ColumnDefinitions="*,*,*" Gap="15">
+          <Grid ColumnDefinitions="*,*,*" >
 
             <!-- Composition Stylistique -->
             <Border Grid.Column="0"
@@ -203,15 +203,15 @@
                            FontWeight="SemiBold"
                            Margin="0,0,0,8"/>
 
-                <TextBlock Text="{Binding CurrentDNA.HardcorePercentage, StringFormat='Hardcore: {0:F1}%'}"
+                <TextBlock Text="{Binding CurrentDNA.HardcorePercentage, StringFormat={}Hardcore: {0:F1}%}"
                            FontSize="12"/>
-                <TextBlock Text="{Binding CurrentDNA.TechnicalPercentage, StringFormat='Technical: {0:F1}%'}"
+                <TextBlock Text="{Binding CurrentDNA.TechnicalPercentage, StringFormat={}Technical: {0:F1}%}"
                            FontSize="12"/>
-                <TextBlock Text="{Binding CurrentDNA.LuchaPercentage, StringFormat='Lucha: {0:F1}%'}"
+                <TextBlock Text="{Binding CurrentDNA.LuchaPercentage, StringFormat={}Lucha: {0:F1}%}"
                            FontSize="12"/>
-                <TextBlock Text="{Binding CurrentDNA.EntertainmentPercentage, StringFormat='Entertainment: {0:F1}%'}"
+                <TextBlock Text="{Binding CurrentDNA.EntertainmentPercentage, StringFormat={}Entertainment: {0:F1}%}"
                            FontSize="12"/>
-                <TextBlock Text="{Binding CurrentDNA.StrongStylePercentage, StringFormat='Strong Style: {0:F1}%'}"
+                <TextBlock Text="{Binding CurrentDNA.StrongStylePercentage, StringFormat={}Strong Style: {0:F1}%}"
                            FontSize="12"/>
               </StackPanel>
             </Border>
@@ -246,7 +246,7 @@
                            FontSize="14"
                            FontWeight="SemiBold"
                            Margin="0,0,0,8"/>
-                <TextBlock Text="{Binding CurrentDNA.CoherenceScore, StringFormat='{0:F1}/100'}"
+                <TextBlock Text="{Binding CurrentDNA.CoherenceScore, StringFormat={}{0:F1}/100}"
                            FontSize="20"
                            FontWeight="Bold"
                            HorizontalAlignment="Center"

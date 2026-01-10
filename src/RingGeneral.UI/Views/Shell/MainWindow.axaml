@@ -31,6 +31,7 @@
 	   xmlns:inbox="using:RingGeneral.UI.Views.Inbox"
 	   xmlns:settings="using:RingGeneral.UI.Views.Settings"
 	   xmlns:medical="using:RingGeneral.UI.Views.Medical"
+	   xmlns:shell="using:RingGeneral.UI.Views.Shell"
 	   mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
 	   x:Class="RingGeneral.UI.Views.Shell.MainWindow"
 	   x:DataType="vm:ShellViewModel"
@@ -79,6 +80,12 @@
 		<DataTemplate DataType="vmStart:StartViewModel">
 			<start:StartView />
 		</DataTemplate>
+		<DataTemplate DataType="vmStart:CompanySelectorViewModel">
+			<start:CompanySelectorView />
+		</DataTemplate>
+		<DataTemplate DataType="vmStart:CreateCompanyViewModel">
+			<start:CreateCompanyView />
+		</DataTemplate>
 		<DataTemplate DataType="vmInbox:InboxViewModel">
 			<inbox:InboxView />
 		</DataTemplate>
@@ -100,7 +107,7 @@
 
         <!-- DataTemplate pour ShellViewModel -->
         <DataTemplate DataType="vm:ShellViewModel">
-            <ContentControl Content="{Binding}"/>
+            <shell:NavigationView />
         </DataTemplate>
 	</Window.DataTemplates>
 
@@ -154,13 +161,21 @@
 
 		<!-- ==================== CONTENT AREA ==================== -->
 		<Grid Grid.Row="1">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="300"/>
-				<ColumnDefinition Width="5"/>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="5"/>
-				<ColumnDefinition Width="320"/>
-			</Grid.ColumnDefinitions>
+			<!-- Start screens (when not in game mode) -->
+			<ContentControl Content="{Binding CurrentContentViewModel}"
+			                IsVisible="{Binding IsInGameMode, Converter={StaticResource InvertBoolConverter}}"
+			                HorizontalAlignment="Stretch"
+			                VerticalAlignment="Stretch"/>
+
+			<!-- Game UI (when in game mode) -->
+			<Grid IsVisible="{Binding IsInGameMode}">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="300"/>
+					<ColumnDefinition Width="5"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="5"/>
+					<ColumnDefinition Width="320"/>
+				</Grid.ColumnDefinitions>
 
 			<!-- Left Sidebar -->
 			<Border Grid.Column="0" Background="#1e1e1e" BorderBrush="#2a2a2a" BorderThickness="0,0,1,0" IsVisible="{Binding IsInGameMode}">
@@ -178,7 +193,7 @@
 					</Border>
 
 					<ScrollViewer Grid.Row="1">
-						<ContentControl Content="{Binding CurrentMenuViewModel}" Margin="20"/>
+						<ContentControl Content="{Binding}" Margin="20"/>
 					</ScrollViewer>
 				</Grid>
 			</Border>
@@ -216,6 +231,7 @@
 					</ScrollViewer>
 				</Grid>
 			</Border>
+		</Grid>
 		</Grid>
 
 		<!-- ==================== STATUS BAR ==================== -->

@@ -32,7 +32,7 @@
                      FontWeight="SemiBold"
                      Margin="0,0,0,10"/>
 
-          <Grid ColumnDefinitions="*,Auto" Gap="15">
+          <Grid ColumnDefinitions="*,Auto">
 
             <!-- Sélection de l'objectif -->
             <ComboBox x:Name="ObjectiveComboBox"
@@ -81,7 +81,7 @@
                         Margin="0,0,0,10"
                         Background="{DynamicResource ThemeAccentBrush3}">
 
-                  <Grid ColumnDefinitions="*,Auto,Auto,Auto" Gap="15">
+                  <Grid ColumnDefinitions="*,Auto,Auto,Auto">
 
                     <!-- Informations principales -->
                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="6">
@@ -189,7 +189,7 @@
           <TextBlock Text="Aucune filiale active"
                      FontSize="14"
                      HorizontalAlignment="Center"
-                     IsVisible="{Binding ChildCompanies.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=0}"/>
+                     IsVisible="{Binding ChildCompanies, Converter={StaticResource IsNotNullConverter}}"/>
 
         </StackPanel>
       </Border>
@@ -206,108 +206,68 @@
                      FontWeight="SemiBold"
                      Margin="0,0,0,10"/>
 
-          <ItemsControl>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="12"
-                        Margin="0,0,0,8">
+          <!-- Entertainment -->
+          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="12"
+                  Margin="0,0,0,8">
+            <StackPanel Spacing="6">
+              <TextBlock Text="🎭 Entertainment"
+                         FontSize="14"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="Filiale dédiée au développement de concepts innovants et à la création de spectacles spectaculaires. Permet de tester de nouvelles idées sans risquer la réputation de la fédération principale."
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </Border>
 
-                  <StackPanel Spacing="6">
-                    <TextBlock Text="🎭 Entertainment"
-                               FontSize="14"
-                               FontWeight="SemiBold"/>
-                    <TextBlock Text="Filiale dédiée au développement de concepts innovants et à la création de spectacles spectaculaires. Permet de tester de nouvelles idées sans risquer la réputation de la fédération principale."
-                               FontSize="12"
-                               TextWrapping="Wrap"/>
-                  </StackPanel>
+          <!-- Niche -->
+          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="12"
+                  Margin="0,0,0,8">
+            <StackPanel Spacing="6">
+              <TextBlock Text="🎯 Niche"
+                         FontSize="14"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="Filiale spécialisée dans un style particulier, permettant de maintenir une présence dans un domaine spécifique tout en développant la fédération principale vers d'autres directions."
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </Border>
 
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <ItemsControl.Items>
-              <system:String>Entertainment</system:String>
-            </ItemsControl.Items>
-          </ItemsControl>
+          <!-- Independence -->
+          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="12"
+                  Margin="0,0,0,8">
+            <StackPanel Spacing="6">
+              <TextBlock Text="🤖 Independence"
+                         FontSize="14"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="Filiale autonome gérée par un Booker IA, permettant l'expérimentation créative libre et potentiellement la découverte de nouvelles tendances avant qu'elles n'émergent."
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </Border>
 
-          <ItemsControl>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="12"
-                        Margin="0,0,0,8">
-
-                  <StackPanel Spacing="6">
-                    <TextBlock Text="🎯 Niche"
-                               FontSize="14"
-                               FontWeight="SemiBold"/>
-                    <TextBlock Text="Filiale spécialisée dans un style particulier, permettant de maintenir une présence dans un domaine spécifique tout en développant la fédération principale vers d'autres directions."
-                               FontSize="12"
-                               TextWrapping="Wrap"/>
-                  </StackPanel>
-
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <ItemsControl.Items>
-              <system:String>Niche</system:String>
-            </ItemsControl.Items>
-          </ItemsControl>
-
-          <ItemsControl>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="12"
-                        Margin="0,0,0,8">
-
-                  <StackPanel Spacing="6">
-                    <TextBlock Text="🤖 Independence"
-                               FontSize="14"
-                               FontWeight="SemiBold"/>
-                    <TextBlock Text="Filiale autonome gérée par un Booker IA, permettant l'expérimentation créative libre et potentiellement la découverte de nouvelles tendances avant qu'elles n'émergent."
-                               FontSize="12"
-                               TextWrapping="Wrap"/>
-                  </StackPanel>
-
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <ItemsControl.Items>
-              <system:String>Independence</system:String>
-            </ItemsControl.Items>
-          </ItemsControl>
-
-          <ItemsControl>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="12">
-
-                  <StackPanel Spacing="6">
-                    <TextBlock Text="🏫 Development"
-                               FontSize="14"
-                               FontWeight="SemiBold"/>
-                    <TextBlock Text="Centre de formation traditionnel pour développer les jeunes talents selon les standards de la fédération."
-                               FontSize="12"
-                               TextWrapping="Wrap"/>
-                  </StackPanel>
-
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <ItemsControl.Items>
-              <system:String>Development</system:String>
-            </ItemsControl.Items>
-          </ItemsControl>
+          <!-- Development -->
+          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="12">
+            <StackPanel Spacing="6">
+              <TextBlock Text="🏫 Development"
+                         FontSize="14"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="Centre de formation traditionnel pour développer les jeunes talents selon les standards de la fédération."
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </Border>
 
         </StackPanel>
       </Border>
