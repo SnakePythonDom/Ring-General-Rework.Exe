@@ -5,7 +5,7 @@ using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class YouthRepository : RepositoryBase, IYouthRepository
+public sealed class YouthRepository : RepositoryBase, RingGeneral.Core.Interfaces.IYouthRepository
 {
     public YouthRepository(SqliteConnectionFactory factory) : base(factory)
     {

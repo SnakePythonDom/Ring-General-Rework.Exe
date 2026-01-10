@@ -512,12 +512,26 @@ public sealed class WeeklyLoopService
         }
 
         var contrats = _repository.ChargerPaieContrats(companyId);
-        var context = new WeeklyFinanceContext(companyId, semaine, compagnie.Tresorerie, contrats);
-        var engine = new FinanceEngine(FinanceSettings.V1());
+        var context = new WeeklyFinanceContext(semaine, contrats);
+        
+        // Créer FinanceSettings par défaut
+        var settings = new FinanceSettings
+        {
+            Venue = new VenueSettings { CapaciteBase = 1000, CapaciteParReach = 10, CapaciteParPrestige = 5, CapaciteMin = 100, CapaciteMax = 10000 },
+            Billetterie = new BilletterieSettings { TauxRemplissageBase = 0.5, TauxRemplissageParPoint = 0.01, TauxRemplissageMin = 0.1, TauxRemplissageMax = 1.0, PrixBase = 20.0, PrixParAudience = 0.1, PrixParPrestige = 0.5, PrixMin = 5.0, PrixMax = 200.0 },
+            Merch = new MerchSettings { DepenseParFan = 5.0, MultiplicateurStars = 2.0, StarsPrisesEnCompte = 3 },
+            Tv = new TvSettings { RevenuBase = 1000.0, RevenuParAudience = 10.0 },
+            Production = new ProductionSettings { CoutBase = 500.0, CoutParMinute = 5.0, CoutParSpectateur = 0.1 },
+            Paie = new PaieSettings { SemainesParMois = 4 }
+        };
+        
+        var engine = new FinanceEngine(settings);
         var tick = new WeeklyFinanceTick(engine);
         var resultat = tick.Executer(context);
 
-        _repository.AppliquerTransactionsFinancieres(companyId, semaine, resultat.Transactions);
+        // Convertir FinanceTransactionModel en FinanceTransaction pour compatibilité
+        var transactions = resultat.Transactions.Select(t => new FinanceTransaction(t.Id, (double)t.Amount, t.Description)).ToList();
+        _repository.AppliquerTransactionsFinancieres(companyId, semaine, transactions);
         _repository.EnregistrerSnapshotFinance(companyId, semaine);
     }
 

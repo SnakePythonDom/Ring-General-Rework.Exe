@@ -646,14 +646,16 @@ public sealed class ShowRepository : RepositoryBase
         var entries = new List<AudienceHistoryEntry>();
         while (reader.Read())
         {
-            entries.Add(new AudienceHistoryEntry(
-                reader.GetString(0),
-                reader.GetInt32(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetInt32(6)));
+            entries.Add(new AudienceHistoryEntry
+            {
+                ShowId = reader.GetString(0),
+                Week = reader.GetInt32(1),
+                Audience = reader.GetInt32(2),
+                Reach = reader.GetInt32(3),
+                ShowScore = reader.GetInt32(4),
+                Stars = reader.GetInt32(5),
+                Saturation = reader.GetInt32(6)
+            });
         }
 
         return entries;
@@ -673,14 +675,16 @@ public sealed class ShowRepository : RepositoryBase
         var entries = new List<AudienceHistoryEntry>();
         while (reader.Read())
         {
-            entries.Add(new AudienceHistoryEntry(
-                reader.GetString(0),
-                reader.GetInt32(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetInt32(6)));
+            entries.Add(new AudienceHistoryEntry
+            {
+                ShowId = reader.GetString(0),
+                Week = reader.GetInt32(1),
+                Audience = reader.GetInt32(2),
+                Reach = reader.GetInt32(3),
+                ShowScore = reader.GetInt32(4),
+                Stars = reader.GetInt32(5),
+                Saturation = reader.GetInt32(6)
+            });
         }
 
         return entries;

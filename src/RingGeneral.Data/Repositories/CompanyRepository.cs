@@ -219,17 +219,19 @@ public sealed class CompanyRepository : RepositoryBase, ICompanyRepository, ITvD
         var deals = new List<TvDeal>();
         while (reader.Read())
         {
-            deals.Add(new TvDeal(
-                reader.GetString(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5),
-                reader.GetDouble(6),
-                reader.GetDouble(7),
-                reader.GetDouble(8),
-                reader.GetString(9)));
+            deals.Add(new TvDeal
+            {
+                TvDealId = reader.GetString(0),
+                CompanyId = reader.GetString(1),
+                NetworkName = reader.GetString(2),
+                ReachBonus = reader.GetInt32(3),
+                AudienceCap = reader.GetInt32(4),
+                MinimumAudience = reader.GetInt32(5),
+                BaseRevenue = reader.GetDouble(6),
+                RevenuePerPoint = reader.GetDouble(7),
+                Penalty = reader.GetDouble(8),
+                Constraints = reader.GetString(9)
+            });
         }
 
         return deals;
@@ -320,11 +322,11 @@ public sealed class CompanyRepository : RepositoryBase, ICompanyRepository, ITvD
         var paies = new List<ContractPayroll>();
         while (reader.Read())
         {
-            paies.Add(new ContractPayroll(
-                reader.GetString(0),
-                reader.GetString(1),
-                (double)LireDecimal(reader, 2),
-                ConvertFrequence(reader.GetString(3))));
+            paies.Add(new ContractPayroll
+            {
+                Frequence = ConvertFrequence(reader.GetString(3)),
+                Salaire = LireDecimal(reader, 2)
+            });
         }
 
         return paies;
@@ -350,11 +352,11 @@ public sealed class CompanyRepository : RepositoryBase, ICompanyRepository, ITvD
         var paies = new List<ContractPayroll>();
         while (reader.Read())
         {
-            paies.Add(new ContractPayroll(
-                reader.GetString(0),
-                reader.GetString(1),
-                (double)LireDecimal(reader, 2),
-                ConvertFrequence(reader.GetString(3))));
+            paies.Add(new ContractPayroll
+            {
+                Frequence = ConvertFrequence(reader.GetString(3)),
+                Salaire = LireDecimal(reader, 2)
+            });
         }
 
         return paies;

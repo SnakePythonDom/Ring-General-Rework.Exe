@@ -94,7 +94,19 @@ internal static class SharedQueries
             return null;
         }
 
-        return new TvDeal(
+        return new TvDeal
+        {
+            TvDealId = reader.GetString(0),
+            CompanyId = reader.GetString(1),
+            NetworkName = reader.GetString(2),
+            ReachBonus = reader.GetInt32(3),
+            AudienceCap = reader.GetInt32(4),
+            MinimumAudience = reader.GetInt32(5),
+            BaseRevenue = reader.GetDouble(6),
+            RevenuePerPoint = reader.GetDouble(7),
+            Penalty = reader.GetDouble(8),
+            Constraints = reader.GetString(9)
+        };
             reader.GetString(0),
             reader.GetString(1),
             reader.GetString(2),
