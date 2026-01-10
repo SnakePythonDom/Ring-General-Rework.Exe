@@ -38,3 +38,4 @@ C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\ne
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\refint\RingGeneral.Data.dll
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\RingGeneral.Data.pdb
 C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\obj\Debug\net8.0\ref\RingGeneral.Data.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Data\bin\Debug\net8.0\007_daily_time_system.sql
