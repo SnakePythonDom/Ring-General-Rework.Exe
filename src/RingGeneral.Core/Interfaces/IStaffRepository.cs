@@ -1,3 +1,4 @@
+using RingGeneral.Core.Enums;
 using RingGeneral.Core.Models.Staff;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -68,4 +69,12 @@ public interface IStaffRepository
     Task<List<StaffMember>> GetExpiringContractsAsync(string companyId, int daysThreshold = 90);
     Task<double> CalculateMonthlyStaffCostAsync(string companyId);
     Task<List<CreativeStaff>> GetDangerousCreativeStaffAsync(string companyId);
+
+    // ====================================================================
+    // CHILD STAFF SYSTEM EXTENSIONS
+    // ====================================================================
+
+    Task<IReadOnlyList<StaffMember>> GetAvailableStaffForSharingAsync(string companyId, DateTime period);
+    Task<IReadOnlyList<StaffMember>> GetStaffWithSharingCapabilitiesAsync(string companyId);
+    Task UpdateStaffSharingPropertiesAsync(string staffId, bool canBeShared, StaffMobilityRating mobilityRating, string? sharingPreferences, string? childSpecializations);
 }

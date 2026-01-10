@@ -1,5 +1,6 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Models.ChildCompany;
 
 namespace RingGeneral.Core.Simulation;
 
@@ -7,11 +8,16 @@ public sealed class YouthProgressionService
 {
     private readonly IRandomProvider _random;
     private readonly YouthSpec _spec;
+    private readonly IChildCompanyStaffService? _staffService;
 
-    public YouthProgressionService(IRandomProvider random, YouthSpec spec)
+    public YouthProgressionService(
+        IRandomProvider random,
+        YouthSpec spec,
+        IChildCompanyStaffService? staffService = null)
     {
-        _random = random;
-        _spec = spec;
+        _random = random ?? throw new ArgumentNullException(nameof(random));
+        _spec = spec ?? throw new ArgumentNullException(nameof(spec));
+        _staffService = staffService; // Optionnel pour compatibilité ascendante
     }
 
     public YouthProgressionReport AppliquerProgression(int semaine, IReadOnlyList<YouthTraineeProgressionState> trainees)

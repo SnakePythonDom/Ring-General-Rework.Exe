@@ -936,6 +936,86 @@ public sealed class StaffRepository : IStaffRepository
     }
 
     // ====================================================================
+    // CHILD STAFF SYSTEM EXTENSIONS
+    // ====================================================================
+
+    public async Task<IReadOnlyList<StaffMember>> GetAvailableStaffForSharingAsync(string companyId, DateTime period)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT StaffId, CompanyId, BrandId, Name, Role, Department, ExpertiseLevel,
+                   YearsOfExperience, SkillScore, PersonalityScore, AnnualSalary, HireDate,
+                   ContractEndDate, EmploymentStatus, IsActive, Notes, CreatedAt,
+                   CanBeShared, MobilityRating, SharingPreferences, ChildSpecializations
+            FROM StaffMembers
+            WHERE CompanyId = @CompanyId
+              AND IsActive = 1
+              AND EmploymentStatus = 'Active'
+              AND CanBeShared = 1
+              AND SkillScore >= 60
+              AND (ContractEndDate IS NULL OR ContractEndDate > @Period)
+            ORDER BY SkillScore DESC, YearsOfExperience DESC";
+
+        command.Parameters.AddWithValue("@CompanyId", companyId);
+        command.Parameters.AddWithValue("@Period", period.ToString("O"));
+
+        return await ReadStaffMembersWithChildExtensions(command);
+    }
+
+    public async Task<IReadOnlyList<StaffMember>> GetStaffWithSharingCapabilitiesAsync(string companyId)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT StaffId, CompanyId, BrandId, Name, Role, Department, ExpertiseLevel,
+                   YearsOfExperience, SkillScore, PersonalityScore, AnnualSalary, HireDate,
+                   ContractEndDate, EmploymentStatus, IsActive, Notes, CreatedAt,
+                   CanBeShared, MobilityRating, SharingPreferences, ChildSpecializations
+            FROM StaffMembers
+            WHERE CompanyId = @CompanyId
+              AND IsActive = 1
+              AND EmploymentStatus = 'Active'
+              AND CanBeShared = 1
+            ORDER BY MobilityRating DESC, SkillScore DESC";
+
+        command.Parameters.AddWithValue("@CompanyId", companyId);
+
+        return await ReadStaffMembersWithChildExtensions(command);
+    }
+
+    public async Task UpdateStaffSharingPropertiesAsync(string staffId, bool canBeShared, StaffMobilityRating mobilityRating, string? sharingPreferences, string? childSpecializations)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            UPDATE StaffMembers
+            SET CanBeShared = @CanBeShared,
+                MobilityRating = @MobilityRating,
+                SharingPreferences = @SharingPreferences,
+                ChildSpecializations = @ChildSpecializations
+            WHERE StaffId = @StaffId";
+
+        command.Parameters.AddWithValue("@StaffId", staffId);
+        command.Parameters.AddWithValue("@CanBeShared", canBeShared ? 1 : 0);
+        command.Parameters.AddWithValue("@MobilityRating", mobilityRating.ToString());
+        command.Parameters.AddWithValue("@SharingPreferences", sharingPreferences ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@ChildSpecializations", childSpecializations ?? (object)DBNull.Value);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync();
+        if (rowsAffected == 0)
+        {
+            throw new InvalidOperationException($"StaffMember avec ID {staffId} introuvable");
+        }
+    }
+
+    // ====================================================================
     // HELPER METHODS
     // ====================================================================
 
@@ -983,6 +1063,17 @@ public sealed class StaffRepository : IStaffRepository
         return trainers;
     }
 
+    private static async Task<IReadOnlyList<StaffMember>> ReadStaffMembersWithChildExtensions(SqliteCommand command)
+    {
+        var staffMembers = new List<StaffMember>();
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            staffMembers.Add(MapStaffMemberWithChildExtensions(reader));
+        }
+        return staffMembers;
+    }
+
     private static StaffMember MapStaffMember(SqliteDataReader reader)
     {
         return new StaffMember
@@ -1003,8 +1094,18 @@ public sealed class StaffRepository : IStaffRepository
             EmploymentStatus = reader.GetString(13),
             IsActive = reader.GetInt32(14) == 1,
             Notes = reader.IsDBNull(15) ? null : reader.GetString(15),
-            CreatedAt = DateTime.Parse(reader.GetString(16))
+            CreatedAt = DateTime.Parse(reader.GetString(16)),
+            CanBeShared = reader.GetInt32(17) == 1,
+            MobilityRating = Enum.Parse<StaffMobilityRating>(reader.GetString(18)),
+            SharingPreferences = reader.IsDBNull(19) ? null : reader.GetString(19),
+            ChildSpecializations = reader.IsDBNull(20) ? null : reader.GetString(20)
         };
+    }
+
+    private static StaffMember MapStaffMemberWithChildExtensions(SqliteDataReader reader)
+    {
+        // Même mapping que MapStaffMember mais avec toutes les colonnes explicites
+        return MapStaffMember(reader);
     }
 
     private static CreativeStaff MapCreativeStaff(SqliteDataReader reader)

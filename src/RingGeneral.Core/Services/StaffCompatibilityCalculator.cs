@@ -1,400 +1,351 @@
+using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Models.ChildCompany;
+using RingGeneral.Core.Models.Staff;
+using RingGeneral.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RingGeneral.Core.Enums;
-using RingGeneral.Core.Models.Booker;
-using RingGeneral.Core.Models.Staff;
+using System.Threading.Tasks;
 
 namespace RingGeneral.Core.Services;
 
 /// <summary>
-/// Calculateur de compatibilité entre staff créatif et booker.
-/// Détermine si un staff créatif peut "ruiner" les storylines ou s'il est en synergie.
+/// Calculateur de compatibilité entre staff et structures de jeunes.
+/// Évalue l'adéquation du staff avec les philosophies et besoins des structures.
 /// </summary>
-public class StaffCompatibilityCalculator
+public sealed class StaffCompatibilityCalculator
 {
-    /// <summary>
-    /// Calcule la compatibilité complète entre un staff créatif et un booker
-    /// </summary>
-    public StaffCompatibility CalculateCompatibility(
-        CreativeStaff creativeStaff,
-        Booker booker,
-        StaffMember staffMember,
-        int? existingSuccessfulCollaborations = null,
-        int? existingFailedCollaborations = null,
-        int? existingConflictHistory = null)
+    private readonly IChildCompanyRepository _childCompanyRepository;
+    private readonly IYouthRepository _youthRepository;
+
+    public StaffCompatibilityCalculator(
+        IChildCompanyRepository childCompanyRepository,
+        IYouthRepository youthRepository)
     {
-        // 1. Vision créative
-        var creativeVisionScore = CalculateCreativeVisionCompatibility(
-            creativeStaff.CreativityScore,
-            creativeStaff.ConsistencyScore,
-            booker.CreativityScore,
-            booker.LogicScore
-        );
+        _childCompanyRepository = childCompanyRepository ?? throw new ArgumentNullException(nameof(childCompanyRepository));
+        _youthRepository = youthRepository ?? throw new ArgumentNullException(nameof(youthRepository));
+    }
 
-        // 2. Style de booking
-        var bookingStyleScore = CalculateBookingStyleCompatibility(
-            creativeStaff.LongTermStorylinePreference,
-            booker.PreferredStyle,
-            booker.LikesSlowBurn
-        );
+    // ====================================================================
+    // COMPATIBILITY CALCULATION
+    // ====================================================================
 
-        // 3. Alignement des biais
-        var biasAlignmentScore = CalculateBiasAlignment(
-            creativeStaff.WorkerBias,
-            creativeStaff.PreferredStyle,
-            booker
-        );
+    /// <summary>
+    /// Calcule le score de compatibilité entre un staff et une structure de jeunes
+    /// </summary>
+    /// <param name="staff">Membre du staff</param>
+    /// <param name="youthStructureId">ID de la structure de jeunes</param>
+    /// <returns>Score de compatibilité (0.7-1.3)</returns>
+    public async Task<double> CalculateCompatibilityScoreAsync(StaffMember staff, string youthStructureId)
+    {
+        if (staff is null) throw new ArgumentNullException(nameof(staff));
+        if (string.IsNullOrWhiteSpace(youthStructureId)) throw new ArgumentException("YouthStructureId requis", nameof(youthStructureId));
 
-        // 4. Tolérance au risque
-        var riskToleranceScore = CalculateRiskToleranceCompatibility(
-            creativeStaff.CreativeRiskTolerance,
-            booker.CreativityScore
-        );
-
-        // 5. Chimie personnelle
-        var personalChemistryScore = CalculatePersonalChemistry(
-            staffMember.PersonalityScore,
-            booker.BiasResistance,
-            existingConflictHistory ?? 0
-        );
-
-        // Score global (moyenne pondérée)
-        var overallScore = (int)(
-            creativeVisionScore * 0.25 +
-            bookingStyleScore * 0.25 +
-            biasAlignmentScore * 0.20 +
-            riskToleranceScore * 0.15 +
-            personalChemistryScore * 0.15
-        );
-
-        // Identifier facteurs positifs et négatifs
-        var (positiveFactors, negativeFactors) = IdentifyFactors(
-            creativeVisionScore,
-            bookingStyleScore,
-            biasAlignmentScore,
-            riskToleranceScore,
-            personalChemistryScore,
-            creativeStaff,
-            booker
-        );
-
-        return new StaffCompatibility
+        try
         {
-            CompatibilityId = $"compat_{Guid.NewGuid():N}",
-            StaffId = creativeStaff.StaffId,
-            BookerId = booker.BookerId,
-            OverallScore = Math.Clamp(overallScore, 0, 100),
-            CreativeVisionScore = creativeVisionScore,
-            BookingStyleScore = bookingStyleScore,
-            BiasAlignmentScore = biasAlignmentScore,
-            RiskToleranceScore = riskToleranceScore,
-            PersonalChemistryScore = personalChemistryScore,
-            PositiveFactors = positiveFactors,
-            NegativeFactors = negativeFactors,
-            SuccessfulCollaborations = existingSuccessfulCollaborations ?? 0,
-            FailedCollaborations = existingFailedCollaborations ?? 0,
-            ConflictHistory = existingConflictHistory ?? 0,
-            LastCalculatedAt = DateTime.Now,
-            CreatedAt = DateTime.Now
+            // Récupérer les informations de la structure
+            var youthStructure = await GetYouthStructureInfoAsync(youthStructureId);
+            if (youthStructure is null) return 1.0; // Score neutre si structure introuvable
+
+            // Calculer les différents facteurs de compatibilité
+            var philosophyCompatibility = CalculatePhilosophyCompatibility(staff, youthStructure);
+            var roleCompatibility = CalculateRoleCompatibility(staff, youthStructure);
+            var experienceCompatibility = CalculateExperienceCompatibility(staff, youthStructure);
+            var specializationCompatibility = CalculateSpecializationCompatibility(staff, youthStructure);
+
+            // Score pondéré (moyenne pondérée)
+            var weights = new Dictionary<string, double>
+            {
+                ["philosophy"] = 0.4,    // 40% - Philosophie la plus importante
+                ["role"] = 0.3,          // 30% - Rôle spécifique
+                ["experience"] = 0.2,    // 20% - Expérience
+                ["specialization"] = 0.1 // 10% - Spécialisations
+            };
+
+            var weightedScore = (philosophyCompatibility * weights["philosophy"]) +
+                               (roleCompatibility * weights["role"]) +
+                               (experienceCompatibility * weights["experience"]) +
+                               (specializationCompatibility * weights["specialization"]);
+
+            // Normaliser dans la plage 0.7-1.3
+            return Math.Clamp(weightedScore, 0.7, 1.3);
+        }
+        catch
+        {
+            return 1.0; // Score neutre en cas d'erreur
+        }
+    }
+
+    /// <summary>
+    /// Calcule la compatibilité détaillée avec explication
+    /// </summary>
+    /// <param name="staff">Membre du staff</param>
+    /// <param name="youthStructureId">ID de la structure</param>
+    /// <returns>Compatibilité détaillée</returns>
+    public async Task<DetailedCompatibility> CalculateDetailedCompatibilityAsync(StaffMember staff, string youthStructureId)
+    {
+        var overallScore = await CalculateCompatibilityScoreAsync(staff, youthStructureId);
+        var youthStructure = await GetYouthStructureInfoAsync(youthStructureId);
+
+        if (youthStructure is null)
+        {
+            return new DetailedCompatibility(
+                OverallScore: 1.0,
+                PhilosophyCompatibility: 1.0,
+                RoleCompatibility: 1.0,
+                ExperienceCompatibility: 1.0,
+                SpecializationCompatibility: 1.0,
+                Strengths: new[] { "Structure non trouvée - score neutre" },
+                Weaknesses: Array.Empty<string>(),
+                Recommendations: new[] { "Vérifier la configuration de la structure" });
+        }
+
+        var philosophyScore = CalculatePhilosophyCompatibility(staff, youthStructure);
+        var roleScore = CalculateRoleCompatibility(staff, youthStructure);
+        var experienceScore = CalculateExperienceCompatibility(staff, youthStructure);
+        var specializationScore = CalculateSpecializationCompatibility(staff, youthStructure);
+
+        var (strengths, weaknesses) = AnalyzeCompatibilityFactors(
+            staff, youthStructure, philosophyScore, roleScore, experienceScore, specializationScore);
+
+        var recommendations = GenerateCompatibilityRecommendations(
+            staff, youthStructure, philosophyScore, roleScore, experienceScore, specializationScore);
+
+        return new DetailedCompatibility(
+            OverallScore: overallScore,
+            PhilosophyCompatibility: philosophyScore,
+            RoleCompatibility: roleScore,
+            ExperienceCompatibility: experienceScore,
+            SpecializationCompatibility: specializationScore,
+            Strengths: strengths,
+            Weaknesses: weaknesses,
+            Recommendations: recommendations);
+    }
+
+    /// <summary>
+    /// Trouve le staff le plus compatible pour une structure donnée
+    /// </summary>
+    /// <param name="availableStaff">Staff disponible</param>
+    /// <param name="youthStructureId">ID de la structure</param>
+    /// <param name="topCount">Nombre de résultats à retourner</param>
+    /// <returns>Staff trié par compatibilité</returns>
+    public async Task<IReadOnlyList<StaffCompatibilityRanking>> FindMostCompatibleStaffAsync(
+        IReadOnlyList<StaffMember> availableStaff,
+        string youthStructureId,
+        int topCount = 5)
+    {
+        if (availableStaff is null) throw new ArgumentNullException(nameof(availableStaff));
+        if (string.IsNullOrWhiteSpace(youthStructureId)) throw new ArgumentException("YouthStructureId requis", nameof(youthStructureId));
+
+        var rankings = new List<StaffCompatibilityRanking>();
+
+        foreach (var staff in availableStaff.Where(s => s.CanBeShared))
+        {
+            try
+            {
+                var detailedCompatibility = await CalculateDetailedCompatibilityAsync(staff, youthStructureId);
+                rankings.Add(new StaffCompatibilityRanking(
+                    Staff: staff,
+                    Compatibility: detailedCompatibility,
+                    Rank: 0)); // Sera défini après tri
+            }
+            catch
+            {
+                // Ignorer les erreurs individuelles
+            }
+        }
+
+        // Trier par score décroissant et assigner les rangs
+        var sortedRankings = rankings
+            .OrderByDescending(r => r.Compatibility.OverallScore)
+            .Take(topCount)
+            .Select((ranking, index) => ranking with { Rank = index + 1 })
+            .ToList();
+
+        return sortedRankings;
+    }
+
+    // ====================================================================
+    // PRIVATE CALCULATION METHODS
+    // ====================================================================
+
+    private async Task<YouthStructureInfo?> GetYouthStructureInfoAsync(string youthStructureId)
+    {
+        try
+        {
+            // Note: Cette méthode nécessiterait une implémentation complète du YouthRepository
+            // Pour l'instant, on retourne un mock basé sur des données typiques
+            return new YouthStructureInfo(
+                YouthStructureId: youthStructureId,
+                Philosophie: "BALANCED", // Philosophie par défaut
+                NiveauEquipements: 3,
+                BudgetAnnuel: 50000,
+                Type: "PERFORMANCE_CENTER",
+                Region: "DEFAULT_REGION");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private double CalculatePhilosophyCompatibility(StaffMember staff, YouthStructureInfo structure)
+    {
+        // Logique de compatibilité basée sur la philosophie
+        // Pour simplifier, on utilise le département du staff comme proxy de philosophie
+
+        var staffPhilosophy = staff.Department switch
+        {
+            StaffDepartment.Creative => "ENTERTAINMENT_FOCUS",
+            StaffDepartment.Training => "TECHNICAL_FOCUS",
+            StaffDepartment.Structural => "BALANCED",
+            _ => "BALANCED"
+        };
+
+        var structurePhilosophy = structure.Philosophie;
+
+        // Matrice de compatibilité simplifiée
+        var compatibilityMatrix = new Dictionary<(string, string), double>
+        {
+            [("ENTERTAINMENT_FOCUS", "ENTERTAINMENT_FOCUS")] = 1.2,
+            [("ENTERTAINMENT_FOCUS", "TECHNICAL_FOCUS")] = 0.8,
+            [("ENTERTAINMENT_FOCUS", "BALANCED")] = 1.0,
+            [("TECHNICAL_FOCUS", "ENTERTAINMENT_FOCUS")] = 0.8,
+            [("TECHNICAL_FOCUS", "TECHNICAL_FOCUS")] = 1.2,
+            [("TECHNICAL_FOCUS", "BALANCED")] = 1.0,
+            [("BALANCED", "ENTERTAINMENT_FOCUS")] = 1.0,
+            [("BALANCED", "TECHNICAL_FOCUS")] = 1.0,
+            [("BALANCED", "BALANCED")] = 1.1
+        };
+
+        var key = (staffPhilosophy, structurePhilosophy);
+        return compatibilityMatrix.GetValueOrDefault(key, 1.0);
+    }
+
+    private double CalculateRoleCompatibility(StaffMember staff, YouthStructureInfo structure)
+    {
+        // Compatibilité basée sur le rôle spécifique du staff
+        return staff.Role switch
+        {
+            // Staff créatif - Bon pour entertainment/story
+            StaffRole.LeadWriter or StaffRole.CreativeWriter or StaffRole.Booker =>
+                structure.Philosophie.Contains("ENTERTAINMENT") ? 1.15 : 0.9,
+
+            // Staff entraînement - Bon pour technical/performance
+            StaffRole.HeadTrainer or StaffRole.WrestlingTrainer or StaffRole.PromoTrainer =>
+                structure.Philosophie.Contains("TECHNICAL") ? 1.15 : 0.9,
+
+            // Staff médical - Bon partout pour prévention blessures
+            StaffRole.MedicalDirector or StaffRole.MedicalStaff => 1.1,
+
+            // Staff psychologue - Bon pour mental/resilience
+            StaffRole.PerformancePsychologist => 1.05,
+
+            // Par défaut - compatibilité moyenne
+            _ => 1.0
         };
     }
 
-    /// <summary>
-    /// Calcule la compatibilité de vision créative
-    /// </summary>
-    private int CalculateCreativeVisionCompatibility(
-        int staffCreativity,
-        int staffConsistency,
-        int bookerCreativity,
-        int bookerLogic)
+    private double CalculateExperienceCompatibility(StaffMember staff, YouthStructureInfo structure)
     {
-        // Comparaison créativité
-        var creativityDiff = Math.Abs(staffCreativity - bookerCreativity);
-        var creativityScore = 100 - creativityDiff;
-
-        // Comparaison cohérence/logique
-        var consistencyDiff = Math.Abs(staffConsistency - bookerLogic);
-        var consistencyScore = 100 - consistencyDiff;
-
-        // Bonus si les deux sont élevés (genius minds think alike)
-        var geniusBonus = 0;
-        if (staffCreativity >= 70 && bookerCreativity >= 70)
+        // Compatibilité basée sur l'expérience
+        var experienceFactor = staff.YearsOfExperience switch
         {
-            geniusBonus = 15;
-        }
+            < 3 => 0.85,   // Junior - moins expérimenté pour jeunes
+            < 8 => 1.0,    // Mid-level - bon équilibre
+            < 15 => 1.1,   // Senior - bonne expérience
+            _ => 1.05      // Expert - très expérimenté mais peut être moins flexible
+        };
 
-        var totalScore = (int)((creativityScore * 0.6) + (consistencyScore * 0.4) + geniusBonus);
+        // Ajustement selon le type de structure
+        var structureAdjustment = structure.Type switch
+        {
+            "PERFORMANCE_CENTER" => staff.YearsOfExperience >= 5 ? 1.05 : 0.95,
+            "DOJO" => staff.YearsOfExperience >= 3 ? 1.02 : 0.98,
+            "CLUB" => 1.0, // Flexible
+            _ => 1.0
+        };
 
-        return Math.Clamp(totalScore, 0, 100);
+        return experienceFactor * structureAdjustment;
     }
 
-    /// <summary>
-    /// Calcule la compatibilité de style de booking
-    /// </summary>
-    private int CalculateBookingStyleCompatibility(
-        int staffLongTermPreference,
-        string bookerPreferredStyle,
-        bool bookerLikesSlowBurn)
+    private double CalculateSpecializationCompatibility(StaffMember staff, YouthStructureInfo structure)
     {
-        var baseScore = 50;
-
-        // Aligner préférence long-term avec style du booker
-        if (bookerPreferredStyle == "Long-Term")
-        {
-            // Booker long-term aime staff qui préfère storylines longues
-            baseScore = staffLongTermPreference;
-        }
-        else if (bookerPreferredStyle == "Short-Term")
-        {
-            // Booker short-term aime staff qui préfère angles courts
-            baseScore = 100 - staffLongTermPreference;
-        }
-        else // Flexible
-        {
-            // Booker flexible s'adapte à tout
-            baseScore = 70;
-        }
-
-        // Bonus si alignement avec SlowBurn
-        if (bookerLikesSlowBurn && staffLongTermPreference >= 70)
-        {
-            baseScore += 15;
-        }
-        else if (!bookerLikesSlowBurn && staffLongTermPreference <= 30)
-        {
-            baseScore += 10;
-        }
-
-        return Math.Clamp(baseScore, 0, 100);
+        // Pour l'instant, compatibilité neutre - pourrait être étendu avec les spécialisations JSON
+        // TODO: Parser ChildSpecializations JSON et calculer compatibilité détaillée
+        return 1.0;
     }
 
-    /// <summary>
-    /// Calcule l'alignement des biais
-    /// </summary>
-    private int CalculateBiasAlignment(
-        WorkerTypeBias staffBias,
-        ProductStyle staffStyle,
-        Booker booker)
+    private (IReadOnlyList<string> Strengths, IReadOnlyList<string> Weaknesses) AnalyzeCompatibilityFactors(
+        StaffMember staff,
+        YouthStructureInfo structure,
+        double philosophyScore,
+        double roleScore,
+        double experienceScore,
+        double specializationScore)
     {
-        var baseScore = 60; // Neutre par défaut
+        var strengths = new List<string>();
+        var weaknesses = new List<string>();
 
-        // Vérifier alignement avec préférences du booker
-        if (staffBias == WorkerTypeBias.Veterans && booker.LikesVeteran)
-        {
-            baseScore = 85;
-        }
-        else if (staffBias == WorkerTypeBias.Rookies && !booker.LikesVeteran)
-        {
-            baseScore = 80;
-        }
-        else if (staffBias == WorkerTypeBias.BigMen && booker.LikesFastRise)
-        {
-            // Big men + fast rise = incompatible généralement
-            baseScore = 40;
-        }
+        // Analyse philosophie
+        if (philosophyScore >= 1.1)
+            strengths.Add("Excellente alignment philosophique");
+        else if (philosophyScore <= 0.9)
+            weaknesses.Add("Mauvaise compatibilité philosophique");
 
-        // Ajuster selon résistance au biais du booker
-        if (booker.BiasResistance >= 70)
-        {
-            // Booker méritocratique ignore les biais = toujours bon
-            baseScore = Math.Max(baseScore, 75);
-        }
+        // Analyse rôle
+        if (roleScore >= 1.1)
+            strengths.Add($"Rôle {staff.Role} parfaitement adapté");
+        else if (roleScore <= 0.9)
+            weaknesses.Add($"Rôle {staff.Role} peu adapté à la structure");
 
-        return Math.Clamp(baseScore, 0, 100);
+        // Analyse expérience
+        if (experienceScore >= 1.05)
+            strengths.Add($"{staff.YearsOfExperience} ans d'expérience idéals");
+        else if (experienceScore <= 0.9)
+            weaknesses.Add($"Expérience ({staff.YearsOfExperience} ans) insuffisante");
+
+        // Analyse compétence
+        if (staff.SkillScore >= 80)
+            strengths.Add($"Très compétent (score {staff.SkillScore})");
+        else if (staff.SkillScore <= 60)
+            weaknesses.Add($"Compétence limitée (score {staff.SkillScore})");
+
+        return (strengths, weaknesses);
     }
 
-    /// <summary>
-    /// Calcule la compatibilité de tolérance au risque
-    /// </summary>
-    private int CalculateRiskToleranceCompatibility(
-        int staffRiskTolerance,
-        int bookerCreativity)
-    {
-        // Staff très risk-taker avec booker très créatif = excellent
-        if (staffRiskTolerance >= 70 && bookerCreativity >= 70)
-        {
-            return 90;
-        }
-
-        // Staff très conservateur avec booker peu créatif = bon
-        if (staffRiskTolerance <= 30 && bookerCreativity <= 30)
-        {
-            return 75;
-        }
-
-        // Staff risk-taker avec booker peu créatif = incompatible
-        if (staffRiskTolerance >= 70 && bookerCreativity <= 30)
-        {
-            return 30;
-        }
-
-        // Calculer différence
-        var diff = Math.Abs(staffRiskTolerance - bookerCreativity);
-        var score = 100 - diff;
-
-        return Math.Clamp(score, 0, 100);
-    }
-
-    /// <summary>
-    /// Calcule la chimie personnelle
-    /// </summary>
-    private int CalculatePersonalChemistry(
-        int staffPersonality,
-        int bookerBiasResistance,
-        int conflictHistory)
-    {
-        // Score de base selon personnalité du staff
-        var baseScore = staffPersonality;
-
-        // Pénalité pour historique de conflits
-        var conflictPenalty = Math.Min(conflictHistory * 10, 40);
-
-        // Bonus si booker a haute résistance au biais (professionnel)
-        var professionalismBonus = bookerBiasResistance >= 70 ? 10 : 0;
-
-        var totalScore = baseScore + professionalismBonus - conflictPenalty;
-
-        return Math.Clamp(totalScore, 0, 100);
-    }
-
-    /// <summary>
-    /// Identifie les facteurs positifs et négatifs de compatibilité
-    /// </summary>
-    private (string PositiveFactors, string NegativeFactors) IdentifyFactors(
-        int creativeVisionScore,
-        int bookingStyleScore,
-        int biasAlignmentScore,
-        int riskToleranceScore,
-        int personalChemistryScore,
-        CreativeStaff staff,
-        Booker booker)
-    {
-        var positives = new List<string>();
-        var negatives = new List<string>();
-
-        // Vision créative
-        if (creativeVisionScore >= 80)
-            positives.Add("Vision créative alignée");
-        else if (creativeVisionScore <= 40)
-            negatives.Add("Vision créative divergente");
-
-        // Style de booking
-        if (bookingStyleScore >= 80)
-            positives.Add("Style de booking compatible");
-        else if (bookingStyleScore <= 40)
-            negatives.Add("Style de booking incompatible");
-
-        // Biais
-        if (biasAlignmentScore >= 80)
-            positives.Add("Préférences alignées");
-        else if (biasAlignmentScore <= 40)
-            negatives.Add("Biais opposés");
-
-        // Risque
-        if (riskToleranceScore >= 80)
-            positives.Add("Tolérance au risque compatible");
-        else if (riskToleranceScore <= 40)
-            negatives.Add("Approche créative trop différente");
-
-        // Chimie
-        if (personalChemistryScore >= 80)
-            positives.Add("Excellente chimie personnelle");
-        else if (personalChemistryScore <= 40)
-            negatives.Add("Conflits de personnalité");
-
-        // Spécifiques
-        if (staff.CreativityScore >= 80 && booker.CreativityScore >= 80)
-            positives.Add("Deux esprits créatifs brillants");
-
-        if (staff.ConsistencyScore >= 80 && booker.LogicScore >= 80)
-            positives.Add("Approche méthodique partagée");
-
-        if (booker.BiasResistance >= 70)
-            positives.Add("Booker méritocratique");
-
-        return (
-            PositiveFactors: positives.Any() ? string.Join(", ", positives) : "Aucun",
-            NegativeFactors: negatives.Any() ? string.Join(", ", negatives) : "Aucun"
-        );
-    }
-
-    /// <summary>
-    /// Détermine si un staff créatif peut ruiner des storylines
-    /// Basé sur incompatibilité + expérience
-    /// </summary>
-    public bool CanRuinStorylines(
-        StaffCompatibility compatibility,
-        StaffMember staffMember)
-    {
-        // Staff incompatible (< 30) avec haute expertise = dangereux
-        if (compatibility.OverallScore <= 30)
-        {
-            // Si expert ou légende avec forte personnalité = peut imposer sa vision
-            if (staffMember.ExpertiseLevel >= StaffExpertiseLevel.Expert &&
-                staffMember.PersonalityScore <= 40)
-            {
-                return true;
-            }
-
-            // Si beaucoup d'expérience mais incompatible
-            if (staffMember.YearsOfExperience >= 10 && staffMember.SkillScore >= 70)
-            {
-                return true;
-            }
-        }
-
-        // Historique de conflits élevé
-        if (compatibility.ConflictHistory >= 5)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Génère des recommandations pour améliorer la compatibilité
-    /// </summary>
-    public List<string> GetImprovementRecommendations(StaffCompatibility compatibility)
+    private IReadOnlyList<string> GenerateCompatibilityRecommendations(
+        StaffMember staff,
+        YouthStructureInfo structure,
+        double philosophyScore,
+        double roleScore,
+        double experienceScore,
+        double specializationScore)
     {
         var recommendations = new List<string>();
 
-        if (compatibility.OverallScore >= 80)
+        if (philosophyScore <= 0.9)
+            recommendations.Add("Envisager un staff avec une philosophie plus alignée");
+
+        if (roleScore <= 0.9)
         {
-            recommendations.Add("✅ Excellente compatibilité - Maintenez cette collaboration");
-            return recommendations;
+            var suggestedRole = structure.Philosophie.Contains("ENTERTAINMENT")
+                ? "Creative Writer ou Booker"
+                : "Wrestling Trainer ou Head Trainer";
+            recommendations.Add($"Préférer un {suggestedRole} pour cette structure");
         }
 
-        if (compatibility.CreativeVisionScore <= 40)
-        {
-            recommendations.Add("💡 Organisez des sessions de brainstorming pour aligner les visions");
-        }
+        if (experienceScore <= 0.9)
+            recommendations.Add("Rechercher un staff avec plus d'expérience");
 
-        if (compatibility.BookingStyleScore <= 40)
-        {
-            recommendations.Add("📋 Clarifiez les attentes sur le style de booking (long-term vs short-term)");
-        }
+        if (staff.SkillScore <= 70)
+            recommendations.Add("Prioriser des membres du staff plus qualifiés");
 
-        if (compatibility.BiasAlignmentScore <= 40)
-        {
-            recommendations.Add("⚖️ Discutez des biais et préférences pour trouver un terrain d'entente");
-        }
+        if (staff.MobilityRating == StaffMobilityRating.Low)
+            recommendations.Add("Considérer la mobilité du staff pour les déplacements");
 
-        if (compatibility.PersonalChemistryScore <= 40)
-        {
-            recommendations.Add("🤝 Envisagez des sessions de médiation ou de team-building");
-        }
-
-        if (compatibility.ConflictHistory >= 3)
-        {
-            recommendations.Add("⚠️ Historique de conflits - Envisagez un changement de staff ou booker");
-        }
-
-        if (compatibility.CalculateCollaborationSuccessRate() <= 40)
-        {
-            recommendations.Add("📉 Taux de succès faible - Réduisez les responsabilités créatives");
-        }
+        if (!recommendations.Any())
+            recommendations.Add("Excellent choix de staff pour cette structure");
 
         return recommendations;
     }
