@@ -1,113 +1,63 @@
 namespace RingGeneral.Core.Models;
 
-public enum PayrollFrequency
-{
-    Hebdomadaire,
-    Mensuelle
-}
-
-public sealed record ContractPayroll(
-    string WorkerId,
-    string Nom,
-    double Salaire,
-    PayrollFrequency Frequence);
-
 public sealed record ShowFinanceContext(
-    CompanyState Compagnie,
-    int Audience,
-    int DureeMinutes,
-    IReadOnlyList<int> PopularitesWorkers,
-    bool DiffuseTv);
+    string ShowId,
+    decimal TicketRevenue,
+    decimal MerchRevenue,
+    decimal TvRevenue,
+    decimal TotalRevenue);
 
-public sealed record WeeklyFinanceContext(
-    string CompagnieId,
-    int Semaine,
-    double Tresorerie,
-    IReadOnlyList<ContractPayroll> Contrats);
+/// <summary>
+/// Phase 2.2 - Projection de revenus sur 12 mois
+/// </summary>
+public sealed record RevenueProjection(
+    string CompanyId,
+    int StartMonth,
+    IReadOnlyList<MonthlyRevenue> MonthlyRevenues,
+    decimal TotalProjectedRevenue,
+    decimal AverageMonthlyRevenue);
 
-public sealed record TicketingSettings(
-    double PrixBase,
-    double PrixParAudience,
-    double PrixParPrestige,
-    double PrixMin,
-    double PrixMax,
-    double TauxRemplissageBase,
-    double TauxRemplissageParPoint,
-    double TauxRemplissageMin,
-    double TauxRemplissageMax);
+/// <summary>
+/// Phase 2.2 - Revenus mensuels projetés
+/// </summary>
+public sealed record MonthlyRevenue(
+    int Month,
+    decimal TvRevenue,
+    decimal TicketRevenue,
+    decimal MerchRevenue,
+    decimal SponsorRevenue,
+    decimal TotalRevenue);
 
-public sealed record VenueSettings(
-    int CapaciteBase,
-    int CapaciteMin,
-    int CapaciteMax,
-    int CapaciteParReach,
-    int CapaciteParPrestige);
+/// <summary>
+/// Phase 2.2 - Allocation budgétaire par département
+/// </summary>
+public sealed record BudgetAllocation(
+    string CompanyId,
+    decimal TotalBudget,
+    decimal TalentAllocation,
+    decimal ProductionAllocation,
+    decimal YouthDevAllocation,
+    decimal MarketingAllocation,
+    decimal MedicalAllocation);
 
-public sealed record MerchSettings(
-    double DepenseParFan,
-    double MultiplicateurStars,
-    int StarsPrisesEnCompte);
+/// <summary>
+/// Phase 2.2 - Impact d'une allocation budgétaire
+/// </summary>
+public sealed record AllocationImpact(
+    string Department,
+    decimal AllocationPercent,
+    string ImpactDescription,
+    double ImpactValue);
 
-public sealed record TvSettings(
-    double RevenuBase,
-    double RevenuParAudience);
-
-public sealed record ProductionSettings(
-    double CoutBase,
-    double CoutParMinute,
-    double CoutParSpectateur);
-
-public sealed record PayrollSettings(
-    int SemainesParMois);
-
-public sealed record FinanceSettings(
-    TicketingSettings Billetterie,
-    VenueSettings Venue,
-    MerchSettings Merch,
-    TvSettings Tv,
-    ProductionSettings Production,
-    PayrollSettings Paie)
-{
-    public static FinanceSettings V1() => new(
-        new TicketingSettings(
-            PrixBase: 18,
-            PrixParAudience: 0.22,
-            PrixParPrestige: 0.15,
-            PrixMin: 8,
-            PrixMax: 45,
-            TauxRemplissageBase: 0.55,
-            TauxRemplissageParPoint: 0.006,
-            TauxRemplissageMin: 0.3,
-            TauxRemplissageMax: 0.95),
-        new VenueSettings(
-            CapaciteBase: 900,
-            CapaciteMin: 400,
-            CapaciteMax: 9000,
-            CapaciteParReach: 120,
-            CapaciteParPrestige: 18),
-        new MerchSettings(
-            DepenseParFan: 6.5,
-            MultiplicateurStars: 0.6,
-            StarsPrisesEnCompte: 3),
-        new TvSettings(
-            RevenuBase: 3200,
-            RevenuParAudience: 35),
-        new ProductionSettings(
-            CoutBase: 1200,
-            CoutParMinute: 35,
-            CoutParSpectateur: 1.1),
-        new PayrollSettings(
-            SemainesParMois: 4));
-}
-
-public sealed record FinanceShowResult(
-    double Billetterie,
-    double Merch,
-    double Tv,
-    double CoutProduction,
-    IReadOnlyList<FinanceTransaction> Transactions);
-
-public sealed record FinanceTickResult(
-    double TotalRevenus,
-    double TotalDepenses,
-    IReadOnlyList<FinanceTransaction> Transactions);
+/// <summary>
+/// Phase 2.2 - Dette de la compagnie
+/// </summary>
+public sealed record CompanyDebt(
+    string DebtId,
+    string CompanyId,
+    decimal PrincipalAmount,
+    decimal InterestRate,
+    int TermMonths,
+    DateTime StartDate,
+    decimal MonthlyPayment,
+    decimal RemainingBalance);

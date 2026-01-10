@@ -1,10 +1,11 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class CompanyRepository : RepositoryBase
+public sealed class CompanyRepository : RepositoryBase, ICompanyRepository, ITvDealRepository
 {
     public CompanyRepository(SqliteConnectionFactory factory) : base(factory)
     {
@@ -232,6 +233,38 @@ public sealed class CompanyRepository : RepositoryBase
         }
 
         return deals;
+    }
+
+    /// <summary>
+    /// Phase 2.1 - Enregistre un nouveau TV Deal
+    /// </summary>
+    public void EnregistrerTvDeal(TvDeal deal, int startWeek, int endWeek)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        // Utiliser StartDate et EndDate (en semaines) au lieu de start_week/end_week
+        command.CommandText = """
+            INSERT INTO tv_deals (
+                tv_deal_id, company_id, network_name, reach_bonus, audience_cap, audience_min,
+                base_revenue, revenue_per_point, penalty, constraints, start_date, end_date
+            ) VALUES (
+                $dealId, $companyId, $networkName, $reachBonus, $audienceCap, $audienceMin,
+                $baseRevenue, $revenuePerPoint, $penalty, $constraints, $startWeek, $endWeek
+            );
+            """;
+        command.Parameters.AddWithValue("$dealId", deal.TvDealId);
+        command.Parameters.AddWithValue("$companyId", deal.CompanyId);
+        command.Parameters.AddWithValue("$networkName", deal.NetworkName);
+        command.Parameters.AddWithValue("$reachBonus", deal.ReachBonus);
+        command.Parameters.AddWithValue("$audienceCap", deal.AudienceCap);
+        command.Parameters.AddWithValue("$audienceMin", deal.MinimumAudience);
+        command.Parameters.AddWithValue("$baseRevenue", deal.BaseRevenue);
+        command.Parameters.AddWithValue("$revenuePerPoint", deal.RevenuePerPoint);
+        command.Parameters.AddWithValue("$penalty", deal.Penalty);
+        command.Parameters.AddWithValue("$constraints", deal.Constraints);
+        command.Parameters.AddWithValue("$startWeek", startWeek);
+        command.Parameters.AddWithValue("$endWeek", endWeek);
+        command.ExecuteNonQuery();
     }
 
     public IReadOnlyList<InboxItem> ChargerInbox()

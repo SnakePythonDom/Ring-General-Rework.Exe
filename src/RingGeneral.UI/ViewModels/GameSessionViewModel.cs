@@ -2088,7 +2088,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         if (_repository is null)
         {
-            System.Diagnostics.Debug.WriteLine("InitialiserBibliotheque abandonnée : Repository est null.");
+            _logger.Warning("InitialiserBibliotheque abandonnée : Repository est null.");
             Logger.Warning("InitialiserBibliotheque ne peut pas s'exécuter car la base de données n'est pas chargée.");
             return;
         }

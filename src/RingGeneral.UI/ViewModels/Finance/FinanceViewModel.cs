@@ -2,6 +2,9 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Services;
+using RingGeneral.UI.Views.Finance;
 
 namespace RingGeneral.UI.ViewModels.Finance;
 
@@ -33,6 +36,7 @@ public sealed class FinanceViewModel : ViewModelBase
         LoadTvDealsCommand = ReactiveCommand.Create(LoadTvDeals);
         LoadAudienceHistoryCommand = ReactiveCommand.Create<string>(LoadAudienceHistory);
         CalculateReachCommand = ReactiveCommand.Create(CalculateReach);
+        OpenTvDealNegotiationCommand = ReactiveCommand.Create(OpenTvDealNegotiation);
 
         LoadFinanceData();
     }
@@ -120,6 +124,11 @@ public sealed class FinanceViewModel : ViewModelBase
     /// Phase 6.3 - Commande pour calculer le reach
     /// </summary>
     public ReactiveCommand<Unit, Unit> CalculateReachCommand { get; }
+
+    /// <summary>
+    /// Phase 2.1 - Commande pour ouvrir la négociation TV Deal
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenTvDealNegotiationCommand { get; }
 
     #endregion
 
@@ -263,6 +272,48 @@ public sealed class FinanceViewModel : ViewModelBase
         {
             Logger.Error($"Erreur calcul reach : {ex.Message}");
             LoadPlaceholderReach();
+        }
+    }
+
+    /// <summary>
+    /// Phase 2.1 - Ouvre la fenêtre de négociation TV Deal
+    /// </summary>
+    private void OpenTvDealNegotiation()
+    {
+        try
+        {
+            // Récupérer l'ID de la compagnie depuis le repository
+            string? companyId = null;
+            if (_repository != null)
+            {
+                using var connection = _repository.CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT CompanyId FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                var result = cmd.ExecuteScalar();
+                companyId = result?.ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(companyId))
+            {
+                Logger.Error("Impossible de trouver la compagnie du joueur");
+                return;
+            }
+
+            // Créer le ViewModel et la fenêtre
+            var negotiationService = ApplicationServices.Resolve<ITvDealNegotiationService>();
+            var negotiationViewModel = new TvDealNegotiationViewModel(negotiationService, companyId);
+            var window = new Views.Finance.TvDealNegotiationView
+            {
+                DataContext = negotiationViewModel
+            };
+            window.Show();
+            
+            Logger.Info($"Ouverture de la négociation TV Deal pour compagnie {companyId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur ouverture négociation TV Deal: {ex.Message}");
         }
     }
 

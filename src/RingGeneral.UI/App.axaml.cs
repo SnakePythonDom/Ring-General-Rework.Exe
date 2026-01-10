@@ -22,6 +22,7 @@ using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Validation;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Models;
 using IOwnerRepo = RingGeneral.Data.Repositories.IOwnerRepository;
 using IBookerRepo = RingGeneral.Data.Repositories.IBookerRepository;
 using IOwnerRepository = RingGeneral.Core.Interfaces.IOwnerRepository;
@@ -208,6 +209,27 @@ public sealed class App : Application
         services.AddSingleton<IBookerAIEngine>(sp =>
             new BookerAIEngine(null)); // Ces services fonctionnent sans repository
 
+        // Phase 2.1 - TV Deal Negotiation Service
+        services.AddSingleton<ICompanyRepository>(repositories.CompanyRepository);
+        services.AddSingleton<ITvDealRepository>(repositories.CompanyRepository);
+        services.AddSingleton<ITvDealNegotiationService>(sp =>
+            new TvDealNegotiationService(
+                sp.GetRequiredService<ICompanyRepository>(),
+                sp.GetRequiredService<ITvDealRepository>()));
+
+        // Phase 2.2 - Revenue Projection & Budget Allocation Services
+        services.AddSingleton<IRevenueProjectionService>(sp =>
+            new RevenueProjectionService(
+                sp.GetRequiredService<ICompanyRepository>(),
+                sp.GetRequiredService<ITvDealRepository>()));
+        services.AddSingleton<IBudgetAllocationService>(sp =>
+            new BudgetAllocationService());
+
+        // Phase 1.2 - Booking Control Service
+        services.AddSingleton<IBookingControlService>(sp =>
+            new BookingControlService(
+                sp.GetRequiredService<IBookerAIEngine>()));
+
         // Daily Time System Services (Phase 7)
         services.AddSingleton<IGameRepository>(repositories.GameRepository);
         services.AddSingleton<IDailyServices>(sp =>
@@ -224,7 +246,8 @@ public sealed class App : Application
                 moraleEngine: sp.GetRequiredService<IMoraleEngine>(),
                 dailyServices: sp.GetRequiredService<IDailyServices>(),
                 contextLoader: null,  // Sera fourni par GameRepository
-                statusUpdater: null)); // Sera fourni par ShowRepository
+                statusUpdater: null,  // Sera fourni par ShowRepository
+                inboxItemAdder: item => repositories.GameRepository.AjouterInboxItem(item))); // Phase 3.2
         
         services.AddSingleton<ITimeOrchestratorService>(sp =>
             new TimeOrchestratorService(
@@ -260,6 +283,13 @@ public sealed class App : Application
         services.AddTransient<LibraryViewModel>();
         services.AddTransient<ShowHistoryPageViewModel>();
         services.AddTransient<BookingSettingsViewModel>();
+        services.AddTransient<ShowBookingViewModel>(sp =>
+            new ShowBookingViewModel(
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<SegmentTypeCatalog>(),
+                sp.GetRequiredService<IBookerAIEngine>(),
+                sp.GetRequiredService<IBookingControlService>(),
+                sp.GetRequiredService<SettingsRepository>()));
 
         // Roster ViewModels
         services.AddTransient<RosterViewModel>();

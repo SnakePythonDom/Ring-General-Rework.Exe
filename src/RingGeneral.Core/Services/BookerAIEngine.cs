@@ -10,15 +10,263 @@ namespace RingGeneral.Core.Services;
 /// <summary>
 /// Moteur AI de booking permettant aux bookers de prendre des décisions autonomes.
 /// Utilise les préférences du booker et ses mémoires pour cohérence long terme.
+/// Intègre la conscience des ères pour influencer les décisions.
 /// </summary>
 public sealed class BookerAIEngine : IBookerAIEngine
 {
     private readonly IBookerRepository? _bookerRepository;
+    private readonly IEraRepository? _eraRepository;
     private readonly System.Random _random = new();
 
-    public BookerAIEngine(IBookerRepository? bookerRepository = null)
+    public BookerAIEngine(
+        IBookerRepository? bookerRepository = null,
+        IEraRepository? eraRepository = null)
     {
         _bookerRepository = bookerRepository;
+        _eraRepository = eraRepository;
+    }
+
+    /// <summary>
+    /// Phase 1.1 - Récupère les préférences du creative staff pour influencer les décisions
+    /// TODO: Implémenter quand ICreativeStaffRepository sera disponible
+    /// </summary>
+    private (string PreferredNarrativeStyle, int ChaosTolerance, bool PrefersLongStorylines) GetCreativeStaffPreferences(string companyId)
+    {
+        // Phase 1.1 - Pour l'instant, retourner des valeurs par défaut basées sur l'era si disponible
+        // Sera étendu quand le système de Creative Staff sera implémenté
+        var era = _eraRepository?.GetCurrentEraAsync(companyId).Result;
+        if (era != null)
+        {
+            return era.Type switch
+            {
+                Enums.EraType.Technical => ("Technical", 30, true),
+                Enums.EraType.Entertainment => ("Entertainment", 70, false),
+                Enums.EraType.Hardcore => ("Hardcore", 80, false),
+                _ => ("Balanced", 50, true)
+            };
+        }
+        return ("Balanced", 50, true);
+    }
+
+    /// <summary>
+    /// Applique les influences de l'era actuelle aux décisions de booking
+    /// </summary>
+    private SegmentDefinition ApplyEraInfluence(SegmentDefinition segment, Models.Company.Era? currentEra)
+    {
+        if (currentEra == null)
+            return segment;
+
+        // Adapter selon le type d'era
+        return currentEra.Type switch
+        {
+            Enums.EraType.Technical => segment with {
+                DureeMinutes = Math.Min(segment.DureeMinutes + 5, 30), // Matchs plus longs
+                Intensite = Math.Min(segment.Intensite + 10, 100) // Plus technique
+            },
+            Enums.EraType.Entertainment => segment with {
+                DureeMinutes = Math.Max(segment.DureeMinutes - 3, 5), // Segments plus courts
+                Intensite = Math.Min(segment.Intensite + 20, 100) // Plus spectaculaire
+            },
+            Enums.EraType.Hardcore => segment with {
+                Intensite = Math.Min(segment.Intensite + 25, 100) // Plus violent
+            },
+            _ => segment
+        };
+    }
+
+    /// <summary>
+    /// Évalue la stratégie à long terme basée sur l'archétype créatif du booker
+    /// </summary>
+    public string EvaluateLongTermStrategy(string bookerId, Models.ShowContext context)
+    {
+        if (_bookerRepository == null)
+            return "Analyse impossible : Repository non disponible";
+
+        var booker = _bookerRepository.GetBookerByIdAsync(bookerId).Result;
+        if (booker == null)
+            return "Booker introuvable";
+
+        var memories = GetInfluentialMemories(bookerId);
+        var currentEra = _eraRepository?.GetCurrentEraAsync(context.Show.CompagnieId).Result;
+        var creativeStaffPrefs = GetCreativeStaffPreferences(context.Show.CompagnieId);
+
+        return EvaluateLongTermStrategy(booker, context, memories, currentEra, creativeStaffPrefs);
+    }
+
+    /// <summary>
+    /// Applique les préférences stylistiques de l'archétype créatif aux segments
+    /// </summary>
+    private SegmentDefinition ApplyArchetypeStyling(Booker booker, SegmentDefinition segment, int showImportance)
+    {
+        var (preferredDuration, preferredSegments, dominantStyle) = booker.GetArchetypePreferences();
+
+        return booker.CreativeArchetype switch
+        {
+            BookerCreativeArchetype.PowerBooker => ApplyPowerBookerStyling(segment, showImportance),
+            BookerCreativeArchetype.Puroresu => ApplyPuroresuStyling(segment, preferredDuration),
+            BookerCreativeArchetype.AttitudeEra => ApplyAttitudeEraStyling(segment),
+            BookerCreativeArchetype.ModernIndie => ApplyModernIndieStyling(segment),
+            _ => segment
+        };
+    }
+
+    /// <summary>
+    /// Applique le style Power Booker : stabilité, hiérarchie claire, narration simple
+    /// </summary>
+    private SegmentDefinition ApplyPowerBookerStyling(SegmentDefinition segment, int showImportance)
+    {
+        if (segment.EstMainEvent && showImportance >= 70)
+        {
+            // Favoriser les champions établis, règnes longs
+            return segment with { Intensite = Math.Min(segment.Intensite + 10, 100) };
+        }
+
+        // Rotation limitée, stabilité
+        return segment with { Intensite = Math.Max(segment.Intensite - 5, 40) };
+    }
+
+    /// <summary>
+    /// Applique le style Puroresu : priorité qualité in-ring, matchs longs
+    /// </summary>
+    private SegmentDefinition ApplyPuroresuStyling(SegmentDefinition segment, int preferredDuration)
+    {
+        if (segment.TypeSegment == "match")
+        {
+            // Matchs plus longs, priorité technique
+            var newDuration = Math.Max(segment.DureeMinutes, preferredDuration);
+            return segment with { DureeMinutes = newDuration, Intensite = 85 };
+        }
+
+        return segment;
+    }
+
+    /// <summary>
+    /// Applique le style Attitude Era : segments percutants, chaos, Star Power
+    /// </summary>
+    private SegmentDefinition ApplyAttitudeEraStyling(SegmentDefinition segment)
+    {
+        if (segment.TypeSegment != "match")
+        {
+            // Segments plus importants
+            return segment with { DureeMinutes = Math.Min(segment.DureeMinutes + 3, 15) };
+        }
+        else
+        {
+            // Matchs plus intenses et imprévisibles
+            return segment with { Intensite = Math.Min(segment.Intensite + 15, 100) };
+        }
+    }
+
+    /// <summary>
+    /// Applique le style Modern/Indie : rotation élevée, renouvellement, gimmicks organiques
+    /// </summary>
+    private SegmentDefinition ApplyModernIndieStyling(SegmentDefinition segment)
+    {
+        if (segment.TypeSegment == "match")
+        {
+            // Matchs plus longs mais moins intenses que Puroresu
+            return segment with { DureeMinutes = Math.Min(segment.DureeMinutes + 5, 25) };
+        }
+
+        return segment;
+    }
+
+    /// <summary>
+    /// Phase 1.1 - Sélectionne les workers selon les préférences de l'archétype créatif
+    /// </summary>
+    public List<WorkerSnapshot> SelectWorkersByArchetype(
+        Booker booker,
+        List<WorkerSnapshot> availableWorkers,
+        int showImportance,
+        List<BookerMemory> memories)
+    {
+        return booker.CreativeArchetype switch
+        {
+            BookerCreativeArchetype.PowerBooker => SelectPowerBookerWorkers(availableWorkers, showImportance),
+            BookerCreativeArchetype.Puroresu => SelectPuroresuWorkers(availableWorkers),
+            BookerCreativeArchetype.AttitudeEra => SelectAttitudeEraWorkers(availableWorkers),
+            BookerCreativeArchetype.ModernIndie => SelectModernIndieWorkers(availableWorkers),
+            _ => availableWorkers.OrderByDescending(w => w.Popularite).Take(10).ToList()
+        };
+    }
+
+    /// <summary>
+    /// Phase 1.1 - Détermine la structure des matchs selon l'archétype créatif
+    /// </summary>
+    public (int Duration, int Intensity, int Participants) DetermineMatchStructure(
+        Booker booker,
+        bool isMainEvent,
+        int showImportance)
+    {
+        return booker.CreativeArchetype switch
+        {
+            BookerCreativeArchetype.PowerBooker => (
+                isMainEvent ? 18 : 12,
+                isMainEvent ? 70 : 60,
+                2),
+            BookerCreativeArchetype.Puroresu => (
+                isMainEvent ? 30 : 20,
+                85,
+                2),
+            BookerCreativeArchetype.AttitudeEra => (
+                isMainEvent ? 15 : 10,
+                90,
+                2),
+            BookerCreativeArchetype.ModernIndie => (
+                isMainEvent ? 25 : 15,
+                80,
+                2),
+            _ => (20, 75, 2)
+        };
+    }
+
+    private List<WorkerSnapshot> SelectPowerBookerWorkers(List<WorkerSnapshot> workers, int showImportance)
+    {
+        if (showImportance >= 80)
+        {
+            // Shows importants : stars établies uniquement
+            return workers
+                .Where(w => w.Popularite >= 70)
+                .OrderByDescending(w => w.Popularite)
+                .Take(8)
+                .ToList();
+        }
+        else
+        {
+            // Shows normaux : mix équilibré
+            return workers
+                .OrderByDescending(w => w.Popularite)
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private List<WorkerSnapshot> SelectPuroresuWorkers(List<WorkerSnapshot> workers)
+    {
+        // Priorité absolue aux attributs techniques (InRing + Story pour la psychologie de match)
+        return workers
+            .OrderByDescending(w => w.InRing + w.Story)
+            .Take(10)
+            .ToList();
+    }
+
+    private List<WorkerSnapshot> SelectAttitudeEraWorkers(List<WorkerSnapshot> workers)
+    {
+        // Favorise Star Power et Entertainment
+        return workers
+            .OrderByDescending(w => w.Popularite + w.Entertainment)
+            .Take(10)
+            .ToList();
+    }
+
+    private List<WorkerSnapshot> SelectModernIndieWorkers(List<WorkerSnapshot> workers)
+    {
+        // Favorise mélange jeunes/talents montants
+        return workers
+            .Where(w => w.Popularite <= 60) // Pas trop de stars établies
+            .OrderByDescending(w => w.InRing + w.Entertainment)
+            .Take(12) // Plus de rotation
+            .ToList();
     }
 
     public (string Worker1Id, string Worker2Id)? ProposeMainEvent(
@@ -326,8 +574,18 @@ public sealed class BookerAIEngine : IBookerAIEngine
         // Récupérer les mémoires influentes
         var memories = GetInfluentialMemories(bookerId);
 
-        // Filtrer les workers disponibles selon les contraintes
+        // Récupérer l'era actuelle de la compagnie pour influencer les décisions
+        var currentEra = _eraRepository?.GetCurrentEraAsync(showContext.Show.CompagnieId).Result;
+
+        // Phase 1.1 - Récupérer les préférences du creative staff si disponible
+        var creativeStaffPreferences = GetCreativeStaffPreferences(showContext.Show.CompagnieId);
+
+        // Phase 1.1 - Filtrer les workers disponibles selon les contraintes
         var availableWorkers = FilterAvailableWorkers(showContext, constraints, existingSegments);
+
+        // Phase 1.1 - Sélectionner les workers selon l'archétype créatif pour stratégie long terme
+        var archetypeWorkers = SelectWorkersByArchetype(booker, availableWorkers, 50, memories);
+        availableWorkers = archetypeWorkers; // Utiliser les workers filtrés par archétype
 
         // Calculer la durée restante à remplir
         var existingDuration = existingSegments.Sum(s => s.DureeMinutes);
@@ -349,6 +607,9 @@ public sealed class BookerAIEngine : IBookerAIEngine
             var mainEvent = CreateMainEvent(booker, showContext, availableWorkers, usedWorkerIds, memories, constraints);
             if (mainEvent != null)
             {
+                // Appliquer les préférences stylistiques de l'archétype créatif
+                mainEvent = ApplyArchetypeStyling(booker, mainEvent, 70); // Importance moyenne-élevée pour main event
+
                 generatedSegments.Add(mainEvent);
                 remainingDuration -= mainEvent.DureeMinutes;
 
@@ -394,6 +655,12 @@ public sealed class BookerAIEngine : IBookerAIEngine
             if (segment == null)
                 break;
 
+            // Phase 1.1 - Appliquer les préférences stylistiques de l'archétype créatif
+            segment = ApplyArchetypeStyling(booker, segment, 50); // Importance moyenne pour segments secondaires
+
+            // Phase 1.1 - Appliquer l'influence de l'era actuelle
+            segment = ApplyEraInfluence(segment, currentEra);
+
             generatedSegments.Add(segment);
             remainingDuration -= segment.DureeMinutes;
 
@@ -406,7 +673,111 @@ public sealed class BookerAIEngine : IBookerAIEngine
             }
         }
 
+        // Phase 1.1 - Créer des mémoires pour les segments générés (stratégie long terme)
+        foreach (var segment in generatedSegments)
+        {
+            if (segment.Participants.Count >= 2)
+            {
+                // Créer une mémoire pour ce booking (sera utilisé pour cohérence future)
+                var memoryDescription = $"Auto-booking: {segment.TypeSegment} avec {segment.Participants.Count} participants";
+                CreateMemoryFromMatch(bookerId, 60, memoryDescription);
+            }
+        }
+
         return generatedSegments;
+    }
+
+    /// <summary>
+    /// Évalue la stratégie à long terme basée sur l'archétype créatif
+    /// </summary>
+    public string EvaluateLongTermStrategy(
+        Booker booker,
+        ShowContext context,
+        List<BookerMemory> memories,
+        Models.Company.Era? currentEra = null,
+        (string PreferredNarrativeStyle, int ChaosTolerance, bool PrefersLongStorylines) creativeStaffPrefs = default)
+    {
+        var baseStrategy = booker.CreativeArchetype switch
+        {
+            BookerCreativeArchetype.PowerBooker =>
+                EvaluatePowerBookerStrategy(booker, context, memories),
+            BookerCreativeArchetype.Puroresu =>
+                EvaluatePuroresuStrategy(booker, context, memories),
+            BookerCreativeArchetype.AttitudeEra =>
+                EvaluateAttitudeEraStrategy(booker, context, memories),
+            BookerCreativeArchetype.ModernIndie =>
+                EvaluateModernIndieStrategy(booker, context, memories),
+            _ => "Maintenir équilibre entre stabilité et innovation"
+        };
+
+        // Intégrer l'influence de l'era actuelle
+        if (currentEra != null)
+        {
+            baseStrategy += $" | Era {currentEra.Type}: {GetEraInfluenceDescription(currentEra)}";
+        }
+
+        // Intégrer les préférences du creative staff
+        if (creativeStaffPrefs.PreferredNarrativeStyle != "Balanced")
+        {
+            baseStrategy += $" | Creative Staff: {creativeStaffPrefs.PreferredNarrativeStyle} narrative style";
+        }
+
+        return baseStrategy;
+    }
+
+    private string GetEraInfluenceDescription(Models.Company.Era era)
+    {
+        return era.Type switch
+        {
+            Enums.EraType.Technical => $"Focus technique ({era.PreferredMatchDuration}min/match)",
+            Enums.EraType.Entertainment => $"Spectacle narratif ({era.PreferredSegmentCount} segments/show)",
+            Enums.EraType.Hardcore => $"Intensité maximale (chaos toléré)",
+            _ => "Style équilibré"
+        };
+    }
+
+    private string EvaluatePowerBookerStrategy(Booker booker, ShowContext context, List<BookerMemory> memories)
+    {
+        var veteranMatches = memories.Count(m => m.EventDescription.Contains("veteran"));
+        var stableChampions = context.Titres.Count(t => t.DetenteurId != null);
+
+        if (veteranMatches > 5 && stableChampions >= 2)
+            return "Stratégie optimale: Hiérarchie stable, champions vétérans dominants";
+
+        return "Renforcer la stabilité: Favoriser les vétérans et maintenir les règnes de championnat";
+    }
+
+    private string EvaluatePuroresuStrategy(Booker booker, ShowContext context, List<BookerMemory> memories)
+    {
+        var technicalMatches = memories.Count(m => m.EventDescription.Contains("technical") || m.EventDescription.Contains("workrate"));
+        var averageMatchLength = context.Segments.Where(s => s.TypeSegment == "match").Average(s => s.DureeMinutes);
+
+        if (technicalMatches > 3 && averageMatchLength >= 25)
+            return "Stratégie optimale: Produit technique de haute qualité, respect du puroresu";
+
+        return "Améliorer la qualité: Augmenter durée des matchs et focus technique";
+    }
+
+    private string EvaluateAttitudeEraStrategy(Booker booker, ShowContext context, List<BookerMemory> memories)
+    {
+        var entertainmentSegments = context.Segments.Count(s => s.TypeSegment != "match");
+        var highIntensityMatches = context.Segments.Count(s => s.Intensite >= 80);
+
+        if (entertainmentSegments > 3 && highIntensityMatches > 2)
+            return "Stratégie optimale: Chaos créatif maximal, segments percutants";
+
+        return "Augmenter l'intensité: Plus de segments et matchs imprévisibles";
+    }
+
+    private string EvaluateModernIndieStrategy(Booker booker, ShowContext context, List<BookerMemory> memories)
+    {
+        var newChampions = memories.Count(m => m.EventDescription.Contains("new champion"));
+        var youngWorkers = context.Workers.Count(w => w.Popularite <= 50);
+
+        if (newChampions > 2 && youngWorkers >= 8)
+            return "Stratégie optimale: Rotation constante, développement des jeunes talents";
+
+        return "Accélérer le renouvellement: Couronner de nouveaux champions et pousser les jeunes";
     }
 
     // ====================================================================
@@ -446,7 +817,7 @@ public sealed class BookerAIEngine : IBookerAIEngine
     }
 
     /// <summary>
-    /// Crée un main event basé sur les préférences du booker
+    /// Crée un main event basé sur les préférences du booker et son archétype créatif
     /// </summary>
     private SegmentDefinition? CreateMainEvent(
         Booker booker,
@@ -456,11 +827,12 @@ public sealed class BookerAIEngine : IBookerAIEngine
         List<BookerMemory> memories,
         AutoBookingConstraints constraints)
     {
-        // Filtrer les workers non utilisés
-        var candidates = availableWorkers
+        // Calculer l'importance du show (par défaut moyenne si pas disponible)
+        var showImportance = 50; // Valeur par défaut moyenne
+
+        // Sélectionner les workers selon l'archétype créatif du booker
+        var candidates = SelectWorkersByArchetype(booker, availableWorkers, showImportance, memories)
             .Where(w => !usedWorkerIds.Contains(w.WorkerId))
-            .OrderByDescending(w => w.Popularite)
-            .Take(10)
             .ToList();
 
         if (candidates.Count < 2)
@@ -470,24 +842,8 @@ public sealed class BookerAIEngine : IBookerAIEngine
         var worker1 = candidates[0];
         var worker2 = candidates[1];
 
-        // Déterminer la durée selon PreferredProductType
-        var duration = booker.PreferredProductType switch
-        {
-            "Puroresu" => 30, // Matchs longs
-            "Hardcore" => 25,
-            "Technical" => 25,
-            _ => 20
-        };
-
-        // Déterminer l'intensité selon PreferredProductType
-        var intensity = booker.PreferredProductType switch
-        {
-            "Hardcore" => 90, // Très intense
-            "Puroresu" => 80,
-            "Technical" => 70,
-            "Entertainment" => 60,
-            _ => 75
-        };
+        // Phase 1.1 - Utiliser DetermineMatchStructure pour obtenir durée et intensité selon archétype
+        var (duration, intensity, _) = DetermineMatchStructure(booker, true, showImportance);
 
         // Chercher un titre disponible
         string? titreId = null;
@@ -602,44 +958,53 @@ public sealed class BookerAIEngine : IBookerAIEngine
         if (candidates.Count < 2)
             return null;
 
-        // Déterminer le type de segment selon PreferredProductType
+        // Phase 1.1 - Déterminer le type de segment selon l'archétype créatif
         string segmentType;
         int duration;
         int intensity;
         int participantCount;
 
-        switch (booker.PreferredProductType)
+        // Utiliser l'archétype créatif pour déterminer la structure
+        var (defaultDuration, defaultIntensity, _) = DetermineMatchStructure(booker, false, 50);
+
+        switch (booker.CreativeArchetype)
         {
-            case "Hardcore":
+            case BookerCreativeArchetype.PowerBooker:
+                // Power Booker : Rotation limitée, matchs équilibrés
                 segmentType = "match";
-                duration = Math.Min(20, remainingDuration);
-                intensity = 85;
+                duration = Math.Min(defaultDuration, remainingDuration);
+                intensity = defaultIntensity;
                 participantCount = 2;
                 break;
 
-            case "Puroresu":
+            case BookerCreativeArchetype.Puroresu:
+                // Puroresu : Priorité matchs longs et techniques
                 segmentType = "match";
-                duration = Math.Min(25, remainingDuration);
-                intensity = 75;
+                duration = Math.Min(defaultDuration, remainingDuration);
+                intensity = defaultIntensity;
                 participantCount = 2;
                 break;
 
-            case "Technical":
-                segmentType = "match";
-                duration = Math.Min(20, remainingDuration);
-                intensity = 70;
-                participantCount = 2;
-                break;
-
-            case "Entertainment":
-                // Alterner entre promos et matchs
-                segmentType = _random.Next(2) == 0 ? "promo" : "match";
-                duration = segmentType == "promo" ? 10 : 15;
-                intensity = segmentType == "match" ? 60 : 0;
+            case BookerCreativeArchetype.AttitudeEra:
+                // Attitude Era : Mix promos et matchs courts/intenses
+                segmentType = _random.Next(3) == 0 ? "promo" : "match";
+                duration = segmentType == "promo" 
+                    ? Math.Min(12, remainingDuration)
+                    : Math.Min(defaultDuration, remainingDuration);
+                intensity = segmentType == "match" ? defaultIntensity : 0;
                 participantCount = segmentType == "promo" ? _random.Next(1, 3) : 2;
                 break;
 
-            default: // Balanced
+            case BookerCreativeArchetype.ModernIndie:
+                // Modern/Indie : Matchs longs, rotation élevée
+                segmentType = "match";
+                duration = Math.Min(defaultDuration, remainingDuration);
+                intensity = defaultIntensity;
+                participantCount = 2;
+                break;
+
+            default:
+                // Fallback sur PreferredProductType si archétype non défini
                 segmentType = _random.Next(4) == 0 ? "promo" : "match";
                 duration = segmentType == "promo" ? 10 : 15;
                 intensity = segmentType == "match" ? 70 : 0;
@@ -647,8 +1012,15 @@ public sealed class BookerAIEngine : IBookerAIEngine
                 break;
         }
 
-        // Sélectionner les participants selon les préférences
-        var participants = SelectParticipants(booker, candidates, participantCount, memories);
+        // Phase 1.1 - Sélectionner les participants selon l'archétype créatif
+        var selectedWorkers = SelectWorkersByArchetype(booker, candidates, 50, memories)
+            .Take(participantCount)
+            .ToList();
+        
+        if (selectedWorkers.Count < participantCount)
+            return null;
+
+        var participants = selectedWorkers;
 
         if (participants.Count < participantCount)
             return null;

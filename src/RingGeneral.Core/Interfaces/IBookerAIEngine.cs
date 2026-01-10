@@ -119,4 +119,12 @@ public interface IBookerAIEngine
     /// <param name="trend">Tendance à évaluer</param>
     /// <returns>Score de risque (0-100)</returns>
     double CalculateAdaptationRisk(string companyId, RingGeneral.Core.Models.Trends.Trend trend);
+
+    /// <summary>
+    /// Évalue la stratégie à long terme basée sur l'archétype créatif du booker
+    /// </summary>
+    /// <param name="bookerId">Identifiant du booker</param>
+    /// <param name="context">Contexte du show actuel</param>
+    /// <returns>Description de la stratégie recommandée</returns>
+    string EvaluateLongTermStrategy(string bookerId, RingGeneral.Core.Models.ShowContext context);
 }
