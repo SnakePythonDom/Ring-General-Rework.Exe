@@ -460,7 +460,8 @@ public sealed class App : Application
                 repository: sp.GetRequiredService<GameRepository>()));
         services.AddTransient<ViewModels.Roster.InjuriesViewModel>(sp =>
             new ViewModels.Roster.InjuriesViewModel(
-                repository: sp.GetRequiredService<GameRepository>()));
+                repository: sp.GetRequiredService<GameRepository>(),
+                medicalRepository: sp.GetRequiredService<MedicalRepository>()));
         services.AddTransient<ViewModels.Roster.StructuralDashboardViewModel>(sp =>
             new ViewModels.Roster.StructuralDashboardViewModel(
                 sp.GetRequiredService<IRosterAnalysisRepository>(),

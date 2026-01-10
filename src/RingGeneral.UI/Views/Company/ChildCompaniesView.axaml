@@ -10,7 +10,8 @@
     <vm:ChildCompaniesViewModel />
   </Design.DataContext>
 
-  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                Background="{StaticResource BackgroundPrimaryBrush}">
     <StackPanel Margin="20" Spacing="20">
 
       <!-- Header -->
@@ -18,26 +19,29 @@
                  FontSize="24"
                  FontWeight="Bold"
                  HorizontalAlignment="Center"
-                 Margin="0,0,0,20"/>
+                 Margin="0,0,0,20"
+                 Foreground="{StaticResource TextPrimaryBrush}"/>
 
       <!-- Actions -->
-      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+      <Border BorderBrush="{StaticResource BorderMediumBrush}"
               BorderThickness="1"
               CornerRadius="8"
-              Padding="15">
+              Padding="15"
+              Background="{StaticResource BackgroundSecondaryBrush}">
         <StackPanel Spacing="15">
 
           <TextBlock Text="➕ Créer une Nouvelle Filiale"
                      FontSize="18"
                      FontWeight="SemiBold"
-                     Margin="0,0,0,10"/>
+                     Margin="0,0,0,10"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
 
           <Grid ColumnDefinitions="*,Auto">
 
             <!-- Sélection de l'objectif -->
             <ComboBox x:Name="ObjectiveComboBox"
                      Grid.Column="0"
-                     ItemsSource="{Binding Source={StaticResource ChildCompanyObjectives}}"
+                     ItemsSource="{Binding Source={StaticResource ChildCompanyObjectives}, Converter={StaticResource StringToCollectionConverter}}"
                      PlaceholderText="Sélectionner un objectif pour la filiale"/>
 
             <!-- Bouton de création -->
@@ -54,17 +58,19 @@
       </Border>
 
       <!-- Liste des Filiales Actives -->
-      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+      <Border BorderBrush="{StaticResource BorderMediumBrush}"
               BorderThickness="1"
               CornerRadius="8"
-              Padding="15">
+              Padding="15"
+              Background="{StaticResource BackgroundSecondaryBrush}">
         <StackPanel Spacing="15">
 
           <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
             <TextBlock Grid.Column="0"
                        Text="🏭 Filiales Actives"
                        FontSize="18"
-                       FontWeight="SemiBold"/>
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
             <Button Grid.Column="1"
                     Content="🔄 Rafraîchir"
                     Command="{Binding RefreshCommand}"
@@ -74,12 +80,12 @@
           <ItemsControl ItemsSource="{Binding ChildCompanies}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Border BorderBrush="{DynamicResource ThemeAccentBrush}"
+                <Border BorderBrush="{StaticResource BrandPrimaryBrush}"
                         BorderThickness="2"
                         CornerRadius="6"
                         Padding="12"
                         Margin="0,0,0,10"
-                        Background="{DynamicResource ThemeAccentBrush3}">
+                        Background="{StaticResource BackgroundCardDarkBrush}">
 
                   <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
 
@@ -88,99 +94,109 @@
 
                       <TextBlock Text="{Binding ChildCompanyId}"
                                  FontSize="14"
-                                 FontWeight="SemiBold"/>
+                                 FontWeight="SemiBold"
+                                 Foreground="{StaticResource TextPrimaryBrush}"/>
 
                       <StackPanel Orientation="Horizontal" Spacing="10">
                         <!-- Phase 2.3 - Améliorer affichage objectif -->
-                        <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                        <Border BorderBrush="{StaticResource BorderLightBrush}"
                                 BorderThickness="1"
                                 CornerRadius="3"
-                                Padding="3,1">
+                                Padding="3,1"
+                                Background="{StaticResource BackgroundCardBrush}">
                           <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="🎯" FontSize="11"/>
                             <TextBlock Text="{Binding Objective}"
                                        FontSize="11"
                                        FontWeight="SemiBold"
-                                       Foreground="{DynamicResource ThemeAccentBrush}"/>
+                                       Foreground="{StaticResource BrandPrimaryBrush}"/>
                           </StackPanel>
                         </Border>
 
-                        <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
-                                BorderThickness="1"
-                                CornerRadius="3"
-                                Padding="3,1">
-                          <TextBlock Text="{Binding HasFullAutonomy, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Autonome|Contrôlée'}"
-                                     FontSize="11"
-                                     Foreground="{DynamicResource ThemeAccentBrush}"/>
-                        </Border>
-
-                        <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                        <Border BorderBrush="{StaticResource BorderLightBrush}"
                                 BorderThickness="1"
                                 CornerRadius="3"
                                 Padding="3,1"
+                                Background="{StaticResource BackgroundCardBrush}">
+                          <TextBlock Text="{Binding HasFullAutonomy, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Autonome|Contrôlée'}"
+                                     FontSize="11"
+                                     Foreground="{StaticResource BrandPrimaryBrush}"/>
+                        </Border>
+
+                        <Border BorderBrush="{StaticResource BorderLightBrush}"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                Padding="3,1"
+                                Background="{StaticResource BackgroundCardBrush}"
                                 IsVisible="{Binding IsLaboratory}">
                           <TextBlock Text="🧪 Laboratoire"
                                      FontSize="11"
-                                     Foreground="{DynamicResource ThemeAccentBrush}"/>
+                                     Foreground="{StaticResource BrandPrimaryBrush}"/>
                         </Border>
                       </StackPanel>
 
                       <TextBlock Text="{Binding CreatedAt, StringFormat='Créée le {0:dd/MM/yyyy}'}"
                                  FontSize="11"
-                                 Opacity="0.7"/>
+                                 Foreground="{StaticResource TextSecondaryBrush}"/>
 
                     </StackPanel>
 
                     <!-- Phase 2.3 - Booker Assigné amélioré -->
                     <Border Grid.Column="1"
-                            BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                            BorderBrush="{StaticResource BorderLightBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
                             Padding="8"
-                            Background="{DynamicResource ThemeBackgroundBrush}">
+                            Background="{StaticResource BackgroundPrimaryBrush}">
                       <StackPanel HorizontalAlignment="Center" Spacing="4">
                         <TextBlock Text="🎩 Booker"
                                    FontSize="10"
-                                   FontWeight="SemiBold"/>
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                         <TextBlock Text="{Binding AssignedBookerId, TargetNullValue='Non assigné'}"
                                    FontSize="11"
-                                   TextAlignment="Center"/>
+                                   TextAlignment="Center"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                       </StackPanel>
                     </Border>
 
                     <!-- Style Test (si laboratoire) -->
                     <Border Grid.Column="2"
-                            BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                            BorderBrush="{StaticResource BorderLightBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
                             Padding="8"
-                            Background="{DynamicResource ThemeBackgroundBrush}"
+                            Background="{StaticResource BackgroundPrimaryBrush}"
                             IsVisible="{Binding IsLaboratory}">
                       <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="🎨 Style Test"
                                    FontSize="10"
-                                   FontWeight="SemiBold"/>
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                         <TextBlock Text="{Binding TestStyle, TargetNullValue='N/A'}"
                                    FontSize="11"
-                                   TextAlignment="Center"/>
+                                   TextAlignment="Center"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                       </StackPanel>
                     </Border>
 
                     <!-- Niche Type (si objectif niche) -->
                     <Border Grid.Column="3"
-                            BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                            BorderBrush="{StaticResource BorderLightBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
                             Padding="8"
-                            Background="{DynamicResource ThemeBackgroundBrush}"
+                            Background="{StaticResource BackgroundPrimaryBrush}"
                             IsVisible="{Binding NicheType, Converter={StaticResource IsNotNullConverter}}">
                       <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="🎯 Niche"
                                    FontSize="10"
-                                   FontWeight="SemiBold"/>
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                         <TextBlock Text="{Binding NicheType}"
                                    FontSize="11"
-                                   TextAlignment="Center"/>
+                                   TextAlignment="Center"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                       </StackPanel>
                     </Border>
 
@@ -189,7 +205,7 @@
                             Content="⚙️ Gérer"
                             Command="{Binding DataContext.ManageChildCompanyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                             CommandParameter="{Binding ChildCompanyId}"
-                            Background="{DynamicResource ThemeAccentBrush}"
+                            Background="{StaticResource BrandPrimaryBrush}"
                             Foreground="White"
                             Padding="12,6"
                             CornerRadius="4"
@@ -207,83 +223,98 @@
           <TextBlock Text="Aucune filiale active"
                      FontSize="14"
                      HorizontalAlignment="Center"
+                     Foreground="{StaticResource TextSecondaryBrush}"
                      IsVisible="{Binding ChildCompanies, Converter={StaticResource IsNotNullConverter}}"/>
 
         </StackPanel>
       </Border>
 
       <!-- Informations sur les Objectifs -->
-      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+      <Border BorderBrush="{StaticResource BorderMediumBrush}"
               BorderThickness="1"
               CornerRadius="8"
-              Padding="15">
+              Padding="15"
+              Background="{StaticResource BackgroundSecondaryBrush}">
         <StackPanel Spacing="15">
 
           <TextBlock Text="ℹ️ À propos des Objectifs de Filiales"
                      FontSize="18"
                      FontWeight="SemiBold"
-                     Margin="0,0,0,10"/>
+                     Margin="0,0,0,10"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
 
           <!-- Entertainment -->
-          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+          <Border BorderBrush="{StaticResource BorderLightBrush}"
                   BorderThickness="1"
                   CornerRadius="6"
                   Padding="12"
-                  Margin="0,0,0,8">
+                  Margin="0,0,0,8"
+                  Background="{StaticResource BackgroundCardBrush}">
             <StackPanel Spacing="6">
               <TextBlock Text="🎭 Entertainment"
                          FontSize="14"
-                         FontWeight="SemiBold"/>
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
               <TextBlock Text="Filiale dédiée au développement de concepts innovants et à la création de spectacles spectaculaires. Permet de tester de nouvelles idées sans risquer la réputation de la fédération principale."
                          FontSize="12"
-                         TextWrapping="Wrap"/>
+                         TextWrapping="Wrap"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
             </StackPanel>
           </Border>
 
           <!-- Niche -->
-          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+          <Border BorderBrush="{StaticResource BorderLightBrush}"
                   BorderThickness="1"
                   CornerRadius="6"
                   Padding="12"
-                  Margin="0,0,0,8">
+                  Margin="0,0,0,8"
+                  Background="{StaticResource BackgroundCardBrush}">
             <StackPanel Spacing="6">
               <TextBlock Text="🎯 Niche"
                          FontSize="14"
-                         FontWeight="SemiBold"/>
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
               <TextBlock Text="Filiale spécialisée dans un style particulier, permettant de maintenir une présence dans un domaine spécifique tout en développant la fédération principale vers d'autres directions."
                          FontSize="12"
-                         TextWrapping="Wrap"/>
+                         TextWrapping="Wrap"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
             </StackPanel>
           </Border>
 
           <!-- Independence -->
-          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+          <Border BorderBrush="{StaticResource BorderLightBrush}"
                   BorderThickness="1"
                   CornerRadius="6"
                   Padding="12"
-                  Margin="0,0,0,8">
+                  Margin="0,0,0,8"
+                  Background="{StaticResource BackgroundCardBrush}">
             <StackPanel Spacing="6">
               <TextBlock Text="🤖 Independence"
                          FontSize="14"
-                         FontWeight="SemiBold"/>
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
               <TextBlock Text="Filiale autonome gérée par un Booker IA, permettant l'expérimentation créative libre et potentiellement la découverte de nouvelles tendances avant qu'elles n'émergent."
                          FontSize="12"
-                         TextWrapping="Wrap"/>
+                         TextWrapping="Wrap"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
             </StackPanel>
           </Border>
 
           <!-- Development -->
-          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+          <Border BorderBrush="{StaticResource BorderLightBrush}"
                   BorderThickness="1"
                   CornerRadius="6"
-                  Padding="12">
+                  Padding="12"
+                  Background="{StaticResource BackgroundCardBrush}">
             <StackPanel Spacing="6">
               <TextBlock Text="🏫 Development"
                          FontSize="14"
-                         FontWeight="SemiBold"/>
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
               <TextBlock Text="Centre de formation traditionnel pour développer les jeunes talents selon les standards de la fédération."
                          FontSize="12"
-                         TextWrapping="Wrap"/>
+                         TextWrapping="Wrap"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
             </StackPanel>
           </Border>
 

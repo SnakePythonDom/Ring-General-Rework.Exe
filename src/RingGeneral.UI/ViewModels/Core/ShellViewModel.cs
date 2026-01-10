@@ -17,6 +17,7 @@ using RingGeneral.UI.ViewModels.Crisis;
 using RingGeneral.UI.ViewModels.Inbox;
 using RingGeneral.UI.ViewModels.Settings;
 using RingGeneral.UI.ViewModels.Medical;
+using RingGeneral.UI.ViewModels.CompanyHub;
 using RingGeneral.UI.ViewModels; // provide access to GameSessionViewModel
 
 namespace RingGeneral.UI.ViewModels.Core;
@@ -62,6 +63,15 @@ public sealed class ShellViewModel : ViewModelBase
         InboxCommand = ReactiveCommand.Create(OpenInbox);
         HelpCommand = ReactiveCommand.Create(OpenHelp);
         SettingsCommand = ReactiveCommand.Create(OpenSettings);
+        
+        // Commandes de navigation rapide pour la top bar
+        NavigateToDashboardCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<DashboardViewModel>());
+        NavigateToBookingCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<BookingViewModel>());
+        NavigateToCompanyCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<ViewModels.CompanyHub.CompanyHubViewModel>());
+        NavigateToLibraryCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<LibraryViewModel>());
+        NavigateToReportsCommand = ReactiveCommand.Create(OpenReports);
+        NavigateToSettingsCommand = ReactiveCommand.Create(OpenSettings);
+        NavigateToCalendarCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<CalendarViewModel>());
 
         // Synchroniser le CurrentViewModel du NavigationService s'il existe déjà
         if (_navigationService.CurrentViewModel != null)
@@ -118,6 +128,8 @@ public sealed class ShellViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _currentContentViewModel, value);
             // Mettre à jour IsInGameMode en fonction du ViewModel actuel
             IsInGameMode = value != null && value is not Start.StartViewModel && value is not Start.CompanySelectorViewModel && value is not Start.CreateCompanyViewModel;
+            // Mettre à jour CurrentViewTitle quand le ViewModel change
+            this.RaisePropertyChanged(nameof(CurrentViewTitle));
         }
     }
 
@@ -138,6 +150,48 @@ public sealed class ShellViewModel : ViewModelBase
     {
         get => _currentContextViewModel;
         private set => this.RaiseAndSetIfChanged(ref _currentContextViewModel, value);
+    }
+
+    /// <summary>
+    /// Titre de la vue actuelle affiché dans la top bar
+    /// </summary>
+    public string CurrentViewTitle
+    {
+        get
+        {
+            return CurrentContentViewModel switch
+            {
+                DashboardViewModel => "TABLEAU DE BORD",
+                BookingViewModel => "BOOKING",
+                LibraryViewModel => "BIBLIOTHÈQUE",
+                ShowHistoryPageViewModel => "HISTORIQUE SHOWS",
+                BookingSettingsViewModel => "PARAMÈTRES BOOKING",
+                RosterViewModel => "ROSTER",
+                ViewModels.Roster.WorkerDetailViewModel => "DÉTAILS WORKER",
+                TitlesViewModel => "TITRES",
+                InjuriesViewModel => "BLESSURES",
+                ViewModels.Roster.StructuralDashboardViewModel => "ANALYSE STRUCTURELLE",
+                MedicalViewModel => "MÉDICAL",
+                ViewModels.CompanyHub.CompanyHubViewModel => "COMPANY HUB",
+                ViewModels.Trends.TrendsViewModel => "TENDANCES",
+                ViewModels.Company.NicheManagementViewModel => "GESTION NICHE",
+                ViewModels.Company.ChildCompaniesViewModel => "FILIALES",
+                ViewModels.Company.ChildCompanyBookingViewModel => "BOOKING FILIALES",
+                StorylinesViewModel => "STORYLINES",
+                YouthViewModel => "YOUTH",
+                FinanceViewModel => "FINANCE",
+                OwnerBookerViewModel => "OWNER & BOOKER",
+                CrisisViewModel => "CRISES",
+                CalendarViewModel => "CALENDRIER",
+                InboxViewModel => "INBOX",
+                SettingsViewModel => "PARAMÈTRES",
+                Start.StartViewModel => "MENU PRINCIPAL",
+                Start.CompanySelectorViewModel => "SÉLECTION COMPAGNIE",
+                Start.CreateCompanyViewModel => "CRÉER COMPAGNIE",
+                null => "",
+                _ => CurrentContentViewModel?.GetType().Name.Replace("ViewModel", "") ?? ""
+            };
+        }
     }
 
     /// <summary>
@@ -164,6 +218,15 @@ public sealed class ShellViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> InboxCommand { get; }
     public ReactiveCommand<Unit, Unit> HelpCommand { get; }
     public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
+    
+    // Commandes de navigation rapide pour la top bar
+    public ReactiveCommand<Unit, Unit> NavigateToDashboardCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToBookingCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToCompanyCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToLibraryCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToReportsCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToCalendarCommand { get; }
 
     private ObservableCollection<NavigationItemViewModel> BuildNavigationTree()
     {
@@ -265,7 +328,7 @@ public sealed class ShellViewModel : ViewModelBase
             "companyhub",
             "COMPANY HUB",
             "🏢",
-            typeof(ViewModels.CompanyHub.CompanyHubViewModel)
+            typeof(CompanyHubViewModel)
         );
         root.Add(companyHub);
 
@@ -364,6 +427,8 @@ public sealed class ShellViewModel : ViewModelBase
 
     private void NavigateToItem(NavigationItemViewModel item)
     {
+        Logger.Info($"NavigateToItem appelé pour: ID={item.Id}, Label={item.Label}, TargetType={item.TargetViewModelType?.FullName ?? "null"}");
+        
         if (item.TargetViewModelType == null)
         {
             // Si pas de ViewModel cible, c'est juste une catégorie
@@ -380,8 +445,7 @@ public sealed class ShellViewModel : ViewModelBase
         _selectedNavigationItem = item;
 
         // Naviguer via le service
-        // Note: Pour l'instant, on ne peut pas utiliser la réflexion ici car les ViewModels n'existent pas encore
-        // On va créer une méthode temporaire
+        Logger.Info($"Navigation vers {item.TargetViewModelType.FullName} depuis l'item {item.Id}");
         NavigateToViewModelType(item.TargetViewModelType);
     }
 
@@ -399,17 +463,33 @@ public sealed class ShellViewModel : ViewModelBase
 
     private void NavigateToViewModelType(Type viewModelType)
     {
-        // Navigation vers un ViewModel spécifique via reflection
-        var navigateMethod = typeof(INavigationService)
-            .GetMethod(nameof(INavigationService.NavigateTo), 
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance,
-                null,
-                System.Reflection.CallingConventions.HasThis,
-                Type.EmptyTypes,
-                null)
-            ?.MakeGenericMethod(viewModelType);
+        try
+        {
+            Logger.Info($"Tentative de navigation vers {viewModelType.FullName} (nom court: {viewModelType.Name})");
+            
+            // Navigation vers un ViewModel spécifique via reflection
+            var navigateMethod = typeof(INavigationService)
+                .GetMethod(nameof(INavigationService.NavigateTo), 
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance,
+                    null,
+                    System.Reflection.CallingConventions.HasThis,
+                    Type.EmptyTypes,
+                    null)
+                ?.MakeGenericMethod(viewModelType);
 
-        navigateMethod?.Invoke(_navigationService, null);
+            if (navigateMethod == null)
+            {
+                Logger.Error($"Méthode NavigateTo non trouvée pour {viewModelType.Name}");
+                return;
+            }
+
+            navigateMethod.Invoke(_navigationService, null);
+            Logger.Info($"Navigation vers {viewModelType.FullName} effectuée avec succès");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur lors de la navigation vers {viewModelType.FullName}: {ex.Message}", ex);
+        }
     }
 
     private void UpdateContextPanel(ViewModelBase? contentViewModel)
@@ -465,5 +545,13 @@ public sealed class ShellViewModel : ViewModelBase
         // Ouvrir les paramètres globaux de l'application
         _navigationService.NavigateTo<SettingsViewModel>();
         Logger.Info("Navigation vers SettingsViewModel");
+    }
+    
+    private void OpenReports()
+    {
+        // Ouvrir les rapports (pour l'instant, rediriger vers Finance)
+        // TODO: Créer ReportsViewModel si nécessaire
+        _navigationService.NavigateTo<FinanceViewModel>();
+        Logger.Info("Navigation vers FinanceViewModel (rapports)");
     }
 }

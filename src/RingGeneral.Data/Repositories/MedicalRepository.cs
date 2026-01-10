@@ -106,4 +106,72 @@ public sealed class MedicalRepository : RepositoryBase
         command.Parameters.AddWithValue("$injuryId", blessure.InjuryId);
         command.ExecuteNonQuery();
     }
+
+    /// <summary>
+    /// Charge toutes les blessures depuis la base de données
+    /// </summary>
+    public IReadOnlyList<InjuryRecord> ChargerToutesBlessures()
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT InjuryId, WorkerId, Type, Severity, StartDate, EndDate, IsActive, Notes
+            FROM Injuries
+            ORDER BY StartDate DESC;
+            """;
+        
+        var injuries = new List<InjuryRecord>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var injury = new InjuryRecord(
+                reader.GetInt32(0), // InjuryId
+                reader.GetString(1), // WorkerId
+                reader.GetString(2), // Type
+                (InjurySeverity)reader.GetInt32(3), // Severity
+                reader.GetInt32(4), // StartDate (StartWeek)
+                reader.IsDBNull(5) ? null : reader.GetInt32(5), // EndDate (EndWeek)
+                reader.GetInt32(6) == 1, // IsActive
+                reader.IsDBNull(7) ? null : reader.GetString(7) // Notes
+            );
+            injuries.Add(injury);
+        }
+
+        return injuries;
+    }
+
+    /// <summary>
+    /// Charge toutes les blessures actives pour un worker spécifique
+    /// </summary>
+    public IReadOnlyList<InjuryRecord> ChargerBlessuresWorker(string workerId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT InjuryId, WorkerId, Type, Severity, StartDate, EndDate, IsActive, Notes
+            FROM Injuries
+            WHERE WorkerId = $workerId
+            ORDER BY StartDate DESC;
+            """;
+        command.Parameters.AddWithValue("$workerId", workerId);
+        
+        var injuries = new List<InjuryRecord>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var injury = new InjuryRecord(
+                reader.GetInt32(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                (InjurySeverity)reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.IsDBNull(5) ? null : reader.GetInt32(5),
+                reader.GetInt32(6) == 1,
+                reader.IsDBNull(7) ? null : reader.GetString(7)
+            );
+            injuries.Add(injury);
+        }
+
+        return injuries;
+    }
 }
