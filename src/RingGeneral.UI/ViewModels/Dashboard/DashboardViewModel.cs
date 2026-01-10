@@ -15,12 +15,14 @@ public sealed class DashboardViewModel : ViewModelBase
 {
     private readonly GameRepository? _repository;
     private readonly ShowDayOrchestrator? _showDayOrchestrator;
+    private readonly TimeOrchestratorService? _timeOrchestrator;
     private readonly IShowSchedulerStore? _showSchedulerStore;
     private readonly IMoraleEngine? _moraleEngine;
     private readonly ICrisisEngine? _crisisEngine;
     private string _companyName = "Ma Compagnie";
     private string _companyId = string.Empty;
-    private int _currentWeek = 1;
+    private int _currentDay = 1;
+    private DateTime _currentDate = new DateTime(2024, 1, 1);
     private int _totalWorkers;
     private int _activeStorylines;
     private int _upcomingShows;
@@ -40,12 +42,14 @@ public sealed class DashboardViewModel : ViewModelBase
         GameRepository? repository = null,
         IShowSchedulerStore? showSchedulerStore = null,
         ShowDayOrchestrator? showDayOrchestrator = null,
+        TimeOrchestratorService? timeOrchestrator = null,
         IMoraleEngine? moraleEngine = null,
         ICrisisEngine? crisisEngine = null)
     {
         _repository = repository;
         _showSchedulerStore = showSchedulerStore;
         _showDayOrchestrator = showDayOrchestrator;
+        _timeOrchestrator = timeOrchestrator;
         _moraleEngine = moraleEngine;
         _crisisEngine = crisisEngine;
 
@@ -71,7 +75,7 @@ public sealed class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Commande pour continuer (avancer d'une semaine)
+    /// Commande pour continuer (avancer d'un jour)
     /// </summary>
     public ReactiveCommand<Unit, Unit> ContinueCommand { get; }
 
@@ -90,13 +94,31 @@ public sealed class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Semaine actuelle
+    /// Jour actuel
     /// </summary>
-    public int CurrentWeek
+    public int CurrentDay
     {
-        get => _currentWeek;
-        set => this.RaiseAndSetIfChanged(ref _currentWeek, value);
+        get => _currentDay;
+        set => this.RaiseAndSetIfChanged(ref _currentDay, value);
     }
+
+    /// <summary>
+    /// Date actuelle du jeu
+    /// </summary>
+    public DateTime CurrentDate
+    {
+        get => _currentDate;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _currentDate, value);
+            this.RaisePropertyChanged(nameof(CurrentDateFormatted));
+        }
+    }
+
+    /// <summary>
+    /// Date formatée pour l'affichage (ex: "Lundi 12 Janvier 2026")
+    /// </summary>
+    public string CurrentDateFormatted => CurrentDate.ToString("dddd d MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"));
 
     /// <summary>
     /// Nombre total de workers
@@ -257,7 +279,7 @@ public sealed class DashboardViewModel : ViewModelBase
     /// <summary>
     /// Label du bouton principal (dynamique)
     /// </summary>
-    public string MainButtonLabel => HasUpcomingShow ? "📺 Préparer le Show" : "▶️ Continuer";
+    public string MainButtonLabel => HasUpcomingShow ? "📺 Préparer le Show" : "⏭️ Jour Suivant";
 
     /// <summary>
     /// Charge les données du dashboard depuis le repository
@@ -304,18 +326,40 @@ public sealed class DashboardViewModel : ViewModelBase
                 UpcomingShows = 0;
             }
 
-            // Charger le budget de la compagnie principale
+            // Charger le budget de la compagnie principale et la date actuelle
             try
             {
                 using var cmd = connection.CreateCommand();
-                cmd.CommandText = "SELECT CompanyId, Name, Treasury, CurrentWeek FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                cmd.CommandText = "SELECT CompanyId, Name, Treasury FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     _companyId = reader.GetString(0);
                     CompanyName = reader.GetString(1);
                     CurrentBudget = (decimal)reader.GetDouble(2);
-                    CurrentWeek = reader.GetInt32(3);
+                }
+
+                // Charger CurrentDay et CurrentDate depuis SaveGames
+                if (!string.IsNullOrEmpty(_companyId))
+                {
+                    using var saveCmd = connection.CreateCommand();
+                    saveCmd.CommandText = """
+                        SELECT CurrentDay, CurrentDate 
+                        FROM SaveGames 
+                        WHERE PlayerCompanyId = $companyId AND IsActive = 1 
+                        LIMIT 1;
+                        """;
+                    saveCmd.Parameters.AddWithValue("$companyId", _companyId);
+                    using var saveReader = saveCmd.ExecuteReader();
+                    if (saveReader.Read())
+                    {
+                        CurrentDay = saveReader.GetInt32(0);
+                        var dateStr = saveReader.GetString(1);
+                        if (DateTime.TryParse(dateStr, out var date))
+                        {
+                            CurrentDate = date;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -358,7 +402,7 @@ public sealed class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Détecte si un show est prévu à la semaine actuelle
+    /// Détecte si un show est prévu aujourd'hui
     /// </summary>
     private void DetectUpcomingShow()
     {
@@ -368,7 +412,9 @@ public sealed class DashboardViewModel : ViewModelBase
             return;
         }
 
-        var detection = _showDayOrchestrator.DetecterShowAVenir(_companyId, CurrentWeek);
+        // Utiliser CurrentDay pour la détection (ShowDayOrchestrator doit être adapté si nécessaire)
+        // Pour l'instant, on utilise CurrentDay directement
+        var detection = _showDayOrchestrator.DetecterShowAVenir(_companyId, CurrentDay);
         HasUpcomingShow = detection.ShowDetecte;
         UpcomingShowName = detection.Show?.Nom ?? string.Empty;
 
@@ -461,18 +507,19 @@ public sealed class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Action du bouton "Continuer" (avancer d'une semaine OU simuler le show)
+    /// Action du bouton "Jour Suivant" (avancer d'un jour OU simuler le show)
     /// </summary>
     private void OnContinue()
     {
-        if (_repository is null)
+        if (_repository is null || _timeOrchestrator is null || string.IsNullOrEmpty(_companyId))
         {
+            Logger.Warning("TimeOrchestratorService non disponible ou compagnie non chargée");
             return;
         }
 
         try
         {
-            // Détecter si un show est prévu cette semaine
+            // Détecter si un show est prévu aujourd'hui
             if (HasUpcomingShow && _showDayOrchestrator is not null)
             {
                 // Simuler le show
@@ -480,11 +527,21 @@ public sealed class DashboardViewModel : ViewModelBase
             }
             else
             {
-                // Avancer d'une semaine normale
-                // TODO: Intégrer WeeklyLoopService
-                CurrentWeek++;
-                RecentActivity.Insert(0, $"⏭️ Passer au jour suivant {CurrentWeek}");
-                Logger.Info($"Avancé au jour suivant {CurrentWeek}");
+                // Avancer d'un jour avec TimeOrchestratorService
+                var result = _timeOrchestrator.PasserJourSuivant(_companyId);
+                
+                // Mettre à jour les propriétés
+                CurrentDay = result.Day;
+                CurrentDate = result.CurrentDate;
+                
+                // Afficher les événements dans le Daily Log
+                foreach (var evt in result.Events)
+                {
+                    RecentActivity.Insert(0, $"📅 {evt}");
+                }
+                
+                RecentActivity.Insert(0, $"⏭️ Jour {CurrentDay} terminé - {CurrentDateFormatted}");
+                Logger.Info($"Jour {CurrentDay} terminé ({CurrentDateFormatted})");
             }
 
             // Recharger les données
@@ -492,7 +549,7 @@ public sealed class DashboardViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Logger.Error($"[DashboardViewModel] Erreur lors de OnContinue: {ex.Message}");
+            Logger.Error($"[DashboardViewModel] Erreur lors du passage au jour suivant: {ex.Message}", ex);
             RecentActivity.Insert(0, $"⚠️ Erreur: {ex.Message}");
         }
     }
@@ -509,8 +566,8 @@ public sealed class DashboardViewModel : ViewModelBase
 
         try
         {
-            // Récupérer le show à simuler
-            var detection = _showDayOrchestrator.DetecterShowAVenir(_companyId, CurrentWeek);
+            // Récupérer le show à simuler (utiliser CurrentDay au lieu de CurrentWeek)
+            var detection = _showDayOrchestrator.DetecterShowAVenir(_companyId, CurrentDay);
             if (!detection.ShowDetecte || detection.Show is null)
             {
                 RecentActivity.Insert(0, "⚠️ Aucun show détecté à simuler");

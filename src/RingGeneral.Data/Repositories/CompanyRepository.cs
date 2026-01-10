@@ -326,4 +326,108 @@ public sealed class CompanyRepository : RepositoryBase
 
         return paies;
     }
+
+    // ============================================================================
+    // SYSTÈME QUOTIDIEN ET CONTRATS HYBRIDES
+    // ============================================================================
+
+    /// <summary>
+    /// Surcharge de AppliquerTransactionsFinancieres avec DateTime (pour système quotidien)
+    /// </summary>
+    public double AppliquerTransactionsFinancieres(
+        string companyId,
+        DateTime date,
+        IReadOnlyList<FinanceTransaction> transactions)
+    {
+        // Calculer la semaine approximative pour compatibilité (jour / 7)
+        var semaine = (int)Math.Ceiling(date.Subtract(new DateTime(2024, 1, 1)).TotalDays / 7.0);
+        return AppliquerTransactionsFinancieres(companyId, semaine, transactions);
+    }
+
+    /// <summary>
+    /// Charge les contrats hybrides actifs pour une compagnie
+    /// </summary>
+    public IReadOnlyList<HybridContract> ChargerContratsHybrides(string companyId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT 
+                contract_id,
+                worker_id,
+                company_id,
+                COALESCE(MonthlyWage, 0) AS MonthlyWage,
+                COALESCE(AppearanceFee, 0) AS AppearanceFee,
+                COALESCE(exclusif, 1) AS IsExclusive,
+                COALESCE(debut_semaine, 1) AS StartWeek,
+                fin_semaine AS EndWeek,
+                LastPaymentDate,
+                LastAppearanceDate
+            FROM contracts
+            WHERE company_id = $companyId 
+              AND statut = 'actif'
+              AND (COALESCE(MonthlyWage, 0) > 0 OR COALESCE(AppearanceFee, 0) > 0);
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        using var reader = command.ExecuteReader();
+        var contracts = new List<HybridContract>();
+        
+        while (reader.Read())
+        {
+            var startWeek = reader.GetInt32(6);
+            var endWeek = reader.GetInt32(7);
+            // Convertir semaines en dates approximatives (1 semaine = 7 jours depuis 2024-01-01)
+            var startDate = new DateTime(2024, 1, 1).AddDays((startWeek - 1) * 7);
+            var endDate = new DateTime(2024, 1, 1).AddDays((endWeek - 1) * 7);
+            
+            contracts.Add(new HybridContract(
+                reader.GetString(0), // ContractId
+                reader.GetString(1), // WorkerId
+                reader.GetString(2), // CompanyId
+                reader.GetDouble(3), // MonthlyWage
+                reader.GetDouble(4), // AppearanceFee
+                reader.GetInt32(5) == 1, // IsExclusive
+                startDate,
+                endDate,
+                reader.IsDBNull(8) ? null : DateTime.Parse(reader.GetString(8)), // LastPaymentDate
+                reader.IsDBNull(9) ? null : DateTime.Parse(reader.GetString(9))  // LastAppearanceDate
+            ));
+        }
+        
+        return contracts;
+    }
+
+    /// <summary>
+    /// Met à jour la date de dernier paiement mensuel pour un contrat
+    /// </summary>
+    public void MettreAJourDatePaiement(string contractId, DateTime paymentDate)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE contracts 
+            SET LastPaymentDate = $paymentDate
+            WHERE contract_id = $contractId;
+            """;
+        command.Parameters.AddWithValue("$contractId", contractId);
+        command.Parameters.AddWithValue("$paymentDate", paymentDate.ToString("yyyy-MM-dd"));
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// Met à jour la date de dernière apparition payée pour un contrat
+    /// </summary>
+    public void MettreAJourDateApparition(string contractId, DateTime appearanceDate)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE contracts 
+            SET LastAppearanceDate = $appearanceDate
+            WHERE contract_id = $contractId;
+            """;
+        command.Parameters.AddWithValue("$contractId", contractId);
+        command.Parameters.AddWithValue("$appearanceDate", appearanceDate.ToString("yyyy-MM-dd"));
+        command.ExecuteNonQuery();
+    }
 }
