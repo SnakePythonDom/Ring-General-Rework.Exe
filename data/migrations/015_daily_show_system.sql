@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS ShowTemplates (
     Name TEXT NOT NULL,
     ShowType TEXT NOT NULL,
     RecurrencePattern TEXT NOT NULL CHECK(RecurrencePattern IN ('Weekly', 'BiWeekly', 'Monthly', 'Custom')),
-    DayOfWeek INTEGER CHECK(DayOfWeek BETWEEN 0 AND 6), -- 0=Lundi, 6=Dimanche
+    DayOfWeek INTEGER CHECK(DayOfWeek BETWEEN 0 AND 6), -- 0=Dimanche (Sunday), 1=Lundi (Monday), ..., 6=Samedi (Saturday) - Convention .NET System.DayOfWeek
     DefaultDuration INTEGER NOT NULL,
     DefaultVenueId TEXT,
     DefaultBroadcast TEXT,

@@ -194,7 +194,7 @@ Ce document récapitule toutes les décisions prises concernant l'implémentatio
        Name TEXT NOT NULL,
        ShowType TEXT NOT NULL,
        RecurrencePattern TEXT NOT NULL, -- 'Weekly', 'BiWeekly', 'Monthly', 'Custom'
-       DayOfWeek INTEGER, -- 0-6 (Lundi-Dimanche)
+       DayOfWeek INTEGER, -- 0-6 (0=Dimanche/Sunday, 1=Lundi/Monday, ..., 6=Samedi/Saturday) - Convention .NET System.DayOfWeek
        DefaultDuration INTEGER NOT NULL,
        DefaultVenueId TEXT,
        IsActive INTEGER NOT NULL DEFAULT 1,
