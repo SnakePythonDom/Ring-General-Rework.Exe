@@ -1,8 +1,6 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Interfaces;
 using System.IO;
-using System.Text.Json;
-using System.Diagnostics;
 
 namespace RingGeneral.Data.Database;
 
@@ -12,24 +10,6 @@ namespace RingGeneral.Data.Database;
 public static class DbSeeder
 {
     private static ILoggingService? _logger;
-    private const string LogFilePath = "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\.cursor\\debug.log";
-
-    private static void LogToFile(string message, object? data = null, string? hypothesisId = null)
-    {
-        var logEntry = new
-        {
-            id = Guid.NewGuid().ToString(),
-            timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            location = new StackTrace(true).GetFrame(1)?.GetFileName() + ":" + new StackTrace(true).GetFrame(1)?.GetFileLineNumber(),
-            message = message,
-            data = data,
-            sessionId = "debug-session",
-            runId = "run3",
-            hypothesisId = hypothesisId
-        };
-        var jsonLog = JsonSerializer.Serialize(logEntry);
-        File.AppendAllText(LogFilePath, jsonLog + Environment.NewLine);
-    }
 
     /// <summary>
     /// Configure le logger pour DbSeeder (optionnel)
@@ -43,39 +23,28 @@ public static class DbSeeder
     {
         if (!IsDatabaseEmpty(connection))
         {
-            LogToFile("Base de données déjà peuplée. Seed ignoré.", null, "H4");
             return;
         }
-
-        LogToFile("Base de données vide détectée. Démarrage du seed...", null, "H4");
 
         // Chercher BAKI1.1.db dans plusieurs emplacements possibles
         string? bakiDbPath = FindBakiDatabase();
 
         if (bakiDbPath != null)
         {
-            LogToFile($"BAKI1.1.db trouvé à: {bakiDbPath}", new { bakiDbPath }, "H2");
-            LogToFile("Import des données réelles depuis BAKI1.1.db...", null, "H3");
-
             try
             {
                 DbBakiImporter.ImportFromBaki(connection, bakiDbPath);
-                LogToFile("Import BAKI terminé avec succès", null, "H3");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                LogToFile($"Erreur lors de l'import BAKI: {ex.Message}", new { errorMessage = ex.Message, stackTrace = ex.StackTrace }, "H3");
-                LogToFile("Fallback vers données de démonstration...", null, "H4");
                 SeedDemoData(connection);
             }
         }
         else
         {
-            LogToFile("BAKI1.1.db introuvable, utilisation des données de démonstration", null, "H2");
             SeedDemoData(connection);
         }
 
-        LogToFile("Seed terminé avec succès.", null, "H4");
     }
 
     /// <summary>
@@ -93,24 +62,19 @@ public static class DbSeeder
 
         foreach (var path in possiblePaths)
         {
-            LogToFile($"Tentative de recherche BAKI1.1.db à: {path}", new { searchPath = path }, "H2");
             try
             {
                 var fullPath = Path.GetFullPath(path);
                 if (File.Exists(fullPath))
                 {
-                    LogToFile($"BAKI1.1.db trouvé: {fullPath}", new { foundPath = fullPath }, "H2");
                     return fullPath;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                LogToFile($"Erreur lors de la vérification du chemin {path}: {ex.Message}", new { path, errorMessage = ex.Message }, "H2");
                 // Ignorer les erreurs de path
             }
         }
-
-        LogToFile("BAKI1.1.db non trouvé après toutes les tentatives.", null, "H2");
         return null;
     }
 
@@ -148,27 +112,21 @@ public static class DbSeeder
 
             // 1. Créer une compagnie
             var companyId = SeedCompany(connection);
-            LogToFile($"Compagnie créée: {companyId}", new { companyId }, "H4");
 
             // 2. Créer des workers
             var workerIds = SeedWorkers(connection, companyId);
-            LogToFile($"{workerIds.Count} workers créés", new { workerCount = workerIds.Count }, "H4");
 
             // 3. Créer des titres
             var titleIds = SeedTitles(connection, companyId, workerIds);
-            LogToFile($"{titleIds.Count} titres créés", new { titleCount = titleIds.Count }, "H4");
 
             // 4. Créer un show
             var showId = SeedShow(connection, companyId);
-            LogToFile($"Show créé: {showId}", new { showId }, "H4");
 
             transaction.Commit();
-            LogToFile("Transaction committée.", null, "H4");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             transaction.Rollback();
-            LogToFile($"[DbSeeder] Erreur lors du seed: {ex.Message}", new { errorMessage = ex.Message, stackTrace = ex.StackTrace }, "H4");
             throw;
         }
     }

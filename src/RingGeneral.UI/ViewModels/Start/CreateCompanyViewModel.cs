@@ -71,20 +71,12 @@ public sealed class CreateCompanyViewModel : ViewModelBase
                                 && !country.CountryId.StartsWith("COUNTRY_PENDING")
                                 && year is >= 1950 and <= 2100;
 
-                // #region agent log
-                System.IO.File.AppendAllText(@"c:\Users\popo2\.cursor\Ring-General-Rework.Exe\.cursor\debug.log", $"{{\"id\":\"log_{DateTimeOffset.Now.ToUnixTimeMilliseconds()}_can_create\",\"timestamp\":{DateTimeOffset.Now.ToUnixTimeMilliseconds()},\"location\":\"CreateCompanyViewModel.cs:64\",\"message\":\"Évaluation canCreateCompany\",\"data\":{{\"canExecute\":{canExecute},\"name\":\"{name}\",\"country\":\"{country?.Name}\",\"countryId\":\"{country?.CountryId}\",\"year\":{year}}},\"sessionId\":\"debug-session\",\"runId\":\"initial-run\",\"hypothesisId\":\"H4\"}}\n");
-                // #endregion
-
                 return canExecute;
             });
 
         ContinueCommand = ReactiveCommand.Create(CreateCompany, canCreateCompany);
         CreateCompanyCommand = ContinueCommand;
         CancelCommand = ReactiveCommand.Create(Cancel);
-
-        // #region agent log
-        System.IO.File.AppendAllText(@"c:\Users\popo2\.cursor\Ring-General-Rework.Exe\.cursor\debug.log", $"{{\"id\":\"log_{DateTimeOffset.Now.ToUnixTimeMilliseconds()}_cmd_init\",\"timestamp\":{DateTimeOffset.Now.ToUnixTimeMilliseconds()},\"location\":\"CreateCompanyViewModel.cs:76\",\"message\":\"Commandes initialisées\",\"data\":{{\"continueCommand\":{ContinueCommand != null},\"cancelCommand\":{CancelCommand != null},\"canCreateCompany\":{canCreateCompany != null}}},\"sessionId\":\"debug-session\",\"runId\":\"initial-run\",\"hypothesisId\":\"H1\"}}\n");
-        // #endregion
 
         this.WhenAnyValue(vm => vm.SelectedCatchStyle)
             .Subscribe(ApplyStyleModifiers);
@@ -346,9 +338,6 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// </summary>
     private void CreateCompany()
     {
-        // #region agent log
-        System.IO.File.AppendAllText(@"c:\Users\popo2\.cursor\Ring-General-Rework.Exe\.cursor\debug.log", $"{{\"id\":\"log_{DateTimeOffset.Now.ToUnixTimeMilliseconds()}_create_start\",\"timestamp\":{DateTimeOffset.Now.ToUnixTimeMilliseconds()},\"location\":\"CreateCompanyViewModel.cs:336\",\"message\":\"CreateCompany method appelée\",\"data\":{{\"companyName\":\"{CompanyName}\",\"selectedCountry\":\"{SelectedCountry?.Name}\",\"foundedYear\":{FoundedYear},\"repository\":{_repository != null},\"navigationService\":{_navigationService != null}}},\"sessionId\":\"debug-session\",\"runId\":\"initial-run\",\"hypothesisId\":\"H3\"}}\n");
-        // #endregion
 
         ErrorMessage = null;
 
@@ -543,10 +532,6 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     /// </summary>
     private void Cancel()
     {
-        // #region agent log
-        System.IO.File.AppendAllText(@"c:\Users\popo2\.cursor\Ring-General-Rework.Exe\.cursor\debug.log", $"{{\"id\":\"log_{DateTimeOffset.Now.ToUnixTimeMilliseconds()}_cancel\",\"timestamp\":{DateTimeOffset.Now.ToUnixTimeMilliseconds()},\"location\":\"CreateCompanyViewModel.cs:529\",\"message\":\"Cancel method appelée\",\"data\":{{\"navigationService\":{_navigationService != null}}},\"sessionId\":\"debug-session\",\"runId\":\"initial-run\",\"hypothesisId\":\"H2\"}}\n");
-        // #endregion
-
         _navigationService.NavigateTo<StartViewModel>();
     }
 }
