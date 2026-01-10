@@ -4,6 +4,7 @@ using ReactiveUI;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Staff;
 using RingGeneral.Core.Services;
+using RingGeneral.UI.Services.Navigation;
 
 namespace RingGeneral.UI.ViewModels;
 
@@ -363,10 +364,10 @@ public sealed class StaffCompatibilityViewModel : ViewModelBase
         $"Chimie: {PersonalChemistryScore}/100";
 }
 
-/// <summary>
-/// ViewModel principal pour la gestion du staff.
-/// </summary>
-public sealed class StaffManagementViewModel : ViewModelBase
+    /// <summary>
+    /// ViewModel principal pour la gestion du staff.
+    /// </summary>
+    public sealed class StaffManagementViewModel : ViewModelBase, INavigableViewModel
 {
     private readonly IStaffRepository _staffRepository;
     private readonly IStaffCompatibilityRepository _compatibilityRepository;
@@ -405,6 +406,16 @@ public sealed class StaffManagementViewModel : ViewModelBase
         CalculateCompatibilityCommand = ReactiveCommand.CreateFromTask<(string StaffId, string BookerId)>(CalculateCompatibilityAsync);
         RecalculateAllCompatibilitiesCommand = ReactiveCommand.CreateFromTask(RecalculateAllCompatibilitiesAsync);
         RefreshDataCommand = ReactiveCommand.CreateFromTask(LoadDataAsync);
+    }
+
+    // ====================================================================
+    // INavigableViewModel
+    // ====================================================================
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        // Charger les données au démarrage
+        _ = LoadDataAsync();
     }
 
     // ====================================================================
@@ -468,18 +479,28 @@ public sealed class StaffManagementViewModel : ViewModelBase
         {
             Logger.Info("Loading staff management data...");
 
-            // Charger tout le staff
-            var allStaffMembers = await _staffRepository.GetStaffByCompanyIdAsync(_companyId);
+            // Charger toutes les données depuis un thread background
+            var staffData = await Task.Run(async () =>
+            {
+                var allStaffMembers = await _staffRepository.GetStaffByCompanyIdAsync(_companyId);
+                var creativeStaffMembers = await _staffRepository.GetCreativeStaffByCompanyIdAsync(_companyId);
+                var structuralStaffMembers = await _staffRepository.GetStructuralStaffByCompanyIdAsync(_companyId);
+                var trainerMembers = await _staffRepository.GetTrainersByCompanyIdAsync(_companyId);
+                var dangerousCreatives = await _staffRepository.GetDangerousCreativeStaffAsync(_companyId);
+                var monthlyCost = await _staffRepository.CalculateMonthlyStaffCostAsync(_companyId);
+
+                return (allStaffMembers, creativeStaffMembers, structuralStaffMembers, trainerMembers, dangerousCreatives, monthlyCost);
+            });
+
+            // Mettre à jour les collections sur le thread UI
             AllStaff.Clear();
-            foreach (var staff in allStaffMembers)
+            foreach (var staff in staffData.allStaffMembers)
             {
                 AllStaff.Add(MapStaffMemberToViewModel(staff));
             }
 
-            // Charger les staff créatifs
-            var creativeStaffMembers = await _staffRepository.GetCreativeStaffByCompanyIdAsync(_companyId);
             CreativeStaff.Clear();
-            foreach (var creative in creativeStaffMembers)
+            foreach (var creative in staffData.creativeStaffMembers)
             {
                 var baseVm = AllStaff.FirstOrDefault(s => s.StaffId == creative.StaffId);
                 if (baseVm != null)
@@ -488,10 +509,8 @@ public sealed class StaffManagementViewModel : ViewModelBase
                 }
             }
 
-            // Charger les staff structurels
-            var structuralStaffMembers = await _staffRepository.GetStructuralStaffByCompanyIdAsync(_companyId);
             StructuralStaff.Clear();
-            foreach (var structural in structuralStaffMembers)
+            foreach (var structural in staffData.structuralStaffMembers)
             {
                 var baseVm = AllStaff.FirstOrDefault(s => s.StaffId == structural.StaffId);
                 if (baseVm != null)
@@ -500,10 +519,8 @@ public sealed class StaffManagementViewModel : ViewModelBase
                 }
             }
 
-            // Charger les trainers
-            var trainerMembers = await _staffRepository.GetTrainersByCompanyIdAsync(_companyId);
             Trainers.Clear();
-            foreach (var trainer in trainerMembers)
+            foreach (var trainer in staffData.trainerMembers)
             {
                 var baseVm = AllStaff.FirstOrDefault(s => s.StaffId == trainer.StaffId);
                 if (baseVm != null)
@@ -512,10 +529,8 @@ public sealed class StaffManagementViewModel : ViewModelBase
                 }
             }
 
-            // Identifier le staff créatif dangereux
             DangerousStaff.Clear();
-            var dangerousCreatives = await _staffRepository.GetDangerousCreativeStaffAsync(_companyId);
-            foreach (var dangerous in dangerousCreatives)
+            foreach (var dangerous in staffData.dangerousCreatives)
             {
                 var baseVm = AllStaff.FirstOrDefault(s => s.StaffId == dangerous.StaffId);
                 if (baseVm != null)
@@ -525,8 +540,8 @@ public sealed class StaffManagementViewModel : ViewModelBase
             }
 
             // Calculer les statistiques
-            TotalStaffCount = allStaffMembers.Count;
-            MonthlyStaffCost = await _staffRepository.CalculateMonthlyStaffCostAsync(_companyId);
+            TotalStaffCount = staffData.allStaffMembers.Count;
+            MonthlyStaffCost = staffData.monthlyCost;
 
             Logger.Info($"Loaded {TotalStaffCount} staff members (Creative: {CreativeStaff.Count}, " +
                       $"Structural: {StructuralStaff.Count}, Trainers: {Trainers.Count})");

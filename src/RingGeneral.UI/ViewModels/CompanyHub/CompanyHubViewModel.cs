@@ -20,8 +20,8 @@ namespace RingGeneral.UI.ViewModels.CompanyHub;
 public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
 {
     private readonly GameRepository _gameRepository;
-    private readonly IOwnerRepository _ownerRepository;
-    private readonly IBookerRepository _bookerRepository;
+    private readonly RingGeneral.Core.Interfaces.IOwnerRepository _ownerRepository;
+    private readonly RingGeneral.Core.Interfaces.IBookerRepository _bookerRepository;
     private readonly ICatchStyleRepository _catchStyleRepository;
     private readonly IChildCompanyExtendedRepository _childCompanyRepository;
     private readonly IChildCompanyStaffService _childCompanyStaffService;
@@ -39,8 +39,8 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
 
     public CompanyHubViewModel(
         GameRepository? gameRepository = null,
-        IOwnerRepository? ownerRepository = null,
-        IBookerRepository? bookerRepository = null,
+        RingGeneral.Core.Interfaces.IOwnerRepository? ownerRepository = null,
+        RingGeneral.Core.Interfaces.IBookerRepository? bookerRepository = null,
         ICatchStyleRepository? catchStyleRepository = null,
         IChildCompanyExtendedRepository? childCompanyRepository = null,
         IChildCompanyStaffService? childCompanyStaffService = null,
@@ -318,15 +318,12 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
             });
 
             // Mettre à jour sur le thread UI
-            RxApp.MainThreadScheduler.Schedule(() =>
+            PlayerCompanies.Clear();
+            foreach (var company in companies)
             {
-                PlayerCompanies.Clear();
-                foreach (var company in companies)
-                {
-                    PlayerCompanies.Add(company);
-                }
-                Logger.Info($"[CompanyHubViewModel] {PlayerCompanies.Count} filiales chargées");
-            });
+                PlayerCompanies.Add(company);
+            }
+            Logger.Info($"[CompanyHubViewModel] {PlayerCompanies.Count} filiales chargées");
         }
         catch (Exception ex)
         {
@@ -360,8 +357,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
             }
 
             // Charger Booker actif
-            var bookers = await _bookerRepository.GetActiveBookersByCompanyIdAsync(companyId);
-            var activeBooker = bookers.FirstOrDefault();
+            var activeBooker = await _bookerRepository.GetActiveBookerAsync(companyId);
             if (activeBooker != null)
             {
                 CurrentBooker = new BookerSnapshot(
@@ -468,7 +464,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
                 missionObjective: "Manager"
             );
 
-            if (result.IsSuccess)
+            if (result.Success)
             {
                 Logger.Info($"[CompanyHubViewModel] Manager assigné avec succès à la filiale {childCompanyId}");
                 // Recharger les filiales après l'assignation
@@ -476,7 +472,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
             }
             else
             {
-                Logger.Error($"[CompanyHubViewModel] Erreur lors de l'assignation: {result.ErrorMessage}");
+                Logger.Error($"[CompanyHubViewModel] Erreur lors de l'assignation: {result.Message}");
             }
         }
         catch (Exception ex)

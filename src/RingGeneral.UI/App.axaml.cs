@@ -24,6 +24,8 @@ using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;
 using IOwnerRepo = RingGeneral.Data.Repositories.IOwnerRepository;
 using IBookerRepo = RingGeneral.Data.Repositories.IBookerRepository;
+using IOwnerRepository = RingGeneral.Core.Interfaces.IOwnerRepository;
+using IBookerRepository = RingGeneral.Core.Interfaces.IBookerRepository;
 using RingGeneral.UI.ViewModels;
 
 namespace RingGeneral.UI;

@@ -77,7 +77,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             : new ConsoleLoggingService(LogLevel.Info);
 
         var cheminFinal = string.IsNullOrWhiteSpace(cheminDb)
-            ? Path.Combine(Directory.GetCurrentDirectory(), "ring_general.db")
+            ? Path.Combine(AppContext.BaseDirectory, "ring_general.db")
             : cheminDb;
 
         try
@@ -87,21 +87,10 @@ public sealed class GameSessionViewModel : ViewModelBase
             // 1. Initialisation de la base
             var initializer = new DbInitializer();
 
-            // Debug: vérifier l'existence du dossier de migrations pour aider au diagnostic
-            var migrationsPaths = new[]
-            {
-                Path.Combine(AppContext.BaseDirectory, "data", "migrations"),
-                Path.Combine(Directory.GetCurrentDirectory(), "data", "migrations")
-            };
-            foreach (var p in migrationsPaths)
-            {
-                _logger.Info($"Migrations path: {p} Exists={Directory.Exists(p)}");
-            }
-
+            // 1. Initialisation de la base
             initializer.CreateDatabaseIfMissing(cheminFinal);
 
             var factory = new SqliteConnectionFactory($"Data Source={cheminFinal}");
-            _logger.Info($"SqliteConnectionFactory created. ConnectionString='{factory.GetConnectionString()}'");
 
             // 2. Récupération des repositories depuis la factory
             var repositories = RepositoryFactory.CreateRepositories(factory);
@@ -112,9 +101,8 @@ public sealed class GameSessionViewModel : ViewModelBase
             _medicalRepository = new MedicalRepository(factory);
             _injuryService = new InjuryService(new MedicalRecommendations());
 
-            _logger.Info($"Repositories created: GameRepository={( _repository != null )}, ScoutingRepository={( _scoutingRepository != null )}");
-
             _logger.Info("GameSession initialized successfully");
+
         }
         catch (Exception ex)
         {

@@ -32,7 +32,7 @@ public sealed class RosterViewModel : ViewModelBase
         LoadMoreWorkersCommand = ReactiveCommand.Create(LoadMoreWorkers);
 
         // Charger les données initiales
-        LoadWorkersCommand.Execute().Subscribe();
+        _ = LoadWorkersCommand.Execute().Subscribe();
     }
 
     /// <summary>
@@ -43,12 +43,12 @@ public sealed class RosterViewModel : ViewModelBase
     /// <summary>
     /// Commande pour charger les workers
     /// </summary>
-    public ReactiveCommand<Unit, Unit> LoadWorkersCommand { get; }
+    public ReactiveCommand<Unit, Task> LoadWorkersCommand { get; }
 
     /// <summary>
     /// Commande pour charger plus de workers
     /// </summary>
-    public ReactiveCommand<Unit, Unit> LoadMoreWorkersCommand { get; }
+    public ReactiveCommand<Unit, Task> LoadMoreWorkersCommand { get; }
 
     /// <summary>
     /// Liste des workers
@@ -206,44 +206,59 @@ public sealed class RosterViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
-                       w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
-                FROM Workers w
-                LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
-                ORDER BY w.Popularity DESC
-                LIMIT @pageSize OFFSET @offset";
-
-            cmd.Parameters.AddWithValue("@pageSize", PAGE_SIZE);
-            cmd.Parameters.AddWithValue("@offset", _allWorkers.Count);
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            // Charger plus de données depuis un thread background
+            var newWorkers = await Task.Run(() =>
             {
-                var worker = new WorkerListItemViewModel
-                {
-                    WorkerId = reader.GetString(0),
-                    Name = reader.GetString(1),
-                    Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
-                    Popularity = reader.GetInt32(3),
-                    InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
-                    Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                    Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
-                    Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
-                    Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
-                    Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
-                    Status = "Actif",
-                    Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
-                };
+                using var connection = _repository.CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT w.WorkerId, w.FullName, w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                           w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
+                    FROM Workers w
+                    LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
+                    ORDER BY w.Popularity DESC
+                    LIMIT @pageSize OFFSET @offset";
 
+                cmd.Parameters.AddWithValue("@pageSize", PAGE_SIZE);
+                cmd.Parameters.AddWithValue("@offset", _allWorkers.Count);
+
+                var workers = new List<WorkerListItemViewModel>();
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var worker = new WorkerListItemViewModel
+                    {
+                        WorkerId = reader.GetString(0),
+                        Name = reader.GetString(1),
+                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
+                        Popularity = reader.GetInt32(3),
+                        InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                        Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                        Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                        Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
+                        Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                        Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
+                        Status = "Actif",
+                        Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
+                    };
+
+                    workers.Add(worker);
+                }
+
+                return workers;
+            });
+
+            // Ajouter les nouveaux workers sur le thread UI
+            foreach (var worker in newWorkers)
+            {
                 _allWorkers.Add(worker);
                 Workers.Add(worker);
             }
 
-            Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés");
             this.RaisePropertyChanged(nameof(HasMoreWorkers));
+            this.RaisePropertyChanged(nameof(TotalWorkers));
+
+            Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés");
         }
         catch (Exception ex)
         {
