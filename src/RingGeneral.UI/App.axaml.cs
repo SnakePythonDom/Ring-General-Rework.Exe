@@ -71,7 +71,7 @@ public sealed class App : Application
 
             var templatePath = possibleTemplatePaths.FirstOrDefault(File.Exists);
 
-            // Si la base n'existe pas, l'initialiser depuis le template
+            // Si la base n'existe pas, l'initialiser depuis le template ou créer avec données génériques
             if (!File.Exists(generalDbPath))
             {
                 if (templatePath != null && File.Exists(templatePath))
@@ -87,12 +87,52 @@ public sealed class App : Application
                     {
                         logger.Warning($"  - {path}");
                     }
-                    logger.Info($"La base sera créée vide au premier accès.");
+                    logger.Info($"Création de la base avec schéma et données génériques...");
+                    
+                    // Créer la base vide et appliquer le schéma + seed
+                    var tempInitializer = new DbInitializer();
+                    tempInitializer.CreateDatabaseIfMissing(generalDbPath);
+                    
+                    // Remplir avec des données génériques
+                    using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={generalDbPath}");
+                    connection.Open();
+                    DbSeeder.SeedIfEmpty(connection);
+                    
+                    logger.Info($"✅ General DB créée avec données génériques : {generalDbPath}");
                 }
             }
             else
             {
                 logger.Info($"✅ General DB existe déjà : {generalDbPath}");
+                
+                // Vérifier que la base contient les tables nécessaires
+                try
+                {
+                    using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={generalDbPath}");
+                    connection.Open();
+                    
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = "SELECT COUNT(*) FROM Companies";
+                    var companiesCount = Convert.ToInt64(cmd.ExecuteScalar());
+                    
+                    cmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                    var workersCount = Convert.ToInt64(cmd.ExecuteScalar());
+                    
+                    if (companiesCount == 0 || workersCount == 0)
+                    {
+                        logger.Warning($"⚠️ Base de données vide ou incomplète. Remplissage avec données génériques...");
+                        DbSeeder.SeedIfEmpty(connection);
+                        logger.Info($"✅ Données génériques ajoutées : {companiesCount} companies, {workersCount} workers");
+                    }
+                    else
+                    {
+                        logger.Info($"✅ Base de données valide : {companiesCount} companies, {workersCount} workers");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Warning($"⚠️ Erreur lors de la validation de la base : {ex.Message}");
+                }
             }
         }
         catch (Exception ex)
