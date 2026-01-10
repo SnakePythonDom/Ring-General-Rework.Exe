@@ -62,7 +62,7 @@ public class RosterViewUITests
 
         // Assert - Trouver le TextBlock qui affiche le nombre total de workers
         var totalTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains($"{expectedTotal} workers au total"))
+            .Where(tb => tb.Text != null && tb.Text.Contains($"{expectedTotal} workers au total"))
             .ToList();
 
         totalTextBlocks.Should().NotBeEmpty();
@@ -86,7 +86,7 @@ public class RosterViewUITests
                 .FirstOrDefault(tb => tb.Watermark?.Contains("Rechercher") == true);
 
         searchTextBox.Should().NotBeNull();
-        searchTextBox!.Watermark.Should().Contain("Rechercher");
+        searchTextBox?.Watermark.Should().Contain("Rechercher");
     }
 
     [AvaloniaFact]
@@ -114,7 +114,7 @@ public class RosterViewUITests
             view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
 
         dataGrid.Should().NotBeNull();
-        dataGrid!.ItemsSource.Should().NotBeNull();
+        dataGrid?.ItemsSource.Should().NotBeNull();
         ((System.Collections.IEnumerable?)dataGrid.ItemsSource)?.Cast<object>().Should().NotBeEmpty();
     }
 
@@ -232,7 +232,10 @@ public class RosterViewUITests
             .FirstOrDefault(tb => tb.Watermark?.Contains("Rechercher") == true);
 
         // Simuler la saisie de texte
-        searchTextBox!.Text = "Cena";
+        if (searchTextBox != null)
+        {
+            searchTextBox.Text = "Cena";
+        }
         await Task.Delay(50);
 
         // Assert - Vérifier que le binding fonctionne
@@ -261,7 +264,7 @@ public class RosterViewUITests
         // Assert - Vérifier que la sélection fonctionne
         var dataGrid = view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
         dataGrid.Should().NotBeNull();
-        dataGrid!.SelectedItem.Should().Be(worker1);
+        dataGrid?.SelectedItem.Should().Be(worker1);
     }
 
     [AvaloniaFact]

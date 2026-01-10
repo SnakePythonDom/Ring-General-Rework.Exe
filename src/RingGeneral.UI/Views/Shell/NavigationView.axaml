@@ -19,10 +19,10 @@
       <TreeDataTemplate ItemsSource="{Binding Children}">
         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2">
           <TextBlock Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center"/>
-          <TextBlock Text="{Binding Label}" FontSize="13" VerticalAlignment="Center" Foreground="#e0e0e0"/>
+          <TextBlock Text="{Binding Label}" FontSize="13" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
           <TextBlock Text="{Binding Badge}"
                      FontSize="11"
-                     Foreground="#10b981"
+                     Foreground="{StaticResource AccentGreenBrush}"
                      FontWeight="Bold"
                      IsVisible="{Binding Badge, Converter={StaticResource IsNotNullConverter}}"
                      VerticalAlignment="Center"/>

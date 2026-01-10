@@ -16,8 +16,8 @@
 
         <!-- En-tête -->
         <StackPanel Grid.Row="0" Spacing="8">
-            <TextBlock Text="💰 FINANCIAL MANAGEMENT" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-            <TextBlock FontSize="14" Foreground="#888888">
+            <TextBlock Text="💰 FINANCIAL MANAGEMENT" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock FontSize="14" Foreground="{StaticResource TextSecondaryBrush}">
                 <TextBlock.Text>
                     <MultiBinding StringFormat="{}Week {0} • Balance: {1}">
                         <Binding Path="CurrentWeek"/>
@@ -30,47 +30,47 @@
         <!-- Stats Finance (4 colonnes) -->
         <Grid Grid.Row="2" ColumnDefinitions="*,*,*,*">
             <!-- Balance Actuelle -->
-            <Border Grid.Column="0" Background="#1e40af" Padding="20" CornerRadius="8" Margin="0,0,8,0">
+            <Border Grid.Column="0" Background="{StaticResource BrandPrimaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,8,0">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="💵 BALANCE" FontSize="12" Foreground="#bfdbfe" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding CurrentBalanceFormatted}" FontSize="24" FontWeight="Bold" Foreground="#93c5fd"/>
+                    <TextBlock Text="💵 BALANCE" FontSize="12" Foreground="{StaticResource BrandPrimaryBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding CurrentBalanceFormatted}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrandPrimaryBrush}"/>
                 </StackPanel>
             </Border>
 
             <!-- Revenus hebdomadaires -->
-            <Border Grid.Column="1" Background="#065f46" Padding="20" CornerRadius="8" Margin="8,0,8,0">
+            <Border Grid.Column="1" Background="{StaticResource SuccessDarkBrush}" Padding="20" CornerRadius="8" Margin="8,0,8,0">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="📈 WEEKLY REVENUE" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding WeeklyRevenueFormatted}" FontSize="24" FontWeight="Bold" Foreground="#10b981"/>
+                    <TextBlock Text="📈 WEEKLY REVENUE" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding WeeklyRevenueFormatted}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource AccentGreenBrush}"/>
                 </StackPanel>
             </Border>
 
             <!-- Dépenses hebdomadaires -->
-            <Border Grid.Column="2" Background="#7f1d1d" Padding="20" CornerRadius="8" Margin="8,0,8,0">
+            <Border Grid.Column="2" Background="{StaticResource ErrorDarkBrush}" Padding="20" CornerRadius="8" Margin="8,0,8,0">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="📉 WEEKLY EXPENSES" FontSize="12" Foreground="#fecaca" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding WeeklyExpensesFormatted}" FontSize="24" FontWeight="Bold" Foreground="#ef4444"/>
+                    <TextBlock Text="📉 WEEKLY EXPENSES" FontSize="12" Foreground="{StaticResource ErrorLightBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding WeeklyExpensesFormatted}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource AccentRedBrush}"/>
                 </StackPanel>
             </Border>
 
             <!-- Bénéfice net -->
-            <Border Grid.Column="3" Background="#713f12" Padding="20" CornerRadius="8" Margin="8,0,0,0">
+            <Border Grid.Column="3" Background="{StaticResource WarningDarkBrush}" Padding="20" CornerRadius="8" Margin="8,0,0,0">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="💎 NET INCOME" FontSize="12" Foreground="#fde68a" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding NetIncomeFormatted}" FontSize="24" FontWeight="Bold" Foreground="#fbbf24"/>
+                    <TextBlock Text="💎 NET INCOME" FontSize="12" Foreground="{StaticResource WarningBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding NetIncomeFormatted}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource WarningBrush}"/>
                 </StackPanel>
             </Border>
         </Grid>
 
         <!-- TV Deals Section -->
-        <Border Grid.Row="4" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+        <Border Grid.Row="4" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" Margin="0,0,0,15">
             <Grid RowDefinitions="Auto,15,*">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Column="0" Text="TV DEALS" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <TextBlock Grid.Column="0" Text="TV DEALS" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <Button Grid.Column="1" 
                             Content="📺 Browse Networks" 
                             Command="{Binding OpenTvDealNegotiationCommand}"
-                            Background="#1e40af"
+                            Background="{StaticResource BrandPrimaryBrush}"
                             Foreground="White"
                             Padding="12,6"
                             CornerRadius="4"
@@ -81,14 +81,14 @@
                 <TextBlock Grid.Row="2" 
                            Text="{Binding TotalTvDeals, StringFormat='{}Active Deals: {0}'}" 
                            FontSize="14" 
-                           Foreground="#94a3b8"
+                           Foreground="{StaticResource TextMutedBrush}"
                            VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
         <!-- Phase 2.2 - Financial Alerts -->
         <Border Grid.Row="6" 
-                Background="#7f1d1d" 
+                Background="{StaticResource ErrorDarkBrush}" 
                 CornerRadius="8" 
                 Padding="15" 
                 Margin="0,0,0,15"
@@ -97,7 +97,7 @@
                 <TextBlock Text="⚠️ ALERTES FINANCIÈRES" 
                            FontSize="14" 
                            FontWeight="Bold" 
-                           Foreground="#fecaca"/>
+                           Foreground="{StaticResource ErrorLightBrush}"/>
                 <TextBlock Text="{Binding FinancialAlert}" 
                            FontSize="12" 
                            Foreground="#fee2e2"
@@ -106,18 +106,18 @@
         </Border>
 
         <!-- Phase 2.2 - Debt Section -->
-        <Border Grid.Row="8" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+        <Border Grid.Row="8" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" Margin="0,0,0,15">
             <Grid RowDefinitions="Auto,15,*">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Column="0" Text="DEBT MANAGEMENT" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <TextBlock Grid.Column="0" Text="DEBT MANAGEMENT" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="15">
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Total Debt" FontSize="11" Foreground="#94a3b8"/>
-                            <TextBlock Text="{Binding TotalDebtFormatted}" FontSize="16" FontWeight="Bold" Foreground="#ef4444"/>
+                            <TextBlock Text="Total Debt" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding TotalDebtFormatted}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentRedBrush}"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Monthly Payments" FontSize="11" Foreground="#94a3b8"/>
-                            <TextBlock Text="{Binding MonthlyDebtPaymentsFormatted}" FontSize="16" FontWeight="Bold" Foreground="#f59e0b"/>
+                            <TextBlock Text="Monthly Payments" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding MonthlyDebtPaymentsFormatted}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
@@ -126,11 +126,11 @@
                     <ItemsControl ItemsSource="{Binding ActiveDebts}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Padding="15" Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
                                         <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock Text="{Binding PrincipalAmountFormatted}" FontSize="16" FontWeight="Bold" Foreground="#e0e0e0"/>
-                                            <TextBlock FontSize="12" Foreground="#94a3b8">
+                                            <TextBlock Text="{Binding PrincipalAmountFormatted}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
                                                 <TextBlock.Text>
                                                     <MultiBinding StringFormat="{}Interest: {0} • Term: {1}">
                                                         <Binding Path="InterestRateFormatted"/>
@@ -140,20 +140,20 @@
                                             </TextBlock>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4" Margin="15,0">
-                                            <TextBlock Text="Monthly Payment" FontSize="11" Foreground="#94a3b8"/>
-                                            <TextBlock Text="{Binding MonthlyPaymentFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="#f59e0b"/>
+                                            <TextBlock Text="Monthly Payment" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding MonthlyPaymentFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource AccentOrangeBrush}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Spacing="4" Margin="15,0">
-                                            <TextBlock Text="Interest" FontSize="11" Foreground="#94a3b8"/>
-                                            <TextBlock Text="{Binding MonthlyInterestFormatted}" FontSize="14" Foreground="#ef4444"/>
+                                            <TextBlock Text="Interest" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding MonthlyInterestFormatted}" FontSize="14" Foreground="{StaticResource AccentRedBrush}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="3" Spacing="4" Margin="15,0">
-                                            <TextBlock Text="Remaining" FontSize="11" Foreground="#94a3b8"/>
-                                            <TextBlock Text="{Binding RemainingBalanceFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                                            <TextBlock Text="Remaining" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding RemainingBalanceFormatted}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="4" Spacing="4" Margin="15,0">
-                                            <TextBlock Text="Time Left" FontSize="11" Foreground="#94a3b8"/>
-                                            <TextBlock Text="{Binding RemainingMonthsFormatted}" FontSize="14" Foreground="#94a3b8"/>
+                                            <TextBlock Text="Time Left" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding RemainingMonthsFormatted}" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -167,13 +167,13 @@
         <!-- Phase 2.2 - Financial Charts -->
         <Grid Grid.Row="10" ColumnDefinitions="*,*" Margin="0,0,0,20">
             <!-- Cash Flow Projection Chart -->
-            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,0,10,0">
+            <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" Margin="0,0,10,0">
                 <Grid RowDefinitions="Auto,15,*">
                     <TextBlock Grid.Row="0" 
                                Text="📈 PROJECTION DE TRÉSORERIE (12 MOIS)" 
                                FontSize="14" 
                                FontWeight="SemiBold" 
-                               Foreground="#e0e0e0"/>
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
                     <lvc:CartesianChart Grid.Row="2"
                                         Series="{Binding CashFlowSeries}"
                                         Height="250"/>
@@ -181,13 +181,13 @@
             </Border>
 
             <!-- Revenue vs Expenses Chart -->
-            <Border Grid.Column="1" Background="#1e293b" CornerRadius="8" Padding="20" Margin="10,0,0,0">
+            <Border Grid.Column="1" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" Margin="10,0,0,0">
                 <Grid RowDefinitions="Auto,15,*">
                     <TextBlock Grid.Row="0" 
                                Text="💰 REVENUS VS DÉPENSES (12 MOIS)" 
                                FontSize="14" 
                                FontWeight="SemiBold" 
-                               Foreground="#e0e0e0"/>
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
                     <lvc:CartesianChart Grid.Row="2"
                                         Series="{Binding RevenueExpenseSeries}"
                                         Height="250"/>
@@ -196,25 +196,25 @@
         </Grid>
 
         <!-- Transaction History -->
-        <Border Grid.Row="12" Background="#1e293b" CornerRadius="8" Padding="20">
+        <Border Grid.Row="12" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
             <Grid RowDefinitions="Auto,15,*">
-                <TextBlock Grid.Row="0" Text="TRANSACTION HISTORY" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                <TextBlock Grid.Row="0" Text="TRANSACTION HISTORY" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Transactions}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Padding="15" Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                                         <!-- Week Badge -->
-                                        <Border Grid.Column="0" Background="#334155" CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
-                                            <TextBlock Text="{Binding WeekDisplay}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                        <Border Grid.Column="0" Background="{StaticResource BorderMediumBrush}" CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding WeekDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
                                         </Border>
 
                                         <!-- Category + Description -->
                                         <StackPanel Grid.Column="1" Spacing="4" Margin="8,0,8,0">
-                                            <TextBlock Text="{Binding Category}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding Category}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                                         </StackPanel>
 
                                         <!-- Amount -->

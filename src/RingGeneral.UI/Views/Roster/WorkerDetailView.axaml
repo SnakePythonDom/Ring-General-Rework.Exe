@@ -19,7 +19,7 @@
             <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                         Spacing="12" IsVisible="{Binding IsLoading}">
                 <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center"/>
-                <TextBlock Text="Chargement..." FontSize="14" Foreground="#888888" HorizontalAlignment="Center"/>
+                <TextBlock Text="Chargement..." FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>
     </Grid>

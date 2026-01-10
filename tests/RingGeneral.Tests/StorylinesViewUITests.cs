@@ -48,7 +48,7 @@ public class StorylinesViewUITests
 
         // Assert - Vérifier que le titre Storylines est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("STORYLINES") || tb.Text.Contains("Intrigues"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("STORYLINES") || tb.Text.Contains("Intrigues"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -82,7 +82,7 @@ public class StorylinesViewUITests
             view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
 
         storylinesList.Should().NotBeNull();
-        storylinesList!.Items.Should().NotBeEmpty();
+        storylinesList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -111,15 +111,15 @@ public class StorylinesViewUITests
 
         // Assert - Vérifier que les détails de la storyline sont affichés
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Betrayal Angle"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Betrayal Angle"))
             .ToList();
 
         var descriptionTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("shocking betrayal"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("shocking betrayal"))
             .ToList();
 
         var heatTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("92"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("92"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -148,15 +148,15 @@ public class StorylinesViewUITests
 
         // Assert - Vérifier que les statistiques sont affichées
         var totalTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("8"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("8"))
             .ToList();
 
         var averageTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("76"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("76"))
             .ToList();
 
         var completedTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("3"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("3"))
             .ToList();
 
         totalTextBlocks.Should().NotBeEmpty();
@@ -231,7 +231,7 @@ public class StorylinesViewUITests
 
         // Assert - Vérifier que la chaleur de la storyline est affichée
         var heatTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("95") || tb.Text.Contains("Red Hot"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("95") || tb.Text.Contains("Red Hot"))
             .ToList();
 
         heatTextBlocks.Should().NotBeEmpty();
@@ -263,11 +263,11 @@ public class StorylinesViewUITests
 
         // Assert - Vérifier que les participants sont affichés
         var participantsTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Hardy Boyz") || tb.Text.Contains("Edge"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Hardy Boyz") || tb.Text.Contains("Edge"))
             .ToList();
 
         var countTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("6"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("6"))
             .ToList();
 
         participantsTextBlocks.Should().NotBeEmpty();
@@ -297,7 +297,7 @@ public class StorylinesViewUITests
         // Assert - Vérifier que la sélection fonctionne
         var listBox = view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
         listBox.Should().NotBeNull();
-        listBox!.SelectedItem.Should().Be(storyline1);
+        listBox?.SelectedItem.Should().Be(storyline1);
     }
 
     [AvaloniaFact]
@@ -327,7 +327,7 @@ public class StorylinesViewUITests
         // Assert - Vérifier que l'UI s'est mise à jour
         var listBox = view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
         listBox.Should().NotBeNull();
-        listBox!.Items.Should().Contain(newStoryline);
+        listBox?.Items.Should().Contain(newStoryline);
     }
 
     [AvaloniaFact]

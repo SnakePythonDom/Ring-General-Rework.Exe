@@ -17,16 +17,16 @@
             <!-- En-tête -->
             <StackPanel Grid.Row="0" Spacing="12">
                 <StackPanel Spacing="6">
-                    <TextBlock Text="📖 STORYLINES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                    <TextBlock Text="📖 STORYLINES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <StackPanel Orientation="Horizontal" Spacing="20">
-                        <TextBlock FontSize="14" Foreground="#34d399">
+                        <TextBlock FontSize="14" Foreground="{StaticResource SuccessLightBrush}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} actives">
                                     <Binding Path="TotalActive"/>
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
-                        <TextBlock FontSize="14" Foreground="#f59e0b" IsVisible="{Binding TotalSuspended}">
+                        <TextBlock FontSize="14" Foreground="{StaticResource AccentOrangeBrush}" IsVisible="{Binding TotalSuspended}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} suspendues">
                                     <Binding Path="TotalSuspended"/>
@@ -39,8 +39,8 @@
                 <!-- Barre de recherche -->
                 <TextBox Text="{Binding SearchText, Mode=TwoWay}"
                          Watermark="🔍 Rechercher une storyline..."
-                         Background="#1e293b"
-                         Foreground="#e0e0e0"
+                         Background="{StaticResource BackgroundSecondaryBrush}"
+                         Foreground="{StaticResource TextPrimaryBrush}"
                          Padding="12,8"/>
             </StackPanel>
 
@@ -52,19 +52,19 @@
                     <Grid ColumnDefinitions="2*,20,3*">
 
                         <!-- Liste gauche -->
-                        <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="0">
+                        <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="0">
                             <ListBox ItemsSource="{Binding ActiveStorylines}"
                                      SelectedItem="{Binding SelectedStoryline, Mode=TwoWay}"
                                      Background="Transparent"
                                      BorderThickness="0">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#0f172a" Padding="16,12" Margin="0,0,0,1">
+                                        <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16,12" Margin="0,0,0,1">
                                             <Grid RowDefinitions="Auto,Auto,Auto">
-                                                <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0" Margin="0,0,0,3"/>
+                                                <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3"/>
                                                 <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,3,0,0">
-                                                    <TextBlock Grid.Column="0" Text="{Binding Phase}" FontSize="11" Foreground="#94a3b8"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding HeatDisplay}" FontSize="11" Foreground="#f59e0b" FontWeight="SemiBold"/>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Phase}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding HeatDisplay}" FontSize="11" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="SemiBold"/>
                                                 </Grid>
                                             </Grid>
                                         </Border>
@@ -76,36 +76,36 @@
                                         <Setter Property="Margin" Value="0"/>
                                     </Style>
                                     <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-                                        <Setter Property="Background" Value="#1e293b"/>
+                                        <Setter Property="Background" Value="{StaticResource BackgroundSecondaryBrush}"/>
                                     </Style>
                                     <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                                        <Setter Property="Background" Value="#334155"/>
+                                        <Setter Property="Background" Value="{StaticResource BorderMediumBrush}"/>
                                     </Style>
                                 </ListBox.Styles>
                             </ListBox>
                         </Border>
 
                         <!-- Panneau détails droite -->
-                        <Border Grid.Column="2" Background="#1e293b" CornerRadius="8" Padding="20"
-                                IsVisible="{Binding SelectedStoryline, Converter={StaticResource NullToBoolConverter}}">
+                        <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20"
+                                IsVisible="{Binding SelectedStoryline, Converter={StaticResource IsNotNullConverter}}">
                             <ScrollViewer>
                                 <StackPanel Spacing="20">
-                                    <TextBlock Text="{Binding SelectedStoryline.Name}" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                    <TextBlock Text="{Binding SelectedStoryline.Name}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
-                                    <Border Background="#7c2d12" Padding="16" CornerRadius="8">
+                                    <Border Background="{StaticResource WarningDarkBrush}" Padding="16" CornerRadius="8">
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <TextBlock Grid.Column="0" Text="HEAT" FontSize="11" Foreground="#fed7aa" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding SelectedStoryline.Heat}" FontSize="32" FontWeight="Bold" Foreground="#fdba74"/>
+                                            <TextBlock Grid.Column="0" Text="HEAT" FontSize="11" Foreground="{StaticResource WarningLightBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding SelectedStoryline.Heat}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource WarningLightBrush}"/>
                                         </Grid>
                                     </Border>
 
                                     <StackPanel Spacing="12">
-                                        <TextBlock Text="👥 PARTICIPANTS" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                                        <TextBlock Text="👥 PARTICIPANTS" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                                         <ItemsControl ItemsSource="{Binding Participants}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="#0f172a" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
-                                                        <TextBlock Text="{Binding .}" FontSize="12" Foreground="#cbd5e1"/>
+                                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
+                                                        <TextBlock Text="{Binding .}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -116,11 +116,11 @@
                         </Border>
 
                         <!-- Message si rien sélectionné -->
-                        <Border Grid.Column="2" Background="#1e293b" CornerRadius="8"
-                                IsVisible="{Binding !SelectedStoryline, Converter={StaticResource NullToBoolConverter}}">
+                        <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8"
+                                IsVisible="{Binding SelectedStoryline, Converter={StaticResource IsNotNullConverter}, ConverterParameter=Invert}">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                                 <TextBlock Text="📖" FontSize="48" HorizontalAlignment="Center" Opacity="0.3"/>
-                                <TextBlock Text="Sélectionnez une storyline" FontSize="14" Foreground="#64748b" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sélectionnez une storyline" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
@@ -129,14 +129,14 @@
 
                 <!-- Tab Suspendues -->
                 <TabItem Header="⏸️ SUSPENDUES">
-                    <Border Background="#1e293b" CornerRadius="8" Padding="20">
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
                         <ListBox ItemsSource="{Binding SuspendedStorylines}" Background="Transparent" BorderThickness="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0f172a" Padding="16,12" Margin="0,0,0,8" CornerRadius="6">
+                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16,12" Margin="0,0,0,8" CornerRadius="6">
                                         <Grid RowDefinitions="Auto,Auto">
-                                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                                            <TextBlock Grid.Row="1" Text="{Binding HeatDisplay}" FontSize="11" Foreground="#64748b"/>
+                                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Grid.Row="1" Text="{Binding HeatDisplay}" FontSize="11" Foreground="{StaticResource TextSubtleBrush}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -147,12 +147,12 @@
 
                 <!-- Tab Terminées -->
                 <TabItem Header="✅ TERMINÉES">
-                    <Border Background="#1e293b" CornerRadius="8" Padding="20">
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
                         <ListBox ItemsSource="{Binding CompletedStorylines}" Background="Transparent" BorderThickness="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0f172a" Padding="16,12" Margin="0,0,0,8" CornerRadius="6">
-                                        <TextBlock Text="{Binding Name}" FontSize="14" Foreground="#94a3b8"/>
+                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16,12" Margin="0,0,0,8" CornerRadius="6">
+                                        <TextBlock Text="{Binding Name}" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
                                     </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

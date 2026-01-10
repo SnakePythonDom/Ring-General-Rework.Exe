@@ -48,7 +48,7 @@ public class CreateCompanyViewUITests
 
         // Assert - Vérifier que le titre de création est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("CREATE") || tb.Text.Contains("Créer") || tb.Text.Contains("COMPANY"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("CREATE") || tb.Text.Contains("Créer") || tb.Text.Contains("COMPANY"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -73,7 +73,7 @@ public class CreateCompanyViewUITests
                                      tb.Watermark?.Contains("Nom") == true);
 
         nameTextBox.Should().NotBeNull();
-        nameTextBox!.Watermark.Should().Contain("Name");
+        nameTextBox?.Watermark.Should().Contain("Name");
     }
 
     [AvaloniaFact]
@@ -92,7 +92,7 @@ public class CreateCompanyViewUITests
 
         // Assert - Vérifier que le budget de départ est affiché
         var budgetTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$1,000,000") || tb.Text.Contains("1000000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$1,000,000") || tb.Text.Contains("1000000"))
             .ToList();
 
         budgetTextBlocks.Should().NotBeEmpty();
@@ -117,7 +117,7 @@ public class CreateCompanyViewUITests
                 .FirstOrDefault();
 
         typeComboBox.Should().NotBeNull();
-        typeComboBox!.Items.Should().NotBeEmpty();
+        typeComboBox?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -202,7 +202,7 @@ public class CreateCompanyViewUITests
 
         // Assert - Vérifier que l'aperçu de la compagnie est affiché
         var previewTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Test Wrestling") || tb.Text.Contains("$500,000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Test Wrestling") || tb.Text.Contains("$500,000"))
             .ToList();
 
         previewTextBlocks.Should().NotBeEmpty();

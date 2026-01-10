@@ -22,7 +22,7 @@ public abstract class RepositoryBase
 
     protected SqliteConnection OpenConnection()
     {
-        return _factory.OuvrirConnexion();
+        return _factory.CreateGeneralConnection();
     }
 
     protected void WithTransaction(Action<SqliteConnection, SqliteTransaction> action)

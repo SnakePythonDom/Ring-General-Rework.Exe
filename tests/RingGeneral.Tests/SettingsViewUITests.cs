@@ -48,7 +48,7 @@ public class SettingsViewUITests
 
         // Assert - Vérifier que le titre Settings est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("SETTINGS") || tb.Text.Contains("Paramètres"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("SETTINGS") || tb.Text.Contains("Paramètres"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -71,7 +71,7 @@ public class SettingsViewUITests
 
         // Assert - Vérifier que les paramètres de gameplay sont affichés
         var difficultyTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Normal"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Normal"))
             .ToList();
 
         difficultyTextBlocks.Should().NotBeEmpty();
@@ -94,7 +94,7 @@ public class SettingsViewUITests
 
         // Assert - Vérifier que les paramètres audio sont affichés
         var volumeTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("80") || tb.Text.Contains("70") || tb.Text.Contains("90"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("80") || tb.Text.Contains("70") || tb.Text.Contains("90"))
             .ToList();
 
         volumeTextBlocks.Should().NotBeEmpty();
@@ -117,7 +117,7 @@ public class SettingsViewUITests
 
         // Assert - Vérifier que les paramètres vidéo sont affichés
         var resolutionTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("1920x1080"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("1920x1080"))
             .ToList();
 
         resolutionTextBlocks.Should().NotBeEmpty();
@@ -261,7 +261,7 @@ public class SettingsViewUITests
 
         // Assert - Vérifier que l'affichage s'est mis à jour
         var themeTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Dark"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Dark"))
             .ToList();
 
         themeTextBlocks.Should().NotBeEmpty();

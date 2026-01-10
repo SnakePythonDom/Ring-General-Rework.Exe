@@ -58,7 +58,7 @@ public static class DbBakiImporter
 
             transaction.Commit();
         }
-        catch (Exception ex)
+        catch
         {
             transaction.Rollback();
             throw;

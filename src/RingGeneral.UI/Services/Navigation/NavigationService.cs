@@ -35,12 +35,24 @@ public sealed class NavigationService : INavigationService
 
     public void NavigateTo<TViewModel>() where TViewModel : ViewModelBase
     {
-        var viewModel = _serviceProvider.GetService(typeof(TViewModel)) as TViewModel;
+        var viewModelType = typeof(TViewModel);
+        _logger.Debug($"Résolution du ViewModel {viewModelType.FullName} depuis le conteneur DI");
+        
+        var viewModel = _serviceProvider.GetService(viewModelType) as TViewModel;
         if (viewModel is null)
         {
-            throw new InvalidOperationException($"ViewModel {typeof(TViewModel).Name} non enregistré dans le conteneur DI");
+            _logger.Error($"ViewModel {viewModelType.FullName} non trouvé dans le conteneur DI");
+            throw new InvalidOperationException($"ViewModel {viewModelType.Name} non enregistré dans le conteneur DI");
         }
 
+        _logger.Debug($"ViewModel {viewModelType.FullName} résolu avec succès, type réel: {viewModel.GetType().FullName}");
+        
+        // Appeler OnNavigatedTo même sans paramètre si le ViewModel implémente INavigableViewModel
+        if (viewModel is INavigableViewModel navigable)
+        {
+            navigable.OnNavigatedTo(null);
+        }
+        
         NavigateToViewModel(viewModel);
     }
 

@@ -411,7 +411,10 @@ public sealed class App : Application
         services.AddSingleton<AgentReportGeneratorService>();
 
         // ViewModels - Core
-        services.AddSingleton<ViewModels.Core.ShellViewModel>();
+        services.AddSingleton<ViewModels.Core.ShellViewModel>(sp =>
+            new ViewModels.Core.ShellViewModel(
+                navigationService: sp.GetRequiredService<INavigationService>(),
+                repository: sp.GetService<GameRepository>()));
 
         // ViewModels - Start
         services.AddTransient<StartViewModel>();
@@ -460,7 +463,8 @@ public sealed class App : Application
                 repository: sp.GetRequiredService<GameRepository>()));
         services.AddTransient<ViewModels.Roster.InjuriesViewModel>(sp =>
             new ViewModels.Roster.InjuriesViewModel(
-                repository: sp.GetRequiredService<GameRepository>()));
+                repository: sp.GetRequiredService<GameRepository>(),
+                medicalRepository: sp.GetRequiredService<MedicalRepository>()));
         services.AddTransient<ViewModels.Roster.StructuralDashboardViewModel>(sp =>
             new ViewModels.Roster.StructuralDashboardViewModel(
                 sp.GetRequiredService<IRosterAnalysisRepository>(),

@@ -6,21 +6,23 @@
 
     <!-- Background Colors -->
     <Color x:Key="BackgroundPrimary">#1a1a1a</Color>
-    <Color x:Key="BackgroundSecondary">#1e1e1e</Color>
-    <Color x:Key="BackgroundTertiary">#242424</Color>
+    <Color x:Key="BackgroundSecondary">#1e293b</Color>
+    <Color x:Key="BackgroundTertiary">#0f172a</Color>
     <Color x:Key="BackgroundCard">#1e293b</Color>
     <Color x:Key="BackgroundCardDark">#0f172a</Color>
-    <Color x:Key="BackgroundInput">#2d2d2d</Color>
+    <Color x:Key="BackgroundInput">#1e293b</Color>
+    <Color x:Key="BackgroundHover">#333333</Color>
 
     <!-- Border Colors -->
     <Color x:Key="BorderDefault">#2a2a2a</Color>
     <Color x:Key="BorderLight">#3a3a3a</Color>
     <Color x:Key="BorderMedium">#334155</Color>
+    <Color x:Key="BorderSecondary">#4a4a4a</Color>
 
     <!-- Text Colors -->
     <Color x:Key="TextPrimary">#e0e0e0</Color>
-    <Color x:Key="TextSecondary">#cbd5e1</Color>
-    <Color x:Key="TextMuted">#94a3b8</Color>
+    <Color x:Key="TextSecondary">#888888</Color>
+    <Color x:Key="TextMuted">#888888</Color>
     <Color x:Key="TextSubtle">#64748b</Color>
     <Color x:Key="TextDisabled">#666666</Color>
     <Color x:Key="TextDark">#444444</Color>
@@ -30,7 +32,7 @@
     <Color x:Key="BrandSecondary">#8b5cf6</Color>
     <Color x:Key="BrandAccent">#06b6d4</Color>
 
-    <!-- Semantic Colors -->
+    <!-- Semantic Colors (Accents) -->
     <Color x:Key="SuccessColor">#10b981</Color>
     <Color x:Key="SuccessLight">#34d399</Color>
     <Color x:Key="SuccessDark">#065f46</Color>
@@ -41,6 +43,11 @@
     <Color x:Key="ErrorLight">#fca5a5</Color>
     <Color x:Key="ErrorDark">#7f1d1d</Color>
     <Color x:Key="InfoColor">#3b82f6</Color>
+    <Color x:Key="AccentBlue">#3b82f6</Color>
+    <Color x:Key="AccentGreen">#10b981</Color>
+    <Color x:Key="AccentOrange">#f59e0b</Color>
+    <Color x:Key="AccentRed">#ef4444</Color>
+    <Color x:Key="AccentPrimaryHover">#4a91ff</Color>
 
     <!-- Brushes (SolidColorBrush from Colors) -->
     <SolidColorBrush x:Key="BackgroundPrimaryBrush" Color="{StaticResource BackgroundPrimary}"/>
@@ -49,10 +56,12 @@
     <SolidColorBrush x:Key="BackgroundCardBrush" Color="{StaticResource BackgroundCard}"/>
     <SolidColorBrush x:Key="BackgroundCardDarkBrush" Color="{StaticResource BackgroundCardDark}"/>
     <SolidColorBrush x:Key="BackgroundInputBrush" Color="{StaticResource BackgroundInput}"/>
+    <SolidColorBrush x:Key="BackgroundHoverBrush" Color="{StaticResource BackgroundHover}"/>
 
     <SolidColorBrush x:Key="BorderDefaultBrush" Color="{StaticResource BorderDefault}"/>
     <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLight}"/>
     <SolidColorBrush x:Key="BorderMediumBrush" Color="{StaticResource BorderMedium}"/>
+    <SolidColorBrush x:Key="BorderSecondaryBrush" Color="{StaticResource BorderSecondary}"/>
 
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
@@ -71,6 +80,19 @@
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
     <SolidColorBrush x:Key="ErrorDarkBrush" Color="{StaticResource ErrorDark}"/>
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
+    <SolidColorBrush x:Key="AccentBlueBrush" Color="{StaticResource AccentBlue}"/>
+    <SolidColorBrush x:Key="AccentGreenBrush" Color="{StaticResource AccentGreen}"/>
+    <SolidColorBrush x:Key="AccentOrangeBrush" Color="{StaticResource AccentOrange}"/>
+    <SolidColorBrush x:Key="AccentRedBrush" Color="{StaticResource AccentRed}"/>
+    <SolidColorBrush x:Key="AccentPrimaryHoverBrush" Color="{StaticResource AccentPrimaryHover}"/>
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="{StaticResource WarningDark}"/>
+    
+    <!-- Alias pour compatibilité avec DynamicResource Theme*Brush -->
+    <SolidColorBrush x:Key="ThemeBorderMidBrush" Color="{StaticResource BorderMedium}"/>
+    <SolidColorBrush x:Key="ThemeBorderLowBrush" Color="{StaticResource BorderLight}"/>
+    <SolidColorBrush x:Key="ThemeAccentBrush" Color="{StaticResource BrandPrimary}"/>
+    <SolidColorBrush x:Key="ThemeAccentBrush3" Color="{StaticResource BackgroundCardDark}"/>
+    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="{StaticResource BackgroundPrimary}"/>
 
     <!-- ==================== TYPOGRAPHY ==================== -->
 
@@ -125,6 +147,9 @@
 
     <!-- ==================== CONVERTERS ==================== -->
 
+    <!-- String to Collection Converter -->
+    <local:StringToCollectionConverter x:Key="StringToCollectionConverter" />
+
     <!-- Bool to Text Converter -->
     <local:BoolToTextConverter x:Key="BoolToTextConverter" />
 
@@ -133,6 +158,12 @@
 
     <!-- Invert Bool Converter -->
     <local:InvertBoolConverter x:Key="InvertBoolConverter" />
+    
+    <!-- Null To Bool Converter -->
+    <local:NullToBoolConverter x:Key="NullToBoolConverter" />
+    
+    <!-- Bool To Color Converter -->
+    <local:BoolToColorConverter x:Key="BoolToColorConverter" />
 
     <!-- Count to Visibility Converter - Temporarily disabled -->
     <!-- <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" /> -->

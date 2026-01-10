@@ -14,75 +14,75 @@
     <ScrollViewer>
         <StackPanel Margin="30" Spacing="25" MaxWidth="1100" HorizontalAlignment="Center">
             <StackPanel Spacing="8">
-                <TextBlock Text="⚙️ PARAMÈTRES BOOKING" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-                <TextBlock Text="Configurez la durée des shows et les règles de validation" FontSize="14" Foreground="#888888"/>
+                <TextBlock Text="⚙️ PARAMÈTRES BOOKING" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Configurez la durée des shows et les règles de validation" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
             </StackPanel>
 
             <TabControl>
                 <TabItem Header="GÉNÉRAL">
                     <StackPanel Spacing="20" Margin="0,10,0,0">
-                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
                             <StackPanel Spacing="20">
-                                <TextBlock Text="⏱️ DURÉES" FontSize="16" Foreground="#64748b" FontWeight="Bold"/>
+                                <TextBlock Text="⏱️ DURÉES" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
 
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Text="Durée par défaut d'un segment" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Durée en minutes appliquée aux nouveaux segments" FontSize="12" Foreground="#888888"/>
+                                        <TextBlock Text="Durée par défaut d'un segment" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Durée en minutes appliquée aux nouveaux segments" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                     <NumericUpDown Grid.Column="1"
                                                    Value="{Binding DefaultSegmentDuration}"
                                                    Minimum="1"
                                                    Maximum="60"
                                                    Width="100"
-                                                   Background="#0f172a"
-                                                   BorderBrush="#334155"
-                                                   Foreground="#e0e0e0"
+                                                   Background="{StaticResource BackgroundTertiaryBrush}"
+                                                   BorderBrush="{StaticResource BorderMediumBrush}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
                                                    VerticalAlignment="Center"/>
                                 </Grid>
 
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Text="Durée par défaut d'un show" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Durée totale prévue lors de la création d'un show" FontSize="12" Foreground="#888888"/>
+                                        <TextBlock Text="Durée par défaut d'un show" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Durée totale prévue lors de la création d'un show" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                     <NumericUpDown Grid.Column="1"
                                                    Value="{Binding DefaultShowDuration}"
                                                    Minimum="30"
                                                    Maximum="300"
                                                    Width="100"
-                                                   Background="#0f172a"
-                                                   BorderBrush="#334155"
-                                                   Foreground="#e0e0e0"
+                                                   Background="{StaticResource BackgroundTertiaryBrush}"
+                                                   BorderBrush="{StaticResource BorderMediumBrush}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
                                                    VerticalAlignment="Center"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
                             <StackPanel Spacing="20">
-                                <TextBlock Text="🧭 GÉNÉRAL" FontSize="16" Foreground="#64748b" FontWeight="Bold"/>
+                                <TextBlock Text="🧭 GÉNÉRAL" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
 
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Text="Validation automatique" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Lancer la validation à chaque modification" FontSize="12" Foreground="#888888"/>
+                                        <TextBlock Text="Validation automatique" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Lancer la validation à chaque modification" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoValidateOnChange}" VerticalAlignment="Center"/>
                                 </Grid>
 
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Text="Thème FM26" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Choisissez un thème d'interface pour le booking" FontSize="12" Foreground="#888888"/>
+                                        <TextBlock Text="Thème FM26" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Choisissez un thème d'interface pour le booking" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                     <ComboBox Grid.Column="1"
                                               ItemsSource="{Binding Themes}"
                                               SelectedItem="{Binding SelectedTheme}"
                                               Width="180"
-                                              Background="#0f172a"
-                                              BorderBrush="#334155"
-                                              Foreground="#e0e0e0"/>
+                                              Background="{StaticResource BackgroundTertiaryBrush}"
+                                              BorderBrush="{StaticResource BorderMediumBrush}"
+                                              Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -91,36 +91,36 @@
 
                 <TabItem Header="VALIDATION">
                     <StackPanel Spacing="20" Margin="0,10,0,0">
-                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Text="🧪 RÈGLES DE VALIDATION" FontSize="16" Foreground="#64748b" FontWeight="Bold"/>
-                                        <TextBlock Text="Règles actives" FontSize="12" Foreground="#888888"/>
+                                        <TextBlock Text="🧪 RÈGLES DE VALIDATION" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
+                                        <TextBlock Text="Règles actives" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1" Text="{Binding ActiveRulesCount}" FontSize="20" FontWeight="Bold" Foreground="#3b82f6" HorizontalAlignment="Right" Margin="0,0,12,0"/>
-                                    <Button Grid.Column="2" Content="➕ Ajouter" Command="{Binding AddValidationRuleCommand}" Background="#3b82f6" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ActiveRulesCount}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}" HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                                    <Button Grid.Column="2" Content="➕ Ajouter" Command="{Binding AddValidationRuleCommand}" Background="{StaticResource AccentBlueBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
                                 </Grid>
 
                                 <ItemsControl ItemsSource="{Binding ValidationRules}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="#0f172a" Padding="16" CornerRadius="6" Margin="0,0,0,10">
+                                            <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16" CornerRadius="6" Margin="0,0,0,10">
                                                 <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto">
                                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding SeverityIcon}" FontSize="16" Margin="0,0,10,0"/>
                                                     <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2">
-                                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#e0e0e0"/>
-                                                        <TextBlock Text="{Binding Category}" FontSize="11" Foreground="#94a3b8"/>
+                                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                        <TextBlock Text="{Binding Category}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                                     </StackPanel>
                                                     <ToggleSwitch Grid.Row="0" Grid.Column="2" IsChecked="{Binding IsEnabled}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                                     <Button Grid.Row="0" Grid.Column="3" Content="Supprimer"
                                                             Command="{Binding $parent[UserControl].DataContext.RemoveValidationRuleCommand}"
                                                             CommandParameter="{Binding}"
-                                                            Background="#334155"
+                                                            Background="{StaticResource BorderMediumBrush}"
                                                             Foreground="#e2e8f0"
                                                             CornerRadius="6"
                                                             Padding="10,4"/>
-                                                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Description}" FontSize="11" Foreground="#888888"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -128,9 +128,9 @@
                                 </ItemsControl>
 
                                 <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                                    <Button Content="Tester" Command="{Binding TestValidationCommand}" Background="#0f172a" Foreground="#e2e8f0" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Tester" Command="{Binding TestValidationCommand}" Background="{StaticResource BackgroundTertiaryBrush}" Foreground="#e2e8f0" CornerRadius="6" Padding="12,6"/>
                                     <Button Content="Réinitialiser" Command="{Binding ResetToDefaultsCommand}" Background="#475569" Foreground="White" CornerRadius="6" Padding="12,6"/>
-                                    <Button Content="Enregistrer" Command="{Binding SaveSettingsCommand}" Background="#10b981" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Enregistrer" Command="{Binding SaveSettingsCommand}" Background="{StaticResource AccentGreenBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

@@ -52,7 +52,7 @@ public class WorkerDetailViewUITests
 
         // Assert - Vérifier que le nom du worker est affiché
         var nameTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("John Cena"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("John Cena"))
             .ToList();
 
         nameTextBlocks.Should().NotBeEmpty();
@@ -75,15 +75,15 @@ public class WorkerDetailViewUITests
 
         // Assert - Vérifier que les attributs sont affichés
         var strengthTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("85"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("85"))
             .ToList();
 
         var speedTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("90"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("90"))
             .ToList();
 
         var techniqueTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("88"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("88"))
             .ToList();
 
         strengthTextBlocks.Should().NotBeEmpty();
@@ -108,15 +108,15 @@ public class WorkerDetailViewUITests
 
         // Assert - Vérifier que les statistiques sont affichées
         var popularityTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("95"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("95"))
             .ToList();
 
         var healthTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("92"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("92"))
             .ToList();
 
         var ageTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("42"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("42"))
             .ToList();
 
         popularityTextBlocks.Should().NotBeEmpty();
@@ -141,11 +141,11 @@ public class WorkerDetailViewUITests
 
         // Assert - Vérifier que le rôle et le statut du contrat sont affichés
         var roleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Main Event Star"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Main Event Star"))
             .ToList();
 
         var contractTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Active"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Active"))
             .ToList();
 
         roleTextBlocks.Should().NotBeEmpty();
@@ -235,7 +235,7 @@ public class WorkerDetailViewUITests
 
         // Assert - Vérifier que l'affichage s'est mis à jour
         var updatedPopularityTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("85"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("85"))
             .ToList();
 
         updatedPopularityTextBlocks.Should().NotBeEmpty();

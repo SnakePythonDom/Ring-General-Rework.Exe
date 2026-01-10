@@ -11,7 +11,7 @@
         <vm:StartViewModel />
     </Design.DataContext>
 
-    <Grid Background="#0a0a0a">
+    <Grid Background="{StaticResource BackgroundPrimaryBrush}">
         <!-- Fond avec dégradé -->
         <Border>
             <Border.Background>
@@ -32,12 +32,12 @@
                 <TextBlock Text="RING GENERAL"
                           FontSize="64"
                           FontWeight="Black"
-                          Foreground="#e0e0e0"
+                          Foreground="{StaticResource TextPrimaryBrush}"
                           HorizontalAlignment="Center"
                           LetterSpacing="4"/>
                 <TextBlock Text="Wrestling Management Simulation"
                           FontSize="16"
-                          Foreground="#888888"
+                          Foreground="{StaticResource TextSecondaryBrush}"
                           HorizontalAlignment="Center"
                           LetterSpacing="2"/>
             </StackPanel>
@@ -51,7 +51,7 @@
                         HorizontalContentAlignment="Center"
                         Padding="0,20"
                         CornerRadius="8"
-                        Background="#3b82f6">
+                        Background="{StaticResource AccentBlueBrush}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <TextBlock Text="🎮" FontSize="24"/>
                         <TextBlock Text="NOUVELLE PARTIE" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
@@ -65,14 +65,14 @@
                         HorizontalContentAlignment="Center"
                         Padding="0,20"
                         CornerRadius="8"
-                        Background="#10b981">
+                        Background="{StaticResource AccentGreenBrush}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <TextBlock Text="📂" FontSize="24"/>
                         <StackPanel>
                             <TextBlock Text="CHARGER PARTIE" FontSize="18" FontWeight="Bold" Foreground="White"/>
                             <TextBlock Text="{Binding ActiveSaveName}"
                                       FontSize="12"
-                                      Foreground="#d1fae5"
+                                      Foreground="{StaticResource SuccessLightBrush}"
                                       IsVisible="{Binding HasActiveSave}"/>
                         </StackPanel>
                     </StackPanel>
@@ -84,7 +84,7 @@
                         HorizontalContentAlignment="Center"
                         Padding="0,20"
                         CornerRadius="8"
-                        Background="#64748b">
+                        Background="{StaticResource TextSubtleBrush}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <TextBlock Text="⚙️" FontSize="24"/>
                         <TextBlock Text="OPTIONS" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
@@ -109,7 +109,7 @@
             <!-- Version info -->
             <TextBlock Text="v1.0.0 Alpha • Build 2026-01-07"
                       FontSize="12"
-                      Foreground="#444444"
+                      Foreground="{StaticResource TextDark}"
                       HorizontalAlignment="Center"
                       Margin="0,40,0,0"/>
 

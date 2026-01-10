@@ -15,10 +15,10 @@
         <StackPanel Margin="30" Spacing="25">
             <!-- En-tête -->
             <StackPanel Spacing="8">
-                <TextBlock Text="🏠 TABLEAU DE BORD" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-                <TextBlock Text="{Binding CompanyName}" FontSize="18" Foreground="#888888"/>
-                <TextBlock Text="{Binding CurrentDateFormatted}" FontSize="16" Foreground="#888888" FontWeight="SemiBold"/>
-                <TextBlock FontSize="12" Foreground="#666666">
+                <TextBlock Text="🏠 TABLEAU DE BORD" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding CompanyName}" FontSize="18" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding CurrentDateFormatted}" FontSize="16" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource TextDisabledBrush}">
                     <TextBlock.Text>
                         <MultiBinding StringFormat="Jour {0}">
                             <Binding Path="CurrentDay"/>
@@ -30,82 +30,82 @@
             <!-- Cartes de statistiques -->
             <Grid ColumnDefinitions="*,*,*,*,*">
                 <!-- Workers -->
-                <Border Grid.Column="0" Background="#1e293b" Padding="20" CornerRadius="8" Margin="0,0,6,0">
+                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,6,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="🤼 WORKERS" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding TotalWorkers}" FontSize="32" FontWeight="Bold" Foreground="#3b82f6"/>
-                        <TextBlock Text="Roster total" FontSize="11" Foreground="#94a3b8"/>
+                        <TextBlock Text="🤼 WORKERS" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TotalWorkers}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                        <TextBlock Text="Roster total" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Storylines -->
-                <Border Grid.Column="1" Background="#1e293b" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                <Border Grid.Column="1" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="📖 STORYLINES" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding ActiveStorylines}" FontSize="32" FontWeight="Bold" Foreground="#f59e0b"/>
-                        <TextBlock Text="Actives" FontSize="11" Foreground="#94a3b8"/>
+                        <TextBlock Text="📖 STORYLINES" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding ActiveStorylines}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                        <TextBlock Text="Actives" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Shows -->
-                <Border Grid.Column="2" Background="#1e293b" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="📺 SHOWS" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding UpcomingShows}" FontSize="32" FontWeight="Bold" Foreground="#8b5cf6"/>
-                        <TextBlock Text="À venir" FontSize="11" Foreground="#94a3b8"/>
+                        <TextBlock Text="📺 SHOWS" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding UpcomingShows}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                        <TextBlock Text="À venir" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Morale -->
-                <Border Grid.Column="3" Background="#1e293b" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                <Border Grid.Column="3" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="❤️ MORAL" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="❤️ MORAL" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{Binding MoraleScore}" FontSize="32" FontWeight="Bold" Foreground="#06b6d4"/>
+                            <TextBlock Text="{Binding MoraleScore}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource BrandAccentBrush}"/>
                             <TextBlock Text="{Binding TrendIcon}" FontSize="24" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="{Binding MoraleLabel}" FontSize="11" Foreground="#94a3b8"/>
+                        <TextBlock Text="{Binding MoraleLabel}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Budget -->
-                <Border Grid.Column="4" Background="#065f46" Padding="20" CornerRadius="8" Margin="6,0,0,0">
+                <Border Grid.Column="4" Background="{StaticResource SuccessDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,0,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="💰 BUDGET" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding CurrentBudgetFormatted}" FontSize="28" FontWeight="Bold" Foreground="#34d399"/>
-                        <TextBlock Text="Disponible" FontSize="11" Foreground="#a7f3d0"/>
+                        <TextBlock Text="💰 BUDGET" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding CurrentBudgetFormatted}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                        <TextBlock Text="Disponible" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- Alerte de crise critique (si existante) -->
-            <Border IsVisible="{Binding HasCriticalCrises}" Background="#7f1d1d" Padding="18,16" CornerRadius="8">
+            <Border IsVisible="{Binding HasCriticalCrises}" Background="{StaticResource ErrorDarkBrush}" Padding="18,16" CornerRadius="8">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock Text="⚠️" FontSize="24" VerticalAlignment="Center"/>
                     <StackPanel Spacing="4" VerticalAlignment="Center">
-                        <TextBlock Text="ALERTE CRITIQUE" FontSize="13" Foreground="#fecaca" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding CrisisAlertMessage}" FontSize="12" Foreground="#fca5a5"/>
+                        <TextBlock Text="ALERTE CRITIQUE" FontSize="13" Foreground="{StaticResource ErrorLightBrush}" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding CrisisAlertMessage}" FontSize="12" Foreground="{StaticResource ErrorLightBrush}"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- Dernière actualité -->
-            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="📰 DERNIÈRE ACTUALITÉ" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding LatestNews}" FontSize="13" Foreground="#cbd5e1" TextWrapping="Wrap"/>
+                    <TextBlock Text="📰 DERNIÈRE ACTUALITÉ" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding LatestNews}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
             <!-- Activité récente -->
-            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="📋 ACTIVITÉ RÉCENTE" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                    <TextBlock Text="📋 ACTIVITÉ RÉCENTE" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                     <ItemsControl ItemsSource="{Binding RecentActivity}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0f172a" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
-                                    <TextBlock Text="{Binding .}" FontSize="12" Foreground="#94a3b8"/>
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
+                                    <TextBlock Text="{Binding .}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -121,7 +121,7 @@
                     FontSize="16"
                     FontWeight="Bold"
                     CornerRadius="8"
-                    Background="#3b82f6"
+                    Background="{StaticResource AccentBlueBrush}"
                     Foreground="White"
                     Margin="0,10,0,0"/>
             

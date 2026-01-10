@@ -49,7 +49,7 @@ public class ContractNegotiationViewUITests
 
         // Assert - Vérifier que le titre de négociation est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("CONTRACT") || tb.Text.Contains("Contrat"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("CONTRACT") || tb.Text.Contains("Contrat"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -73,11 +73,11 @@ public class ContractNegotiationViewUITests
 
         // Assert - Vérifier que les infos du worker sont affichées
         var nameTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("John Cena"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("John Cena"))
             .ToList();
 
         var roleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Main Event Star"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Main Event Star"))
             .ToList();
 
         nameTextBlocks.Should().NotBeEmpty();
@@ -117,7 +117,7 @@ public class ContractNegotiationViewUITests
                 .FirstOrDefault();
 
         templatesList.Should().NotBeNull();
-        templatesList!.Items.Should().NotBeEmpty();
+        templatesList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -137,11 +137,11 @@ public class ContractNegotiationViewUITests
 
         // Assert - Vérifier que les champs de salaire sont affichés
         var salaryTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$50,000") || tb.Text.Contains("50000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$50,000") || tb.Text.Contains("50000"))
             .ToList();
 
         var appearanceTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$10,000") || tb.Text.Contains("10000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$10,000") || tb.Text.Contains("10000"))
             .ToList();
 
         salaryTextBlocks.Should().NotBeEmpty();
@@ -164,7 +164,7 @@ public class ContractNegotiationViewUITests
 
         // Assert - Vérifier que la durée du contrat est affichée
         var durationTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("24") && tb.Text.Contains("month"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("24") && tb.Text.Contains("month"))
             .ToList();
 
         durationTextBlocks.Should().NotBeEmpty();
@@ -214,11 +214,11 @@ public class ContractNegotiationViewUITests
 
         // Assert - Vérifier que les exigences du worker sont affichées
         var minSalaryTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$45,000") || tb.Text.Contains("45000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$45,000") || tb.Text.Contains("45000"))
             .ToList();
 
         var satisfactionTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("75"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("75"))
             .ToList();
 
         minSalaryTextBlocks.Should().NotBeEmpty();
@@ -289,7 +289,7 @@ public class ContractNegotiationViewUITests
                 .FirstOrDefault();
 
         historyList.Should().NotBeNull();
-        historyList!.Items.Should().NotBeEmpty();
+        historyList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -312,7 +312,7 @@ public class ContractNegotiationViewUITests
 
         // Assert - Vérifier que l'affichage s'est mis à jour
         var updatedSalaryTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$50,000") || tb.Text.Contains("50000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$50,000") || tb.Text.Contains("50000"))
             .ToList();
 
         updatedSalaryTextBlocks.Should().NotBeEmpty();

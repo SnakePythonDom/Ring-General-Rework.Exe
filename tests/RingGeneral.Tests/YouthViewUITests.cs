@@ -19,7 +19,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -38,7 +38,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayYouthTitle()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -48,7 +48,7 @@ public class YouthViewUITests
 
         // Assert - Vérifier que le titre Youth est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("YOUTH") || tb.Text.Contains("Jeunesse"))
+            .Where(tb => tb.Text != null && (tb.Text.Contains("YOUTH") || tb.Text.Contains("Jeunesse")))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -58,7 +58,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayTraineesList()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
 
         // Ajouter un trainee de test
         viewModel.Trainees.Add(new TraineeItemViewModel
@@ -82,15 +82,18 @@ public class YouthViewUITests
             view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
 
         traineesList.Should().NotBeNull();
-        traineesList!.ItemsSource.Should().NotBeNull();
-        ((System.Collections.IEnumerable?)traineesList.ItemsSource)?.Cast<object>().Should().NotBeEmpty();
+        if (traineesList != null)
+        {
+            traineesList.ItemsSource.Should().NotBeNull();
+            ((System.Collections.IEnumerable?)traineesList.ItemsSource)?.Cast<object>().Should().NotBeEmpty();
+        }
     }
 
     [AvaloniaFact]
     public async Task YouthView_ShouldDisplayTraineeDetails()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
 
         var trainee = new TraineeItemViewModel
         {
@@ -114,11 +117,11 @@ public class YouthViewUITests
 
         // Assert - Vérifier que les détails du trainee sont affichés
         var nameTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Alex Johnson"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Alex Johnson"))
             .ToList();
 
         var skillTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("35") || tb.Text.Contains("28") || tb.Text.Contains("22"))
+            .Where(tb => tb.Text != null && (tb.Text.Contains("35") || tb.Text.Contains("28") || tb.Text.Contains("22")))
             .ToList();
 
         nameTextBlocks.Should().NotBeEmpty();
@@ -129,7 +132,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayYouthStatistics()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         // TotalTrainees, ActiveTrainees, GraduatedThisMonth are readonly - add trainees to update
         for (int i = 0; i < 12; i++)
         {
@@ -145,15 +148,15 @@ public class YouthViewUITests
 
         // Assert - Vérifier que les statistiques sont affichées
         var totalTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("12"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("12"))
             .ToList();
 
         var activeTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("8"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("8"))
             .ToList();
 
         var graduatedTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("2"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("2"))
             .ToList();
 
         totalTextBlocks.Should().NotBeEmpty();
@@ -165,7 +168,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayTrainingFacilities()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         // FacilityLevel, TrainingCapacity, and CoachingQuality properties don't exist
         // These would be part of YouthStructureViewModel if needed
 
@@ -178,11 +181,11 @@ public class YouthViewUITests
 
         // Assert - Vérifier que les infos des facilities sont affichées
         var levelTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("3"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("3"))
             .ToList();
 
         var capacityTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("15"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("15"))
             .ToList();
 
         levelTextBlocks.Should().NotBeEmpty();
@@ -193,7 +196,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHaveRecruitButton()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -214,7 +217,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHaveUpgradeFacilityButton()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -235,7 +238,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayProgressionCharts()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
 
         var trainee = new TraineeItemViewModel
         {
@@ -269,7 +272,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHandleTraineeSelection()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
 
         var trainee1 = new TraineeItemViewModel { Name = "Trainee 1", Age = 18 };
         var trainee2 = new TraineeItemViewModel { Name = "Trainee 2", Age = 19 };
@@ -288,14 +291,14 @@ public class YouthViewUITests
         // Assert - Vérifier que la sélection fonctionne
         var dataGrid = view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
         dataGrid.Should().NotBeNull();
-        dataGrid!.SelectedItem.Should().Be(trainee1);
+        dataGrid?.SelectedItem.Should().Be(trainee1);
     }
 
     [AvaloniaFact]
     public async Task YouthView_ShouldUpdateWhenTraineesChange()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -323,7 +326,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new YouthViewModel(null);
+        var viewModel = new YouthViewModel();
         var view = new YouthView { DataContext = viewModel };
 
         // Act

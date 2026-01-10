@@ -3,13 +3,14 @@ using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
+using Avalonia.Threading;
 
 namespace RingGeneral.UI.ViewModels.Roster;
 
 /// <summary>
 /// ViewModel pour la liste des workers (roster)
 /// </summary>
-public sealed class RosterViewModel : ViewModelBase
+public sealed class RosterViewModel : ViewModelBase, INavigableViewModel
 {
     private readonly GameRepository? _repository;
     private readonly INavigationService? _navigationService;
@@ -31,8 +32,20 @@ public sealed class RosterViewModel : ViewModelBase
         LoadWorkersCommand = ReactiveCommand.Create(LoadWorkers);
         LoadMoreWorkersCommand = ReactiveCommand.Create(LoadMoreWorkers);
 
-        // Charger les données initiales
-        _ = LoadWorkersCommand.Execute().Subscribe();
+        // Ne pas charger les données dans le constructeur
+        // Le chargement sera déclenché lors de la navigation (OnNavigatedTo)
+    }
+
+    /// <summary>
+    /// Appelé quand on navigue vers ce ViewModel
+    /// </summary>
+    public void OnNavigatedTo(object? parameter)
+    {
+        // Charger les workers automatiquement lors de la navigation
+        if (Workers.Count == 0)
+        {
+            _ = LoadWorkers();
+        }
     }
 
     /// <summary>
@@ -123,12 +136,29 @@ public sealed class RosterViewModel : ViewModelBase
             {
                 using var connection = _repository.CreateConnection();
 
-                // Obtenir le nombre total de workers
-                int totalCount;
-                using (var countCmd = connection.CreateCommand())
+                // Vérifier si la table existe
+                using (var checkCmd = connection.CreateCommand())
                 {
-                    countCmd.CommandText = "SELECT COUNT(*) FROM Workers";
-                    totalCount = Convert.ToInt32(countCmd.ExecuteScalar());
+                    checkCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Workers'";
+                    var tableExists = checkCmd.ExecuteScalar() != null;
+                    Logger.Info($"Table Workers existe: {tableExists}");
+                }
+
+                // Obtenir le nombre total de workers
+                int totalCount = 0;
+                try
+                {
+                    using (var countCmd = connection.CreateCommand())
+                    {
+                        countCmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                        var countResult = countCmd.ExecuteScalar();
+                        totalCount = countResult != null ? Convert.ToInt32(countResult) : 0;
+                    }
+                    Logger.Info($"Nombre total de workers dans la base: {totalCount}");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Erreur lors du comptage des workers: {ex.Message}", ex);
                 }
 
                 var workers = new List<WorkerListItemViewModel>();
@@ -144,8 +174,10 @@ public sealed class RosterViewModel : ViewModelBase
                 cmd.CommandText = @"
                     SELECT w.WorkerId, 
                            COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as FullName,
-                           w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
-                           w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
+                           w.RoleTv, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                           w.Momentum, w.Fatigue, 
+                           COALESCE((SELECT Morale FROM WorkerAttributes WHERE WorkerId = w.WorkerId), 50) as Morale,
+                           w.CompanyId, c.Name as CompanyName
                     FROM Workers w
                     LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
                     ORDER BY w.Popularity DESC
@@ -158,46 +190,92 @@ public sealed class RosterViewModel : ViewModelBase
                 // #region agent log
                 File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"C\",\"location\":\"RosterViewModel.cs:154\",\"message\":\"Reader created\",\"data\":{{\"fieldCount\":{reader.FieldCount}}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
                 // #endregion
+                int rowCount = 0;
                 while (reader.Read())
                 {
-                    var worker = new WorkerListItemViewModel
+                    try
                     {
-                        WorkerId = reader.GetString(0),
-                        Name = reader.GetString(1),
-                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetInt32(2).ToString(),
-                        Popularity = reader.GetInt32(3),
-                        InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
-                        Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                        Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
-                        Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
-                        Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
-                        Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
-                        Status = "Actif", // TODO: Calculer depuis blessures/fatigue
-                        Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
-                    };
+                        var companyName = reader.IsDBNull(11) ? "Free Agent" : (reader.GetString(11) ?? "Free Agent");
+                        var companyId = reader.IsDBNull(10) ? null : reader.GetString(10);
+                        
+                        var worker = new WorkerListItemViewModel
+                        {
+                            WorkerId = reader.GetString(0),
+                            Name = reader.GetString(1),
+                            Role = reader.IsDBNull(2) ? "N/A" : (reader.GetString(2) ?? "N/A"),
+                            Popularity = reader.GetInt32(3),
+                            InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                            Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                            Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                            Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
+                            Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                            Morale = reader.IsDBNull(9) ? 50 : reader.GetInt32(9),
+                            Status = "Actif", // TODO: Calculer depuis blessures/fatigue
+                            Company = companyName
+                        };
+                        
+                        // Log de debug pour vérifier les données
+                        if (rowCount < 3)
+                        {
+                            Logger.Info($"Worker chargé: {worker.Name}, CompanyId: {companyId ?? "NULL"}, CompanyName: {companyName}");
+                        }
 
-                    workers.Add(worker);
+                        workers.Add(worker);
+                        rowCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Erreur lors de la lecture d'une ligne de worker: {ex.Message}", ex);
+                    }
                 }
+                Logger.Info($"{rowCount} workers lus depuis la base de données");
 
                 return (totalCount, workers);
             });
 
             // Mettre à jour les propriétés et collections sur le thread UI
-            TotalWorkersInDatabase = result.totalCount;
-
-            Workers.Clear();
-            _allWorkers.Clear();
-
-            foreach (var worker in result.workers)
+            // S'assurer qu'on est sur le thread UI avant de modifier les collections
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _allWorkers.Add(worker);
-                Workers.Add(worker);
-            }
+                TotalWorkersInDatabase = result.totalCount;
 
-            this.RaisePropertyChanged(nameof(HasMoreWorkers));
-            this.RaisePropertyChanged(nameof(TotalWorkers));
+                // Vider les collections avant d'ajouter les nouveaux workers
+                _allWorkers.Clear();
+                
+                // Ajouter tous les workers à la liste interne d'abord
+                foreach (var worker in result.workers)
+                {
+                    _allWorkers.Add(worker);
+                }
+                
+                // Vider et remplir la collection observable en une seule opération
+                // pour éviter les notifications multiples
+                Workers.Clear();
+                
+                // Ajouter tous les workers à la collection observable
+                foreach (var worker in _allWorkers)
+                {
+                    Workers.Add(worker);
+                }
 
-            Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés (pagination)");
+                // Forcer la notification de changement pour s'assurer que l'UI se met à jour
+                this.RaisePropertyChanged(nameof(HasMoreWorkers));
+                this.RaisePropertyChanged(nameof(TotalWorkers));
+                this.RaisePropertyChanged(nameof(Workers));
+
+                Logger.Info($"{Workers.Count}/{TotalWorkersInDatabase} workers chargés (pagination)");
+                
+                // Log de debug pour vérifier les données chargées
+                if (Workers.Count > 0)
+                {
+                    var firstWorker = Workers[0];
+                    Logger.Info($"Premier worker chargé: {firstWorker.Name} (ID: {firstWorker.WorkerId}, Popularity: {firstWorker.Popularity}, Company: {firstWorker.Company})");
+                }
+                else
+                {
+                    Logger.Warning("Aucun worker dans la collection après chargement !");
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -233,8 +311,10 @@ public sealed class RosterViewModel : ViewModelBase
                 cmd.CommandText = @"
                     SELECT w.WorkerId, 
                            COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as FullName,
-                           w.TvRole, w.Popularity, w.InRing, w.Entertainment, w.Story,
-                           w.Momentum, w.Fatigue, w.Morale, w.CompanyId, c.Name as CompanyName
+                           w.RoleTv, w.Popularity, w.InRing, w.Entertainment, w.Story,
+                           w.Momentum, w.Fatigue,
+                           COALESCE((SELECT Morale FROM WorkerAttributes WHERE WorkerId = w.WorkerId), 50) as Morale,
+                           w.CompanyId, c.Name as CompanyName
                     FROM Workers w
                     LEFT JOIN Companies c ON w.CompanyId = c.CompanyId
                     ORDER BY w.Popularity DESC
@@ -245,26 +325,36 @@ public sealed class RosterViewModel : ViewModelBase
 
                 var workers = new List<WorkerListItemViewModel>();
                 using var reader = cmd.ExecuteReader();
+                int rowCount = 0;
                 while (reader.Read())
                 {
-                    var worker = new WorkerListItemViewModel
+                    try
                     {
-                        WorkerId = reader.GetString(0),
-                        Name = reader.GetString(1),
-                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetInt32(2).ToString(),
-                        Popularity = reader.GetInt32(3),
-                        InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
-                        Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                        Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
-                        Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
-                        Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
-                        Morale = reader.IsDBNull(9) ? 0 : reader.GetInt32(9),
-                        Status = "Actif",
-                        Company = reader.IsDBNull(11) ? "Free Agent" : reader.GetString(11)
-                    };
+                        var worker = new WorkerListItemViewModel
+                        {
+                            WorkerId = reader.GetString(0),
+                            Name = reader.GetString(1),
+                            Role = reader.IsDBNull(2) ? "N/A" : (reader.GetString(2) ?? "N/A"),
+                            Popularity = reader.GetInt32(3),
+                            InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                            Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                            Story = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                            Momentum = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
+                            Fatigue = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                            Morale = reader.IsDBNull(9) ? 50 : reader.GetInt32(9),
+                            Status = "Actif",
+                            Company = reader.IsDBNull(11) ? "Free Agent" : (reader.GetString(11) ?? "Free Agent")
+                        };
 
-                    workers.Add(worker);
+                        workers.Add(worker);
+                        rowCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Erreur lors de la lecture d'une ligne de worker (LoadMore): {ex.Message}", ex);
+                    }
                 }
+                Logger.Info($"{rowCount} workers supplémentaires lus");
 
                 return workers;
             });
@@ -292,6 +382,11 @@ public sealed class RosterViewModel : ViewModelBase
     /// </summary>
     private void LoadPlaceholderData()
     {
+        Logger.Warning("Chargement de données placeholder - la base de données n'est pas disponible ou la table Workers n'existe pas");
+        
+        Workers.Clear();
+        _allWorkers.Clear();
+        
         var worker1 = new WorkerListItemViewModel
         {
             WorkerId = "W001",
@@ -345,6 +440,15 @@ public sealed class RosterViewModel : ViewModelBase
         Workers.Add(worker1);
         Workers.Add(worker2);
         Workers.Add(worker3);
+        
+        TotalWorkersInDatabase = 3;
+        
+        // Forcer les notifications de changement
+        this.RaisePropertyChanged(nameof(TotalWorkers));
+        this.RaisePropertyChanged(nameof(HasMoreWorkers));
+        this.RaisePropertyChanged(nameof(Workers));
+        
+        Logger.Info($"Données placeholder chargées: {Workers.Count} workers");
     }
 
     /// <summary>

@@ -15,35 +15,35 @@
 
         <!-- En-tête -->
         <StackPanel Grid.Row="0" Spacing="8">
-            <TextBlock Text="🎛️ CONTRÔLE BOOKING CHILD COMPANIES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+            <TextBlock Text="🎛️ CONTRÔLE BOOKING CHILD COMPANIES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
             <TextBlock Text="Gérez le niveau de contrôle et la planification automatique des shows pour vos filiales" 
-                       FontSize="14" Foreground="#888888"/>
+                       FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
         </StackPanel>
 
         <!-- Contenu Principal (2 colonnes) -->
         <Grid Grid.Row="2" ColumnDefinitions="2*,15,3*">
 
             <!-- COLONNE GAUCHE: Liste Child Companies -->
-            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
                 <Grid RowDefinitions="Auto,15,*">
-                    <TextBlock Grid.Row="0" Text="FILIALES" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <TextBlock Grid.Row="0" Text="FILIALES" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding ChildCompanies}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10"
-                                            BorderBrush="#334155"
+                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Padding="15" Margin="0,0,0,10"
+                                            BorderBrush="{StaticResource BorderMediumBrush}"
                                             BorderThickness="2">
                                         <Grid RowDefinitions="Auto,8,Auto,8,Auto">
                                             <!-- Name -->
-                                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
                                             <!-- Level -->
-                                            <TextBlock Grid.Row="2" Text="{Binding Level}" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Row="2" Text="{Binding Level}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
 
                                             <!-- Control Level -->
-                                            <TextBlock Grid.Row="4" Text="{Binding ControlLevelDisplay}" FontSize="12" Foreground="#64748b"/>
+                                            <TextBlock Grid.Row="4" Text="{Binding ControlLevelDisplay}" FontSize="12" Foreground="{StaticResource TextSubtleBrush}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -54,13 +54,13 @@
             </Border>
 
             <!-- COLONNE DROITE: Contrôles et Shows -->
-            <Border Grid.Column="2" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
                 <Grid RowDefinitions="Auto,20,Auto,20,*">
-                    <TextBlock Grid.Row="0" Text="CONTRÔLES" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <TextBlock Grid.Row="0" Text="CONTRÔLES" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
                     <!-- Sélecteur niveau de contrôle -->
                     <StackPanel Grid.Row="2" Spacing="10">
-                        <TextBlock Text="Niveau de Contrôle" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                        <TextBlock Text="Niveau de Contrôle" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
                         <ComboBox ItemsSource="{Binding ControlLevels}" SelectedItem="{Binding CurrentControlLevel}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
@@ -75,7 +75,7 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                         <TextBlock Text="{Binding SelectedChildCompany.ControlLevelDescription}" 
-                                   FontSize="12" Foreground="#94a3b8" TextWrapping="Wrap"
+                                   FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
                                    IsVisible="{Binding SelectedChildCompany, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 
                         <!-- Planification automatique -->
@@ -86,15 +86,15 @@
 
                     <!-- Shows planifiés -->
                     <Grid Grid.Row="4" RowDefinitions="Auto,15,*">
-                        <TextBlock Grid.Row="0" Text="SHOWS PLANIFIÉS" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                        <TextBlock Grid.Row="0" Text="SHOWS PLANIFIÉS" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding UpcomingShows}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#0f172a" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                                        <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,8">
                                             <Grid RowDefinitions="Auto,5,Auto">
-                                                <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                                                <TextBlock Grid.Row="2" Text="{Binding DateDisplay}" FontSize="11" Foreground="#94a3b8"/>
+                                                <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <TextBlock Grid.Row="2" Text="{Binding DateDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

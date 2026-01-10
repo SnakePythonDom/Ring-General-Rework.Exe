@@ -31,7 +31,7 @@ public sealed class WorkerService
     {
         _logger.Info($"Processing weekly aging for week {currentWeek}");
 
-        using var connection = _factory.OuvrirConnexion();
+        using var connection = _factory.CreateGeneralConnection();
         using var transaction = connection.BeginTransaction();
 
         try
@@ -129,7 +129,7 @@ public sealed class WorkerService
     {
         _logger.Info($"Processing fatigue recovery for week {currentWeek}");
 
-        using var connection = _factory.OuvrirConnexion();
+        using var connection = _factory.CreateGeneralConnection();
 
         try
         {
@@ -157,7 +157,7 @@ public sealed class WorkerService
     {
         _logger.Info($"Processing morale changes for week {currentWeek}");
 
-        using var connection = _factory.OuvrirConnexion();
+        using var connection = _factory.CreateGeneralConnection();
 
         try
         {

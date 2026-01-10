@@ -65,7 +65,7 @@ public class BookingViewUITests
 
         // Assert - Vérifier que le titre du show est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("BOOKING") || tb.Text.Contains("Raw"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("BOOKING") || tb.Text.Contains("Raw"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -125,7 +125,7 @@ public class BookingViewUITests
 
         // Assert - Vérifier que le nombre de segments est affiché
         var segmentCountTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("3 segments"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("3 segments"))
             .ToList();
 
         segmentCountTextBlocks.Should().NotBeEmpty();
@@ -159,7 +159,7 @@ public class BookingViewUITests
             view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
 
         segmentsList.Should().NotBeNull();
-        segmentsList!.Items.Should().NotBeEmpty();
+        segmentsList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -217,7 +217,7 @@ public class BookingViewUITests
                 .FirstOrDefault();
 
         workersList.Should().NotBeNull();
-        workersList!.Items.Should().NotBeEmpty();
+        workersList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -245,7 +245,7 @@ public class BookingViewUITests
                 .FirstOrDefault();
 
         segmentTypesList.Should().NotBeNull();
-        segmentTypesList!.Items.Should().NotBeEmpty();
+        segmentTypesList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -282,7 +282,7 @@ public class BookingViewUITests
                 .FirstOrDefault();
 
         issuesList.Should().NotBeNull();
-        issuesList!.Items.Should().NotBeEmpty();
+        issuesList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -313,7 +313,7 @@ public class BookingViewUITests
                 .FirstOrDefault();
 
         storylinesList.Should().NotBeNull();
-        storylinesList!.Items.Should().NotBeEmpty();
+        storylinesList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -344,7 +344,7 @@ public class BookingViewUITests
                 .FirstOrDefault();
 
         titlesList.Should().NotBeNull();
-        titlesList!.Items.Should().NotBeEmpty();
+        titlesList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -405,7 +405,7 @@ public class BookingViewUITests
         mainGrid.Should().NotBeNull();
 
         // Vérifier qu'il y a au moins 3 sections (header, content, footer)
-        mainGrid!.RowDefinitions.Should().HaveCountGreaterThanOrEqualTo(3);
+        mainGrid?.RowDefinitions.Should().HaveCountGreaterThanOrEqualTo(3);
 
         // Vérifier la présence de contrôles clés
         var buttons = view.GetVisualDescendants().OfType<Button>().ToList();
