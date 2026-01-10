@@ -242,11 +242,11 @@ public sealed record CompanyDebt(
 /// </summary>
 public sealed class RevenueProjection
 {
-    public required string CompanyId { get; set; }
-    public int StartMonth { get; set; }
-    public required IReadOnlyList<MonthlyRevenue> MonthlyRevenues { get; set; }
-    public decimal TotalProjectedRevenue { get; set; }
-    public required TrendAnalysis Trend { get; set; }
+    public string CompanyId { get; }
+    public int StartMonth { get; }
+    public IReadOnlyList<MonthlyRevenue> MonthlyRevenues { get; }
+    public decimal TotalProjectedRevenue { get; }
+    public TrendAnalysis Trend { get; }
 
     public RevenueProjection(string companyId, int startMonth, IReadOnlyList<MonthlyRevenue> monthlyRevenues, decimal totalProjectedRevenue, TrendAnalysis trend)
     {
@@ -286,10 +286,10 @@ public sealed class MonthlyRevenue
 /// </summary>
 public sealed class TrendAnalysis
 {
-    public decimal GrowthRate { get; set; }
-    public required string Trend { get; set; } // "Increasing", "Stable", "Decreasing"
-    public decimal Volatility { get; set; }
-    public required string Recommendation { get; set; }
+    public decimal GrowthRate { get; }
+    public string Trend { get; } // "Increasing", "Stable", "Decreasing"
+    public decimal Volatility { get; }
+    public string Recommendation { get; }
 
     public TrendAnalysis(decimal growthRate, string trend, decimal volatility, string recommendation)
     {

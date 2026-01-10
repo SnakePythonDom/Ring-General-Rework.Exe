@@ -782,7 +782,8 @@ public sealed class BookerAIEngine : IBookerAIEngine
         if (ongoingRivalries.Any())
         {
             var rivalry = ongoingRivalries.First();
-            Logger.Debug($"Continuing rivalry arc: {rivalry.Worker1Id} vs {rivalry.Worker2Id} (Shows: {rivalry.ShowCount})");
+            // Phase 3.3 - Continuer l'arc de rivalité détecté
+            // Logger.Debug($"Continuing rivalry arc: {rivalry.Worker1Id} vs {rivalry.Worker2Id} (Shows: {rivalry.ShowCount})");
         }
 
         return generatedSegments;

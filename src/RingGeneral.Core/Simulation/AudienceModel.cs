@@ -16,15 +16,17 @@ public sealed class AudienceModel
             0,
             100);
 
-        return new AudienceDetails(
-            audience,
-            inputs.Reach,
-            inputs.ShowScore,
-            inputs.Stars,
-            inputs.Saturation,
-            reachContribution,
-            showContribution,
-            starsContribution,
-            saturationPenalty);
+        return new AudienceDetails
+        {
+            Audience = audience,
+            Reach = inputs.Reach,
+            ShowScore = inputs.ShowScore,
+            Stars = inputs.Stars,
+            Saturation = inputs.Saturation,
+            ReachContribution = reachContribution,
+            ShowScoreContribution = showContribution,
+            StarsContribution = starsContribution,
+            SaturationPenalty = saturationPenalty
+        };
     }
 }

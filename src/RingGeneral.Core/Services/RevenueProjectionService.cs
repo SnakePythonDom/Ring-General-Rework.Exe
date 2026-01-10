@@ -69,17 +69,17 @@ public sealed class RevenueProjectionService : IRevenueProjectionService
         var averageMonthly = totalProjected / 12m;
 
         var trend = new TrendAnalysis(
-            0.05m, // Basic growth rate
-            "Stable",
-            0.1m,
-            "Maintain current strategy");
+            growthRate: 0.05m, // Basic growth rate
+            trend: "Stable",
+            volatility: 0.1m,
+            recommendation: "Maintain current strategy");
 
         return new RevenueProjection(
-            companyId,
-            startMonth,
-            monthlyRevenues,
-            totalProjected,
-            trend);
+            companyId: companyId,
+            startMonth: startMonth,
+            monthlyRevenues: monthlyRevenues,
+            totalProjectedRevenue: totalProjected,
+            trend: trend);
     }
 
     private List<TvDeal> LoadActiveTvDeals(string companyId)

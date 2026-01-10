@@ -12,6 +12,12 @@ public sealed class DealRevenueModel
         var penalty = audience.Audience < deal.MinimumAudience ? deal.Penalty : 0;
         var revenue = Math.Max(0, baseRevenue - penalty);
 
-        return new DealRevenueResult(revenue, baseRevenue, penalty, audienceUsed);
+        return new DealRevenueResult
+        {
+            Revenue = revenue,
+            BaseRevenue = baseRevenue,
+            Penalty = penalty,
+            AudienceUsed = audienceUsed
+        };
     }
 }

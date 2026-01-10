@@ -37,109 +37,125 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
         // Prestige 0-30: Networks locaux/régionaux
         if (company.Prestige >= 0)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_LOCAL_1",
-                "Local Sports Network",
-                25,
-                5,
-                0,
-                50,
-                10,
-                "Réseau local pour débutants"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_LOCAL_1",
+                NetworkName = "Local Sports Network",
+                Prestige = 25,
+                Reach = 5,
+                MinimumCompanyPrestige = 0,
+                MinimumShowQuality = 50,
+                MinimumRosterSize = 10,
+                Description = "Réseau local pour débutants"
+            });
         }
 
         if (company.Prestige >= 20)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_REGIONAL_1",
-                "Regional Cable Network",
-                40,
-                15,
-                20,
-                60,
-                20,
-                "Réseau régional avec bonne couverture"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_REGIONAL_1",
+                NetworkName = "Regional Cable Network",
+                Prestige = 40,
+                Reach = 15,
+                MinimumCompanyPrestige = 20,
+                MinimumShowQuality = 60,
+                MinimumRosterSize = 20,
+                Description = "Réseau régional avec bonne couverture"
+            });
         }
 
         // Prestige 30-60: Networks nationaux moyens
         if (company.Prestige >= 30)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_NATIONAL_1",
-                "National Sports Channel",
-                55,
-                30,
-                30,
-                65,
-                30,
-                "Chaîne sportive nationale"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_NATIONAL_1",
+                NetworkName = "National Sports Channel",
+                Prestige = 55,
+                Reach = 30,
+                MinimumCompanyPrestige = 30,
+                MinimumShowQuality = 65,
+                MinimumRosterSize = 30,
+                Description = "Chaîne sportive nationale"
+            });
         }
 
         if (company.Prestige >= 40)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_CABLE_1",
-                "Premium Cable Network",
-                65,
-                40,
-                40,
-                70,
-                35,
-                "Réseau câble premium"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_CABLE_1",
+                NetworkName = "Premium Cable Network",
+                Prestige = 65,
+                Reach = 40,
+                MinimumCompanyPrestige = 40,
+                MinimumShowQuality = 70,
+                MinimumRosterSize = 35,
+                Description = "Réseau câble premium"
+            });
         }
 
         // Prestige 60-80: Networks majeurs
         if (company.Prestige >= 60)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_MAJOR_1",
-                "Major Sports Network",
-                75,
-                50,
-                60,
-                75,
-                40,
-                "Réseau sportif majeur"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_MAJOR_1",
+                NetworkName = "Major Sports Network",
+                Prestige = 75,
+                Reach = 50,
+                MinimumCompanyPrestige = 60,
+                MinimumShowQuality = 75,
+                MinimumRosterSize = 40,
+                Description = "Réseau sportif majeur"
+            });
         }
 
         if (company.Prestige >= 70)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_PRIME_1",
-                "Prime Time Network",
-                85,
-                60,
-                70,
-                80,
-                45,
-                "Réseau prime time"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_PRIME_1",
+                NetworkName = "Prime Time Network",
+                Prestige = 85,
+                Reach = 60,
+                MinimumCompanyPrestige = 70,
+                MinimumShowQuality = 80,
+                MinimumRosterSize = 45,
+                Description = "Réseau prime time"
+            });
         }
 
         // Prestige 80+: Networks premium
         if (company.Prestige >= 80)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_PREMIUM_1",
-                "Elite Sports Network",
-                95,
-                70,
-                80,
-                85,
-                50,
-                "Réseau sportif d'élite"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_PREMIUM_1",
+                NetworkName = "Elite Sports Network",
+                Prestige = 95,
+                Reach = 70,
+                MinimumCompanyPrestige = 80,
+                MinimumShowQuality = 85,
+                MinimumRosterSize = 50,
+                Description = "Réseau sportif d'élite"
+            });
         }
 
         if (company.Prestige >= 90)
         {
-            networks.Add(new AvailableNetwork(
-                "NET_ELITE_1",
-                "Worldwide Sports Network",
-                100,
-                80,
-                90,
-                90,
-                55,
-                "Réseau sportif mondial"));
+            networks.Add(new AvailableNetwork
+            {
+                NetworkId = "NET_ELITE_1",
+                NetworkName = "Worldwide Sports Network",
+                Prestige = 100,
+                Reach = 80,
+                MinimumCompanyPrestige = 90,
+                MinimumShowQuality = 90,
+                MinimumRosterSize = 55,
+                Description = "Réseau sportif mondial"
+            });
         }
 
         return networks.Where(n => n.MinimumCompanyPrestige <= company.Prestige).ToList();
@@ -196,15 +212,17 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
         };
         baseWeeklyPayment *= durationMultiplier;
 
-        return new TvDealOffer(
-            networkId,
-            baseWeeklyPayment,
-            baseWeeklyPayment * 0.7m, // Base revenue = 70% du paiement hebdomadaire
-            baseWeeklyPayment * 0.01m, // Revenue per point = 1% du paiement hebdomadaire
-            network.Reach,
-            network.Prestige * 1000, // Audience cap basé sur prestige
-            network.MinimumShowQuality * 100, // Minimum audience
-            $"Minimum {network.MinimumShowQuality} show quality, {network.MinimumRosterSize} workers minimum");
+        return new TvDealOffer
+        {
+            NetworkId = networkId,
+            WeeklyPayment = baseWeeklyPayment,
+            BaseRevenue = baseWeeklyPayment * 0.7m, // Base revenue = 70% du paiement hebdomadaire
+            RevenuePerPoint = baseWeeklyPayment * 0.01m, // Revenue per point = 1% du paiement hebdomadaire
+            ReachBonus = network.Reach,
+            AudienceCap = network.Prestige * 1000, // Audience cap basé sur prestige
+            MinimumAudience = network.MinimumShowQuality * 100, // Minimum audience
+            Constraints = $"Minimum {network.MinimumShowQuality} show quality, {network.MinimumRosterSize} workers minimum"
+        };
     }
 
     public NegotiationResult NegotiateDeal(string networkId, string companyId, TvDealOffer currentOffer, decimal requestedIncreasePercent)
@@ -212,13 +230,23 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
         var company = _companyRepository.ChargerEtatCompagnie(companyId);
         if (company == null)
         {
-            return new NegotiationResult(false, null, "Compagnie introuvable");
+            return new NegotiationResult
+            {
+                IsAccepted = false,
+                CounterOffer = null,
+                Message = "Compagnie introuvable"
+            };
         }
 
         var network = GetAvailableNetworks(companyId).FirstOrDefault(n => n.NetworkId == networkId);
         if (network == null)
         {
-            return new NegotiationResult(false, null, "Network introuvable");
+            return new NegotiationResult
+            {
+                IsAccepted = false,
+                CounterOffer = null,
+                Message = "Network introuvable"
+            };
         }
 
         // Calculer probabilité d'acceptation selon prestige et augmentation demandée
@@ -226,41 +254,55 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
         {
             <= 10m => company.Prestige >= 60 ? 0.70 : 0.40,
             <= 20m => company.Prestige >= 75 ? 0.40 : 0.15,
-            <= 30m => company.Prestige >= 85 ? 0.10 : 0.0m,
-            _ => 0.0m
+            <= 30m => company.Prestige >= 85 ? 0.10 : 0.0,
+            _ => 0.0
         };
 
         var randomValue = _random.NextDouble();
         if (randomValue <= acceptanceProbability)
         {
             // Accepté
-            var newOffer = new TvDealOffer(
-                currentOffer.NetworkId,
-                currentOffer.WeeklyPayment * (1m + requestedIncreasePercent / 100m),
-                currentOffer.BaseRevenue * (1m + requestedIncreasePercent / 100m),
-                currentOffer.RevenuePerPoint * (1m + requestedIncreasePercent / 100m),
-                currentOffer.ReachBonus,
-                currentOffer.AudienceCap,
-                currentOffer.MinimumAudience,
-                currentOffer.Constraints);
+            var newOffer = new TvDealOffer
+            {
+                NetworkId = currentOffer.NetworkId,
+                WeeklyPayment = currentOffer.WeeklyPayment * (1m + requestedIncreasePercent / 100m),
+                BaseRevenue = currentOffer.BaseRevenue * (1m + requestedIncreasePercent / 100m),
+                RevenuePerPoint = currentOffer.RevenuePerPoint * (1m + requestedIncreasePercent / 100m),
+                ReachBonus = currentOffer.ReachBonus,
+                AudienceCap = currentOffer.AudienceCap,
+                MinimumAudience = currentOffer.MinimumAudience,
+                Constraints = currentOffer.Constraints
+            };
 
-            return new NegotiationResult(true, newOffer, $"Le network accepte votre demande de +{requestedIncreasePercent}%");
+            return new NegotiationResult
+            {
+                IsAccepted = true,
+                CounterOffer = newOffer,
+                Message = $"Le network accepte votre demande de +{requestedIncreasePercent}%"
+            };
         }
         else
         {
             // Refusé avec contre-offre possible
             var counterOfferPercent = requestedIncreasePercent * 0.5m; // Contre-offre à 50% de la demande
-            var counterOffer = new TvDealOffer(
-                currentOffer.NetworkId,
-                currentOffer.WeeklyPayment * (1m + counterOfferPercent / 100m),
-                currentOffer.BaseRevenue * (1m + counterOfferPercent / 100m),
-                currentOffer.RevenuePerPoint * (1m + counterOfferPercent / 100m),
-                currentOffer.ReachBonus,
-                currentOffer.AudienceCap,
-                currentOffer.MinimumAudience,
-                currentOffer.Constraints);
+            var counterOffer = new TvDealOffer
+            {
+                NetworkId = currentOffer.NetworkId,
+                WeeklyPayment = currentOffer.WeeklyPayment * (1m + counterOfferPercent / 100m),
+                BaseRevenue = currentOffer.BaseRevenue * (1m + counterOfferPercent / 100m),
+                RevenuePerPoint = currentOffer.RevenuePerPoint * (1m + counterOfferPercent / 100m),
+                ReachBonus = currentOffer.ReachBonus,
+                AudienceCap = currentOffer.AudienceCap,
+                MinimumAudience = currentOffer.MinimumAudience,
+                Constraints = currentOffer.Constraints
+            };
 
-            return new NegotiationResult(false, counterOffer, $"Le network refuse mais propose +{counterOfferPercent:F1}%");
+            return new NegotiationResult
+            {
+                IsAccepted = false,
+                CounterOffer = counterOffer,
+                Message = $"Le network refuse mais propose +{counterOfferPercent:F1}%"
+            };
         }
     }
 
@@ -277,17 +319,19 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
         var endWeek = startWeek + (terms.DurationYears * 52);
 
         // Créer le TvDeal
-        var deal = new TvDeal(
-            dealId,
-            companyId,
-            network.NetworkName,
-            finalOffer.ReachBonus,
-            finalOffer.AudienceCap,
-            finalOffer.MinimumAudience,
-            (double)finalOffer.BaseRevenue,
-            (double)finalOffer.RevenuePerPoint,
-            0.0, // Penalty initial
-            finalOffer.Constraints);
+        var deal = new TvDeal
+        {
+            TvDealId = dealId,
+            CompanyId = companyId,
+            NetworkName = network.NetworkName,
+            ReachBonus = finalOffer.ReachBonus,
+            AudienceCap = finalOffer.AudienceCap,
+            MinimumAudience = finalOffer.MinimumAudience,
+            BaseRevenue = (double)finalOffer.BaseRevenue,
+            RevenuePerPoint = (double)finalOffer.RevenuePerPoint,
+            Penalty = 0.0, // Penalty initial
+            Constraints = finalOffer.Constraints
+        };
 
         // Enregistrer dans la DB
         _tvDealRepository?.EnregistrerTvDeal(deal, startWeek, endWeek);
