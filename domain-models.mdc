@@ -1,0 +1,193 @@
+# Domain Models Standards - Ring General
+
+## 📋 Standards Modèles de Domaine
+
+### Records Immuables - RÈGLE ABSOLUE
+- **TOUJOURS** utiliser `sealed record` pour tous les modèles
+- **JAMAIS** utiliser `class` pour les modèles du domaine
+- **JAMAIS** ajouter de logique métier aux records
+
+### Structure Record Standard
+```csharp
+public sealed record WorkerSnapshot(
+    string WorkerId,
+    string NomComplet,
+    int InRing,
+    int Entertainment,
+    int Story,
+    int Popularite,
+    int Fatigue,
+    string Blessure,
+    int Momentum,
+    string RoleTv,
+    int Morale);
+```
+
+### Propriétés en Français
+- **TOUJOURS** nommer les propriétés publiques en français (PascalCase)
+- Cohérent avec l'approche du projet
+
+#### Exemples Noms Corrects
+- `NomComplet` (pas `FullName`)
+- `Popularite` (pas `Popularity`)
+- `Fatigue` (pas `FatigueLevel`)
+- `Blessure` (pas `Injury`)
+- `Momentum` (pas `Momentum`)
+- `Morale` (pas `Morale`)
+
+### Immuabilité Stricte
+- **JAMAIS** de setters publics
+- **JAMAIS** de champs mutables
+- **JAMAIS** de méthodes qui modifient l'état
+
+### Constructeurs et With Expressions
+```csharp
+// Création
+var worker = new WorkerSnapshot(
+    WorkerId: "worker-1",
+    NomComplet: "John Doe",
+    InRing: 75,
+    Entertainment: 80,
+    Story: 70,
+    Popularite: 60,
+    Fatigue: 20,
+    Blessure: "Aucune",
+    Momentum: 5,
+    RoleTv: "Face",
+    Morale: 85);
+
+// Modification (crée une nouvelle instance)
+var updatedWorker = worker with { Fatigue = 25, Popularite = 65 };
+```
+
+### Types Nullable Appropriés
+- Utiliser `string?` pour les valeurs optionnelles
+- Utiliser `int?` pour les entiers optionnels
+- **TOUJOURS** considérer si une propriété peut être null
+
+### Records Complexes avec Sous-Records
+```csharp
+public sealed record StorylineInfo(
+    string StorylineId,
+    string Nom,
+    StorylinePhase Phase,
+    int Heat,
+    StorylineStatus Status,
+    string? Resume,
+    IReadOnlyList<StorylineParticipant> Participants);
+
+public sealed record StorylineParticipant(
+    string WorkerId,
+    string Role,
+    bool EstPrincipal);
+```
+
+### Collections Immuables
+- Utiliser `IReadOnlyList<T>`, `IReadOnlyDictionary<TKey, TValue>`
+- **JAMAIS** `List<T>`, `Dictionary<TKey, TValue>` dans les records
+- Assurer l'immuabilité des collections
+
+### Enums dans les Records
+- Utiliser des enums pour les valeurs contraintes
+- Enums définis dans `RingGeneral.Core/Enums/`
+
+```csharp
+public enum StorylinePhase
+{
+    Setup,
+    Build,
+    Peak,
+    Blowoff
+}
+
+public enum InjurySeverity
+{
+    Legere,
+    Moyenne,
+    Grave
+}
+```
+
+### Records de Résultats d'Opérations
+```csharp
+public sealed record GameStateDelta(
+    IReadOnlyDictionary<string, int> FatigueDelta,
+    IReadOnlyDictionary<string, string> Blessures,
+    IReadOnlyDictionary<string, int> MomentumDelta,
+    IReadOnlyDictionary<string, int> PopulariteWorkersDelta,
+    IReadOnlyDictionary<string, int> PopulariteCompagnieDelta,
+    IReadOnlyDictionary<string, int> StorylineHeatDelta,
+    IReadOnlyDictionary<string, int> TitrePrestigeDelta,
+    IReadOnlyList<FinanceTransaction> Finances);
+```
+
+### Records de Commandes/Événements
+```csharp
+public sealed record ShowSimulationResult(
+    string ShowId,
+    string Rapport,
+    GameStateDelta Delta,
+    ShowReport RapportDetaille);
+
+public sealed record SegmentImpact(
+    int NoteSegment,
+    IReadOnlyDictionary<string, int> DeltaFatigue,
+    IReadOnlyDictionary<string, int> DeltaMomentum,
+    IReadOnlyDictionary<string, int> DeltaPopularite,
+    IReadOnlyList<string> BlessuresSegment,
+    IReadOnlyDictionary<string, int> DeltaHeatStoryline);
+```
+
+## 📂 Organisation des Fichiers
+
+### Structure Recommandée
+```
+src/RingGeneral.Core/Models/
+├── Workers/
+│   ├── WorkerSnapshot.cs
+│   ├── WorkerAttributes.cs
+│   └── WorkerState.cs
+├── Shows/
+│   ├── ShowDefinition.cs
+│   ├── SegmentDefinition.cs
+│   └── ShowReport.cs
+├── Companies/
+│   ├── CompanyState.cs
+│   └── CompanyEra.cs
+├── Storylines/
+│   ├── StorylineInfo.cs
+│   └── StorylineParticipant.cs
+└── Shared/
+    ├── GameStateDelta.cs
+    └── FinanceTransaction.cs
+```
+
+### Un Record Par Fichier
+- **TOUJOURS** un seul record par fichier
+- Nom du fichier = nom du record
+- Namespace correspondant au chemin du dossier
+
+## ✅ BONNES PRATIQUES
+
+### Validation dans les Constructeurs
+- Si nécessaire, ajouter validation dans le constructeur
+- Utiliser des exceptions appropriées pour les invariants métier
+
+### Sérialisation/JSON
+- Les records sont parfaits pour la sérialisation JSON
+- Utilisés dans les specs JSON du projet
+
+### Performance
+- Records sont plus légers que les classes
+- Comparaison structurale automatique
+- Idéaux pour le caching et la distribution
+
+## ❌ INTERDIT
+
+- Logique métier dans les records
+- Setters publics
+- Champs mutables
+- Classes au lieu de records
+- Propriétés en anglais (sauf IDs techniques)
+- Collections mutables (`List<T>`, `Dictionary<TKey, TValue>`)
+- Méthodes qui modifient l'état interne
