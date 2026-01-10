@@ -65,62 +65,15 @@
                                                 Width="*"
                                                 SortMemberPath="Role"/>
 
-                    <controls:DataGridTextColumn Header="OVR"
-                                                Binding="{Binding Overall}"
-                                                Width="*"
-                                                SortMemberPath="Overall"/>
-
-                    <controls:DataGridTextColumn Header="IN-RING"
-                                                Binding="{Binding InRing}"
-                                                Width="*"
-                                                SortMemberPath="InRing"/>
-
-                    <controls:DataGridTextColumn Header="ENT."
-                                                Binding="{Binding Entertainment}"
-                                                Width="*"
-                                                SortMemberPath="Entertainment"/>
-
-                    <controls:DataGridTextColumn Header="STORY"
-                                                Binding="{Binding Story}"
-                                                Width="*"
-                                                SortMemberPath="Story"/>
-
-                    <controls:DataGridTextColumn Header="POP"
+                    <controls:DataGridTextColumn Header="POPULARITÉ"
                                                 Binding="{Binding Popularity}"
                                                 Width="*"
                                                 SortMemberPath="Popularity"/>
 
-                    <controls:DataGridTextColumn Header="MOM"
-                                                Binding="{Binding Momentum}"
+                    <controls:DataGridTextColumn Header="STATUT"
+                                                Binding="{Binding Status}"
                                                 Width="*"
-                                                SortMemberPath="Momentum"/>
-
-                    <controls:DataGridTextColumn Header="FAT"
-                                                Binding="{Binding Fatigue}"
-                                                Width="*"
-                                                SortMemberPath="Fatigue"/>
-
-                    <controls:DataGridTextColumn Header="MOR"
-                                                Binding="{Binding Morale}"
-                                                Width="*"
-                                                SortMemberPath="Morale"/>
-
-                    <controls:DataGridTemplateColumn Header="STATUT"
-                                                     Width="*"
-                                                     SortMemberPath="Status">
-                        <controls:DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border Background="{Binding StatusBackground}"
-                                        CornerRadius="4"
-                                        Padding="6,2">
-                                    <TextBlock Text="{Binding Status}"
-                                               FontSize="10"
-                                               FontWeight="Bold"
-                                               Foreground="{Binding StatusForeground}"/>
-                                </Border>
-                            </DataTemplate>
-                        </controls:DataGridTemplateColumn.CellTemplate>
-                    </controls:DataGridTemplateColumn>
+                                                SortMemberPath="Status"/>
 
                     <controls:DataGridTextColumn Header="COMPAGNIE"
                                                 Binding="{Binding Company}"

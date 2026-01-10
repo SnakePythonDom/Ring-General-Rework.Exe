@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models;
@@ -62,32 +61,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     public bool IsViewingRival
     {
         get => _isViewingRival;
-        set
-        {
-            if (this.RaiseAndSetIfChanged(ref _isViewingRival, value))
-            {
-                this.RaisePropertyChanged(nameof(IsViewingMyCompany));
-                this.RaisePropertyChanged(nameof(SwitchButtonText));
-                this.RaisePropertyChanged(nameof(CompanyDisplayTitle));
-                this.RaisePropertyChanged(nameof(CompanyLogoText));
-                this.RaisePropertyChanged(nameof(CompanyLogoBackground));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Est-on en train de visualiser sa compagnie ?
-    /// </summary>
-    public bool IsViewingMyCompany
-    {
-        get => !IsViewingRival;
-        set
-        {
-            if (value)
-            {
-                IsViewingRival = false;
-            }
-        }
+        set => this.RaiseAndSetIfChanged(ref _isViewingRival, value);
     }
 
     /// <summary>
@@ -96,14 +70,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     public CompanyState? CurrentCompany
     {
         get => _currentCompany;
-        set
-        {
-            if (this.RaiseAndSetIfChanged(ref _currentCompany, value))
-            {
-                this.RaisePropertyChanged(nameof(CompanyDisplayTitle));
-                this.RaisePropertyChanged(nameof(CompanyLogoText));
-            }
-        }
+        set => this.RaiseAndSetIfChanged(ref _currentCompany, value);
     }
 
     /// <summary>
@@ -146,26 +113,6 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     /// Texte du bouton de switch
     /// </summary>
     public string SwitchButtonText => IsViewingRival ? "📊 Ma Compagnie" : "👁️ Voir Rivales";
-
-    /// <summary>
-    /// Libellé de date affiché dans le header.
-    /// </summary>
-    public string CurrentDateLabel { get; set; } = "Lun, Sem 1, Jan 2026";
-
-    /// <summary>
-    /// Nom de compagnie ou libellé alternatif pour l'affichage.
-    /// </summary>
-    public string CompanyDisplayTitle => IsViewingRival ? "Analyse Rivaux" : CurrentCompany?.Nom ?? "Ma Compagnie";
-
-    /// <summary>
-    /// Texte du logo (initiales).
-    /// </summary>
-    public string CompanyLogoText => IsViewingRival ? "RG" : GetCompanyInitials(CurrentCompany?.Nom);
-
-    /// <summary>
-    /// Couleur du logo selon le mode.
-    /// </summary>
-    public string CompanyLogoBackground => IsViewingRival ? "#ef4444" : "#3b82f6";
 
     #endregion
 
@@ -317,6 +264,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     {
         // TODO: Charger la liste des compagnies rivales
         IsViewingRival = true;
+        this.RaisePropertyChanged(nameof(SwitchButtonText));
     }
 
     /// <summary>
@@ -325,25 +273,8 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     private void SwitchToMyCompany()
     {
         LoadPlayerCompany();
-        IsViewingRival = false;
+        this.RaisePropertyChanged(nameof(SwitchButtonText));
     }
 
     #endregion
-
-    private static string GetCompanyInitials(string? companyName)
-    {
-        if (string.IsNullOrWhiteSpace(companyName))
-        {
-            return "RG";
-        }
-
-        var parts = companyName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 1)
-        {
-            return parts[0].Length > 3 ? parts[0][..3].ToUpperInvariant() : parts[0].ToUpperInvariant();
-        }
-
-        var initials = string.Concat(parts.Select(part => part[0]));
-        return initials.ToUpperInvariant();
-    }
 }
