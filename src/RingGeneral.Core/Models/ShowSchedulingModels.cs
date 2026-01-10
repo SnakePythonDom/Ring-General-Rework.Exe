@@ -16,6 +16,32 @@ public enum ShowStatus
     Annule
 }
 
+/// <summary>
+/// Pattern de récurrence pour les shows récurrents
+/// </summary>
+public enum ShowRecurrencePattern
+{
+    /// <summary>
+    /// Chaque semaine
+    /// </summary>
+    Weekly,
+    
+    /// <summary>
+    /// Toutes les 2 semaines
+    /// </summary>
+    BiWeekly,
+    
+    /// <summary>
+    /// Chaque mois
+    /// </summary>
+    Monthly,
+    
+    /// <summary>
+    /// Pattern personnalisé
+    /// </summary>
+    Custom
+}
+
 public sealed record ShowSchedule(
     string ShowId,
     string CompanyId,
@@ -26,7 +52,8 @@ public sealed record ShowSchedule(
     string? VenueId,
     string? Broadcast,
     decimal TicketPrice,
-    ShowStatus Statut);
+    ShowStatus Statut,
+    string? BrandId = null);
 
 public sealed record ShowScheduleDraft(
     string CompanyId,
@@ -36,7 +63,8 @@ public sealed record ShowScheduleDraft(
     int RuntimeMinutes,
     string? VenueId,
     string? Broadcast,
-    decimal TicketPrice);
+    decimal TicketPrice,
+    string? BrandId = null);
 
 public sealed record ShowScheduleUpdate(
     string? Nom = null,
@@ -79,3 +107,28 @@ public sealed record ShowSchedulerResult(
     ShowSchedule? Show = null,
     CalendarEntry? CalendarEntry = null,
     IReadOnlyList<string>? Avertissements = null);
+
+/// <summary>
+/// Template pour créer des shows récurrents
+/// </summary>
+public sealed record ShowTemplate(
+    string TemplateId,
+    string CompanyId,
+    string Name,
+    ShowType ShowType,
+    ShowRecurrencePattern RecurrencePattern,
+    DayOfWeek? DayOfWeek,
+    int DefaultDuration,
+    string? DefaultVenueId,
+    string? DefaultBroadcast,
+    bool IsActive);
+
+/// <summary>
+/// Contrôle de booking pour une child company
+/// </summary>
+public sealed record ChildCompanyBookingControl(
+    string ControlId,
+    string ChildCompanyId,
+    Models.Booker.BookingControlLevel ControlLevel,
+    bool OwnerCanOverride,
+    bool AutoScheduleShows);

@@ -57,9 +57,15 @@ public sealed class ShowDayOrchestrator : IShowDayOrchestrator
             return new ShowDayDetectionResult(false, null, "Scheduler non disponible");
         }
 
-        var shows = _showScheduler.ChargerShows(companyId);
-        // Pour l'instant, on cherche simplement un show à booker
-        // TODO: Filtrer par date si nécessaire (convertir currentDay en date et comparer avec Show.Date)
+        // Convertir currentDay en DateOnly
+        // Hypothèse: currentDay = nombre de jours depuis 2024-01-01
+        // Note: Si IGameRepository est disponible, utiliser GetCurrentDate() pour plus de précision
+        var currentDate = new DateOnly(2024, 1, 1).AddDays(currentDay - 1);
+
+        // Charger les shows pour la date actuelle
+        var shows = _showScheduler.ChargerShowsParDate(companyId, currentDate);
+        
+        // Chercher un show à booker pour aujourd'hui
         var show = shows.FirstOrDefault(s => s.Statut == ShowStatus.ABooker);
 
         if (show is null)

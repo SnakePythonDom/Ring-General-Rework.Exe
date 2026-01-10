@@ -296,6 +296,13 @@ public sealed class ShellViewModel : ViewModelBase
             typeof(ViewModels.Company.ChildCompaniesViewModel),
             analysis
         ));
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.childbooking",
+            "Contrôle Booking Filiales",
+            "  🎛️",
+            typeof(ViewModels.Company.ChildCompanyBookingViewModel),
+            analysis
+        ));
         root.Add(analysis);
 
         // 📖 STORYLINES

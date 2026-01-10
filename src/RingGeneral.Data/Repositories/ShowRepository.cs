@@ -465,6 +465,115 @@ public sealed class ShowRepository : RepositoryBase
         return Convert.ToInt32(command.ExecuteScalar());
     }
 
+    /// <summary>
+    /// Charge tous les shows d'une compagnie pour une date spécifique
+    /// </summary>
+    public IReadOnlyList<ShowSchedule> ChargerShowsParDate(string companyId, DateOnly date)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT ShowId, CompanyId, Name, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId
+            FROM Shows
+            WHERE CompanyId = $companyId AND Date = $date
+            ORDER BY Date ASC;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        command.Parameters.AddWithValue("$date", date.ToString("yyyy-MM-dd"));
+        using var reader = command.ExecuteReader();
+        var shows = new List<ShowSchedule>();
+        while (reader.Read())
+        {
+            var showTypeStr = reader.IsDBNull(3) ? "TV" : reader.GetString(3);
+            var showType = Enum.TryParse<ShowType>(showTypeStr, true, out var type) ? type : ShowType.Tv;
+            
+            var statusStr = reader.IsDBNull(9) ? "ABOOKER" : reader.GetString(9);
+            var status = Enum.TryParse<ShowStatus>(statusStr, true, out var stat) ? stat : ShowStatus.ABooker;
+            
+            var dateStr = reader.IsDBNull(4) ? null : reader.GetString(4);
+            var showDate = dateStr != null && DateOnly.TryParse(dateStr, out var parsedDate) ? parsedDate : date;
+            
+            shows.Add(new ShowSchedule(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                showType,
+                showDate,
+                reader.GetInt32(5),
+                reader.IsDBNull(6) ? null : reader.GetString(6),
+                reader.IsDBNull(7) ? null : reader.GetString(7),
+                reader.IsDBNull(8) ? 0m : (decimal)reader.GetDouble(8),
+                status,
+                reader.IsDBNull(10) ? null : reader.GetString(10)));
+        }
+        return shows;
+    }
+
+    /// <summary>
+    /// Charge les shows des N prochains jours à partir d'une date de début
+    /// </summary>
+    public IReadOnlyList<ShowSchedule> ChargerShowsProchainsJours(string companyId, DateOnly startDate, int jours)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        var endDate = startDate.AddDays(jours);
+        command.CommandText = """
+            SELECT ShowId, CompanyId, Name, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId
+            FROM Shows
+            WHERE CompanyId = $companyId 
+              AND Date >= $startDate 
+              AND Date < $endDate
+            ORDER BY Date ASC;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+        command.Parameters.AddWithValue("$startDate", startDate.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$endDate", endDate.ToString("yyyy-MM-dd"));
+        using var reader = command.ExecuteReader();
+        var shows = new List<ShowSchedule>();
+        while (reader.Read())
+        {
+            var showTypeStr = reader.IsDBNull(3) ? "TV" : reader.GetString(3);
+            var showType = Enum.TryParse<ShowType>(showTypeStr, true, out var type) ? type : ShowType.Tv;
+            
+            var statusStr = reader.IsDBNull(9) ? "ABOOKER" : reader.GetString(9);
+            var status = Enum.TryParse<ShowStatus>(statusStr, true, out var stat) ? stat : ShowStatus.ABooker;
+            
+            var dateStr = reader.IsDBNull(4) ? null : reader.GetString(4);
+            var showDate = dateStr != null && DateOnly.TryParse(dateStr, out var parsedDate) ? parsedDate : startDate;
+            
+            shows.Add(new ShowSchedule(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                showType,
+                showDate,
+                reader.GetInt32(5),
+                reader.IsDBNull(6) ? null : reader.GetString(6),
+                reader.IsDBNull(7) ? null : reader.GetString(7),
+                reader.IsDBNull(8) ? 0m : (decimal)reader.GetDouble(8),
+                status,
+                reader.IsDBNull(10) ? null : reader.GetString(10)));
+        }
+        return shows;
+    }
+
+    /// <summary>
+    /// Migre un show de Week vers Date (pour migration manuelle)
+    /// </summary>
+    public void MigrerShowSemaineVersDate(string showId, DateOnly date)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            UPDATE Shows
+            SET Date = $date
+            WHERE ShowId = $showId;
+            """;
+        command.Parameters.AddWithValue("$showId", showId);
+        command.Parameters.AddWithValue("$date", date.ToString("yyyy-MM-dd"));
+        command.ExecuteNonQuery();
+    }
+
     // === Helpers privés (Catégorie B - Show domain) ===
 
     private List<SegmentDefinition> ChargerSegments(SqliteConnection connexion, string showId)
