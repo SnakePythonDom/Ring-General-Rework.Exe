@@ -96,4 +96,27 @@ public interface IBookerAIEngine
         Models.ShowContext showContext,
         List<Models.SegmentDefinition>? existingSegments = null,
         AutoBookingConstraints? constraints = null);
+
+    /// <summary>
+    /// Obtient un rapport sur l'humeur du roster
+    /// </summary>
+    /// <param name="companyId">Identifiant de la compagnie</param>
+    /// <returns>Rapport sur l'humeur du roster</returns>
+    RingGeneral.Core.Models.Decisions.RosterMoodReport GetRosterMoodReport(string companyId);
+
+    /// <summary>
+    /// Détermine si le booker devrait s'adapter à une tendance
+    /// </summary>
+    /// <param name="companyId">Identifiant de la compagnie</param>
+    /// <param name="trend">Tendance à évaluer</param>
+    /// <returns>True si adaptation recommandée</returns>
+    bool ShouldAdaptToTrend(string companyId, RingGeneral.Core.Models.Trends.Trend trend);
+
+    /// <summary>
+    /// Calcule le risque d'adaptation à une tendance
+    /// </summary>
+    /// <param name="companyId">Identifiant de la compagnie</param>
+    /// <param name="trend">Tendance à évaluer</param>
+    /// <returns>Score de risque (0-100)</returns>
+    double CalculateAdaptationRisk(string companyId, RingGeneral.Core.Models.Trends.Trend trend);
 }

@@ -20,6 +20,11 @@ public sealed class WeeklyLoopService
     private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly SeededRandomProvider _random = new(42);
     private readonly SpecsReader _specsReader = new();
+    
+    // Nouveaux services pour l'analyse structurelle
+    private readonly RingGeneral.Core.Services.RosterAnalysisService? _rosterAnalysisService;
+    private readonly RingGeneral.Core.Services.TrendEngine? _trendEngine;
+    private readonly RingGeneral.Core.Services.RosterInertiaService? _inertiaService;
 
     public WeeklyLoopService(
         GameRepository repository,
@@ -27,7 +32,10 @@ public sealed class WeeklyLoopService
         IMoraleEngine? moraleEngine = null,
         IRumorEngine? rumorEngine = null,
         ICrisisEngine? crisisEngine = null,
-        IBookerAIEngine? bookerAIEngine = null)
+        IBookerAIEngine? bookerAIEngine = null,
+        RingGeneral.Core.Services.RosterAnalysisService? rosterAnalysisService = null,
+        RingGeneral.Core.Services.TrendEngine? trendEngine = null,
+        RingGeneral.Core.Services.RosterInertiaService? inertiaService = null)
     {
         _repository = repository;
         _scoutingRepository = scoutingRepository;
@@ -35,6 +43,9 @@ public sealed class WeeklyLoopService
         _rumorEngine = rumorEngine;
         _crisisEngine = crisisEngine;
         _bookerAIEngine = bookerAIEngine;
+        _rosterAnalysisService = rosterAnalysisService;
+        _trendEngine = trendEngine;
+        _inertiaService = inertiaService;
     }
 
     public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
@@ -75,12 +86,62 @@ public sealed class WeeklyLoopService
         // Auto-booking des shows 1-2 semaines à l'avance (Phase 4)
         inboxItems.AddRange(ProcesserAutoBooking(semaine, showId));
 
+        // Analyse structurelle et tendances (Phase 6)
+        ProcesserAnalyseStructurelle(semaine, showId);
+
         foreach (var item in inboxItems)
         {
             _repository.AjouterInboxItem(item);
         }
 
         return inboxItems;
+    }
+
+    /// <summary>
+    /// Traite l'analyse structurelle, les tendances et les transitions chaque semaine
+    /// </summary>
+    private void ProcesserAnalyseStructurelle(int semaine, string showId)
+    {
+        var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
+        if (string.IsNullOrWhiteSpace(compagnieId))
+        {
+            return;
+        }
+
+        try
+        {
+            // Calculer l'année à partir de la semaine (approximation)
+            var annee = 2024 + (semaine / 52);
+            var semaineDansAnnee = ((semaine - 1) % 52) + 1;
+
+            // Calculer l'analyse structurelle chaque semaine
+            if (_rosterAnalysisService != null)
+            {
+                _rosterAnalysisService.CalculateStructuralAnalysisAsync(compagnieId, semaineDansAnnee, annee).Wait();
+            }
+
+            // Progresser les tendances
+            if (_trendEngine != null)
+            {
+                _trendEngine.ProgressTrendsAsync().Wait();
+                // Générer de nouvelles tendances si nécessaire (10% de chance chaque semaine)
+                if (_random.Next(0, 100) < 10)
+                {
+                    _trendEngine.GenerateRandomTrendsIfNeededAsync().Wait();
+                }
+            }
+
+            // Progresser les transitions d'ADN
+            if (_inertiaService != null)
+            {
+                _inertiaService.ProgressTransitionsAsync().Wait();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Logger l'erreur mais ne pas bloquer la progression de la semaine
+            System.Console.Error.WriteLine($"[WeeklyLoopService] Erreur lors du traitement de l'analyse structurelle: {ex.Message}");
+        }
     }
 
     private IEnumerable<InboxItem> SimulerBackstage(int semaine, string showId)

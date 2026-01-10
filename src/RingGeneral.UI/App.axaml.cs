@@ -22,6 +22,8 @@ using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Validation;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;
+using IOwnerRepo = RingGeneral.Data.Repositories.IOwnerRepository;
+using IBookerRepo = RingGeneral.Data.Repositories.IBookerRepository;
 using RingGeneral.UI.ViewModels;
 
 namespace RingGeneral.UI;
@@ -129,6 +131,34 @@ public sealed class App : Application
         services.AddSingleton(repositories.CatchStyleRepository);
         services.AddSingleton<IRegionRepository>(_ => new RegionRepository(factory));
 
+        // Structural Analysis & Niche Strategies Repositories (Phase 6)
+        services.AddSingleton<IRosterAnalysisRepository>(repositories.RosterAnalysisRepository);
+        services.AddSingleton<ITrendRepository>(repositories.TrendRepository);
+        services.AddSingleton<INicheFederationRepository>(repositories.NicheFederationRepository);
+        services.AddSingleton<IChildCompanyExtendedRepository>(repositories.ChildCompanyExtendedRepository);
+        services.AddSingleton<IDNATransitionRepository>(repositories.DNATransitionRepository);
+
+        // Structural Analysis & Niche Strategies Services (Phase 6)
+        services.AddSingleton<RosterAnalysisService>(sp =>
+            new RosterAnalysisService(
+                sp.GetRequiredService<IRosterAnalysisRepository>()));
+        services.AddSingleton<TrendEngine>(sp =>
+            new TrendEngine(sp.GetRequiredService<ITrendRepository>()));
+        services.AddSingleton<CompatibilityCalculator>(sp =>
+            new CompatibilityCalculator(sp.GetRequiredService<ITrendRepository>()));
+        services.AddSingleton<NicheFederationService>(sp =>
+            new NicheFederationService(
+                sp.GetRequiredService<INicheFederationRepository>(),
+                sp.GetRequiredService<IRosterAnalysisRepository>()));
+        services.AddSingleton<RosterInertiaService>(sp =>
+            new RosterInertiaService(
+                sp.GetRequiredService<IRosterAnalysisRepository>(),
+                sp.GetRequiredService<IDNATransitionRepository>()));
+        services.AddSingleton<ChildCompanyService>(sp =>
+            new ChildCompanyService(
+                sp.GetRequiredService<IChildCompanyExtendedRepository>(),
+                sp.GetRequiredService<ITrendRepository>()));
+
         // Core Services
         services.AddSingleton<BookingValidator>();
         services.AddSingleton<SegmentTypeCatalog>(ChargerSegmentTypes());
@@ -156,6 +186,12 @@ public sealed class App : Application
         // TODO: Créer un adaptateur ou faire implémenter Core.Interfaces.ICrisisRepository par CrisisRepository
         services.AddSingleton<ICrisisEngine>(sp =>
             new CrisisEngine(crisisRepository: null));  // CrisisEngine fonctionne sans repository
+
+        // Owner & Booker Decision Engines
+        services.AddSingleton<IOwnerDecisionEngine>(sp =>
+            new OwnerDecisionEngine(null)); // Ces services fonctionnent sans repository
+        services.AddSingleton<IBookerAIEngine>(sp =>
+            new BookerAIEngine(null)); // Ces services fonctionnent sans repository
 
         // Daily Time System Services (Phase 7)
         services.AddSingleton<IGameRepository>(repositories.GameRepository);
@@ -215,6 +251,28 @@ public sealed class App : Application
         services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>();
         services.AddTransient<ViewModels.Roster.TitlesViewModel>();
         services.AddTransient<ViewModels.Roster.InjuriesViewModel>();
+        services.AddTransient<ViewModels.Roster.StructuralDashboardViewModel>(sp =>
+            new ViewModels.Roster.StructuralDashboardViewModel(
+                sp.GetRequiredService<IRosterAnalysisRepository>(),
+                sp.GetRequiredService<RosterAnalysisService>()));
+
+        // Trends ViewModels (Phase 6)
+        services.AddTransient<ViewModels.Trends.TrendsViewModel>(sp =>
+            new ViewModels.Trends.TrendsViewModel(
+                sp.GetRequiredService<ITrendRepository>(),
+                sp.GetRequiredService<IRosterAnalysisRepository>(),
+                sp.GetRequiredService<CompatibilityCalculator>()));
+
+        // Company ViewModels (Phase 6)
+        services.AddTransient<ViewModels.Company.NicheManagementViewModel>(sp =>
+            new ViewModels.Company.NicheManagementViewModel(
+                sp.GetRequiredService<INicheFederationRepository>(),
+                sp.GetRequiredService<NicheFederationService>(),
+                sp.GetRequiredService<IOwnerDecisionEngine>()));
+        services.AddTransient<ViewModels.Company.ChildCompaniesViewModel>(sp =>
+            new ViewModels.Company.ChildCompaniesViewModel(
+                sp.GetRequiredService<IChildCompanyExtendedRepository>(),
+                sp.GetRequiredService<ChildCompanyService>()));
 
         // Other ViewModels
         services.AddTransient<StorylinesViewModel>();

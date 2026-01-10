@@ -24,6 +24,13 @@ public sealed class RepositoryContainer
     public IOwnerRepository OwnerRepository { get; }
     public IBookerRepository BookerRepository { get; }
     public ICatchStyleRepository CatchStyleRepository { get; }
+    
+    // Structural Analysis & Niche Strategies (Phase 6)
+    public IRosterAnalysisRepository RosterAnalysisRepository { get; }
+    public ITrendRepository TrendRepository { get; }
+    public INicheFederationRepository NicheFederationRepository { get; }
+    public IChildCompanyExtendedRepository ChildCompanyExtendedRepository { get; }
+    public IDNATransitionRepository DNATransitionRepository { get; }
 
     public RepositoryContainer(
         GameRepository gameRepository,
@@ -40,7 +47,12 @@ public sealed class RepositoryContainer
         IWorkerAttributesRepository workerAttributesRepository,
         IOwnerRepository ownerRepository,
         IBookerRepository bookerRepository,
-        ICatchStyleRepository catchStyleRepository)
+        ICatchStyleRepository catchStyleRepository,
+        IRosterAnalysisRepository rosterAnalysisRepository,
+        ITrendRepository trendRepository,
+        INicheFederationRepository nicheFederationRepository,
+        IChildCompanyExtendedRepository childCompanyExtendedRepository,
+        IDNATransitionRepository dnaTransitionRepository)
     {
         GameRepository = gameRepository;
         ShowRepository = showRepository;
@@ -57,6 +69,11 @@ public sealed class RepositoryContainer
         OwnerRepository = ownerRepository;
         BookerRepository = bookerRepository;
         CatchStyleRepository = catchStyleRepository;
+        RosterAnalysisRepository = rosterAnalysisRepository;
+        TrendRepository = trendRepository;
+        NicheFederationRepository = nicheFederationRepository;
+        ChildCompanyExtendedRepository = childCompanyExtendedRepository;
+        DNATransitionRepository = dnaTransitionRepository;
     }
 }
 
@@ -99,6 +116,13 @@ public static class RepositoryFactory
             settingsRepository,
             youthRepository);
 
+        // Nouveaux repositories pour l'analyse structurelle (Phase 6)
+        var rosterAnalysisRepository = new RosterAnalysisRepository(factory);
+        var trendRepository = new TrendRepository(factory);
+        var nicheFederationRepository = new NicheFederationRepository(factory);
+        var childCompanyExtendedRepository = new ChildCompanyExtendedRepository(factory);
+        var dnaTransitionRepository = new DNATransitionRepository(factory);
+
         return new RepositoryContainer(
             gameRepository,
             showRepository,
@@ -114,7 +138,12 @@ public static class RepositoryFactory
             workerAttributesRepository,
             ownerRepository,
             bookerRepository,
-            catchStyleRepository);
+            catchStyleRepository,
+            rosterAnalysisRepository,
+            trendRepository,
+            nicheFederationRepository,
+            childCompanyExtendedRepository,
+            dnaTransitionRepository);
     }
 
     /// <summary>

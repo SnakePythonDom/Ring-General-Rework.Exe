@@ -1,0 +1,16 @@
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.csproj.AssemblyReference.cache
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.AssemblyInfoInputs.cache
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.AssemblyInfo.cs
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.csproj.CoreCompileInputs.cache
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.sourcelink.json
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\bin\Debug\net8.0\RingGeneral.Core.deps.json
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\bin\Debug\net8.0\RingGeneral.Core.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\bin\Debug\net8.0\RingGeneral.Core.pdb
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\bin\Debug\net8.0\RingGeneral.Specs.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\bin\Debug\net8.0\RingGeneral.Specs.pdb
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGene.16E1EDED.Up2Date
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\refint\RingGeneral.Core.dll
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\RingGeneral.Core.pdb
+C:\Users\popo2\.cursor\Ring-General-Rework.Exe\src\RingGeneral.Core\obj\Debug\net8.0\ref\RingGeneral.Core.dll

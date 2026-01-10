@@ -89,4 +89,34 @@ public interface IOwnerDecisionEngine
     /// <param name="companyId">Identifiant de la compagnie</param>
     /// <returns>Owner ou null</returns>
     Owner? GetOwnerByCompanyId(string companyId);
+
+    /// <summary>
+    /// Analyse les coûts de transition d'ADN
+    /// </summary>
+    /// <param name="companyId">Identifiant de la compagnie</param>
+    /// <param name="currentDNA">ADN actuel</param>
+    /// <param name="targetDNA">ADN cible</param>
+    /// <returns>Analyse des coûts de transition</returns>
+    RingGeneral.Core.Models.Decisions.TransitionCostAnalysis AnalyzeTransitionCost(
+        string companyId,
+        RingGeneral.Core.Models.Roster.RosterDNA currentDNA,
+        RingGeneral.Core.Models.Roster.RosterDNA targetDNA);
+
+    /// <summary>
+    /// Détermine si l'Owner peut bloquer un changement de style
+    /// </summary>
+    /// <param name="companyId">Identifiant de la compagnie</param>
+    /// <param name="proposedStyle">Style proposé</param>
+    /// <returns>True si le changement peut être bloqué</returns>
+    bool CanVetoStyleChange(string companyId, string proposedStyle);
+
+    /// <summary>
+    /// Évalue la viabilité d'une niche
+    /// </summary>
+    /// <param name="companyId">Identifiant de la compagnie</param>
+    /// <param name="nicheType">Type de niche</param>
+    /// <returns>Rapport de viabilité</returns>
+    RingGeneral.Core.Models.Decisions.NicheViabilityReport EvaluateNicheViability(
+        string companyId,
+        RingGeneral.Core.Enums.NicheType nicheType);
 }

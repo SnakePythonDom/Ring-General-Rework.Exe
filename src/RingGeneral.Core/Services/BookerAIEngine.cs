@@ -723,4 +723,54 @@ public sealed class BookerAIEngine : IBookerAIEngine
             .Select(s => s.worker)
             .ToList();
     }
+
+    public RingGeneral.Core.Models.Decisions.RosterMoodReport GetRosterMoodReport(string companyId)
+    {
+        // Note: Cette implémentation nécessite l'accès à IMoraleRepository
+        // Pour l'instant, retourner un rapport basique
+        var reportId = Guid.NewGuid().ToString("N");
+        return new RingGeneral.Core.Models.Decisions.RosterMoodReport
+        {
+            ReportId = reportId,
+            CompanyId = companyId,
+            AverageMorale = 50, // À calculer depuis le repository
+            CriticalMoraleCount = 0, // À calculer depuis le repository
+            WorkersRequestingPush = new List<string>(), // À calculer depuis le repository
+            WorkersDissatisfiedWithStyle = new List<string>(), // À calculer depuis le repository
+            Recommendations = "Surveiller le moral du roster. Considérer des ajustements de booking si nécessaire.",
+            ReportedAt = DateTime.Now
+        };
+    }
+
+    public bool ShouldAdaptToTrend(string companyId, RingGeneral.Core.Models.Trends.Trend trend)
+    {
+        // Le booker devrait s'adapter si :
+        // - La tendance est forte (Intensity >= 70)
+        // - La pénétration du marché est élevée (MarketPenetration >= 60)
+        // - La tendance est globale ou régionale (pas locale)
+        return trend.Intensity >= 70 &&
+               trend.MarketPenetration >= 60 &&
+               (trend.Type == RingGeneral.Core.Enums.TrendType.Global || trend.Type == RingGeneral.Core.Enums.TrendType.Regional);
+    }
+
+    public double CalculateAdaptationRisk(string companyId, RingGeneral.Core.Models.Trends.Trend trend)
+    {
+        // Le risque est basé sur :
+        // - L'intensité de la tendance (plus intense = moins de risque)
+        // - La pénétration du marché (plus élevée = moins de risque)
+        // - Le type de tendance (locale = plus de risque)
+        
+        var intensityRisk = (100 - trend.Intensity) * 0.3;
+        var penetrationRisk = (100 - trend.MarketPenetration) * 0.3;
+        var typeRisk = trend.Type switch
+        {
+            RingGeneral.Core.Enums.TrendType.Global => 0,
+            RingGeneral.Core.Enums.TrendType.Regional => 10,
+            RingGeneral.Core.Enums.TrendType.Local => 30,
+            _ => 20
+        };
+
+        var totalRisk = intensityRisk + penetrationRisk + typeRisk;
+        return Math.Clamp(totalRisk, 0, 100);
+    }
 }

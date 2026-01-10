@@ -318,7 +318,17 @@ public sealed class GameSessionViewModel : ViewModelBase
         try
         {
             // Initialisation du service de boucle hebdomadaire
-            var weekly = new WeeklyLoopService(_repository, _scoutingRepository);
+            // Note: Les nouveaux services seront injectés via DI dans une version future
+            var weekly = new WeeklyLoopService(
+                _repository, 
+                _scoutingRepository,
+                moraleEngine: null,
+                rumorEngine: null,
+                crisisEngine: null,
+                bookerAIEngine: null,
+                rosterAnalysisService: null,
+                trendEngine: null,
+                inertiaService: null);
 
             // Exécution de la simulation de passage de semaine
             weekly.PasserSemaineSuivante(ShowId);

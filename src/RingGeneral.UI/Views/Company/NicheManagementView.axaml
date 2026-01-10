@@ -1,0 +1,311 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="RingGeneral.UI.Views.Company.NicheManagementView"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Company;assembly=RingGeneral.UI">
+
+  <Design.DataContext>
+    <vm:NicheManagementViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="20" Spacing="20">
+
+      <!-- Header -->
+      <TextBlock Text="🎯 Gestion des Fédérations de Niche"
+                 FontSize="24"
+                 FontWeight="Bold"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,20"/>
+
+      <!-- Statut Actuel -->
+      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="📊 Statut Actuel"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"/>
+
+          <Grid ColumnDefinitions="*,*,*" >
+
+            <!-- Fédération de Niche -->
+            <Border Grid.Column="0"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="15"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                <TextBlock Text="{Binding IsNicheFederation, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Oui|Non'}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Fédération de Niche"
+                           FontSize="12"
+                           HorizontalAlignment="Center"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Type de Niche -->
+            <Border Grid.Column="1"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="15"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                <TextBlock Text="{Binding NicheType}"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Type de Niche"
+                           FontSize="12"
+                           HorizontalAlignment="Center"/>
+              </StackPanel>
+            </Border>
+
+            <!-- État du Profil -->
+            <Border Grid.Column="2"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    Padding="15"
+                    Background="{DynamicResource ThemeAccentBrush3}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                <TextBlock Text="{Binding CurrentProfile.EstablishedAt, StringFormat='Établie\\n{0:dd/MM/yyyy}', TargetNullValue='Non établie'}"
+                           FontSize="12"
+                           FontWeight="Bold"
+                           TextAlignment="Center"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Date d'établissement"
+                           FontSize="10"
+                           HorizontalAlignment="Center"/>
+              </StackPanel>
+            </Border>
+
+          </Grid>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Avantages Économiques (si niche active) -->
+      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15"
+              IsVisible="{Binding IsNicheFederation}">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="💰 Avantages Économiques de la Niche"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"/>
+
+          <Grid ColumnDefinitions="*,*,*" >
+
+            <!-- Audience Captive -->
+            <Border Grid.Column="0"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12">
+              <StackPanel HorizontalAlignment="Center" Spacing="8">
+                <TextBlock Text="👥 Audience Captive"
+                           FontSize="14"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding CurrentProfile.CaptiveAudiencePercentage, StringFormat={}{0:F1}%}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Public fidèle"
+                           FontSize="10"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Multiplicateur Merchandise -->
+            <Border Grid.Column="1"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12">
+              <StackPanel HorizontalAlignment="Center" Spacing="8">
+                <TextBlock Text="🛍️ Merchandise"
+                           FontSize="14"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding CurrentProfile.MerchandiseMultiplier, StringFormat={}{0:F1}}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Multiplicateur"
+                           FontSize="10"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Stabilité Billetterie -->
+            <Border Grid.Column="2"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12">
+              <StackPanel HorizontalAlignment="Center" Spacing="8">
+                <TextBlock Text="🎫 Billetterie"
+                           FontSize="14"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding CurrentProfile.TicketSalesStability, StringFormat={}{0:F1}%}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Stabilité"
+                           FontSize="10"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+          </Grid>
+
+          <Separator/>
+
+          <Grid ColumnDefinitions="*,*" >
+
+            <!-- Loyauté des Talents -->
+            <Border Grid.Column="0"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12">
+              <StackPanel HorizontalAlignment="Center" Spacing="8">
+                <TextBlock Text="🤝 Loyauté Talents"
+                           FontSize="14"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding CurrentProfile.TalentLoyaltyBonus, StringFormat={}+{0:F1}%}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Bonus fidélité"
+                           FontSize="10"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Réduction Salaires -->
+            <Border Grid.Column="1"
+                    BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12">
+              <StackPanel HorizontalAlignment="Center" Spacing="8">
+                <TextBlock Text="💸 Réduction Salaires"
+                           FontSize="14"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding CurrentProfile.TalentSalaryReduction, StringFormat={}- {0:F1}%}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ThemeAccentBrush}"/>
+                <TextBlock Text="Demande réduite"
+                           FontSize="10"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+          </Grid>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Actions -->
+      <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="⚙️ Actions de Gestion"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"/>
+
+          <Grid ColumnDefinitions="*,*" >
+
+            <!-- Établir une Niche -->
+            <Border Grid.Column="0"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="15">
+              <StackPanel Spacing="10">
+                <TextBlock Text="🏗️ Établir une Niche"
+                           FontSize="16"
+                           FontWeight="SemiBold"/>
+                <ComboBox x:Name="NicheTypeComboBox"
+                         ItemsSource="{Binding Source={StaticResource NicheTypes}}"
+                         SelectedItem="{Binding NicheType}"
+                         PlaceholderText="Sélectionner un type de niche"/>
+                <Button Content="🚀 Établir Niche"
+                        Command="{Binding EstablishNicheCommand}"
+                        CommandParameter="{Binding #NicheTypeComboBox.SelectedItem}"
+                        IsEnabled="{Binding IsNicheFederation, Converter={StaticResource InvertBoolConverter}}"
+                        HorizontalAlignment="Stretch"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Abandonner la Niche -->
+            <Border Grid.Column="1"
+                    BorderBrush="{DynamicResource ThemeAccentBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="15">
+              <StackPanel Spacing="10">
+                <TextBlock Text="🏁 Abandonner la Niche"
+                           FontSize="16"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="⚠️ Cette action est irréversible et peut affecter votre base de fans."
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Opacity="0.8"/>
+                <Button Content="❌ Abandonner Niche"
+                        Command="{Binding AbandonNicheCommand}"
+                        IsEnabled="{Binding IsNicheFederation}"
+                        HorizontalAlignment="Stretch"
+                        Background="Red"
+                        Foreground="White"/>
+              </StackPanel>
+            </Border>
+
+          </Grid>
+
+          <!-- Évaluation de Viabilité -->
+          <Border BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="15"
+                  Margin="0,10,0,0">
+            <StackPanel Spacing="10">
+              <TextBlock Text="🔍 Évaluation de Viabilité"
+                         FontSize="16"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="Obtenir une analyse complète de la viabilité d'une stratégie de niche avant de s'y engager."
+                         FontSize="12"
+                         TextWrapping="Wrap"
+                         Opacity="0.8"/>
+              <Button Content="📊 Évaluer Viabilité"
+                      Command="{Binding EvaluateNicheCommand}"
+                      CommandParameter="{Binding #NicheTypeComboBox.SelectedItem}"
+                      HorizontalAlignment="Stretch"/>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

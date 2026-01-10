@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:RingGeneral.UI.Converters;assembly=RingGeneral.UI">
 
     <!-- ==================== COLOR PALETTE ==================== -->
 
@@ -113,6 +114,28 @@
     <CornerRadius x:Key="RadiusSmall">4</CornerRadius>
     <CornerRadius x:Key="RadiusMedium">6</CornerRadius>
     <CornerRadius x:Key="RadiusLarge">8</CornerRadius>
+
+    <!-- ==================== DATA RESOURCES ==================== -->
+
+    <!-- Child Company Objectives -->
+    <x:String x:Key="ChildCompanyObjectives">Entertainment,Niche,Independence,Development</x:String>
+
+    <!-- Niche Types -->
+    <x:String x:Key="NicheTypes">Hardcore,Technical,Lucha,StrongStyle,Entertainment</x:String>
+
+    <!-- ==================== CONVERTERS ==================== -->
+
+    <!-- Bool to Text Converter -->
+    <local:BoolToTextConverter x:Key="BoolToTextConverter" />
+
+    <!-- Is Not Null Converter -->
+    <local:IsNotNullConverter x:Key="IsNotNullConverter" />
+
+    <!-- Invert Bool Converter -->
+    <local:InvertBoolConverter x:Key="InvertBoolConverter" />
+
+    <!-- Count to Visibility Converter - Temporarily disabled -->
+    <!-- <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" /> -->
 
     <!-- ==================== COMMON STYLES ==================== -->
 

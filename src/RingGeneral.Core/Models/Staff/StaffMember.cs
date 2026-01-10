@@ -111,6 +111,30 @@ public sealed record StaffMember
     /// </summary>
     public DateTime CreatedAt { get; init; } = DateTime.Now;
 
+    // === EXTENSIONS CHILD STAFF SYSTEM ===
+
+    /// <summary>
+    /// Indique si le staff peut être partagé avec les Child Companies
+    /// </summary>
+    public bool CanBeShared { get; init; } = true;
+
+    /// <summary>
+    /// Évaluation de la mobilité et volonté d'être partagé
+    /// </summary>
+    public StaffMobilityRating MobilityRating { get; init; } = StaffMobilityRating.Medium;
+
+    /// <summary>
+    /// Préférences de partage (JSON stocké en base)
+    /// Contient les préférences personnelles pour les types de missions, durée maximale, etc.
+    /// </summary>
+    public string? SharingPreferences { get; init; }
+
+    /// <summary>
+    /// Spécialisations pour le développement des jeunes talents (JSON stocké en base)
+    /// Contient les compétences spécifiques au travail avec les trainees
+    /// </summary>
+    public string? ChildSpecializations { get; init; }
+
     /// <summary>
     /// Valide que le StaffMember respecte les contraintes métier
     /// </summary>
