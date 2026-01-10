@@ -24,7 +24,7 @@
 - **🆕 Système d'Auto-Booking IA** : Le Booker génère automatiquement des cartes complètes 🎯
 - **🆕 Flux Show Day complet** : Simulation de bout en bout avec impacts automatiques
 - **70+ ViewModels** créés avec navigation complète
-- **Base de données SQLite** avec 27 migrations et import automatique BAKI
+- **Base de données SQLite** avec 30 migrations et import automatique BAKI
 - **Dependency Injection complète** : Microsoft.Extensions.DependencyInjection intégré dans App.axaml.cs
 - **Compilation réussie** : Solution complète avec 0 erreurs, 1 avertissement mineur
 
@@ -116,7 +116,7 @@ dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
 - ✅ Dependency Injection complète (Microsoft.Extensions.DependencyInjection)
 - ✅ Clean architecture (pas de dépendances circulaires)
 - ✅ Configuration data-driven (JSON specs)
-- ✅ 27 migrations SQL pour schéma évolutif
+- ✅ 30 migrations SQL pour schéma évolutif
 
 **Pour plus de détails :** Consultez l'[Analyse d'architecture](docs/ARCHITECTURE_REVIEW_FR.md)
 
@@ -136,7 +136,7 @@ Ring-General-Rework.Exe/
 ├── specs/                  # Fichiers JSON de configuration
 ├── docs/                   # Documentation complète (24 docs actifs)
 ├── data/                   # Assets & base de test (BAKI1.1.db)
-│   └── migrations/         # 27 migrations SQL
+│   └── migrations/         # 30 migrations SQL
 ├── tests/                  # Tests unitaires
 └── _archived_files/        # Archives (30+ docs obsolètes)
 ```
@@ -588,6 +588,370 @@ WEEKEND
 ---
 
 **Note** : Tous ces flux sont orchestrés par des services spécialisés (`ShowDayOrchestrator`, `WeeklyLoopService`, `BookerAIEngine`, etc.) qui garantissent la cohérence et l'automatisation des processus complexes.
+
+---
+
+## 🔄 Flux Fonctionnels des Systèmes
+
+Cette section détaille les flux de traitement internes de chaque système principal du jeu.
+
+### 🎬 Système Show Day (ShowDayOrchestrator)
+
+**Flux complet** : De la détection du show à la finalisation avec impacts
+
+```
+1. DÉTECTION
+   └─ DetecterShowAVenir(companyId, currentDay)
+      ├─ Charger shows planifiés
+      ├─ Filtrer statut "À Booker"
+      └─ Retourner ShowDayDetectionResult
+
+2. CHARGEMENT CONTEXTE
+   └─ ChargerShowContext(showId)
+      ├─ ShowDefinition (détails show)
+      ├─ Segments (carte complète)
+      ├─ Workers (snapshots avec attributs)
+      ├─ Storylines (actives)
+      ├─ Titres (en jeu)
+      └─ Chimies (compatibilités)
+
+3. SIMULATION
+   └─ ShowSimulationEngine.Simuler(context)
+      ├─ Pour chaque segment :
+      │  ├─ Calcul Note In-Ring (40%)
+      │  ├─ Calcul Note Entertainment (30%)
+      │  ├─ Calcul Note Story (30%)
+      │  ├─ Note Globale Segment
+      │  ├─ Calcul Audience
+      │  ├─ Calcul Revenus (billetterie, merch, TV)
+      │  └─ Risque Blessure
+      └─ Note Globale Show
+
+4. APPLICATION IMPACTS
+   └─ ImpactApplier.AppliquerImpacts()
+      ├─ Finances (revenus - frais apparition)
+      ├─ Blessures (InjuryRecord + RecoveryPlan)
+      ├─ Popularité (workers + compagnie)
+      ├─ Titres (changements automatiques)
+      ├─ Momentum (workers)
+      ├─ Storylines (heat progression)
+      └─ Fatigue (participants)
+
+5. MORAL POST-SHOW
+   └─ MoraleEngine.UpdateMorale()
+      ├─ Workers utilisés → +3 à +5 moral
+      └─ Workers non utilisés → -3 moral
+
+6. FINALISATION
+   └─ FinaliserShow()
+      ├─ Statut show → "Terminé"
+      ├─ Enregistrer résultats
+      └─ Générer InboxItem résumé
+```
+
+### 🤖 Système Auto-Booking IA (BookerAIEngine)
+
+**Flux** : Génération automatique de cartes complètes
+
+```
+1. INITIALISATION
+   ├─ Charger Booker (préférences, mémoires)
+   ├─ Vérifier CanAutoBook()
+   └─ Charger contraintes Owner
+
+2. FILTRAGE WORKERS
+   ├─ Exclure blessés
+   ├─ Exclure déjà utilisés
+   ├─ Filtrer selon budget
+   └─ Appliquer contraintes Owner
+
+3. GÉNÉRATION SEGMENTS
+   ├─ Calculer durée restante
+   ├─ Boucle : Tant que durée > 0
+   │  ├─ Déterminer type segment
+   │  │  ├─ Main event (si manquant)
+   │  │  ├─ Storyline (si active)
+   │  │  ├─ Titre (si disponible)
+   │  │  └─ Midcard (sinon)
+   │  ├─ Sélection participants
+   │  │  ├─ Selon préférences Booker
+   │  │  ├─ Consulter mémoires
+   │  │  └─ Appliquer créativité
+   │  └─ Créer SegmentDefinition
+   └─ Retourner carte complète
+
+4. VALIDATION
+   └─ Vérifier contraintes respectées
+```
+
+### 📈 Système de Storylines (StorylineService)
+
+**Flux** : Cycle de vie complet d'une storyline
+
+```
+1. CRÉATION
+   └─ Creer()
+      ├─ Phase = Setup
+      ├─ Heat = 0
+      ├─ Status = Active
+      └─ Participants
+
+2. PROGRESSION HEAT
+   └─ Après chaque segment lié
+      ├─ Calculer delta (basé sur note)
+      └─ Heat = Clamp(Heat + delta, 0, 100)
+
+3. AVANCEMENT PHASE
+   ├─ Setup → Rising (après 2-3 segments)
+   ├─ Rising → Climax (Heat > 60)
+   ├─ Climax → Fallout (après match principal)
+   └─ Fallout → Completed (Heat >= 80)
+
+4. ARCHIVAGE
+   └─ Status = Archived (quand Completed)
+```
+
+### 💰 Système Financier (DailyFinanceService)
+
+**Deux flux distincts** :
+
+#### FLUX 1 : Paiement Mensuel Garanti
+```
+DÉCLENCHEMENT : Dernier jour du mois
+
+1. Détection fin du mois
+2. Charger contrats actifs
+3. Pour chaque contrat :
+   ├─ Si MonthlyWage > 0
+   ├─ Vérifier non déjà payé
+   ├─ Créer transaction (-MonthlyWage)
+   └─ Mettre à jour LastPaymentDate
+4. Appliquer transactions en batch
+```
+
+#### FLUX 2 : Frais d'Apparition
+```
+DÉCLENCHEMENT : Immédiatement après show
+
+1. Extraire participants du show
+2. Pour chaque participant :
+   ├─ Si AppearanceFee > 0
+   ├─ Vérifier non déjà payé (date)
+   ├─ Créer transaction (-AppearanceFee)
+   └─ Mettre à jour LastAppearanceDate
+3. Appliquer transactions en batch
+```
+
+### 🏥 Système Médical (InjuryService)
+
+**Flux** : Gestion complète des blessures
+
+```
+1. DÉCLENCHEMENT
+   └─ Pendant simulation show
+      ├─ Calculer risque blessure
+      └─ Si déclenché → AppliquerBlessure()
+
+2. APPLICATION
+   ├─ Déterminer sévérité
+   ├─ Créer InjuryRecord
+   ├─ Créer RecoveryPlan
+   └─ Ajouter MedicalNote
+
+3. SUIVI
+   └─ Chaque semaine
+      ├─ Vérifier blessures actives
+      ├─ Si semaine >= EndWeek → Guérison
+      └─ Si lutte malgré blessure → Risque aggravation
+```
+
+### 😊 Système de Moral (MoraleEngine)
+
+**Flux** : Gestion moral individuel et compagnie
+
+```
+1. MISE À JOUR INDIVIDUEL
+   └─ UpdateMorale(workerId, eventType, impact)
+      ├─ Charger BackstageMorale actuel
+      ├─ Calculer changement selon eventType
+      ├─ Appliquer changement
+      └─ Enregistrer
+
+2. RECALCUL COMPAGNIE
+   └─ RecalculateCompanyMorale()
+      ├─ Charger tous les moraux
+      ├─ Calculer moyenne
+      ├─ Identifier alertes (< 50 ou > 80)
+      └─ Enregistrer CompanyMorale
+
+3. ÉVÉNEMENTS DÉCLENCHEURS
+   ├─ Après show (utilisés/non utilisés)
+   ├─ Changements de push
+   ├─ Gestion titres
+   └─ Actions management
+```
+
+### 📢 Système de Rumeurs (RumorEngine)
+
+**Flux** : Émergence et propagation des rumeurs
+
+```
+1. DÉCLENCHEMENT
+   └─ Événement significatif détecté
+      ├─ Sévérité >= 3 → automatique
+      └─ Sévérité >= 2 → 40% chance
+
+2. GÉNÉRATION
+   ├─ Générer texte rumeur
+   ├─ Créer Rumor (Stage = "Emerging")
+   └─ AmplificationScore = 10
+
+3. AMPLIFICATION
+   ├─ Worker influent répand → +10 score
+   ├─ Stage selon score :
+   │  ├─ < 40 → "Emerging"
+   │  ├─ 40-69 → "Growing"
+   │  └─ >= 70 → "Widespread"
+   └─ Enregistrer
+
+4. PROGRESSION NATURELLE
+   └─ Hebdomadaire
+      ├─ Amplification +5 à +15
+      ├─ Mise à jour stage
+      └─ Nettoyer résolues (> 90 jours)
+
+5. RÉSOLUTION
+   └─ Action joueur
+      ├─ Qualité intervention (0-100)
+      ├─ Calcul chance succès
+      └─ Si succès → Stage = "Resolved"
+```
+
+### ⚠️ Système de Crises (CrisisEngine)
+
+**Flux** : Gestion des crises majeures
+
+```
+1. DÉCLENCHEMENT
+   └─ Événement majeur
+      ├─ Rumeur Widespread + Severity >= 4
+      ├─ Incident backstage grave
+      ├─ Perte contrat TV majeur
+      └─ Départ worker star
+
+2. ESCALATION
+   └─ Hebdomadaire
+      ├─ Escalation += 10-20
+      ├─ Stage selon escalation :
+      │  ├─ < 30 → "Detected"
+      │  ├─ 30-59 → "Growing"
+      │  ├─ 60-79 → "Critical"
+      │  └─ >= 80 → "Crisis"
+      └─ Impact moral compagnie
+
+3. TENTATIVE RÉSOLUTION
+   └─ Joueur intervient
+      ├─ Qualité intervention
+      ├─ Calcul chance succès
+      ├─ Si succès → Stage = "Resolved"
+      └─ Si échec → Réduction modérée
+```
+
+### 🔍 Système de Scouting (ScoutingService)
+
+**Flux** : Découverte et évaluation de talents
+
+```
+1. CRÉATION MISSION
+   └─ CreerMission()
+      ├─ Définir paramètres (région, focus)
+      └─ Créer ScoutMission (Statut = "active")
+
+2. DÉCOUVERTE HEBDO
+   └─ RafraichirHebdo()
+      ├─ Générer rapports
+      ├─ Sélectionner workers libres
+      ├─ Filtrer selon région/focus
+      └─ Créer ScoutReport
+
+3. CRÉATION RAPPORT
+   ├─ Charger ScoutingTarget
+   ├─ Créer ScoutReport
+   └─ Vérifier non-duplication
+
+4. CONSULTATION
+   └─ ChargerRapports()
+      ├─ Filtrer par critères
+      └─ Retourner liste rapports
+```
+
+### ⏰ Système de Gestion du Temps (TimeOrchestratorService)
+
+**Flux** : Passage du temps jour par jour
+
+```
+DÉCLENCHEMENT : "Passer au jour suivant"
+
+1. INCRÉMENTATION
+   ├─ IncrementerJour()
+   └─ GetCurrentDate()
+
+2. MISE À JOUR STATS
+   └─ UpdateDailyStats()
+      ├─ Récupération fatigue
+      └─ Progression blessures
+
+3. PLANIFICATION SHOWS
+   └─ Si jour % 30 == 0
+      └─ PlanifierShowsAutomatiques()
+
+4. GÉNÉRATION ÉVÉNEMENTS
+   └─ GenerateDailyEvents()
+      ├─ Offres contrat
+      ├─ Offres TV
+      └─ Événements backstage
+
+5. DÉTECTION SHOW DAY
+   └─ DetecterShowAVenir()
+      └─ Si show détecté → Marquer pour simulation
+
+6. FIN DE MOIS
+   └─ Si EstFinDuMois()
+      └─ ProcessMonthlyPayroll()
+```
+
+### 🏆 Système de Titres (TitleService)
+
+**Flux** : Gestion des titres et changements
+
+```
+1. CRÉATION
+   └─ CreerTitre()
+      ├─ Définir paramètres
+      └─ Créer Title (ChampionId = null)
+
+2. MATCH DE TITRE
+   └─ Pendant simulation
+      ├─ Segment avec TitreId
+      └─ Si PerdantId == ChampionId → Changement
+
+3. CHANGEMENT
+   └─ AppliquerChangementTitre()
+      ├─ Créer nouveau TitleReign
+      ├─ Clôturer règne précédent
+      ├─ Mettre à jour Prestige
+      └─ Enregistrer
+
+4. GESTION CONTENDERS
+   └─ ContenderService
+      ├─ Calculer classement
+      ├─ Déterminer #1 Contender
+      └─ Mettre à jour hebdomadaire
+```
+
+---
+
+Pour plus de détails techniques sur les flux, consultez [docs/ARCHITECTURE_REVIEW_FR.md](docs/ARCHITECTURE_REVIEW_FR.md#12-schémas-de-flux-des-systèmes)
 
 ---
 

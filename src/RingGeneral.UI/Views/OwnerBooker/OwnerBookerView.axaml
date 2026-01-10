@@ -35,8 +35,8 @@
                             <TextBlock Text="VISION" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                             <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="12,8" CornerRadius="6">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock Text="{Binding VisionType}" FontSize="14" FontWeight="SemiBold" Foreground="#60a5fa"/>
-                                    <TextBlock Text="•" Foreground="#475569"/>
+                                    <TextBlock Text="{Binding VisionType}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    <TextBlock Text="•" Foreground="{StaticResource TextSubtleBrush}"/>
                                     <TextBlock Text="{Binding PreferredProductType}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
@@ -164,7 +164,7 @@
                             <TextBlock Text="PRÉFÉRENCES DE BOOKING" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                             <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="12,10" CornerRadius="6">
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="{Binding PreferredStyle}" FontSize="13" FontWeight="SemiBold" Foreground="#60a5fa"/>
+                                    <TextBlock Text="{Binding PreferredStyle}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource AccentBlueBrush}"/>
                                     <WrapPanel>
                                         <Border IsVisible="{Binding LikesUnderdog}" Background="{StaticResource BorderMediumBrush}" Padding="8,4" Margin="0,0,4,4" CornerRadius="4">
                                             <TextBlock Text="🥊 Underdog Stories" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>

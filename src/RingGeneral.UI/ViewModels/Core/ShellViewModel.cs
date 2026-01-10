@@ -176,7 +176,6 @@ public sealed class ShellViewModel : ViewModelBase
                 RosterViewModel => "ROSTER",
                 ViewModels.Roster.WorkerDetailViewModel => "DÉTAILS WORKER",
                 TitlesViewModel => "TITRES",
-                InjuriesViewModel => "BLESSURES",
                 ViewModels.Roster.StructuralDashboardViewModel => "ANALYSE STRUCTURELLE",
                 MedicalViewModel => "MÉDICAL",
                 ViewModels.CompanyHub.CompanyHubViewModel => "COMPANY HUB",
@@ -307,13 +306,6 @@ public sealed class ShellViewModel : ViewModelBase
             roster
         ) { Badge = "(5)" });
         roster.Children.Add(new NavigationItemViewModel(
-            "roster.injuries",
-            "Blessures",
-            "  🏥",
-            typeof(InjuriesViewModel),
-            roster
-        ));
-        roster.Children.Add(new NavigationItemViewModel(
             "roster.analysis",
             "Analyse Structurelle",
             "  📊",
@@ -322,7 +314,7 @@ public sealed class ShellViewModel : ViewModelBase
         ));
         root.Add(roster);
 
-        // 🏥 MEDICAL
+        // 🏥 MEDICAL (inclut maintenant Injuries)
         var medical = new NavigationItemViewModel(
             "medical",
             "MÉDICAL",
@@ -510,10 +502,15 @@ public sealed class ShellViewModel : ViewModelBase
             // Afficher le panel de validation pour le booking
             CurrentContextViewModel = null; // TODO: Créer ValidationPanelViewModel
         }
-        else if (contentViewModel is RosterViewModel or WorkerDetailViewModel or InjuriesViewModel)
+        else if (contentViewModel is RosterViewModel or WorkerDetailViewModel)
         {
             // Afficher les stats du worker sélectionné
             CurrentContextViewModel = null; // TODO: Créer WorkerStatsPanelViewModel
+        }
+        else if (contentViewModel is MedicalViewModel)
+        {
+            // MedicalViewModel gère maintenant Injuries en interne
+            CurrentContextViewModel = null;
         }
         else if (contentViewModel is StorylinesViewModel)
         {

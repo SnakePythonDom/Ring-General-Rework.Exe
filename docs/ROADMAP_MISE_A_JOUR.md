@@ -21,7 +21,7 @@
 - ✅ **70+ ViewModels** créés et câblés avec DI
 - ✅ **Fichiers JSON** de configuration (navigation.fr.json, roadmap.fr.json, weekly-loop.fr.json)
 - ✅ **Architecture MVVM** avec ReactiveUI et Dependency Injection complète
-- ✅ **27 migrations SQL** pour schéma évolutif de la base de données
+- ✅ **30 migrations SQL** pour schéma évolutif de la base de données
 
 ---
 

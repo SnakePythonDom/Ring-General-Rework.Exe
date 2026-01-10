@@ -18,7 +18,7 @@
                     <TextBlock Text="🧍" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="6">
-                    <TextBlock Text="{Binding DisplayName}" FontSize="26" FontWeight="Bold" Foreground="#e2e8f0"/>
+                    <TextBlock Text="{Binding DisplayName}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <TextBlock Text="{Binding Role}" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
                     <TextBlock Text="{Binding Gimmick}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                     <TextBlock Text="{Binding Status}" FontSize="12" Foreground="{StaticResource SuccessLightBrush}"/>
@@ -38,13 +38,13 @@
                     <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                         <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
                             <TextBlock Text="Nationalité" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Nationality}" FontSize="12" Foreground="#e2e8f0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Nationality}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
                             <TextBlock Grid.Row="1" Text="Âge" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Age}" FontSize="12" Foreground="#e2e8f0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Age}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
                             <TextBlock Grid.Row="2" Text="Taille" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Height}" FontSize="12" Foreground="#e2e8f0"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Height}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
                             <TextBlock Grid.Row="3" Text="Poids" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Weight}" FontSize="12" Foreground="#e2e8f0"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Weight}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
                         </Grid>
                     </Border>
                 </StackPanel>
@@ -130,11 +130,11 @@
                         <StackPanel Spacing="12">
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
                                 <TextBlock Text="Salaire" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Salary}" FontSize="12" Foreground="#e2e8f0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Salary}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 <TextBlock Grid.Row="1" Text="Début" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ContractStart}" FontSize="12" Foreground="#e2e8f0"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ContractStart}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 <TextBlock Grid.Row="2" Text="Fin" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ContractEnd}" FontSize="12" Foreground="#e2e8f0"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ContractEnd}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
                             </Grid>
                             <TextBlock Text="{Binding ContractClauses}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                             <StackPanel Orientation="Horizontal" Spacing="12">

@@ -95,7 +95,7 @@
                      Text="{Binding MonthlyWage, StringFormat='{}{0:N0}'}"
                      Background="{StaticResource BackgroundTertiaryBrush}"
                      Foreground="{StaticResource TextPrimaryBrush}"
-                     BorderBrush="#475569"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
                      Padding="8"/>
         </Grid>
 
@@ -113,7 +113,7 @@
                      Text="{Binding AppearanceFee, StringFormat='{}{0:N0}'}"
                      Background="{StaticResource BackgroundTertiaryBrush}"
                      Foreground="{StaticResource TextPrimaryBrush}"
-                     BorderBrush="#475569"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
                      Padding="8"/>
         </Grid>
 
@@ -131,7 +131,7 @@
                      Text="{Binding DurationMonths}"
                      Background="{StaticResource BackgroundTertiaryBrush}"
                      Foreground="{StaticResource TextPrimaryBrush}"
-                     BorderBrush="#475569"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
                      Padding="8"/>
         </Grid>
 
@@ -161,8 +161,7 @@
                     Content="Annuler"
                     Command="{Binding CancelCommand}"
                     Padding="15,8"
-                    Background="#475569"
-                    Foreground="White"
+                    Classes="secondary"
                     CornerRadius="4"
                     FontWeight="SemiBold"/>
             
