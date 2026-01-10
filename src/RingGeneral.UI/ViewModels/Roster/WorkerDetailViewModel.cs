@@ -3,6 +3,7 @@ using ReactiveUI;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.ViewModels.Shared;
 
 namespace RingGeneral.UI.ViewModels.Roster;
 
@@ -15,10 +16,12 @@ public sealed class WorkerDetailViewModel : ViewModelBase, INavigableViewModel
     private WorkerSnapshot? _worker;
     private string _workerId = string.Empty;
     private bool _isLoading;
+    private ProfileViewModel _profile;
 
     public WorkerDetailViewModel(GameRepository? repository = null)
     {
         _repository = repository;
+        _profile = new ProfileViewModel();
 
         Attributes = new ObservableCollection<AttributeDisplayItem>();
         Storylines = new ObservableCollection<string>();
@@ -55,6 +58,7 @@ public sealed class WorkerDetailViewModel : ViewModelBase, INavigableViewModel
             this.RaisePropertyChanged(nameof(InjuryDisplay));
             this.RaisePropertyChanged(nameof(MoraleDisplay));
             this.RaisePropertyChanged(nameof(HasInjury));
+            UpdateProfileFromWorker();
         }
     }
 
@@ -92,6 +96,12 @@ public sealed class WorkerDetailViewModel : ViewModelBase, INavigableViewModel
     public bool HasInjury => !string.IsNullOrEmpty(Worker?.Blessure) && Worker?.Blessure != "Aucune";
     public string MoraleDisplay => Worker?.Morale.ToString() ?? "0";
     public string RoleTvDisplay => Worker?.RoleTv ?? "N/A";
+
+    public ProfileViewModel Profile
+    {
+        get => _profile;
+        private set => this.RaiseAndSetIfChanged(ref _profile, value);
+    }
 
     // Collections
     public ObservableCollection<AttributeDisplayItem> Attributes { get; }
@@ -160,6 +170,75 @@ public sealed class WorkerDetailViewModel : ViewModelBase, INavigableViewModel
         RecentMatches.Add("S24 - vs Randy Orton - Note: 88 ⭐⭐⭐⭐");
         RecentMatches.Add("S23 - vs CM Punk - Note: 85 ⭐⭐⭐⭐");
         RecentMatches.Add("S22 - vs The Rock - Note: 92 ⭐⭐⭐⭐⭐");
+
+        UpdateProfileFromWorker();
+    }
+
+    private void UpdateProfileFromWorker()
+    {
+        if (Worker == null)
+        {
+            return;
+        }
+
+        Profile.DisplayName = Worker.NomComplet;
+        Profile.Role = Worker.RoleTv;
+        Profile.Gimmick = "Leader charismatique";
+        Profile.Status = HasInjury ? "Blessé" : "Actif";
+        Profile.Nationality = "USA";
+        Profile.Age = "34 ans";
+        Profile.Height = "1m85";
+        Profile.Weight = "108 kg";
+        Profile.Salary = "$250,000 / mois";
+        Profile.ContractStart = "Jan 2025";
+        Profile.ContractEnd = "Jan 2027";
+        Profile.ContractClauses = "Clause de sortie: 30 jours | Bonus PPV inclus";
+
+        Profile.AttributeGroups.Clear();
+        var universal = new ProfileAttributeGroup("Universels");
+        universal.Attributes.Add(new ProfileAttributeItem("Condition Physique", 90, "#10b981"));
+        universal.Attributes.Add(new ProfileAttributeItem("Moral", Worker.Morale, "#34d399"));
+        Profile.AttributeGroups.Add(universal);
+
+        var inRing = new ProfileAttributeGroup("In-Ring");
+        inRing.Attributes.Add(new ProfileAttributeItem("Technique", Worker.InRing, "#3b82f6"));
+        inRing.Attributes.Add(new ProfileAttributeItem("Puissance", 82, "#60a5fa"));
+        inRing.Attributes.Add(new ProfileAttributeItem("Vitesse", 79, "#93c5fd"));
+        inRing.Attributes.Add(new ProfileAttributeItem("Endurance", 88, "#60a5fa"));
+        inRing.Attributes.Add(new ProfileAttributeItem("Selling", 81, "#93c5fd"));
+        inRing.Attributes.Add(new ProfileAttributeItem("Psychologie", 86, "#60a5fa"));
+        Profile.AttributeGroups.Add(inRing);
+
+        var entertainment = new ProfileAttributeGroup("Entertainment");
+        entertainment.Attributes.Add(new ProfileAttributeItem("Micro", Worker.Entertainment, "#8b5cf6"));
+        entertainment.Attributes.Add(new ProfileAttributeItem("Charisme", 90, "#a78bfa"));
+        entertainment.Attributes.Add(new ProfileAttributeItem("Look", 84, "#c4b5fd"));
+        entertainment.Attributes.Add(new ProfileAttributeItem("Star Power", 92, "#a78bfa"));
+        Profile.AttributeGroups.Add(entertainment);
+
+        var story = new ProfileAttributeGroup("Story");
+        story.Attributes.Add(new ProfileAttributeItem("Storytelling", Worker.Story, "#f59e0b"));
+        story.Attributes.Add(new ProfileAttributeItem("Heat", 78, "#fbbf24"));
+        story.Attributes.Add(new ProfileAttributeItem("Selling émotionnel", 83, "#fbbf24"));
+        Profile.AttributeGroups.Add(story);
+
+        Profile.RecentMatches.Clear();
+        foreach (var match in RecentMatches)
+        {
+            Profile.RecentMatches.Add(match);
+        }
+
+        Profile.RecentStorylines.Clear();
+        foreach (var storyline in Storylines)
+        {
+            Profile.RecentStorylines.Add(storyline);
+        }
+
+        Profile.TitleHistory.Clear();
+        foreach (var title in Titles)
+        {
+            Profile.TitleHistory.Add(title);
+        }
     }
 }
 

@@ -1,0 +1,142 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Booking"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Booking.BookingSettingsView"
+             x:DataType="vm:BookingSettingsViewModel">
+
+    <Design.DataContext>
+        <vm:BookingSettingsViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25" MaxWidth="1100" HorizontalAlignment="Center">
+            <StackPanel Spacing="8">
+                <TextBlock Text="⚙️ PARAMÈTRES BOOKING" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Configurez la durée des shows et les règles de validation" FontSize="14" Foreground="#888888"/>
+            </StackPanel>
+
+            <TabControl>
+                <TabItem Header="GÉNÉRAL">
+                    <StackPanel Spacing="20" Margin="0,10,0,0">
+                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                            <StackPanel Spacing="20">
+                                <TextBlock Text="⏱️ DURÉES" FontSize="16" Foreground="#64748b" FontWeight="Bold"/>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="Durée par défaut d'un segment" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Durée en minutes appliquée aux nouveaux segments" FontSize="12" Foreground="#888888"/>
+                                    </StackPanel>
+                                    <NumericUpDown Grid.Column="1"
+                                                   Value="{Binding DefaultSegmentDuration}"
+                                                   Minimum="1"
+                                                   Maximum="60"
+                                                   Width="100"
+                                                   Background="#0f172a"
+                                                   BorderBrush="#334155"
+                                                   Foreground="#e0e0e0"
+                                                   VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="Durée par défaut d'un show" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Durée totale prévue lors de la création d'un show" FontSize="12" Foreground="#888888"/>
+                                    </StackPanel>
+                                    <NumericUpDown Grid.Column="1"
+                                                   Value="{Binding DefaultShowDuration}"
+                                                   Minimum="30"
+                                                   Maximum="300"
+                                                   Width="100"
+                                                   Background="#0f172a"
+                                                   BorderBrush="#334155"
+                                                   Foreground="#e0e0e0"
+                                                   VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                            <StackPanel Spacing="20">
+                                <TextBlock Text="🧭 GÉNÉRAL" FontSize="16" Foreground="#64748b" FontWeight="Bold"/>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="Validation automatique" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Lancer la validation à chaque modification" FontSize="12" Foreground="#888888"/>
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoValidateOnChange}" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="Thème FM26" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Choisissez un thème d'interface pour le booking" FontSize="12" Foreground="#888888"/>
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1"
+                                              ItemsSource="{Binding Themes}"
+                                              SelectedItem="{Binding SelectedTheme}"
+                                              Width="180"
+                                              Background="#0f172a"
+                                              BorderBrush="#334155"
+                                              Foreground="#e0e0e0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </TabItem>
+
+                <TabItem Header="VALIDATION">
+                    <StackPanel Spacing="20" Margin="0,10,0,0">
+                        <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="🧪 RÈGLES DE VALIDATION" FontSize="16" Foreground="#64748b" FontWeight="Bold"/>
+                                        <TextBlock Text="Règles actives" FontSize="12" Foreground="#888888"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding ActiveRulesCount}" FontSize="20" FontWeight="Bold" Foreground="#3b82f6" HorizontalAlignment="Right" Margin="0,0,12,0"/>
+                                    <Button Grid.Column="2" Content="➕ Ajouter" Command="{Binding AddValidationRuleCommand}" Background="#3b82f6" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding ValidationRules}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#0f172a" Padding="16" CornerRadius="6" Margin="0,0,0,10">
+                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto" RowSpacing="6">
+                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding SeverityIcon}" FontSize="16" Margin="0,0,10,0"/>
+                                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2">
+                                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                                        <TextBlock Text="{Binding Category}" FontSize="11" Foreground="#94a3b8"/>
+                                                    </StackPanel>
+                                                    <ToggleSwitch Grid.Row="0" Grid.Column="2" IsChecked="{Binding IsEnabled}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                    <Button Grid.Row="0" Grid.Column="3" Content="Supprimer"
+                                                            Command="{Binding $parent[UserControl].DataContext.RemoveValidationRuleCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="#334155"
+                                                            Foreground="#e2e8f0"
+                                                            CornerRadius="6"
+                                                            Padding="10,4"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Description}" FontSize="11" Foreground="#888888"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                                    <Button Content="Tester" Command="{Binding TestValidationCommand}" Background="#0f172a" Foreground="#e2e8f0" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Réinitialiser" Command="{Binding ResetToDefaultsCommand}" Background="#475569" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Enregistrer" Command="{Binding SaveSettingsCommand}" Background="#10b981" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

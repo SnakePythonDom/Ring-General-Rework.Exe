@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
+             xmlns:shared="using:RingGeneral.UI.Views.Shared"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="RingGeneral.UI.Views.Roster.WorkerDetailView"
              x:DataType="vm:WorkerDetailViewModel">
@@ -12,172 +13,14 @@
     </Design.DataContext>
 
     <Grid Margin="30">
-        <Grid RowDefinitions="Auto,20,*">
+        <Grid RowDefinitions="Auto,*">
+            <shared:ProfileView Grid.Row="0" DataContext="{Binding Profile}" IsVisible="{Binding !IsLoading}"/>
 
-            <!-- En-tête -->
-            <StackPanel Grid.Row="0" Spacing="8">
-                <TextBlock Text="🤼 FICHE WORKER" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-                <TextBlock Text="{Binding WorkerName}" FontSize="20" Foreground="#3b82f6" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding RoleTvDisplay}" FontSize="14" Foreground="#888888"/>
-            </StackPanel>
-
-            <!-- Contenu principal -->
-            <Grid Grid.Row="2" ColumnDefinitions="2*,20,3*" IsVisible="{Binding !IsLoading}">
-
-                <!-- Panneau gauche: Stats principales -->
-                <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="20">
-
-                        <!-- Overall Rating -->
-                        <Border Background="#065f46" Padding="15" CornerRadius="6">
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="OVERALL RATING" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding OverallRating}" FontSize="48" FontWeight="Bold" Foreground="#34d399" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Attributs avec barres -->
-                        <StackPanel Spacing="12">
-                            <TextBlock Text="ATTRIBUTS" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                            <ItemsControl ItemsSource="{Binding Attributes}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Spacing="4" Margin="0,0,0,8">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" Foreground="#cbd5e1"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11" Foreground="#e0e0e0" FontWeight="SemiBold"/>
-                                            </Grid>
-                                            <Border Height="6" Background="#0f172a" CornerRadius="3">
-                                                <Border Width="{Binding PercentageWidth}" Background="{Binding Color}" CornerRadius="3" HorizontalAlignment="Left"/>
-                                            </Border>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-
-                        <!-- Stats secondaires -->
-                        <StackPanel Spacing="12">
-                            <TextBlock Text="CONDITION" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-
-                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
-                                <!-- Popularité -->
-                                <Border Grid.Row="0" Grid.Column="0" Background="#1e40af" Padding="12,8" CornerRadius="6" Margin="0,0,5,4">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="POPULARITÉ" FontSize="10" Foreground="#bfdbfe"/>
-                                        <TextBlock Text="{Binding PopularityDisplay}" FontSize="20" FontWeight="Bold" Foreground="#93c5fd"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Momentum -->
-                                <Border Grid.Row="0" Grid.Column="1" Background="#7c2d12" Padding="12,8" CornerRadius="6" Margin="5,0,0,4">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="MOMENTUM" FontSize="10" Foreground="#fed7aa"/>
-                                        <TextBlock Text="{Binding MomentumDisplay}" FontSize="20" FontWeight="Bold" Foreground="#fdba74"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Fatigue -->
-                                <Border Grid.Row="1" Grid.Column="0" Background="#713f12" Padding="12,8" CornerRadius="6" Margin="0,4,5,4">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="FATIGUE" FontSize="10" Foreground="#fde68a"/>
-                                        <TextBlock Text="{Binding FatigueDisplay}" FontSize="20" FontWeight="Bold" Foreground="#fbbf24"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Morale -->
-                                <Border Grid.Row="1" Grid.Column="1" Background="#065f46" Padding="12,8" CornerRadius="6" Margin="5,4,0,4">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="MORALE" FontSize="10" Foreground="#a7f3d0"/>
-                                        <TextBlock Text="{Binding MoraleDisplay}" FontSize="20" FontWeight="Bold" Foreground="#34d399"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Blessure -->
-                                <Border Grid.Row="2" Grid.ColumnSpan="2"
-                                        Background="{Binding HasInjury, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#991b1b:#064e3b}"
-                                        Padding="12,8" CornerRadius="6" Margin="0,4,0,0">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="BLESSURE" FontSize="10"
-                                                   Foreground="{Binding HasInjury, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#fecaca:#a7f3d0}"/>
-                                        <TextBlock Text="{Binding InjuryDisplay}" FontSize="14" FontWeight="SemiBold"
-                                                   Foreground="{Binding HasInjury, Converter={StaticResource BoolToColorConverter}, ConverterParameter=#fca5a5:#34d399}"/>
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
-                        </StackPanel>
-
-                    </StackPanel>
-                </Border>
-
-                <!-- Panneau droit: Storylines, Titres, Historique -->
-                <ScrollViewer Grid.Column="2">
-                    <StackPanel Spacing="20">
-
-                        <!-- Storylines actives -->
-                        <Border Background="#1e293b" CornerRadius="8" Padding="20">
-                            <StackPanel Spacing="12">
-                                <TextBlock Text="📖 STORYLINES ACTIVES" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
-                                <ItemsControl ItemsSource="{Binding Storylines}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="#0f172a" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
-                                                <TextBlock Text="{Binding .}" FontSize="12" Foreground="#cbd5e1" TextWrapping="Wrap"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Text="Aucune storyline active" FontSize="12" Foreground="#64748b" FontStyle="Italic"
-                                           IsVisible="{Binding !Storylines.Count}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Titres détenus -->
-                        <Border Background="#1e293b" CornerRadius="8" Padding="20">
-                            <StackPanel Spacing="12">
-                                <TextBlock Text="🏆 TITRES DÉTENUS" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
-                                <ItemsControl ItemsSource="{Binding Titles}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="#065f46" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
-                                                <TextBlock Text="{Binding .}" FontSize="12" Foreground="#d1fae5" TextWrapping="Wrap"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Text="Aucun titre détenu" FontSize="12" Foreground="#64748b" FontStyle="Italic"
-                                           IsVisible="{Binding !Titles.Count}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Matches récents -->
-                        <Border Background="#1e293b" CornerRadius="8" Padding="20">
-                            <StackPanel Spacing="12">
-                                <TextBlock Text="⭐ MATCHES RÉCENTS" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
-                                <ItemsControl ItemsSource="{Binding RecentMatches}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="#0f172a" Padding="12,8" Margin="0,0,0,6" CornerRadius="6">
-                                                <TextBlock Text="{Binding .}" FontSize="11" Foreground="#94a3b8"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-
-                    </StackPanel>
-                </ScrollViewer>
-
-            </Grid>
-
-            <!-- Indicateur de chargement -->
-            <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                         Spacing="12" IsVisible="{Binding IsLoading}">
                 <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center"/>
                 <TextBlock Text="Chargement..." FontSize="14" Foreground="#888888" HorizontalAlignment="Center"/>
             </StackPanel>
-
         </Grid>
     </Grid>
 

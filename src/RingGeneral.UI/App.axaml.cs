@@ -11,7 +11,11 @@ using RingGeneral.UI.ViewModels.Storylines;
 using RingGeneral.UI.ViewModels.Youth;
 using RingGeneral.UI.ViewModels.Finance;
 using RingGeneral.UI.ViewModels.Calendar;
+using RingGeneral.UI.ViewModels.CompanyHub;
+using RingGeneral.UI.ViewModels.Crisis;
+using RingGeneral.UI.ViewModels.OwnerBooker;
 using RingGeneral.UI.ViewModels.Start;
+using RingGeneral.UI.ViewModels.Medical;
 using RingGeneral.UI.Views.Shell;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
@@ -179,10 +183,14 @@ public sealed class App : Application
         services.AddTransient<YouthViewModel>();
         services.AddTransient<FinanceViewModel>();
         services.AddTransient<CalendarViewModel>();
+        services.AddTransient<CompanyHubViewModel>();
+        services.AddTransient<OwnerBookerViewModel>();
+        services.AddTransient<CrisisViewModel>();
 
         // Inbox & Settings ViewModels
         services.AddTransient<ViewModels.Inbox.InboxViewModel>();
         services.AddTransient<ViewModels.Settings.SettingsViewModel>();
+        services.AddTransient<MedicalViewModel>();
 
         var provider = services.BuildServiceProvider();
 
