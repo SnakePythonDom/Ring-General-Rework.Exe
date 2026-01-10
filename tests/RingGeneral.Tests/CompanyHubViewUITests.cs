@@ -61,7 +61,7 @@ public class CompanyHubViewUITests
 
         // Assert - Vérifier que la trésorerie est affichée
         var treasuryTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$2,500,000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$2,500,000"))
             .ToList();
 
         treasuryTextBlocks.Should().NotBeEmpty();
@@ -83,7 +83,7 @@ public class CompanyHubViewUITests
 
         // Assert - Vérifier que la date est affichée
         var dateTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Week 15"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Week 15"))
             .ToList();
 
         dateTextBlocks.Should().NotBeEmpty();
@@ -107,6 +107,10 @@ public class CompanyHubViewUITests
                 .FirstOrDefault(btn => btn.Content?.ToString() == "CONTINUER");
 
         continueButton.Should().NotBeNull();
+        if (continueButton != null)
+        {
+            // Button found
+        }
     }
 
     [AvaloniaFact]
@@ -151,7 +155,7 @@ public class CompanyHubViewUITests
 
         // Assert - Vérifier l'affichage des statistiques de compagnie
         var statTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("RING GENERAL") ||
+            .Where(tb => tb.Text != null && tb.Text.Contains("RING GENERAL") ||
                         tb.Text.Contains("Trésorerie") ||
                         tb.Text.Contains("Date"))
             .ToList();
@@ -238,7 +242,7 @@ public class CompanyHubViewUITests
 
         // Assert - Vérifier que l'affichage s'est mis à jour
         var updatedTreasuryTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$2,000,000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$2,000,000"))
             .ToList();
 
         updatedTreasuryTextBlocks.Should().NotBeEmpty();
@@ -263,7 +267,7 @@ public class CompanyHubViewUITests
         mainGrid.Should().NotBeNull();
 
         // Vérifier qu'il y a au moins 3 lignes (header, subheader, content)
-        mainGrid!.RowDefinitions.Should().HaveCountGreaterThanOrEqualTo(3);
+        mainGrid?.RowDefinitions.Should().HaveCountGreaterThanOrEqualTo(3);
 
         // Vérifier la présence d'éléments visuels clés
         var textBlocks = view.GetVisualDescendants().OfType<TextBlock>().ToList();

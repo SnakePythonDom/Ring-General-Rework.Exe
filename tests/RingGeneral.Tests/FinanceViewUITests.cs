@@ -65,7 +65,7 @@ public class FinanceViewUITests
                 .FirstOrDefault(tb => tb.Text.Contains("$1,750,000.75"));
 
         balanceTextBlock.Should().NotBeNull();
-        balanceTextBlock!.Text.Should().Contain("$1,750,000.75");
+        balanceTextBlock?.Text.Should().Contain("$1,750,000.75");
     }
 
     [AvaloniaFact]
@@ -87,7 +87,7 @@ public class FinanceViewUITests
 
         // Assert - Trouver le TextBlock qui affiche les revenus hebdomadaires
         var revenueTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$98,765.43"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$98,765.43"))
             .ToList();
 
         revenueTextBlocks.Should().NotBeEmpty();
@@ -112,7 +112,7 @@ public class FinanceViewUITests
 
         // Assert - Trouver le TextBlock qui affiche les dépenses hebdomadaires
         var expenseTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$54,321.67"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$54,321.67"))
             .ToList();
 
         expenseTextBlocks.Should().NotBeEmpty();
@@ -137,7 +137,7 @@ public class FinanceViewUITests
 
         // Assert - Trouver le TextBlock qui affiche la semaine actuelle
         var weekTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains($"Week {expectedWeek}"))
+            .Where(tb => tb.Text != null && tb.Text.Contains($"Week {expectedWeek}"))
             .ToList();
 
         weekTextBlocks.Should().NotBeEmpty();
@@ -162,7 +162,7 @@ public class FinanceViewUITests
 
         // Assert - Trouver le TextBlock qui affiche la dette totale
         var debtTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$750,000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$750,000"))
             .ToList();
 
         debtTextBlocks.Should().NotBeEmpty();
@@ -193,7 +193,7 @@ public class FinanceViewUITests
             view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
 
         dataGrid.Should().NotBeNull();
-        dataGrid!.ItemsSource.Should().NotBeNull();
+        dataGrid?.ItemsSource.Should().NotBeNull();
         ((System.Collections.IEnumerable?)dataGrid.ItemsSource)?.Cast<object>().Should().NotBeEmpty();
     }
 
@@ -243,7 +243,7 @@ public class FinanceViewUITests
                 .FirstOrDefault(lb => lb.Items?.Count > 0);
 
         tvDealsList.Should().NotBeNull();
-        tvDealsList!.Items.Should().NotBeEmpty();
+        tvDealsList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -268,7 +268,7 @@ public class FinanceViewUITests
 
         // Assert - Vérifier que l'UI s'est mise à jour
         var balanceTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$2,000,000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$2,000,000"))
             .ToList();
 
         balanceTextBlocks.Should().NotBeEmpty();

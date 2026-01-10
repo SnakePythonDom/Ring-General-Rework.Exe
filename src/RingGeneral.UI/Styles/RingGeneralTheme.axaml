@@ -9,10 +9,11 @@
   <Styles.Resources>
     <!-- Background Colors -->
     <SolidColorBrush x:Key="BackgroundPrimary">#1a1a1a</SolidColorBrush>
-    <SolidColorBrush x:Key="BackgroundSecondary">#1e1e1e</SolidColorBrush>
-    <SolidColorBrush x:Key="BackgroundPanel">#2d2d2d</SolidColorBrush>
-    <SolidColorBrush x:Key="BackgroundHover">#333333</SolidColorBrush>
-    <SolidColorBrush x:Key="BackgroundActive">#3a3a3a</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundSecondary">#1e293b</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundTertiary">#0f172a</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundPanel">#1e293b</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundHover">#334155</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundActive">#475569</SolidColorBrush>
 
     <!-- Border Colors -->
     <SolidColorBrush x:Key="BorderPrimary">#3a3a3a</SolidColorBrush>
@@ -21,15 +22,19 @@
 
     <!-- Text Colors -->
     <SolidColorBrush x:Key="TextPrimary">#e0e0e0</SolidColorBrush>
-    <SolidColorBrush x:Key="TextSecondary">#b0b0b0</SolidColorBrush>
+    <SolidColorBrush x:Key="TextSecondary">#888888</SolidColorBrush>
     <SolidColorBrush x:Key="TextTertiary">#888888</SolidColorBrush>
     <SolidColorBrush x:Key="TextDisabled">#666666</SolidColorBrush>
 
-    <!-- Semantic Colors -->
+    <!-- Semantic Colors (Accents) -->
     <SolidColorBrush x:Key="ColorSuccess">#10b981</SolidColorBrush>
     <SolidColorBrush x:Key="ColorWarning">#f59e0b</SolidColorBrush>
     <SolidColorBrush x:Key="ColorError">#ef4444</SolidColorBrush>
     <SolidColorBrush x:Key="ColorInfo">#3b82f6</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentBlue">#3b82f6</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentGreen">#10b981</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentOrange">#f59e0b</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentRed">#ef4444</SolidColorBrush>
 
     <!-- Accent Colors -->
     <SolidColorBrush x:Key="AccentPrimary">#3b82f6</SolidColorBrush>

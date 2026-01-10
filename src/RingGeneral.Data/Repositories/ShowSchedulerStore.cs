@@ -21,7 +21,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public ShowSchedule? ChargerShow(string showId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT ShowId, CompanyId, Name, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId
@@ -58,7 +58,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public IReadOnlyList<ShowSchedule> ChargerShows(string companyId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT ShowId, CompanyId, Name, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId
@@ -103,7 +103,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public IReadOnlyList<CalendarEntry> ChargerCalendarEntries(string companyId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT CalendarEntryId, CompanyId, Date, EntryType, ReferenceId, Title, Notes
@@ -133,7 +133,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public IReadOnlyList<ShowSettings> ChargerShowSettings(string companyId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             SELECT ShowSettingsId, CompanyId, ShowType, RuntimeMinMinutes, RuntimeMaxMinutes, 
@@ -164,7 +164,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public void AjouterShow(ShowSchedule show)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO Shows (ShowId, CompanyId, Name, Week, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId)
@@ -189,7 +189,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public void MettreAJourShow(ShowSchedule show)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             UPDATE Shows
@@ -219,7 +219,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public void SupprimerShow(string showId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = "DELETE FROM Shows WHERE ShowId = $showId;";
         command.Parameters.AddWithValue("$showId", showId);
@@ -228,7 +228,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public void AjouterCalendarEntry(CalendarEntry entry)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             INSERT INTO CalendarEntries (CalendarEntryId, CompanyId, Date, EntryType, ReferenceId, Title, Notes)
@@ -246,7 +246,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public void MettreAJourCalendarEntry(CalendarEntry entry)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
             UPDATE CalendarEntries
@@ -270,7 +270,7 @@ public sealed class ShowSchedulerStore : IShowSchedulerStore
 
     public void SupprimerCalendarEntry(string entryId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = "DELETE FROM CalendarEntries WHERE CalendarEntryId = $entryId;";
         command.Parameters.AddWithValue("$entryId", entryId);

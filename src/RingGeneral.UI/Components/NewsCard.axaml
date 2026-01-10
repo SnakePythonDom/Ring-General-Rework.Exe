@@ -7,8 +7,8 @@
 
   <UserControl.Styles>
     <Style Selector="Border.news-card">
-      <Setter Property="Background" Value="#2d2d2d"/>
-      <Setter Property="BorderBrush" Value="#3a3a3a"/>
+      <Setter Property="Background" Value="{StaticResource BackgroundInputBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Margin" Value="0,0,0,8"/>
@@ -16,12 +16,12 @@
     </Style>
 
     <Style Selector="Border.news-card:pointerover">
-      <Setter Property="Background" Value="#333333"/>
-      <Setter Property="BorderBrush" Value="#4a4a4a"/>
+      <Setter Property="Background" Value="{StaticResource BackgroundHoverBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}"/>
     </Style>
 
     <Style Selector="Border.news-card.unread">
-      <Setter Property="BorderBrush" Value="#3b82f6"/>
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
       <Setter Property="BorderThickness" Value="2,1,1,1"/>
     </Style>
 
@@ -34,27 +34,27 @@
     </Style>
 
     <Style Selector="Border.icon-container.contract">
-      <Setter Property="Background" Value="#3b82f6"/>
+      <Setter Property="Background" Value="{StaticResource AccentBlueBrush}"/>
     </Style>
 
     <Style Selector="Border.icon-container.injury">
-      <Setter Property="Background" Value="#ef4444"/>
+      <Setter Property="Background" Value="{StaticResource AccentRedBrush}"/>
     </Style>
 
     <Style Selector="Border.icon-container.scout">
-      <Setter Property="Background" Value="#10b981"/>
+      <Setter Property="Background" Value="{StaticResource AccentGreenBrush}"/>
     </Style>
 
     <Style Selector="Border.icon-container.progress">
-      <Setter Property="Background" Value="#f59e0b"/>
+      <Setter Property="Background" Value="{StaticResource AccentOrangeBrush}"/>
     </Style>
 
     <Style Selector="Border.icon-container.finance">
-      <Setter Property="Background" Value="#8b5cf6"/>
+      <Setter Property="Background" Value="{StaticResource BrandSecondaryBrush}"/>
     </Style>
 
     <Style Selector="Border.icon-container.alert">
-      <Setter Property="Background" Value="#f59e0b"/>
+      <Setter Property="Background" Value="{StaticResource AccentOrangeBrush}"/>
     </Style>
 
     <Style Selector="TextBlock.icon">
@@ -66,14 +66,14 @@
     <Style Selector="TextBlock.news-title">
       <Setter Property="FontSize" Value="14"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Foreground" Value="#e0e0e0"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
       <Setter Property="TextWrapping" Value="NoWrap"/>
       <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
     </Style>
 
     <Style Selector="TextBlock.news-message">
       <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Foreground" Value="#b0b0b0"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
       <Setter Property="Margin" Value="0,4,0,0"/>
       <Setter Property="MaxHeight" Value="40"/>
@@ -81,14 +81,14 @@
 
     <Style Selector="TextBlock.news-timestamp">
       <Setter Property="FontSize" Value="11"/>
-      <Setter Property="Foreground" Value="#888888"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
       <Setter Property="Margin" Value="0,4,0,0"/>
     </Style>
 
     <Style Selector="Border.unread-badge">
       <Setter Property="Width" Value="8"/>
       <Setter Property="Height" Value="8"/>
-      <Setter Property="Background" Value="#3b82f6"/>
+      <Setter Property="Background" Value="{StaticResource AccentBlueBrush}"/>
       <Setter Property="CornerRadius" Value="4"/>
       <Setter Property="VerticalAlignment" Value="Top"/>
       <Setter Property="Margin" Value="8,0,0,0"/>
@@ -96,7 +96,7 @@
 
     <Style Selector="Button.action-button">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="#888888"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Padding" Value="6"/>
       <Setter Property="Margin" Value="2,0"/>
@@ -105,7 +105,7 @@
     </Style>
 
     <Style Selector="Button.action-button:pointerover">
-      <Setter Property="Foreground" Value="#e0e0e0"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
     </Style>
   </UserControl.Styles>
 

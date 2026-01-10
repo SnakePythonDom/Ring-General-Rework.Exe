@@ -276,7 +276,7 @@ public class ShowSimulationEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = method!.Invoke(engine, new object[] { "companyId" });
+        var result = method?.Invoke(engine, new object[] { "companyId" });
 
         // Assert
         var (ticketMultiplier, merchMultiplier, tvReduction) = ((double, double, double))result!;
@@ -316,7 +316,7 @@ public class ShowSimulationEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = method!.Invoke(engine, new object[] { "companyId" });
+        var result = method?.Invoke(engine, new object[] { "companyId" });
 
         // Assert
         var (ticketMultiplier, merchMultiplier, tvReduction) = ((double, double, double))result!;
@@ -356,7 +356,7 @@ public class ShowSimulationEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = method!.Invoke(engine, new object[] { "companyId" });
+        var result = method?.Invoke(engine, new object[] { "companyId" });
 
         // Assert
         var (ticketMultiplier, merchMultiplier, tvReduction) = ((double, double, double))result!;

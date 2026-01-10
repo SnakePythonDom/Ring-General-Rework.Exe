@@ -77,12 +77,12 @@ public sealed class GameRepository : IGameRepository
     /// <returns>Connexion SQLite ouverte</returns>
     public SqliteConnection CreateConnection()
     {
-        return _factory.OuvrirConnexion();
+        return _factory.CreateGeneralConnection();
     }
 
     public ShowContext? ChargerShowContext(string showId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
 
         var show = ChargerShow(connexion, showId);
         if (show is null)
@@ -207,7 +207,7 @@ public sealed class GameRepository : IGameRepository
 
     public void AppliquerDelta(string showId, GameStateDelta delta)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var transaction = connexion.BeginTransaction();
         var regionId = ChargerRegionShow(connexion, showId);
         var semaineShow = ChargerSemaineShow(connexion, showId);
@@ -457,7 +457,7 @@ public sealed class GameRepository : IGameRepository
 
     public IReadOnlyList<(string WorkerId, int FinSemaine)> ChargerContracts()
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = "SELECT worker_id, fin_semaine FROM contracts;";
         using var reader = command.ExecuteReader();
@@ -625,7 +625,7 @@ public sealed class GameRepository : IGameRepository
     public ShowDefinition? ChargerShow(string showId)
     {
         // Utilisation de la factory interne pour ouvrir la connexion
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
 
         // Appel de la méthode statique privée juste en dessous
         return ChargerShow(connexion, showId);
@@ -933,7 +933,7 @@ public sealed class GameRepository : IGameRepository
             return;
         }
 
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var transaction = connexion.BeginTransaction();
         foreach (var type in types)
         {
@@ -966,7 +966,7 @@ public sealed class GameRepository : IGameRepository
             return;
         }
 
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var transaction = connexion.BeginTransaction();
         foreach (var template in templates)
         {
@@ -999,7 +999,7 @@ public sealed class GameRepository : IGameRepository
     /// </summary>
     public int IncrementerJour(string companyId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         
         // Récupérer le SaveGameId actif pour cette compagnie
@@ -1036,7 +1036,7 @@ public sealed class GameRepository : IGameRepository
     /// </summary>
     public DateTime GetCurrentDate(string companyId)
     {
-        using var connexion = _factory.OuvrirConnexion();
+        using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
         
         command.CommandText = """

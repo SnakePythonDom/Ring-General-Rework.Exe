@@ -8,7 +8,7 @@
         x:DataType="vm:ContractNegotiationViewModel"
         Title="Contract Negotiation"
         Width="600" Height="700"
-        Background="#1e293b">
+        Background="{StaticResource BackgroundSecondaryBrush}">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -29,12 +29,12 @@
                    Text="📝 Contract Negotiation" 
                    FontSize="24" 
                    FontWeight="Bold" 
-                   Foreground="#e0e0e0" 
+                   Foreground="{StaticResource TextPrimaryBrush}" 
                    Margin="0,0,0,20"/>
 
         <!-- Phase 3.1 - Template Selection -->
         <Border Grid.Row="1" 
-                Background="#334155" 
+                Background="{StaticResource BorderMediumBrush}" 
                 CornerRadius="8" 
                 Padding="15" 
                 Margin="0,0,0,15">
@@ -42,7 +42,7 @@
                 <TextBlock Text="📋 Utiliser un Template" 
                            FontSize="14" 
                            FontWeight="SemiBold" 
-                           Foreground="#cbd5e1" 
+                           Foreground="{StaticResource TextSecondaryBrush}" 
                            Margin="0,0,0,8"/>
                 
                 <ComboBox ItemsSource="{Binding ContractTemplates}"
@@ -53,10 +53,10 @@
                             <StackPanel>
                                 <TextBlock Text="{Binding Name}" 
                                            FontWeight="SemiBold" 
-                                           Foreground="#e0e0e0"/>
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
                                 <TextBlock Text="{Binding Description}" 
                                            FontSize="11" 
-                                           Foreground="#94a3b8"/>
+                                           Foreground="{StaticResource TextMutedBrush}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -66,7 +66,7 @@
                         Command="{Binding ApplyTemplateCommand}"
                         HorizontalAlignment="Stretch"
                         Padding="10,6"
-                        Background="#10b981"
+                        Background="{StaticResource AccentGreenBrush}"
                         Foreground="White"
                         CornerRadius="4"
                         FontWeight="SemiBold"/>
@@ -78,7 +78,7 @@
                    Text="Contract Terms" 
                    FontSize="16" 
                    FontWeight="SemiBold" 
-                   Foreground="#cbd5e1" 
+                   Foreground="{StaticResource TextSecondaryBrush}" 
                    Margin="0,10,0,15"/>
 
         <!-- Monthly Wage -->
@@ -89,12 +89,12 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" 
                        Text="Salaire Mensuel ($):" 
-                       Foreground="#94a3b8" 
+                       Foreground="{StaticResource TextMutedBrush}" 
                        VerticalAlignment="Center"/>
             <TextBox Grid.Column="1" 
                      Text="{Binding MonthlyWage, StringFormat='{}{0:N0}'}"
-                     Background="#0f172a"
-                     Foreground="#e0e0e0"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
                      BorderBrush="#475569"
                      Padding="8"/>
         </Grid>
@@ -107,12 +107,12 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" 
                        Text="Frais d'Apparition ($):" 
-                       Foreground="#94a3b8" 
+                       Foreground="{StaticResource TextMutedBrush}" 
                        VerticalAlignment="Center"/>
             <TextBox Grid.Column="1" 
                      Text="{Binding AppearanceFee, StringFormat='{}{0:N0}'}"
-                     Background="#0f172a"
-                     Foreground="#e0e0e0"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
                      BorderBrush="#475569"
                      Padding="8"/>
         </Grid>
@@ -125,12 +125,12 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" 
                        Text="Durée (mois):" 
-                       Foreground="#94a3b8" 
+                       Foreground="{StaticResource TextMutedBrush}" 
                        VerticalAlignment="Center"/>
             <TextBox Grid.Column="1" 
                      Text="{Binding DurationMonths}"
-                     Background="#0f172a"
-                     Foreground="#e0e0e0"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
                      BorderBrush="#475569"
                      Padding="8"/>
         </Grid>
@@ -139,16 +139,16 @@
         <StackPanel Grid.Row="6" Spacing="10" Margin="0,0,0,15">
             <CheckBox Content="Contrat Exclusif"
                       IsChecked="{Binding IsExclusive}"
-                      Foreground="#cbd5e1"/>
+                      Foreground="{StaticResource TextSecondaryBrush}"/>
             <CheckBox Content="Option de Renouvellement Automatique"
                       IsChecked="{Binding HasRenewalOption}"
-                      Foreground="#cbd5e1"/>
+                      Foreground="{StaticResource TextSecondaryBrush}"/>
         </StackPanel>
 
         <!-- Status Message -->
         <TextBlock Grid.Row="7" 
                    Text="{Binding StatusMessage}" 
-                   Foreground="#fbbf24" 
+                   Foreground="{StaticResource WarningBrush}" 
                    Margin="0,0,0,15"
                    TextWrapping="Wrap"/>
 
@@ -170,7 +170,7 @@
                     Content="Créer l'Offre"
                     Command="{Binding CreateOfferCommand}"
                     Padding="15,8"
-                    Background="#10b981"
+                    Background="{StaticResource AccentGreenBrush}"
                     Foreground="White"
                     CornerRadius="4"
                     FontWeight="SemiBold"/>

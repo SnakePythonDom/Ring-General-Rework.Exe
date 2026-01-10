@@ -19,7 +19,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new CalendarViewModel(null);
+        var viewModel = new CalendarViewModel();
         var view = new CalendarView { DataContext = viewModel };
 
         // Act
@@ -38,7 +38,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayCalendarTitle()
     {
         // Arrange
-        var viewModel = new CalendarViewModel(null);
+        var viewModel = new CalendarViewModel();
         var view = new CalendarView { DataContext = viewModel };
 
         // Act
@@ -48,7 +48,7 @@ public class CalendarViewUITests
 
         // Assert - Vérifier que le titre Calendar est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("CALENDAR") || tb.Text.Contains("Calendrier"))
+            .Where(tb => tb.Text != null && (tb.Text.Contains("CALENDAR") || tb.Text.Contains("Calendrier")))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -58,7 +58,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayCurrentMonth()
     {
         // Arrange
-        var viewModel = new CalendarViewModel(null);
+        var viewModel = new CalendarViewModel();
         // CalendarViewModel utilise CurrentDate (DateOnly) au lieu de CurrentWeek
 
         var view = new CalendarView { DataContext = viewModel };
@@ -70,7 +70,7 @@ public class CalendarViewUITests
 
         // Assert - Vérifier que le mois actuel est affiché
         var monthTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("January 2024"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("January 2024"))
             .ToList();
 
         monthTextBlocks.Should().NotBeEmpty();
@@ -80,7 +80,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayEvents()
     {
         // Arrange
-        var viewModel = new CalendarViewModel(null);
+        var viewModel = new CalendarViewModel();
 
         // Ajouter un événement
         viewModel.CalendarEntries.Add(new CalendarEntryItemViewModel
@@ -104,14 +104,17 @@ public class CalendarViewUITests
             view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
 
         eventsList.Should().NotBeNull();
-        eventsList!.Items.Should().NotBeEmpty();
+        if (eventsList != null)
+        {
+            eventsList.Items.Should().NotBeEmpty();
+        }
     }
 
     [AvaloniaFact]
     public async Task CalendarView_ShouldDisplayNavigationButtons()
     {
         // Arrange
-        var viewModel = new CalendarViewModel(null);
+        var viewModel = new CalendarViewModel();
         var view = new CalendarView { DataContext = viewModel };
 
         // Act
@@ -136,7 +139,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayEventDetails()
     {
         // Arrange
-        var viewModel = new CalendarViewModel(null);
+        var viewModel = new CalendarViewModel();
 
         var eventItem = new CalendarEntryItemViewModel
         {
@@ -158,11 +161,11 @@ public class CalendarViewUITests
 
         // Assert - Vérifier que les détails de l'événement sont affichés
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Royal Rumble"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Royal Rumble"))
             .ToList();
 
         var venueTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Madison Square Garden"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Madison Square Garden"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -173,7 +176,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new CalendarViewModel(null);
+        var viewModel = new CalendarViewModel();
         var view = new CalendarView { DataContext = viewModel };
 
         // Act

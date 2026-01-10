@@ -20,7 +20,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -39,7 +39,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayInboxTitle()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -49,7 +49,7 @@ public class InboxViewUITests
 
         // Assert - Vérifier que le titre Inbox est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("INBOX") || tb.Text.Contains("Messages"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("INBOX") || tb.Text.Contains("Messages"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -59,7 +59,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayMessagesList()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
 
         // Ajouter un message de test
         viewModel.Items.Add(new InboxItemViewModel(new InboxItem(
@@ -81,14 +81,17 @@ public class InboxViewUITests
             view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
 
         messagesList.Should().NotBeNull();
-        messagesList!.Items.Should().NotBeEmpty();
+        if (messagesList != null)
+        {
+            messagesList.Items.Should().NotBeEmpty();
+        }
     }
 
     [AvaloniaFact]
     public async Task InboxView_ShouldDisplayMessageContent()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
 
         var testMessage = new InboxItemViewModel(new InboxItem(
             Type: "System",
@@ -108,7 +111,7 @@ public class InboxViewUITests
 
         // Assert - Vérifier que le contenu du message est affiché
         var contentTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Breaking news"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Breaking news"))
             .ToList();
 
         contentTextBlocks.Should().NotBeEmpty();
@@ -118,7 +121,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayUnreadCount()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
 
         // Ajouter des messages (certains non lus)
         var readMessage = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Read Message", Contenu: "Content", Semaine: 1));
@@ -137,12 +140,12 @@ public class InboxViewUITests
 
         // Assert - Vérifier que le nombre de messages non lus est affiché
         var unreadTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("2") && tb.Text.Contains("non lu"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("2") && tb.Text.Contains("non lu"))
             .ToList();
 
         // Ou chercher d'autres indicateurs de messages non lus
         var unreadIndicators = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Unread") || tb.Text.Contains("non lu"))
+            .Where(tb => tb.Text != null && (tb.Text.Contains("Unread") || tb.Text.Contains("non lu")))
             .ToList();
 
         unreadIndicators.Should().NotBeEmpty();
@@ -152,7 +155,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldHandleMessageSelection()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
 
         var message1 = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Message 1", Contenu: "Content 1", Semaine: 1));
         var message2 = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Message 2", Contenu: "Content 2", Semaine: 1));
@@ -171,14 +174,14 @@ public class InboxViewUITests
         // Assert - Vérifier que la sélection fonctionne
         var messagesList = view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
         messagesList.Should().NotBeNull();
-        messagesList!.SelectedItem.Should().Be(message1);
+        messagesList?.SelectedItem.Should().Be(message1);
     }
 
     [AvaloniaFact]
     public async Task InboxView_ShouldDisplayMessageDetails()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
 
         var detailedMessage = new InboxItemViewModel(new InboxItem(
             Type: "Contract",
@@ -198,13 +201,13 @@ public class InboxViewUITests
 
         // Assert - Vérifier que les détails du message sont affichés
         var senderTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("HR Department"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("HR Department"))
             .ToList();
 
         senderTextBlocks.Should().NotBeEmpty();
 
         var contentTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("John Cena"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("John Cena"))
             .ToList();
 
         contentTextBlocks.Should().NotBeEmpty();
@@ -214,7 +217,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldHaveMarkAsReadButton()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -235,7 +238,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldUpdateWhenMessagesChange()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -256,14 +259,14 @@ public class InboxViewUITests
         // Assert - Vérifier que l'UI s'est mise à jour
         var messagesList = view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
         messagesList.Should().NotBeNull();
-        messagesList!.Items.Should().Contain(newMessage);
+        messagesList?.Items.Should().Contain(newMessage);
     }
 
     [AvaloniaFact]
     public async Task InboxView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new InboxViewModel(null);
+        var viewModel = new InboxViewModel();
         var view = new InboxView { DataContext = viewModel };
 
         // Act

@@ -15,45 +15,45 @@
         <StackPanel Margin="30" Spacing="25">
             <!-- En-tête -->
             <StackPanel Spacing="8">
-                <TextBlock Text="📚 BIBLIOTHÈQUE DE TEMPLATES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-                <TextBlock Text="Gérez vos templates réutilisables pour le booking" FontSize="14" Foreground="#888888"/>
+                <TextBlock Text="📚 BIBLIOTHÈQUE DE TEMPLATES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Gérez vos templates réutilisables pour le booking" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
             </StackPanel>
 
             <!-- Statistiques -->
             <Grid ColumnDefinitions="*,*,*">
-                <Border Grid.Column="0" Background="#1e293b" Padding="20" CornerRadius="8" Margin="0,0,6,0">
+                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,6,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="📋 TEMPLATES" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding TemplateCount}" FontSize="32" FontWeight="Bold" Foreground="#3b82f6"/>
-                        <TextBlock Text="Disponibles" FontSize="11" Foreground="#94a3b8"/>
+                        <TextBlock Text="📋 TEMPLATES" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TemplateCount}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                        <TextBlock Text="Disponibles" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Background="#065f46" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                <Border Grid.Column="1" Background="{StaticResource SuccessDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="🤼 MATCHES" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
-                        <TextBlock Text="3" FontSize="32" FontWeight="Bold" Foreground="#34d399"/>
-                        <TextBlock Text="Templates" FontSize="11" Foreground="#a7f3d0"/>
+                        <TextBlock Text="🤼 MATCHES" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="3" FontSize="32" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                        <TextBlock Text="Templates" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Background="#7c2d12" Padding="20" CornerRadius="8" Margin="6,0,0,0">
+                <Border Grid.Column="2" Background="{StaticResource WarningDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,0,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="🎤 PROMOS" FontSize="12" Foreground="#fed7aa" FontWeight="SemiBold"/>
+                        <TextBlock Text="🎤 PROMOS" FontSize="12" Foreground="{StaticResource WarningLightBrush}" FontWeight="SemiBold"/>
                         <TextBlock Text="2" FontSize="32" FontWeight="Bold" Foreground="#fb923c"/>
-                        <TextBlock Text="Templates" FontSize="11" Foreground="#fdba74"/>
+                        <TextBlock Text="Templates" FontSize="11" Foreground="{StaticResource WarningLightBrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- Barre de recherche et filtres -->
             <Grid ColumnDefinitions="*,Auto">
-                <Border Grid.Column="0" Background="#1e293b" Padding="15" CornerRadius="8" Margin="0,0,8,0">
+                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8" Margin="0,0,8,0">
                     <TextBox Watermark="🔍 Rechercher un template..."
                              Text="{Binding SearchText}"
-                             Background="#0f172a"
-                             BorderBrush="#334155"
-                             Foreground="#e0e0e0"
+                             Background="{StaticResource BackgroundTertiaryBrush}"
+                             BorderBrush="{StaticResource BorderMediumBrush}"
+                             Foreground="{StaticResource TextPrimaryBrush}"
                              Padding="12,10"
                              CornerRadius="6"/>
                 </Border>
@@ -61,23 +61,23 @@
                 <ComboBox Grid.Column="1"
                         ItemsSource="{Binding Categories}"
                         SelectedItem="{Binding SelectedCategory}"
-                        Background="#1e293b"
-                        BorderBrush="#334155"
-                        Foreground="#e0e0e0"
+                        Background="{StaticResource BackgroundSecondaryBrush}"
+                        BorderBrush="{StaticResource BorderMediumBrush}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
                         Padding="15,10"
                         MinWidth="150"/>
             </Grid>
 
             <!-- Actions rapides -->
-            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="⚡ ACTIONS RAPIDES" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                    <TextBlock Text="⚡ ACTIONS RAPIDES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                     <Grid ColumnDefinitions="*,*">
                         <Button Grid.Column="0"
                               Content="➕ Nouveau Template"
                               Command="{Binding CreateTemplateCommand}"
                               Padding="12,10"
-                              Background="#3b82f6"
+                              Background="{StaticResource AccentBlueBrush}"
                               Foreground="White"
                               CornerRadius="6"
                               FontWeight="Bold"
@@ -88,7 +88,7 @@
                               Content="🔄 Actualiser"
                               Command="{Binding RefreshCommand}"
                               Padding="12,10"
-                              Background="#8b5cf6"
+                              Background="{StaticResource BrandSecondaryBrush}"
                               Foreground="White"
                               CornerRadius="6"
                               FontWeight="Bold"
@@ -100,20 +100,20 @@
             </Border>
 
             <!-- Liste des templates -->
-            <Border Background="#1e293b" Padding="20" CornerRadius="8">
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="📋 TEMPLATES DISPONIBLES" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                    <TextBlock Text="📋 TEMPLATES DISPONIBLES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
 
                     <ItemsControl ItemsSource="{Binding Templates}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0f172a" Padding="16" Margin="0,0,0,8" CornerRadius="6">
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16" Margin="0,0,0,8" CornerRadius="6">
                                     <Grid ColumnDefinitions="2*,*,*,*,Auto">
                                         <!-- Nom et type -->
                                         <StackPanel Grid.Column="0" Spacing="4">
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="{Binding Nom}" FontSize="14" Foreground="#e0e0e0" FontWeight="Bold"/>
-                                                <Border Background="#3b82f6"
+                                                <TextBlock Text="{Binding Nom}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold"/>
+                                                <Border Background="{StaticResource AccentBlueBrush}"
                                                       Padding="6,2"
                                                       CornerRadius="4"
                                                       IsVisible="{Binding EstMainEvent}">
@@ -123,28 +123,28 @@
                                                              FontWeight="Bold"/>
                                                 </Border>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding TypeSegmentLibelle}" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Text="{Binding TypeSegmentLibelle}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                                         </StackPanel>
 
                                         <!-- Durée -->
                                         <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                            <TextBlock Text="Durée" FontSize="10" Foreground="#64748b"/>
+                                            <TextBlock Text="Durée" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <TextBlock Text="{Binding DureeMinutes}" FontSize="14" Foreground="#3b82f6" FontWeight="Bold"/>
-                                                <TextBlock Text="min" FontSize="12" Foreground="#94a3b8" VerticalAlignment="Bottom"/>
+                                                <TextBlock Text="{Binding DureeMinutes}" FontSize="14" Foreground="{StaticResource AccentBlueBrush}" FontWeight="Bold"/>
+                                                <TextBlock Text="min" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Bottom"/>
                                             </StackPanel>
                                         </StackPanel>
 
                                         <!-- Intensité -->
                                         <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
-                                            <TextBlock Text="Intensité" FontSize="10" Foreground="#64748b"/>
-                                            <TextBlock Text="{Binding Intensite}" FontSize="14" Foreground="#f59e0b" FontWeight="Bold"/>
+                                            <TextBlock Text="Intensité" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <TextBlock Text="{Binding Intensite}" FontSize="14" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="Bold"/>
                                         </StackPanel>
 
                                         <!-- Match Type (si applicable) -->
                                         <StackPanel Grid.Column="3" Spacing="4" VerticalAlignment="Center" IsVisible="{Binding MatchTypeNom, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                            <TextBlock Text="Type de match" FontSize="10" Foreground="#64748b"/>
-                                            <TextBlock Text="{Binding MatchTypeNom}" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Text="Type de match" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <TextBlock Text="{Binding MatchTypeNom}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                                         </StackPanel>
 
                                         <!-- Actions -->
@@ -153,7 +153,7 @@
                                                   Command="{Binding $parent[UserControl].DataContext.EditTemplateCommand}"
                                                   CommandParameter="{Binding}"
                                                   Padding="8,6"
-                                                  Background="#3b82f6"
+                                                  Background="{StaticResource AccentBlueBrush}"
                                                   Foreground="White"
                                                   CornerRadius="4"
                                                   FontSize="14"
@@ -162,7 +162,7 @@
                                                   Command="{Binding $parent[UserControl].DataContext.DuplicateTemplateCommand}"
                                                   CommandParameter="{Binding}"
                                                   Padding="8,6"
-                                                  Background="#8b5cf6"
+                                                  Background="{StaticResource BrandSecondaryBrush}"
                                                   Foreground="White"
                                                   CornerRadius="4"
                                                   FontSize="14"
@@ -171,7 +171,7 @@
                                                   Command="{Binding $parent[UserControl].DataContext.DeleteTemplateCommand}"
                                                   CommandParameter="{Binding}"
                                                   Padding="8,6"
-                                                  Background="#ef4444"
+                                                  Background="{StaticResource AccentRedBrush}"
                                                   Foreground="White"
                                                   CornerRadius="4"
                                                   FontSize="14"

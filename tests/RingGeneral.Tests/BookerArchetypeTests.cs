@@ -35,7 +35,7 @@ public class BookerArchetypeTests
             new[] { typeof(Booker), typeof(ShowContext), typeof(List<BookerMemory>), typeof(RingGeneral.Core.Models.Company.Era), typeof((string, int, bool)) });
 
         Assert.NotNull(method);
-        Assert.True(method!.IsPublic);
+        Assert.True(method?.IsPublic);
     }
 
     [Fact]
@@ -85,6 +85,6 @@ public class BookerArchetypeTests
             new[] { typeof(string), typeof(ShowContext), typeof(List<SegmentDefinition>), typeof(AutoBookingConstraints) });
 
         Assert.NotNull(method);
-        Assert.True(method!.IsPublic);
+        Assert.True(method?.IsPublic);
     }
 }

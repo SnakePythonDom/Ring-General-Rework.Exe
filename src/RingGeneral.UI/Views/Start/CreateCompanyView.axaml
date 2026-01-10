@@ -7,7 +7,7 @@
              x:Class="RingGeneral.UI.Views.Start.CreateCompanyView"
              x:DataType="vm:CreateCompanyViewModel">
 
-  <Grid Background="#0a0a0a">
+  <Grid Background="{StaticResource BackgroundPrimaryBrush}">
     <!-- Background gradient -->
     <Border>
       <Border.Background>
@@ -44,7 +44,7 @@
                   Command="{Binding CancelCommand}"/>
 
           <!-- Form -->
-          <Border Background="#1e293b"
+          <Border Background="{StaticResource BackgroundSecondaryBrush}"
                   CornerRadius="8"
                   Padding="40"
                   BoxShadow="0 8 32 #00000040">
@@ -60,7 +60,7 @@
                      Watermark="Entrez le nom de votre compagnie..."
                      FontSize="18"
                      Padding="12"
-                     Background="#0f172a"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
                      Foreground="#e2e8f0"
                      BorderBrush="#475569"
                      BorderThickness="1"
@@ -68,15 +68,15 @@
                      SelectionBrush="#3b82f6">
               <TextBox.Styles>
                 <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-                  <Setter Property="Background" Value="#0f172a"/>
-                  <Setter Property="BorderBrush" Value="#3b82f6"/>
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
                   <Setter Property="BorderThickness" Value="2"/>
                 </Style>
                 <Style Selector="TextBox:focus">
                   <Setter Property="Foreground" Value="White"/>
                 </Style>
                 <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-                  <Setter Property="BorderBrush" Value="#64748b"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource TextSubtleBrush}"/>
                   <Setter Property="Background" Value="#161e31"/>
                 </Style>
               </TextBox.Styles>
@@ -93,19 +93,19 @@
                       SelectedItem="{Binding SelectedCountry}"
                       FontSize="18"
                       Padding="12"
-                      Background="#0f172a"
+                      Background="{StaticResource BackgroundTertiaryBrush}"
                       Foreground="#e2e8f0"
                       BorderBrush="#475569"
                       BorderThickness="1"
                       HorizontalAlignment="Stretch">
               <ComboBox.Styles>
                 <Style Selector="ComboBox:focus /template/ Border#PART_Background">
-                  <Setter Property="Background" Value="#0f172a"/>
-                  <Setter Property="BorderBrush" Value="#3b82f6"/>
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
                 </Style>
                 <Style Selector="ComboBox:pointerover /template/ Border#PART_Background">
                   <Setter Property="Background" Value="#161e31"/>
-                  <Setter Property="BorderBrush" Value="#64748b"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource TextSubtleBrush}"/>
                 </Style>
               </ComboBox.Styles>
               <ComboBox.ItemTemplate>
@@ -126,19 +126,19 @@
                       SelectedItem="{Binding SelectedCatchStyle}"
                       FontSize="18"
                       Padding="12"
-                      Background="#0f172a"
+                      Background="{StaticResource BackgroundTertiaryBrush}"
                       Foreground="#e2e8f0"
                       BorderBrush="#475569"
                       BorderThickness="1"
                       HorizontalAlignment="Stretch">
               <ComboBox.Styles>
                 <Style Selector="ComboBox:focus /template/ Border#PART_Background">
-                  <Setter Property="Background" Value="#0f172a"/>
-                  <Setter Property="BorderBrush" Value="#3b82f6"/>
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
                 </Style>
                 <Style Selector="ComboBox:pointerover /template/ Border#PART_Background">
                   <Setter Property="Background" Value="#161e31"/>
-                  <Setter Property="BorderBrush" Value="#64748b"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource TextSubtleBrush}"/>
                 </Style>
               </ComboBox.Styles>
               <ComboBox.ItemTemplate>
@@ -154,7 +154,7 @@
             </ComboBox>
             <TextBlock Text="{Binding SelectedCatchStyle.Description}"
                        FontSize="13"
-                       Foreground="#94a3b8"
+                       Foreground="{StaticResource TextMutedBrush}"
                        FontStyle="Italic"
                        TextWrapping="Wrap"
                        IsVisible="{Binding SelectedCatchStyle, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -170,15 +170,15 @@
                      Watermark="2024"
                      FontSize="18"
                      Padding="12"
-                     Background="#0f172a"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
                      Foreground="#e2e8f0"
                      BorderBrush="#475569"
                      BorderThickness="1"
                      CaretBrush="White">
               <TextBox.Styles>
                 <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-                  <Setter Property="Background" Value="#0f172a"/>
-                  <Setter Property="BorderBrush" Value="#3b82f6"/>
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
                   <Setter Property="BorderThickness" Value="2"/>
                 </Style>
                 <Style Selector="TextBox:focus">
@@ -188,7 +188,7 @@
             </TextBox>
             <TextBlock Text="L'année de lancement de votre compagnie (1950-2100)"
                        FontSize="13"
-                       Foreground="#94a3b8"
+                       Foreground="{StaticResource TextMutedBrush}"
                        FontStyle="Italic"/>
           </StackPanel>
 
@@ -196,7 +196,7 @@
           <StackPanel Spacing="8">
             <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#e2e8f0">
               <Run Text="Prestige de départ: "/>
-              <Run Text="{Binding StartingPrestige}" FontWeight="Bold" Foreground="#3b82f6"/>
+              <Run Text="{Binding StartingPrestige}" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
               <Run Text=" / 100"/>
             </TextBlock>
             <Slider Value="{Binding StartingPrestige}"
@@ -204,10 +204,10 @@
                     Maximum="100"
                     TickFrequency="5"
                     IsSnapToTickEnabled="True"
-                    Foreground="#3b82f6"/>
+                    Foreground="{StaticResource AccentBlueBrush}"/>
             <TextBlock Text="Le prestige détermine la réputation de votre compagnie"
                        FontSize="13"
-                       Foreground="#94a3b8"
+                       Foreground="{StaticResource TextMutedBrush}"
                        FontStyle="Italic"/>
           </StackPanel>
 
@@ -215,27 +215,27 @@
           <StackPanel Spacing="8">
             <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#e2e8f0">
               <Run Text="Trésorerie de départ: "/>
-              <Run Text="{Binding StartingTreasury, StringFormat='${0:N0}'}" FontWeight="Bold" Foreground="#10b981"/>
+              <Run Text="{Binding StartingTreasury, StringFormat='${0:N0}'}" FontWeight="Bold" Foreground="{StaticResource AccentGreenBrush}"/>
             </TextBlock>
             <Slider Value="{Binding StartingTreasury}"
                     Minimum="50000"
                     Maximum="1000000"
                     TickFrequency="50000"
                     IsSnapToTickEnabled="True"
-                    Foreground="#10b981"/>
+                    Foreground="{StaticResource AccentGreenBrush}"/>
             <TextBlock Text="Votre budget de départ pour les salaires et dépenses"
                        FontSize="13"
-                       Foreground="#94a3b8"
+                       Foreground="{StaticResource TextMutedBrush}"
                        FontStyle="Italic"/>
           </StackPanel>
 
           <!-- Error message -->
-          <Border Background="#7f1d1d"
+          <Border Background="{StaticResource ErrorDarkBrush}"
                   CornerRadius="4"
                   Padding="12"
                   IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
             <TextBlock Text="{Binding ErrorMessage}"
-                       Foreground="#fca5a5"
+                       Foreground="{StaticResource ErrorLightBrush}"
                        FontSize="14"
                        TextWrapping="Wrap"/>
           </Border>
@@ -257,7 +257,7 @@
 
             <Button Grid.Column="1"
                     Content="Continuer"
-                    Background="#3b82f6"
+                    Background="{StaticResource AccentBlueBrush}"
                     Foreground="White"
                     Padding="0,15"
                     FontSize="18"
@@ -269,7 +269,7 @@
                     Command="{Binding ContinueCommand}">
               <Button.Styles>
                 <Style Selector="Button:pointerover">
-                  <Setter Property="Background" Value="#2563eb"/>
+                  <Setter Property="Background" Value="{StaticResource BrandPrimaryBrush}"/>
                 </Style>
               </Button.Styles>
             </Button>
@@ -281,7 +281,7 @@
           <!-- Info text -->
           <TextBlock Text="* Champs obligatoires"
                      FontSize="13"
-                     Foreground="#64748b"
+                     Foreground="{StaticResource TextSubtleBrush}"
                      HorizontalAlignment="Center"
                      Margin="0,10,0,0"/>
 

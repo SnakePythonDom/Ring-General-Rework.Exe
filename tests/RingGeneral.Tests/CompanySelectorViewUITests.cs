@@ -48,7 +48,7 @@ public class CompanySelectorViewUITests
 
         // Assert - Vérifier que le titre du sélecteur est affiché
         var titleTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("SELECT") || tb.Text.Contains("Sélectionner") || tb.Text.Contains("COMPANY"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("SELECT") || tb.Text.Contains("Sélectionner") || tb.Text.Contains("COMPANY"))
             .ToList();
 
         titleTextBlocks.Should().NotBeEmpty();
@@ -82,7 +82,7 @@ public class CompanySelectorViewUITests
             view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
 
         companiesList.Should().NotBeNull();
-        companiesList!.Items.Should().NotBeEmpty();
+        companiesList?.Items.Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -111,11 +111,11 @@ public class CompanySelectorViewUITests
 
         // Assert - Vérifier que les détails de la compagnie sont affichés
         var nameTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("Test Wrestling Company"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("Test Wrestling Company"))
             .ToList();
 
         var prestigeTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("75"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("75"))
             .ToList();
 
         nameTextBlocks.Should().NotBeEmpty();
@@ -148,11 +148,11 @@ public class CompanySelectorViewUITests
 
         // Assert - Vérifier que les statistiques sont affichées
         var workersTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("25"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("25"))
             .ToList();
 
         var revenueTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("$5,000,000") || tb.Text.Contains("5000000"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("$5,000,000") || tb.Text.Contains("5000000"))
             .ToList();
 
         workersTextBlocks.Should().NotBeEmpty();
@@ -224,7 +224,7 @@ public class CompanySelectorViewUITests
         // Assert - Vérifier que la sélection fonctionne
         var companiesList = view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
         companiesList.Should().NotBeNull();
-        companiesList!.SelectedItem.Should().Be(company1);
+        companiesList?.SelectedItem.Should().Be(company1);
     }
 
     [AvaloniaFact]
@@ -253,7 +253,7 @@ public class CompanySelectorViewUITests
 
         // Assert - Vérifier que l'aperçu de la compagnie est affiché
         var descriptionTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("This is a preview"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("This is a preview"))
             .ToList();
 
         descriptionTextBlocks.Should().NotBeEmpty();
@@ -284,7 +284,7 @@ public class CompanySelectorViewUITests
 
         // Assert - Vérifier que l'affichage s'est mis à jour
         var prestigeTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains("85"))
+            .Where(tb => tb.Text != null && tb.Text.Contains("85"))
             .ToList();
 
         prestigeTextBlocks.Should().NotBeEmpty();

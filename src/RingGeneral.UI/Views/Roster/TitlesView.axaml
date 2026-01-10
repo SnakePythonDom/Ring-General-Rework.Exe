@@ -17,16 +17,16 @@
             <!-- En-tête -->
             <StackPanel Grid.Row="0" Spacing="12">
                 <StackPanel Spacing="6">
-                    <TextBlock Text="🏆 TITRES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                    <TextBlock Text="🏆 TITRES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <StackPanel Orientation="Horizontal" Spacing="20">
-                        <TextBlock FontSize="14" Foreground="#888888">
+                        <TextBlock FontSize="14" Foreground="{StaticResource TextSecondaryBrush}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} titres au total">
                                     <Binding Path="TotalTitles"/>
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
-                        <TextBlock FontSize="14" Foreground="#f59e0b" IsVisible="{Binding VacantTitles}">
+                        <TextBlock FontSize="14" Foreground="{StaticResource AccentOrangeBrush}" IsVisible="{Binding VacantTitles}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} vacants">
                                     <Binding Path="VacantTitles"/>
@@ -39,8 +39,8 @@
                 <!-- Barre de recherche -->
                 <TextBox Text="{Binding SearchText, Mode=TwoWay}"
                          Watermark="🔍 Rechercher un titre..."
-                         Background="#1e293b"
-                         Foreground="#e0e0e0"
+                         Background="{StaticResource BackgroundSecondaryBrush}"
+                         Foreground="{StaticResource TextPrimaryBrush}"
                          Padding="12,8"/>
             </StackPanel>
 
@@ -48,14 +48,14 @@
             <Grid Grid.Row="2" ColumnDefinitions="2*,20,3*">
 
                 <!-- Liste des titres (gauche) -->
-                <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="0">
+                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="0">
                     <ListBox ItemsSource="{Binding Titles}"
                              SelectedItem="{Binding SelectedTitle, Mode=TwoWay}"
                              Background="Transparent"
                              BorderThickness="0">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0f172a" Padding="16,12" Margin="0,0,0,1">
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16,12" Margin="0,0,0,1">
                                     <Grid RowDefinitions="Auto,Auto,Auto,Auto">
 
                                         <!-- Nom du titre -->
@@ -63,7 +63,7 @@
                                                    Text="{Binding Name}"
                                                    FontSize="14"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#e0e0e0"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
                                                    Margin="0,0,0,3"/>
 
                                         <!-- Champion actuel -->
@@ -80,7 +80,7 @@
 
                                         <!-- Prestige et durée -->
                                         <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,3,0,3">
-                                            <TextBlock Grid.Column="0" FontSize="11" Foreground="#64748b">
+                                            <TextBlock Grid.Column="0" FontSize="11" Foreground="{StaticResource TextSubtleBrush}">
                                                 <TextBlock.Text>
                                                     <MultiBinding StringFormat="Prestige: {0}">
                                                         <Binding Path="Prestige"/>
@@ -90,14 +90,14 @@
                                             <TextBlock Grid.Column="1"
                                                        Text="{Binding ReignDaysDisplay}"
                                                        FontSize="11"
-                                                       Foreground="#64748b"
+                                                       Foreground="{StaticResource TextSubtleBrush}"
                                                        IsVisible="{Binding !IsVacant}"/>
                                         </Grid>
 
                                         <!-- Nombre de règnes -->
                                         <TextBlock Grid.Row="3"
                                                    FontSize="10"
-                                                   Foreground="#475569"
+                                                   Foreground="{StaticResource TextSubtleBrush}"
                                                    IsVisible="{Binding !IsVacant}"
                                                    Margin="0,3,0,0">
                                             <TextBlock.Text>
@@ -118,18 +118,18 @@
                                 <Setter Property="Margin" Value="0"/>
                             </Style>
                             <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-                                <Setter Property="Background" Value="#1e293b"/>
+                                <Setter Property="Background" Value="{StaticResource BackgroundSecondaryBrush}"/>
                             </Style>
                             <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                                <Setter Property="Background" Value="#334155"/>
+                                <Setter Property="Background" Value="{StaticResource BorderMediumBrush}"/>
                             </Style>
                         </ListBox.Styles>
                     </ListBox>
                 </Border>
 
                 <!-- Panneau de détails (droite) -->
-                <Border Grid.Column="2" Background="#1e293b" CornerRadius="8" Padding="20"
-                        IsVisible="{Binding SelectedTitle, Converter={StaticResource NullToBoolConverter}}">
+                <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20"
+                        IsVisible="{Binding SelectedTitle, Converter={StaticResource IsNotNullConverter}}">
                     <ScrollViewer>
                         <StackPanel Spacing="20">
 
@@ -138,26 +138,26 @@
                                 <TextBlock Text="{Binding SelectedTitle.Name}"
                                            FontSize="20"
                                            FontWeight="Bold"
-                                           Foreground="#e0e0e0"/>
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
 
                                 <!-- Carte du champion actuel -->
-                                <Border Background="#065f46" Padding="16" CornerRadius="8"
+                                <Border Background="{StaticResource SuccessDarkBrush}" Padding="16" CornerRadius="8"
                                         IsVisible="{Binding !SelectedTitle.IsVacant}">
                                     <StackPanel Spacing="8">
-                                        <TextBlock Text="CHAMPION ACTUEL" FontSize="11" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="CHAMPION ACTUEL" FontSize="11" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
                                         <TextBlock Text="{Binding SelectedTitle.CurrentChampion}"
                                                    FontSize="18"
                                                    FontWeight="Bold"
-                                                   Foreground="#34d399"/>
+                                                   Foreground="{StaticResource SuccessLightBrush}"/>
                                         <Grid ColumnDefinitions="*,*">
-                                            <TextBlock Grid.Column="0" FontSize="12" Foreground="#a7f3d0">
+                                            <TextBlock Grid.Column="0" FontSize="12" Foreground="{StaticResource SuccessLightBrush}">
                                                 <TextBlock.Text>
                                                     <MultiBinding StringFormat="Règne: {0} jours">
                                                         <Binding Path="SelectedTitle.ReignDays"/>
                                                     </MultiBinding>
                                                 </TextBlock.Text>
                                             </TextBlock>
-                                            <TextBlock Grid.Column="1" FontSize="12" Foreground="#a7f3d0">
+                                            <TextBlock Grid.Column="1" FontSize="12" Foreground="{StaticResource SuccessLightBrush}">
                                                 <TextBlock.Text>
                                                     <MultiBinding StringFormat="Règne #{0}">
                                                         <Binding Path="SelectedTitle.ReignCount"/>
@@ -172,32 +172,32 @@
                                 <Border Background="#991b1b" Padding="16" CornerRadius="8"
                                         IsVisible="{Binding SelectedTitle.IsVacant}">
                                     <StackPanel Spacing="6">
-                                        <TextBlock Text="⚠️ TITRE VACANT" FontSize="14" Foreground="#fecaca" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Aucun champion actuel" FontSize="12" Foreground="#fca5a5" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="⚠️ TITRE VACANT" FontSize="14" Foreground="{StaticResource ErrorLightBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Aucun champion actuel" FontSize="12" Foreground="{StaticResource ErrorLightBrush}" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Prestige -->
-                                <Border Background="#1e40af" Padding="16" CornerRadius="8">
+                                <Border Background="{StaticResource BrandPrimaryBrush}" Padding="16" CornerRadius="8">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Text="PRESTIGE" FontSize="11" Foreground="#bfdbfe" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="0" Text="PRESTIGE" FontSize="11" Foreground="{StaticResource BrandPrimaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1"
                                                    Text="{Binding SelectedTitle.Prestige}"
                                                    FontSize="32"
                                                    FontWeight="Bold"
-                                                   Foreground="#93c5fd"/>
+                                                   Foreground="{StaticResource BrandPrimaryBrush}"/>
                                     </Grid>
                                 </Border>
                             </StackPanel>
 
                             <!-- Historique des règnes -->
                             <StackPanel Spacing="12">
-                                <TextBlock Text="📜 HISTORIQUE DES RÈGNES" FontSize="14" Foreground="#64748b" FontWeight="SemiBold"/>
+                                <TextBlock Text="📜 HISTORIQUE DES RÈGNES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
 
                                 <ItemsControl ItemsSource="{Binding TitleHistory}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="#0f172a" Padding="14,10" Margin="0,0,0,8" CornerRadius="6">
+                                            <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="14,10" Margin="0,0,0,8" CornerRadius="6">
                                                 <Grid RowDefinitions="Auto,Auto,Auto">
 
                                                     <!-- Champion -->
@@ -205,26 +205,26 @@
                                                                Text="{Binding Champion}"
                                                                FontSize="13"
                                                                FontWeight="SemiBold"
-                                                               Foreground="#e0e0e0"
+                                                               Foreground="{StaticResource TextPrimaryBrush}"
                                                                Margin="0,0,0,2"/>
 
                                                     <!-- Période -->
                                                     <TextBlock Grid.Row="1"
                                                                Text="{Binding PeriodDisplay}"
                                                                FontSize="11"
-                                                               Foreground="#94a3b8"
+                                                               Foreground="{StaticResource TextMutedBrush}"
                                                                Margin="0,2,0,2"/>
 
                                                     <!-- Stats -->
                                                     <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,2,0,0">
-                                                        <TextBlock Grid.Column="0" FontSize="10" Foreground="#64748b">
+                                                        <TextBlock Grid.Column="0" FontSize="10" Foreground="{StaticResource TextSubtleBrush}">
                                                             <TextBlock.Text>
                                                                 <MultiBinding StringFormat="{}{0} jours">
                                                                     <Binding Path="ReignDays"/>
                                                                 </MultiBinding>
                                                             </TextBlock.Text>
                                                         </TextBlock>
-                                                        <TextBlock Grid.Column="1" FontSize="10" Foreground="#64748b">
+                                                        <TextBlock Grid.Column="1" FontSize="10" Foreground="{StaticResource TextSubtleBrush}">
                                                             <TextBlock.Text>
                                                                 <MultiBinding StringFormat="{}{0} défenses">
                                                                     <Binding Path="DefenseCount"/>
@@ -239,7 +239,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <TextBlock Text="Aucun historique disponible" FontSize="12" Foreground="#64748b" FontStyle="Italic"
+                                <TextBlock Text="Aucun historique disponible" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontStyle="Italic"
                                            IsVisible="{Binding !TitleHistory.Count}"/>
                             </StackPanel>
 
@@ -248,11 +248,11 @@
                 </Border>
 
                 <!-- Message si aucun titre sélectionné -->
-                <Border Grid.Column="2" Background="#1e293b" CornerRadius="8"
-                        IsVisible="{Binding !SelectedTitle, Converter={StaticResource NullToBoolConverter}}">
+                <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8"
+                        IsVisible="{Binding SelectedTitle, Converter={StaticResource IsNotNullConverter}, ConverterParameter=Invert}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                         <TextBlock Text="🏆" FontSize="48" HorizontalAlignment="Center" Opacity="0.3"/>
-                        <TextBlock Text="Sélectionnez un titre" FontSize="14" Foreground="#64748b" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Sélectionnez un titre" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
 

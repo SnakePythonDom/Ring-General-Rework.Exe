@@ -17,59 +17,59 @@
             <StackPanel Margin="30" Spacing="25">
                 <!-- En-tête -->
                 <StackPanel Spacing="8">
-                    <TextBlock Text="🔥 GESTION DES CRISES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-                    <TextBlock Text="Gérez les crises backstage et les communications stratégiques" FontSize="14" Foreground="#888888"/>
+                    <TextBlock Text="🔥 GESTION DES CRISES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Gérez les crises backstage et les communications stratégiques" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
                 </StackPanel>
 
                 <!-- Statistiques -->
                 <Grid ColumnDefinitions="*,*,*,*">
                     <!-- Crises actives -->
-                    <Border Grid.Column="0" Background="#1e293b" Padding="20" CornerRadius="8" Margin="0,0,6,0">
+                    <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,6,0">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="🔥 ACTIVES" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding ActiveCrisesCount}" FontSize="32" FontWeight="Bold" Foreground="#f59e0b"/>
-                            <TextBlock Text="Crises en cours" FontSize="11" Foreground="#94a3b8"/>
+                            <TextBlock Text="🔥 ACTIVES" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding ActiveCrisesCount}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                            <TextBlock Text="Crises en cours" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Crises critiques -->
-                    <Border Grid.Column="1" Background="#1e293b" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                    <Border Grid.Column="1" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="⚠️ CRITIQUES" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding CriticalCrisesCount}" FontSize="32" FontWeight="Bold" Foreground="#ef4444"/>
-                            <TextBlock Text="Nécessitent action" FontSize="11" Foreground="#94a3b8"/>
+                            <TextBlock Text="⚠️ CRITIQUES" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding CriticalCrisesCount}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentRedBrush}"/>
+                            <TextBlock Text="Nécessitent action" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Crises résolues -->
-                    <Border Grid.Column="2" Background="#1e293b" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                    <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="✅ RÉSOLUES" FontSize="12" Foreground="#64748b" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding TotalCrisesResolved}" FontSize="32" FontWeight="Bold" Foreground="#10b981"/>
-                            <TextBlock Text="Total historique" FontSize="11" Foreground="#94a3b8"/>
+                            <TextBlock Text="✅ RÉSOLUES" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding TotalCrisesResolved}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentGreenBrush}"/>
+                            <TextBlock Text="Total historique" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Taux de succès -->
-                    <Border Grid.Column="3" Background="#065f46" Padding="20" CornerRadius="8" Margin="6,0,0,0">
+                    <Border Grid.Column="3" Background="{StaticResource SuccessDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,0,0">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="📊 SUCCÈS" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
-                            <TextBlock FontSize="32" FontWeight="Bold" Foreground="#34d399">
+                            <TextBlock Text="📊 SUCCÈS" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                            <TextBlock FontSize="32" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}">
                                 <TextBlock.Text>
                                     <MultiBinding StringFormat="{}{0:F0}%">
                                         <Binding Path="CommunicationSuccessRate"/>
                                     </MultiBinding>
                                 </TextBlock.Text>
                             </TextBlock>
-                            <TextBlock Text="Communications" FontSize="11" Foreground="#a7f3d0"/>
+                            <TextBlock Text="Communications" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
                         </StackPanel>
                     </Border>
                 </Grid>
 
                 <!-- Crises Critiques (si existantes) -->
-                <Border Background="#7f1d1d" Padding="20" CornerRadius="8" IsVisible="{Binding CriticalCrisesCount}">
+                <Border Background="{StaticResource ErrorDarkBrush}" Padding="20" CornerRadius="8" IsVisible="{Binding CriticalCrisesCount}">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="⚠️ CRISES CRITIQUES - ACTION IMMÉDIATE REQUISE" FontSize="14" Foreground="#fecaca" FontWeight="Bold"/>
+                        <TextBlock Text="⚠️ CRISES CRITIQUES - ACTION IMMÉDIATE REQUISE" FontSize="14" Foreground="{StaticResource ErrorLightBrush}" FontWeight="Bold"/>
                         <ItemsControl ItemsSource="{Binding CriticalCrises}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -77,9 +77,9 @@
                                         <Grid ColumnDefinitions="Auto,*,Auto">
                                             <TextBlock Grid.Column="0" Text="{Binding CrisisTypeIcon}" FontSize="20" Margin="0,0,12,0"/>
                                             <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock Text="{Binding Description}" FontSize="13" Foreground="#fecaca" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="13" Foreground="{StaticResource ErrorLightBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                                    <TextBlock Text="{Binding StageLabel}" FontSize="11" Foreground="#fca5a5"/>
+                                                    <TextBlock Text="{Binding StageLabel}" FontSize="11" Foreground="{StaticResource ErrorLightBrush}"/>
                                                     <TextBlock Text="•" Foreground="#dc2626"/>
                                                     <TextBlock Text="{Binding SeverityLabel}" FontSize="11"/>
                                                 </StackPanel>
@@ -101,13 +101,13 @@
                 </Border>
 
                 <!-- Liste des Crises Actives -->
-                <Border Background="#1e293b" Padding="25" CornerRadius="8">
+                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
                     <StackPanel Spacing="16">
                         <!-- En-tête -->
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="📋 CRISES ACTIVES" FontSize="16" Foreground="#64748b" FontWeight="SemiBold"/>
-                                <TextBlock FontSize="12" Foreground="#94a3b8">
+                                <TextBlock Text="📋 CRISES ACTIVES" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                                <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}Gérez les {0} crises en cours">
                                             <Binding Path="ActiveCrisesCount"/>
@@ -118,7 +118,7 @@
                             <Button Grid.Column="1" Command="{Binding RefreshDataCommand}"
                                     Content="🔄 Rafraîchir"
                                     Padding="10,8"
-                                    Background="#334155"
+                                    Background="{StaticResource BorderMediumBrush}"
                                     Foreground="White"
                                     CornerRadius="6"/>
                         </Grid>
@@ -127,42 +127,42 @@
                         <ItemsControl ItemsSource="{Binding ActiveCrises}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0f172a" Padding="16,14" Margin="0,0,0,10" CornerRadius="6">
+                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16,14" Margin="0,0,0,10" CornerRadius="6">
                                         <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                                             <!-- Icône et Type -->
                                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,16,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding CrisisTypeIcon}" FontSize="28" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="{Binding CrisisType}" FontSize="9" Foreground="#64748b" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding CrisisType}" FontSize="9" Foreground="{StaticResource TextSubtleBrush}" HorizontalAlignment="Center"/>
                                             </StackPanel>
 
                                             <!-- Informations principales -->
                                             <StackPanel Grid.Column="1" Spacing="6">
-                                                <TextBlock Text="{Binding Description}" FontSize="14" Foreground="#cbd5e1" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
 
                                                 <!-- Détails -->
                                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                                     <!-- Stage -->
-                                                    <Border Padding="6,3" Background="#334155" CornerRadius="4">
+                                                    <Border Padding="6,3" Background="{StaticResource BorderMediumBrush}" CornerRadius="4">
                                                         <TextBlock Text="{Binding StageLabel}" FontSize="10" Foreground="{Binding StageColor}" FontWeight="SemiBold"/>
                                                     </Border>
 
                                                     <!-- Sévérité -->
                                                     <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <TextBlock Text="Sévérité:" FontSize="10" Foreground="#94a3b8"/>
+                                                        <TextBlock Text="Sévérité:" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
                                                         <TextBlock Text="{Binding SeverityLabel}" FontSize="10"/>
                                                     </StackPanel>
 
                                                     <!-- Tentatives -->
                                                     <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <TextBlock Text="Tentatives:" FontSize="10" Foreground="#94a3b8"/>
-                                                        <TextBlock Text="{Binding ResolutionAttempts}" FontSize="10" Foreground="#fbbf24"/>
+                                                        <TextBlock Text="Tentatives:" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                        <TextBlock Text="{Binding ResolutionAttempts}" FontSize="10" Foreground="{StaticResource WarningBrush}"/>
                                                     </StackPanel>
                                                 </StackPanel>
 
                                                 <!-- Barre d'escalade -->
                                                 <StackPanel Spacing="3">
                                                     <Grid ColumnDefinitions="Auto,*,Auto">
-                                                        <TextBlock Grid.Column="0" Text="Escalade:" FontSize="10" Foreground="#94a3b8" Margin="0,0,8,0"/>
+                                                        <TextBlock Grid.Column="0" Text="Escalade:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,8,0"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding EscalationBar}" FontSize="10" Foreground="{Binding EscalationColor}" FontFamily="Consolas"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding EscalationScore}" FontSize="10" FontWeight="Bold" Foreground="{Binding EscalationColor}" Margin="8,0,0,0"/>
                                                     </Grid>
@@ -188,7 +188,7 @@
                                                         Command="{Binding $parent[UserControl].DataContext.OpenCommunicationDialogCommand}"
                                                         CommandParameter="{Binding}"
                                                         Padding="10,6"
-                                                        Background="#3b82f6"
+                                                        Background="{StaticResource AccentBlueBrush}"
                                                         Foreground="White"
                                                         CornerRadius="6"
                                                         FontSize="11"/>
@@ -196,7 +196,7 @@
                                                         Command="{Binding $parent[UserControl].DataContext.EscalateCrisisCommand}"
                                                         CommandParameter="{Binding}"
                                                         Padding="10,6"
-                                                        Background="#64748b"
+                                                        Background="{StaticResource TextSubtleBrush}"
                                                         Foreground="White"
                                                         CornerRadius="6"
                                                         FontSize="11"/>
@@ -208,11 +208,11 @@
                         </ItemsControl>
 
                         <!-- Message si aucune crise -->
-                        <Border IsVisible="{Binding !ActiveCrisesCount}" Background="#0f172a" Padding="30,20" CornerRadius="6">
+                        <Border IsVisible="{Binding !ActiveCrisesCount}" Background="{StaticResource BackgroundTertiaryBrush}" Padding="30,20" CornerRadius="6">
                             <StackPanel Spacing="8" HorizontalAlignment="Center">
                                 <TextBlock Text="✅" FontSize="48" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Aucune crise active" FontSize="16" Foreground="#10b981" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Tout va bien dans la compagnie !" FontSize="12" Foreground="#64748b" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Aucune crise active" FontSize="16" Foreground="{StaticResource AccentGreenBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Tout va bien dans la compagnie !" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -226,7 +226,7 @@
                 Background="#CC000000"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
-            <Border Background="#1e293b"
+            <Border Background="{StaticResource BackgroundSecondaryBrush}"
                     Padding="30"
                     CornerRadius="12"
                     MaxWidth="600"
@@ -236,23 +236,23 @@
                 <StackPanel Spacing="20">
                     <!-- Titre -->
                     <StackPanel Spacing="8">
-                        <TextBlock Text="📞 COMMUNICATION DE CRISE" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0"/>
-                        <TextBlock Text="{Binding SelectedCrisis.Description}" FontSize="13" Foreground="#94a3b8" TextWrapping="Wrap"/>
+                        <TextBlock Text="📞 COMMUNICATION DE CRISE" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding SelectedCrisis.Description}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
                     <!-- Recommandations -->
-                    <Border Background="#065f46" Padding="14,12" CornerRadius="6">
+                    <Border Background="{StaticResource SuccessDarkBrush}" Padding="14,12" CornerRadius="6">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="💡 RECOMMANDATIONS IA" FontSize="12" Foreground="#d1fae5" FontWeight="SemiBold"/>
+                            <TextBlock Text="💡 RECOMMANDATIONS IA" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="Type:" FontSize="11" Foreground="#a7f3d0"/>
-                                    <TextBlock Text="{Binding RecommendedType}" FontSize="11" FontWeight="Bold" Foreground="#34d399"/>
+                                    <TextBlock Text="Type:" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
+                                    <TextBlock Text="{Binding RecommendedType}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
                                 </StackPanel>
-                                <TextBlock Text="•" Foreground="#10b981"/>
+                                <TextBlock Text="•" Foreground="{StaticResource AccentGreenBrush}"/>
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="Ton:" FontSize="11" Foreground="#a7f3d0"/>
-                                    <TextBlock Text="{Binding RecommendedTone}" FontSize="11" FontWeight="Bold" Foreground="#34d399"/>
+                                    <TextBlock Text="Ton:" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
+                                    <TextBlock Text="{Binding RecommendedTone}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -260,52 +260,52 @@
 
                     <!-- Type de Communication -->
                     <StackPanel Spacing="8">
-                        <TextBlock Text="TYPE DE COMMUNICATION" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="TYPE DE COMMUNICATION" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <ComboBox ItemsSource="{Binding CommunicationTypes}"
                                   SelectedItem="{Binding SelectedCommunicationType}"
-                                  Background="#0f172a"
-                                  Foreground="#e0e0e0"
+                                  Background="{StaticResource BackgroundTertiaryBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}"
                                   Padding="12,8"/>
                     </StackPanel>
 
                     <!-- Ton -->
                     <StackPanel Spacing="8">
-                        <TextBlock Text="TON" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="TON" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <ComboBox ItemsSource="{Binding CommunicationTones}"
                                   SelectedItem="{Binding SelectedTone}"
-                                  Background="#0f172a"
-                                  Foreground="#e0e0e0"
+                                  Background="{StaticResource BackgroundTertiaryBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}"
                                   Padding="12,8"/>
                     </StackPanel>
 
                     <!-- Message -->
                     <StackPanel Spacing="8">
-                        <TextBlock Text="MESSAGE" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                        <TextBlock Text="MESSAGE" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <TextBox Text="{Binding CommunicationMessage, Mode=TwoWay}"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
                                  MinHeight="100"
-                                 Background="#0f172a"
-                                 Foreground="#e0e0e0"
+                                 Background="{StaticResource BackgroundTertiaryBrush}"
+                                 Foreground="{StaticResource TextPrimaryBrush}"
                                  Padding="12,10"
                                  Watermark="Rédigez votre message..."/>
                     </StackPanel>
 
                     <!-- Prédiction de succès -->
-                    <Border Background="#0f172a" Padding="14,12" CornerRadius="6">
+                    <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="14,12" CornerRadius="6">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="CHANCE DE SUCCÈS PRÉDITE" FontSize="11" Foreground="#64748b" FontWeight="SemiBold"/>
+                            <TextBlock Text="CHANCE DE SUCCÈS PRÉDITE" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                             <Grid ColumnDefinitions="*,Auto">
                                 <ProgressBar Grid.Column="0"
                                              Value="{Binding PredictedSuccessChance}"
                                              Maximum="100"
                                              Height="12"
-                                             Foreground="#10b981"
-                                             Background="#1e293b"/>
+                                             Foreground="{StaticResource AccentGreenBrush}"
+                                             Background="{StaticResource BackgroundSecondaryBrush}"/>
                                 <TextBlock Grid.Column="1"
                                            FontSize="20"
                                            FontWeight="Bold"
-                                           Foreground="#10b981"
+                                           Foreground="{StaticResource AccentGreenBrush}"
                                            Margin="12,0,0,0">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0}%">
@@ -333,7 +333,7 @@
                                 Command="{Binding SendCommunicationCommand}"
                                 Content="📤 Envoyer Communication"
                                 Padding="12,10"
-                                Background="#10b981"
+                                Background="{StaticResource AccentGreenBrush}"
                                 Foreground="White"
                                 CornerRadius="6"
                                 Margin="6,0,0,0"

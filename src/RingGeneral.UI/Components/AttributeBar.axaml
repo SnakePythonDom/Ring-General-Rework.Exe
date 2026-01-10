@@ -7,8 +7,8 @@
 
   <UserControl.Styles>
     <Style Selector="Border.attribute-container">
-      <Setter Property="Background" Value="#2d2d2d"/>
-      <Setter Property="BorderBrush" Value="#3a3a3a"/>
+      <Setter Property="Background" Value="{StaticResource BackgroundInputBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Padding" Value="8,6"/>
@@ -17,14 +17,14 @@
     <Style Selector="TextBlock.attribute-label">
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Medium"/>
-      <Setter Property="Foreground" Value="#e0e0e0"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
     <Style Selector="TextBlock.attribute-value">
       <Setter Property="FontSize" Value="13"/>
       <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="#e0e0e0"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
       <Setter Property="Margin" Value="6,0,0,0"/>
     </Style>
@@ -37,15 +37,15 @@
     </Style>
 
     <Style Selector="TextBlock.attribute-delta.positive">
-      <Setter Property="Foreground" Value="#10b981"/>
+      <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}"/>
     </Style>
 
     <Style Selector="TextBlock.attribute-delta.negative">
-      <Setter Property="Foreground" Value="#ef4444"/>
+      <Setter Property="Foreground" Value="{StaticResource AccentRedBrush}"/>
     </Style>
 
     <Style Selector="Border.bar-container">
-      <Setter Property="Background" Value="#1a1a1a"/>
+      <Setter Property="Background" Value="{StaticResource BackgroundPrimaryBrush}"/>
       <Setter Property="CornerRadius" Value="3"/>
       <Setter Property="Height" Value="8"/>
       <Setter Property="Margin" Value="0,4,0,0"/>
@@ -57,15 +57,15 @@
     </Style>
 
     <Style Selector="Border.bar-fill.low">
-      <Setter Property="Background" Value="#ef4444"/>
+      <Setter Property="Background" Value="{StaticResource AccentRedBrush}"/>
     </Style>
 
     <Style Selector="Border.bar-fill.medium">
-      <Setter Property="Background" Value="#f59e0b"/>
+      <Setter Property="Background" Value="{StaticResource AccentOrangeBrush}"/>
     </Style>
 
     <Style Selector="Border.bar-fill.high">
-      <Setter Property="Background" Value="#10b981"/>
+      <Setter Property="Background" Value="{StaticResource AccentGreenBrush}"/>
     </Style>
   </UserControl.Styles>
 

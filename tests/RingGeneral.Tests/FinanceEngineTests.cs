@@ -97,7 +97,7 @@ public class FinanceEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = (double)method!.Invoke(engine, new object[] { audience })!;
+        var result = (double)method?.Invoke(engine, new object[] { audience })!;
 
         // Assert
         result.Should().Be(expectedRate);
@@ -124,7 +124,7 @@ public class FinanceEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = (int)method!.Invoke(engine, new object[] { company })!;
+        var result = (int)method?.Invoke(engine, new object[] { company })!;
 
         // Assert
         result.Should().Be(expectedCapacity);
@@ -153,7 +153,7 @@ public class FinanceEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = (double)method!.Invoke(engine, new object[] { company, audience })!;
+        var result = (double)method?.Invoke(engine, new object[] { company, audience })!;
 
         // Assert
         result.Should().Be(expectedPrice);
@@ -172,7 +172,7 @@ public class FinanceEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = (double)method!.Invoke(engine, new object[] { attendance, popularities })!;
+        var result = (double)method?.Invoke(engine, new object[] { attendance, popularities })!;
 
         // Assert
         result.Should().Be(expectedAmount);
@@ -245,7 +245,7 @@ public class FinanceEngineTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         // Act
-        var result = (double)method!.Invoke(engine, new object[] { week, contracts })!;
+        var result = (double)method?.Invoke(engine, new object[] { week, contracts })!;
 
         // Assert
         result.Should().Be(expectedPay);

@@ -18,30 +18,30 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="📺 TV Deal Negotiation" FontSize="24" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,20"/>
+        <TextBlock Grid.Row="0" Text="📺 TV Deal Negotiation" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
 
         <!-- Step Indicator -->
         <TextBlock Grid.Row="1" 
                    Text="{Binding CurrentStep, StringFormat='{}Step {0} of 4'}" 
                    FontSize="14" 
-                   Foreground="#94a3b8" 
+                   Foreground="{StaticResource TextMutedBrush}" 
                    Margin="0,0,0,20"/>
 
         <!-- Step Content -->
-        <Border Grid.Row="2" Background="#1e293b" CornerRadius="8" Padding="20">
+        <Border Grid.Row="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
             <Grid>
                 <!-- Step 1: Network Selection -->
                 <StackPanel Spacing="15" IsVisible="{Binding IsStep1}">
-                <TextBlock Text="Select a Network" FontSize="18" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Select a Network" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                 <ListBox ItemsSource="{Binding AvailableNetworks}" SelectedItem="{Binding SelectedNetwork}" Height="300">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="#0f172a" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+                            <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" Margin="0,0,0,10">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="5">
-                                        <TextBlock Text="{Binding NetworkName}" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#94a3b8"/>
-                                        <TextBlock FontSize="12" Foreground="#94a3b8">
+                                        <TextBlock Text="{Binding NetworkName}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
                                             <TextBlock.Text>
                                                 <MultiBinding StringFormat="{}Prestige: {0} | Reach: {1} | Min Prestige Required: {2}">
                                                     <Binding Path="Prestige"/>
@@ -60,16 +60,16 @@
 
             <!-- Step 2: Deal Terms -->
             <StackPanel Spacing="15" IsVisible="{Binding IsStep2}">
-                <TextBlock Text="Configure Deal Terms" FontSize="18" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Configure Deal Terms" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                 
                 <StackPanel Spacing="10">
-                    <TextBlock Text="Duration (Years):" Foreground="#e0e0e0"/>
+                    <TextBlock Text="Duration (Years):" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <Slider Minimum="1" Maximum="5" Value="{Binding Terms.DurationYears}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                    <TextBlock Text="{Binding Terms.DurationYears, StringFormat='{}Duration: {0} years'}" Foreground="#94a3b8"/>
+                    <TextBlock Text="{Binding Terms.DurationYears, StringFormat='{}Duration: {0} years'}" Foreground="{StaticResource TextMutedBrush}"/>
 
-                    <CheckBox Content="Exclusive Deal (+30% payment)" IsChecked="{Binding Terms.IsExclusive}" Foreground="#e0e0e0"/>
+                    <CheckBox Content="Exclusive Deal (+30% payment)" IsChecked="{Binding Terms.IsExclusive}" Foreground="{StaticResource TextPrimaryBrush}"/>
 
-                    <TextBlock Text="Shows per Year:" Foreground="#e0e0e0"/>
+                    <TextBlock Text="Shows per Year:" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <ComboBox SelectedIndex="{Binding ShowsPerYearIndex}">
                         <ComboBoxItem Content="12 shows/year (Monthly)"/>
                         <ComboBoxItem Content="24 shows/year (Bi-weekly)"/>
@@ -78,17 +78,17 @@
                     </ComboBox>
                 </StackPanel>
 
-                <Border Background="#0f172a" CornerRadius="4" Padding="15" Margin="0,20,0,0">
+                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" Margin="0,20,0,0">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="Initial Offer" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                        <TextBlock FontSize="14" Foreground="#10b981">
+                        <TextBlock Text="Initial Offer" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock FontSize="14" Foreground="{StaticResource AccentGreenBrush}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}Weekly Payment: ${0:N0}">
                                     <Binding Path="CurrentOffer.WeeklyPayment"/>
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
-                        <TextBlock FontSize="12" Foreground="#94a3b8">
+                        <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}Base Revenue: ${0:N0} | Revenue per Point: ${1:N0}">
                                     <Binding Path="CurrentOffer.BaseRevenue"/>
@@ -102,12 +102,12 @@
 
             <!-- Step 3: Negotiation -->
             <StackPanel Spacing="15" IsVisible="{Binding IsStep3}">
-                <TextBlock Text="Negotiate Deal" FontSize="18" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Negotiate Deal" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                 
-                <Border Background="#0f172a" CornerRadius="4" Padding="15">
+                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Current Offer:" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                        <TextBlock FontSize="18" Foreground="#10b981">
+                        <TextBlock Text="Current Offer:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock FontSize="18" Foreground="{StaticResource AccentGreenBrush}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}${0:N0}/week">
                                     <Binding Path="CurrentOffer.WeeklyPayment"/>
@@ -117,24 +117,24 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="Request Increase:" FontSize="14" Foreground="#e0e0e0"/>
+                <TextBlock Text="Request Increase:" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button Content="+10%" Command="{Binding NegotiateCommand}" CommandParameter="10" Background="#1e40af" Foreground="White"/>
-                    <Button Content="+20%" Command="{Binding NegotiateCommand}" CommandParameter="20" Background="#1e40af" Foreground="White"/>
-                    <Button Content="+30%" Command="{Binding NegotiateCommand}" CommandParameter="30" Background="#1e40af" Foreground="White"/>
+                    <Button Content="+10%" Command="{Binding NegotiateCommand}" CommandParameter="10" Background="{StaticResource BrandPrimaryBrush}" Foreground="White"/>
+                    <Button Content="+20%" Command="{Binding NegotiateCommand}" CommandParameter="20" Background="{StaticResource BrandPrimaryBrush}" Foreground="White"/>
+                    <Button Content="+30%" Command="{Binding NegotiateCommand}" CommandParameter="30" Background="{StaticResource BrandPrimaryBrush}" Foreground="White"/>
                 </StackPanel>
 
-                <TextBlock Text="{Binding NegotiationMessage}" Foreground="#fbbf24" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding NegotiationMessage}" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
             </StackPanel>
 
             <!-- Step 4: Sign -->
             <StackPanel Spacing="15" IsVisible="{Binding IsStep4}">
-                <TextBlock Text="Sign Deal" FontSize="18" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                <TextBlock Text="Sign Deal" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                 
-                <Border Background="#0f172a" CornerRadius="4" Padding="15">
+                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Final Terms:" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                        <TextBlock FontSize="16" Foreground="#10b981">
+                        <TextBlock Text="Final Terms:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock FontSize="16" Foreground="{StaticResource AccentGreenBrush}">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}${0:N0}/week for {1} years">
                                     <Binding Path="CurrentOffer.WeeklyPayment"/>
@@ -142,22 +142,22 @@
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
-                        <TextBlock Text="{Binding Terms.IsExclusive, StringFormat='{}Exclusive: {0}'}" Foreground="#94a3b8"/>
-                        <TextBlock Text="{Binding Terms.ShowsPerYear, StringFormat='{}Shows per year: {0}'}" Foreground="#94a3b8"/>
+                        <TextBlock Text="{Binding Terms.IsExclusive, StringFormat='{}Exclusive: {0}'}" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="{Binding Terms.ShowsPerYear, StringFormat='{}Shows per year: {0}'}" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="{Binding NegotiationMessage}" Foreground="#10b981" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding NegotiationMessage}" Foreground="{StaticResource AccentGreenBrush}" TextWrapping="Wrap"/>
             </StackPanel>
             </Grid>
         </Border>
 
         <!-- Navigation Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Background="#7f1d1d" Foreground="White" Padding="15,8"/>
-            <Button Content="Previous" Command="{Binding PreviousStepCommand}" IsEnabled="{Binding CanGoBack}" Background="#334155" Foreground="White" Padding="15,8"/>
-            <Button Content="Next" Command="{Binding NextStepCommand}" IsEnabled="{Binding CanProceedToNextStep}" Background="#1e40af" Foreground="White" Padding="15,8"/>
-            <Button Content="Sign Deal" Command="{Binding SignDealCommand}" IsEnabled="{Binding CanSignDeal}" IsVisible="{Binding IsStep4}" Background="#065f46" Foreground="White" Padding="15,8"/>
+            <Button Content="Cancel" Command="{Binding CancelCommand}" Background="{StaticResource ErrorDarkBrush}" Foreground="White" Padding="15,8"/>
+            <Button Content="Previous" Command="{Binding PreviousStepCommand}" IsEnabled="{Binding CanGoBack}" Background="{StaticResource BorderMediumBrush}" Foreground="White" Padding="15,8"/>
+            <Button Content="Next" Command="{Binding NextStepCommand}" IsEnabled="{Binding CanProceedToNextStep}" Background="{StaticResource BrandPrimaryBrush}" Foreground="White" Padding="15,8"/>
+            <Button Content="Sign Deal" Command="{Binding SignDealCommand}" IsEnabled="{Binding CanSignDeal}" IsVisible="{Binding IsStep4}" Background="{StaticResource SuccessDarkBrush}" Foreground="White" Padding="15,8"/>
         </StackPanel>
     </Grid>
 </Window>

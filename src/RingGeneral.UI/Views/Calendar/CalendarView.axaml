@@ -16,8 +16,8 @@
         <!-- En-tête -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
             <StackPanel Grid.Column="0" Spacing="8">
-                <TextBlock Text="📅 CALENDRIER SHOWS" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-                <TextBlock FontSize="14" Foreground="#888888" Text="{Binding CurrentDateFormatted}"/>
+                <TextBlock Text="📅 CALENDRIER SHOWS" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Text="{Binding CurrentDateFormatted}"/>
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
                 <Button Content="← Mois précédent" Command="{Binding PreviousMonthCommand}" IsVisible="False"/>
@@ -26,17 +26,17 @@
         </Grid>
 
         <!-- Calendrier Mensuel -->
-        <Border Grid.Row="2" Background="#1e293b" CornerRadius="8" Padding="20">
+        <Border Grid.Row="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
             <Grid RowDefinitions="Auto,10,*">
                 <!-- En-têtes jours de la semaine -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,*,*,*,*,*,*">
-                    <TextBlock Grid.Column="0" Text="Lundi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" Text="Mardi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" Text="Mercredi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="3" Text="Jeudi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="4" Text="Vendredi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="5" Text="Samedi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="6" Text="Dimanche" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="0" Text="Lundi" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="Mardi" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="Mercredi" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="Jeudi" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="Vendredi" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="5" Text="Samedi" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="6" Text="Dimanche" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
                 </Grid>
 
                 <!-- Grille calendrier (7 colonnes x ~6 lignes) -->
@@ -48,8 +48,8 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="#0f172a" CornerRadius="4" Padding="8" Margin="2" 
-                                    BorderBrush="#334155" BorderThickness="1">
+                            <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="8" Margin="2" 
+                                    BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="1">
                                 <Border.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="📺 Ajouter Weekly Show" 
@@ -64,14 +64,14 @@
                                     </ContextMenu>
                                 </Border.ContextMenu>
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="{Binding DayNumber}" FontSize="14" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                    <TextBlock Text="{Binding DayNumber}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <ItemsControl ItemsSource="{Binding Shows}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="#334155" CornerRadius="3" Padding="4" Margin="0,2">
+                                                <Border Background="{StaticResource BorderMediumBrush}" CornerRadius="3" Padding="4" Margin="0,2">
                                                     <StackPanel Spacing="2">
                                                         <TextBlock Text="{Binding ShowTypeIcon}" FontSize="12"/>
-                                                        <TextBlock Text="{Binding Name}" FontSize="10" Foreground="#e0e0e0" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Name}" FontSize="10" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>
@@ -86,33 +86,33 @@
         </Border>
 
         <!-- Liste des shows à venir (en bas) -->
-        <Border Grid.Row="3" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,20,0,0">
+        <Border Grid.Row="3" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" Margin="0,20,0,0">
             <Grid RowDefinitions="Auto,15,*">
-                <TextBlock Grid.Row="0" Text="SHOWS À VENIR" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                <TextBlock Grid.Row="0" Text="SHOWS À VENIR" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding UpcomingShows}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Padding="15" Margin="0,0,0,10">
                                     <Grid RowDefinitions="Auto,8,Auto,8,Auto">
                                         <!-- Name + Date -->
                                         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
                                             <TextBlock Grid.Column="0" Text="{Binding ShowTypeIcon}" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0" VerticalAlignment="Center"/>
-                                            <Border Grid.Column="2" Background="#334155" CornerRadius="4" Padding="6,3">
-                                                <TextBlock Text="{Binding DateDisplay}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                            <Border Grid.Column="2" Background="{StaticResource BorderMediumBrush}" CornerRadius="4" Padding="6,3">
+                                                <TextBlock Text="{Binding DateDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
                                             </Border>
                                         </Grid>
 
                                         <!-- Location -->
-                                        <TextBlock Grid.Row="2" Text="{Binding Location}" FontSize="12" Foreground="#94a3b8"/>
+                                        <TextBlock Grid.Row="2" Text="{Binding Location}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
 
                                         <!-- Broadcast + Status -->
                                         <Grid Grid.Row="4" ColumnDefinitions="*,Auto">
-                                            <TextBlock Grid.Column="0" Text="{Binding Broadcast}" FontSize="12" Foreground="#64748b" FontStyle="Italic"/>
+                                            <TextBlock Grid.Column="0" Text="{Binding Broadcast}" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontStyle="Italic"/>
                                             <Border Grid.Column="1" Background="{Binding StatusColor}" CornerRadius="4" Padding="8,3">
-                                                <TextBlock Text="{Binding StatusDisplay}" FontSize="11" Foreground="#ffffff" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding StatusDisplay}" FontSize="11" Foreground="White" FontWeight="SemiBold"/>
                                             </Border>
                                         </Grid>
                                     </Grid>
@@ -128,33 +128,33 @@
         <Grid Grid.Row="2" ColumnDefinitions="2*,15,3*" IsVisible="False">
 
             <!-- COLONNE GAUCHE: Upcoming Shows -->
-            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
                 <Grid RowDefinitions="Auto,15,*">
-                    <TextBlock Grid.Row="0" Text="UPCOMING SHOWS" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <TextBlock Grid.Row="0" Text="UPCOMING SHOWS" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding UpcomingShows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Padding="15" Margin="0,0,0,10">
                                         <Grid RowDefinitions="Auto,8,Auto,8,Auto">
                                             <!-- Name + Week -->
                                             <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
                                                 <TextBlock Grid.Column="0" Text="{Binding ShowTypeIcon}" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0" VerticalAlignment="Center"/>
-                                                <Border Grid.Column="2" Background="#334155" CornerRadius="4" Padding="6,3">
-                                                    <TextBlock Text="{Binding WeekDisplay}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="2" Background="{StaticResource BorderMediumBrush}" CornerRadius="4" Padding="6,3">
+                                                    <TextBlock Text="{Binding WeekDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
                                                 </Border>
                                             </Grid>
 
                                             <!-- Location -->
-                                            <TextBlock Grid.Row="2" Text="{Binding Location}" FontSize="12" Foreground="#94a3b8"/>
+                                            <TextBlock Grid.Row="2" Text="{Binding Location}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
 
                                             <!-- Broadcast + Status -->
                                             <Grid Grid.Row="4" ColumnDefinitions="*,Auto">
-                                                <TextBlock Grid.Column="0" Text="{Binding Broadcast}" FontSize="12" Foreground="#64748b" FontStyle="Italic"/>
+                                                <TextBlock Grid.Column="0" Text="{Binding Broadcast}" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontStyle="Italic"/>
                                                 <Border Grid.Column="1" Background="{Binding StatusColor}" CornerRadius="4" Padding="8,3">
-                                                    <TextBlock Text="{Binding StatusDisplay}" FontSize="11" Foreground="#ffffff" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding StatusDisplay}" FontSize="11" Foreground="White" FontWeight="SemiBold"/>
                                                 </Border>
                                             </Grid>
                                         </Grid>
@@ -167,32 +167,32 @@
             </Border>
 
             <!-- COLONNE DROITE: Calendar Entries -->
-            <Border Grid.Column="2" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20">
                 <Grid RowDefinitions="Auto,15,*">
-                    <TextBlock Grid.Row="0" Text="CALENDAR ENTRIES" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                    <TextBlock Grid.Row="0" Text="CALENDAR ENTRIES" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding CalendarEntries}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Padding="15" Margin="0,0,0,10">
                                         <Grid RowDefinitions="Auto,8,Auto" ColumnDefinitions="Auto,*">
                                             <!-- Icon -->
                                             <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Text="{Binding TypeIcon}" FontSize="24" VerticalAlignment="Top" Margin="0,0,12,0"/>
 
                                             <!-- Date + Type -->
                                             <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                                <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
-                                                <Border Grid.Column="1" Background="#334155" CornerRadius="4" Padding="6,3">
-                                                    <TextBlock Text="{Binding EntryType}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                                <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <Border Grid.Column="1" Background="{StaticResource BorderMediumBrush}" CornerRadius="4" Padding="6,3">
+                                                    <TextBlock Text="{Binding EntryType}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
                                                 </Border>
                                             </Grid>
 
                                             <!-- Date -->
-                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Date}" FontSize="12" Foreground="#64748b"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Date}" FontSize="12" Foreground="{StaticResource TextSubtleBrush}"/>
 
                                             <!-- Notes -->
-                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Notes}" FontSize="12" Foreground="#94a3b8" TextWrapping="Wrap"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Notes}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

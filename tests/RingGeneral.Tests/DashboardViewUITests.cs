@@ -67,7 +67,7 @@ public class DashboardViewUITests
                 .FirstOrDefault(tb => tb.Text == expectedCompanyName);
 
         companyNameTextBlock.Should().NotBeNull();
-        companyNameTextBlock!.Text.Should().Be(expectedCompanyName);
+        companyNameTextBlock?.Text.Should().Be(expectedCompanyName);
     }
 
     [AvaloniaFact]
@@ -167,7 +167,7 @@ public class DashboardViewUITests
 
         // Assert - Trouver le TextBlock qui affiche le budget
         var budgetTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains(expectedBudget.ToString("C")))
+            .Where(tb => tb.Text != null && tb.Text.Contains(expectedBudget.ToString("C")))
             .ToList();
 
         budgetTextBlocks.Should().NotBeEmpty();
@@ -195,7 +195,7 @@ public class DashboardViewUITests
             .FirstOrDefault(tb => tb.Text == expectedNews);
 
         newsTextBlock.Should().NotBeNull();
-        newsTextBlock!.Text.Should().Be(expectedNews);
+        newsTextBlock?.Text.Should().Be(expectedNews);
     }
 
     [AvaloniaFact]
@@ -246,7 +246,7 @@ public class DashboardViewUITests
 
         // Assert - Trouver le TextBlock qui affiche le jour
         var dayTextBlocks = view.GetVisualDescendants().OfType<TextBlock>()
-            .Where(tb => tb.Text.Contains($"Jour {expectedDay}"))
+            .Where(tb => tb.Text != null && tb.Text.Contains($"Jour {expectedDay}"))
             .ToList();
 
         dayTextBlocks.Should().NotBeEmpty();
@@ -298,13 +298,13 @@ public class DashboardViewUITests
 
         scrollViewer.Should().NotBeNull();
 
-        var mainStackPanel = scrollViewer!.Content as StackPanel;
+        var mainStackPanel = scrollViewer?.Content as StackPanel;
         mainStackPanel.Should().NotBeNull();
-        mainStackPanel!.Children.Should().NotBeEmpty();
+        mainStackPanel?.Children.Should().NotBeEmpty();
 
         // Vérifier qu'il y a une grille avec les cartes statistiques
         var grid = mainStackPanel.Children.OfType<Grid>().FirstOrDefault();
         grid.Should().NotBeNull();
-        grid!.ColumnDefinitions.Should().NotBeEmpty();
+        grid?.ColumnDefinitions.Should().NotBeEmpty();
     }
 }
