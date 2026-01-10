@@ -97,13 +97,13 @@ public sealed class ShowFinanceContext
 /// </summary>
 public sealed class FinanceShowResult
 {
-    public decimal Billetterie { get; set; }
-    public decimal Merch { get; set; }
-    public decimal Tv { get; set; }
-    public decimal CoutsProduction { get; set; }
-    public required IReadOnlyList<FinanceTransaction> Transactions { get; set; }
+    public decimal Billetterie { get; }
+    public decimal Merch { get; }
+    public decimal Tv { get; }
+    public decimal CoutsProduction { get; }
+    public IReadOnlyList<FinanceTransactionModel> Transactions { get; }
 
-    public FinanceShowResult(decimal billetterie, decimal merch, decimal tv, decimal coutsProduction, IReadOnlyList<FinanceTransaction> transactions)
+    public FinanceShowResult(decimal billetterie, decimal merch, decimal tv, decimal coutsProduction, IReadOnlyList<FinanceTransactionModel> transactions)
     {
         Billetterie = billetterie;
         Merch = merch;
@@ -133,11 +133,11 @@ public sealed class WeeklyFinanceContext
 /// </summary>
 public sealed class FinanceTickResult
 {
-    public decimal Revenus { get; set; }
-    public decimal Depenses { get; set; }
-    public required IReadOnlyList<FinanceTransaction> Transactions { get; set; }
+    public decimal Revenus { get; }
+    public decimal Depenses { get; }
+    public IReadOnlyList<FinanceTransactionModel> Transactions { get; }
 
-    public FinanceTickResult(decimal revenus, decimal depenses, IReadOnlyList<FinanceTransaction> transactions)
+    public FinanceTickResult(decimal revenus, decimal depenses, IReadOnlyList<FinanceTransactionModel> transactions)
     {
         Revenus = revenus;
         Depenses = depenses;
@@ -146,15 +146,15 @@ public sealed class FinanceTickResult
 }
 
 /// <summary>
-/// Transaction financière
+/// Transaction financière pour le moteur de finance
 /// </summary>
-public sealed class FinanceTransaction
+public sealed class FinanceTransactionModel
 {
-    public required string Id { get; set; }
-    public decimal Amount { get; set; }
-    public required string Description { get; set; }
+    public string Id { get; }
+    public decimal Amount { get; }
+    public string Description { get; }
 
-    public FinanceTransaction(string id, decimal amount, string description)
+    public FinanceTransactionModel(string id, decimal amount, string description)
     {
         Id = id;
         Amount = amount;
@@ -178,4 +178,124 @@ public enum PayrollFrequency
 {
     Hebdomadaire,
     Mensuelle
+}
+
+/// <summary>
+/// Allocation budgétaire par département
+/// </summary>
+public sealed class BudgetAllocation
+{
+    public string CompanyId { get; }
+    public decimal TotalBudget { get; }
+    public decimal TalentAllocation { get; }
+    public decimal ProductionAllocation { get; }
+    public decimal YouthDevAllocation { get; }
+    public decimal MarketingAllocation { get; }
+    public decimal MedicalAllocation { get; }
+
+    public BudgetAllocation(string companyId, decimal totalBudget, decimal talentAllocation, decimal productionAllocation, decimal youthDevAllocation, decimal marketingAllocation, decimal medicalAllocation)
+    {
+        CompanyId = companyId;
+        TotalBudget = totalBudget;
+        TalentAllocation = talentAllocation;
+        ProductionAllocation = productionAllocation;
+        YouthDevAllocation = youthDevAllocation;
+        MarketingAllocation = marketingAllocation;
+        MedicalAllocation = medicalAllocation;
+    }
+}
+
+/// <summary>
+/// Impact d'une allocation budgétaire
+/// </summary>
+public sealed class AllocationImpact
+{
+    public string Department { get; }
+    public decimal Amount { get; }
+    public string Description { get; }
+    public double Effect { get; }
+
+    public AllocationImpact(string department, decimal amount, string description, double effect)
+    {
+        Department = department;
+        Amount = amount;
+        Description = description;
+        Effect = effect;
+    }
+}
+
+/// <summary>
+/// Dette de compagnie
+/// </summary>
+public sealed record CompanyDebt(
+    string DebtId,
+    string CompanyId,
+    decimal PrincipalAmount,
+    decimal InterestRate,
+    int TermMonths,
+    DateTime StartDate,
+    decimal MonthlyPayment,
+    decimal RemainingBalance);
+
+/// <summary>
+/// Projection de revenus sur 12 mois
+/// </summary>
+public sealed class RevenueProjection
+{
+    public required string CompanyId { get; set; }
+    public int StartMonth { get; set; }
+    public required IReadOnlyList<MonthlyRevenue> MonthlyRevenues { get; set; }
+    public decimal TotalProjectedRevenue { get; set; }
+    public required TrendAnalysis Trend { get; set; }
+
+    public RevenueProjection(string companyId, int startMonth, IReadOnlyList<MonthlyRevenue> monthlyRevenues, decimal totalProjectedRevenue, TrendAnalysis trend)
+    {
+        CompanyId = companyId;
+        StartMonth = startMonth;
+        MonthlyRevenues = monthlyRevenues;
+        TotalProjectedRevenue = totalProjectedRevenue;
+        Trend = trend;
+    }
+}
+
+/// <summary>
+/// Revenus mensuels projetés
+/// </summary>
+public sealed class MonthlyRevenue
+{
+    public int Month { get; }
+    public decimal TicketSales { get; }
+    public decimal Merchandise { get; }
+    public decimal TvDeals { get; }
+    public decimal Sponsors { get; }
+    public decimal TotalRevenue { get; }
+
+    public MonthlyRevenue(int month, decimal ticketSales, decimal merchandise, decimal tvDeals, decimal sponsors, decimal totalRevenue)
+    {
+        Month = month;
+        TicketSales = ticketSales;
+        Merchandise = merchandise;
+        TvDeals = tvDeals;
+        Sponsors = sponsors;
+        TotalRevenue = totalRevenue;
+    }
+}
+
+/// <summary>
+/// Analyse de tendance
+/// </summary>
+public sealed class TrendAnalysis
+{
+    public decimal GrowthRate { get; set; }
+    public required string Trend { get; set; } // "Increasing", "Stable", "Decreasing"
+    public decimal Volatility { get; set; }
+    public required string Recommendation { get; set; }
+
+    public TrendAnalysis(decimal growthRate, string trend, decimal volatility, string recommendation)
+    {
+        GrowthRate = growthRate;
+        Trend = trend;
+        Volatility = volatility;
+        Recommendation = recommendation;
+    }
 }

@@ -85,7 +85,7 @@ public sealed class BudgetAllocationService : IBudgetAllocationService
 
         // Youth Dev Impact
         var youthPercent = allocation.YouthDevAllocation / total;
-        var youthImpact = (youthPercent - 0.1m) * 2.0; // Multiplicateur pour impact
+        var youthImpact = (double)((youthPercent - 0.1m) * 2.0m); // Multiplicateur pour impact
         impacts.Add(new AllocationImpact(
             "Youth Development",
             youthPercent * 100m,
@@ -105,7 +105,7 @@ public sealed class BudgetAllocationService : IBudgetAllocationService
 
         // Marketing Impact
         var marketingPercent = allocation.MarketingAllocation / total;
-        var marketingImpact = (marketingPercent - 0.1m) * 1.5;
+        var marketingImpact = (double)((marketingPercent - 0.1m) * 1.5m);
         impacts.Add(new AllocationImpact(
             "Marketing",
             marketingPercent * 100m,

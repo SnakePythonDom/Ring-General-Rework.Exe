@@ -68,12 +68,18 @@ public sealed class RevenueProjectionService : IRevenueProjectionService
         var totalProjected = monthlyRevenues.Sum(m => m.TotalRevenue);
         var averageMonthly = totalProjected / 12m;
 
+        var trend = new TrendAnalysis(
+            0.05m, // Basic growth rate
+            "Stable",
+            0.1m,
+            "Maintain current strategy");
+
         return new RevenueProjection(
             companyId,
             startMonth,
             monthlyRevenues,
             totalProjected,
-            averageMonthly);
+            trend);
     }
 
     private List<TvDeal> LoadActiveTvDeals(string companyId)
@@ -114,7 +120,7 @@ public sealed class RevenueProjectionService : IRevenueProjectionService
     private decimal CalculateMerchRevenue(CompanyState company, int month)
     {
         // Merch basé sur audience moyenne et prestige
-        var baseMerch = company.AverageAudience * 5m; // $5 par spectateur moyen
+        var baseMerch = company.AudienceMoyenne * 5m; // $5 par spectateur moyen
         var prestigeBonus = company.Prestige * 10m;
         return baseMerch + prestigeBonus;
     }
