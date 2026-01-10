@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Attributes;
 using RingGeneral.Data.Database;
 

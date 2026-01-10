@@ -2,7 +2,6 @@ using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Models.Attributes;
-using RingGeneral.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -852,7 +851,8 @@ public sealed class BookerAIEngine : IBookerAIEngine
     private string EvaluatePuroresuStrategy(Booker booker, ShowContext context, List<BookerMemory> memories)
     {
         var technicalMatches = memories.Count(m => m.EventDescription.Contains("technical") || m.EventDescription.Contains("workrate"));
-        var averageMatchLength = context.Segments.Where(s => s.TypeSegment == "match").Average(s => s.DureeMinutes);
+        var matchSegments = context.Segments.Where(s => s.TypeSegment == "match");
+        var averageMatchLength = matchSegments.Any() ? matchSegments.Average(s => s.DureeMinutes) : 0;
 
         if (technicalMatches > 3 && averageMatchLength >= 25)
             return "Stratégie optimale: Produit technique de haute qualité, respect du puroresu";
