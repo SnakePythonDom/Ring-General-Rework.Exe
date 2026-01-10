@@ -1,0 +1,72 @@
+Voici une synthèse structurée de votre **PRD (Product Requirements Document)** pour les systèmes de "Child Companies" et l'impact du Staff dans votre simulation de catch.
+
+---
+
+## 🏢 1. Système de Child Companies (Filiales)
+
+Le jeu distingue désormais l'expérience selon que la filiale est gérée par le **Joueur** ou par l'**IA**, avec une rupture nette par rapport au modèle de gestion d'une compagnie principale.
+
+### A. Pilotage par le Joueur
+
+Le joueur peut gérer une filiale avec des objectifs spécifiques qui s'affranchissent de la rentabilité immédiate :
+
+* **Objectifs configurables :** Pipeline de talents, centre de performance (Dojo), niche locale ou expérimentation créative.
+* **Paramétrage :** Définition du niveau d'influence de l'Owner (maison-mère) et de la liberté accordée au Booker.
+
+### B. Gestion par l'IA
+
+Lorsqu'une filiale est autonome, un **Owner secondaire** est nommé.
+
+* **Hiérarchie :** Il reçoit des directives de l'Owner principal et est évalué sur leur exécution.
+* **Pression :** Risque de rétrogradation ou de remplacement en cas d'échec des objectifs (développement, expansion culturelle, etc.).
+* **Flexibilité financière :** Tolérance élevée au déficit pour privilégier la formation.
+
+### C. Écoles de Catch & Flux de Talents
+
+Lien direct entre la formation initiale et la pratique :
+
+1. **École (IA/Joueur) :** Apprentissage des bases.
+2. **Child Company (Développement) :** Mise en pratique, gain d'expérience, test de gimmicks.
+3. **Roster Principal :** Promotion finale des meilleurs éléments.
+
+---
+
+## 🛠️ 2. Écosystème du Staff : Rôles et Impacts
+
+Le staff n'est plus un simple coût fixe, mais un levier de performance avec des bonus/malus directs.
+
+### 🤼 Technique & Performance
+
+| Rôle | Impact Direct | Conséquence de l'absence |
+| --- | --- | --- |
+| **Road Agent** | Qualité/Psychologie des matchs, réduction des blessures/botchs. | Matchs incohérents, sous-performance des stars. |
+| **Trainers** | Vitesse de progression, qualité des graduates. | Pipeline inefficace, stagnation des statistiques. |
+| **Medical Staff** | Temps de récupération, risque de rechute. | Carrières écourtées, chaos dans le booking. |
+
+### 📺 Présentation & Image
+
+| Rôle | Impact Direct | Conséquence de l'absence |
+| --- | --- | --- |
+| **Commentateurs** | Heat des feuds, popularité, clarté narrative. | Storylines moins impactantes, midcarders invisibles. |
+| **Production** | Ratings TV, image "Premium". | Plafond d'audience bas, manque de crédibilité. |
+| **Marketing/PR** | Valeur des deals TV, sponsors, gestion de crise. | Croissance lente, revenus instables. |
+
+### 🏢 Gestion & Structure
+
+| Rôle | Impact Direct | Conséquence de l'absence |
+| --- | --- | --- |
+| **Financier** | Optimisation des coûts, burn rate. | Faillites soudaines, décisions à l'aveugle. |
+| **Talent Rel.** | Rétention du roster, moral, scouting. | Départs surprises, recrutement aléatoire. |
+| **Psychologue** | Réduction du burnout, gestion des conflits. | Crises internes, stars imprévisibles. |
+
+---
+
+## 💡 Synthèse Stratégique
+
+* **Pour les petites fédérations :** Le **Staff Polyvalent** est privilégié pour limiter les coûts, malgré une efficacité plafonnée.
+* **Pour les Majors :** L'investissement dans le staff (Production, PR, Psychologue) devient obligatoire pour maintenir une croissance mondiale.
+* **Pour le Développement :** Le combo **Road Agent + Trainer** est le moteur indispensable de toute Child Company de type "Pipeline".
+
+---
+
+**Souhaitez-vous que je développe les formules mathématiques (LaTeX) qui lieraient l'efficacité du staff (ex: score du Road Agent) au résultat final d'un match ?**
