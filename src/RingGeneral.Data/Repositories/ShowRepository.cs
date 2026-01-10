@@ -472,6 +472,17 @@ public sealed class ShowRepository : RepositoryBase
     {
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
+        
+        // Vérifier si la table Shows existe et a la colonne CompanyId
+        var hasShowsTable = TableExiste(connexion, "Shows");
+        var hasCompanyId = hasShowsTable && ColonneExiste(connexion, "Shows", "CompanyId");
+        
+        if (!hasShowsTable || !hasCompanyId)
+        {
+            // Table Shows n'existe pas ou utilise l'ancien schéma, retourner liste vide
+            return Array.Empty<ShowSchedule>();
+        }
+        
         command.CommandText = """
             SELECT ShowId, CompanyId, Name, ShowType, Date, DurationMinutes, VenueId, Broadcast, TicketPrice, Status, BrandId
             FROM Shows
@@ -515,6 +526,17 @@ public sealed class ShowRepository : RepositoryBase
     public IReadOnlyList<ShowSchedule> ChargerShowsProchainsJours(string companyId, DateOnly startDate, int jours)
     {
         using var connexion = OpenConnection();
+        
+        // Vérifier si la table Shows existe et a la colonne CompanyId
+        var hasShowsTable = TableExiste(connexion, "Shows");
+        var hasCompanyId = hasShowsTable && ColonneExiste(connexion, "Shows", "CompanyId");
+        
+        if (!hasShowsTable || !hasCompanyId)
+        {
+            // Table Shows n'existe pas ou utilise l'ancien schéma, retourner liste vide
+            return Array.Empty<ShowSchedule>();
+        }
+        
         using var command = connexion.CreateCommand();
         var endDate = startDate.AddDays(jours);
         command.CommandText = """

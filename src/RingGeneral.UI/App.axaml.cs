@@ -100,6 +100,9 @@ public sealed class App : Application
                     // S'assurer que toutes les tables essentielles existent avant de seed
                     SqliteConnectionFactory.EnsureEssentialTablesExist(connection);
                     
+                    // Configurer le logger pour DbSeeder
+                    DbSeeder.SetLogger(logger);
+                    
                     DbSeeder.SeedIfEmpty(connection);
                     
                     logger.Info($"✅ General DB créée avec données génériques : {generalDbPath}");
@@ -139,6 +142,7 @@ public sealed class App : Application
                         if (companiesCount == 0 || workersCount == 0)
                         {
                             logger.Info($"Remplissage avec données génériques...");
+                            DbSeeder.SetLogger(logger);
                             DbSeeder.SeedIfEmpty(connection);
                             logger.Info($"✅ Base de données initialisée avec données génériques");
                         }
@@ -160,6 +164,7 @@ public sealed class App : Application
                         if (companiesCount == 0 || workersCount == 0)
                         {
                             logger.Warning($"⚠️ Base de données vide. Remplissage avec données génériques...");
+                            DbSeeder.SetLogger(logger);
                             DbSeeder.SeedIfEmpty(connection);
                             logger.Info($"✅ Données génériques ajoutées");
                         }
@@ -443,10 +448,19 @@ public sealed class App : Application
                 sp.GetRequiredService<SettingsRepository>()));
 
         // Roster ViewModels
-        services.AddTransient<RosterViewModel>();
-        services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>();
-        services.AddTransient<ViewModels.Roster.TitlesViewModel>();
-        services.AddTransient<ViewModels.Roster.InjuriesViewModel>();
+        services.AddTransient<RosterViewModel>(sp =>
+            new RosterViewModel(
+                repository: sp.GetRequiredService<GameRepository>(),
+                navigationService: sp.GetRequiredService<INavigationService>()));
+        services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>(sp =>
+            new ViewModels.Roster.WorkerDetailViewModel(
+                repository: sp.GetRequiredService<GameRepository>()));
+        services.AddTransient<ViewModels.Roster.TitlesViewModel>(sp =>
+            new ViewModels.Roster.TitlesViewModel(
+                repository: sp.GetRequiredService<GameRepository>()));
+        services.AddTransient<ViewModels.Roster.InjuriesViewModel>(sp =>
+            new ViewModels.Roster.InjuriesViewModel(
+                repository: sp.GetRequiredService<GameRepository>()));
         services.AddTransient<ViewModels.Roster.StructuralDashboardViewModel>(sp =>
             new ViewModels.Roster.StructuralDashboardViewModel(
                 sp.GetRequiredService<IRosterAnalysisRepository>(),
@@ -476,8 +490,12 @@ public sealed class App : Application
                 sp.GetRequiredService<GameRepository>()));
 
         // Other ViewModels
-        services.AddTransient<StorylinesViewModel>();
-        services.AddTransient<YouthViewModel>();
+        services.AddTransient<StorylinesViewModel>(sp =>
+            new StorylinesViewModel(
+                repository: sp.GetRequiredService<GameRepository>()));
+        services.AddTransient<YouthViewModel>(sp =>
+            new YouthViewModel(
+                repository: sp.GetRequiredService<GameRepository>()));
         services.AddTransient<FinanceViewModel>(sp =>
             new FinanceViewModel(
                 sp.GetRequiredService<GameRepository>(),

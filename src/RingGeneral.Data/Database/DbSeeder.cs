@@ -71,14 +71,25 @@ public static class DbSeeder
             // 3. Créer des titres
             var titleIds = SeedTitles(connection, companyId, workerIds);
 
-            // 4. Créer un show
-            var showId = SeedShow(connection, companyId);
+            // 4. Créer un show (optionnel - peut échouer si la table n'existe pas)
+            try
+            {
+                var showId = SeedShow(connection, companyId);
+                Log(LogLevel.Info, $"Show créé : {showId}");
+            }
+            catch (Exception ex)
+            {
+                // Ne pas faire échouer tout le seeding si le show échoue
+                Log(LogLevel.Warning, $"Impossible de créer le show (table Shows peut ne pas exister) : {ex.Message}");
+            }
 
             transaction.Commit();
+            Log(LogLevel.Info, $"Seeding terminé : {workerIds.Count} workers, {titleIds.Count} titres");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             transaction.Rollback();
+            Log(LogLevel.Error, $"Erreur lors du seeding : {ex.Message}");
             throw;
         }
     }
@@ -244,6 +255,39 @@ public static class DbSeeder
     /// </summary>
     private static string SeedShow(SqliteConnection connection, string companyId)
     {
+        // Vérifier d'abord si la table Shows existe et a la bonne structure
+        if (!TableExists(connection, "Shows"))
+        {
+            throw new InvalidOperationException("La table Shows n'existe pas. Assurez-vous que le schéma est initialisé avant le seeding.");
+        }
+
+        // Vérifier que la colonne ShowId existe
+        var hasShowId = false;
+        try
+        {
+            using var pragmaCmd = connection.CreateCommand();
+            pragmaCmd.CommandText = "PRAGMA table_info(Shows);";
+            using var reader = pragmaCmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var columnName = reader.GetString(1);
+                if (columnName.Equals("ShowId", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasShowId = true;
+                    break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Impossible de vérifier la structure de la table Shows : {ex.Message}");
+        }
+
+        if (!hasShowId)
+        {
+            throw new InvalidOperationException("La table Shows existe mais n'a pas la colonne ShowId. Le schéma doit être mis à jour.");
+        }
+
         var showId = "SHOW_RAW_001";
         var showDate = DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd");
 
@@ -264,6 +308,27 @@ public static class DbSeeder
         cmd.ExecuteNonQuery();
 
         return showId;
+    }
+
+    /// <summary>
+    /// Vérifie si une table existe dans la base de données
+    /// </summary>
+    private static bool TableExists(SqliteConnection connection, string tableName)
+    {
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name = @tableName COLLATE NOCASE";
+            cmd.Parameters.AddWithValue("@tableName", tableName);
+            var result = cmd.ExecuteScalar();
+            return result != null;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>

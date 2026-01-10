@@ -164,7 +164,7 @@ public sealed class RosterViewModel : ViewModelBase
                     {
                         WorkerId = reader.GetString(0),
                         Name = reader.GetString(1),
-                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
+                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetInt32(2).ToString(),
                         Popularity = reader.GetInt32(3),
                         InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
                         Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
@@ -206,7 +206,9 @@ public sealed class RosterViewModel : ViewModelBase
             File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"C\",\"location\":\"RosterViewModel.cs:209\",\"message\":\"Exception in LoadWorkers\",\"data\":{{\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
             // #endregion
             
+            Logger.Error($"Erreur lors du chargement des workers: {ex.Message}", ex);
             System.Console.Error.WriteLine($"[RosterViewModel] Erreur lors du chargement: {ex.Message}");
+            System.Console.Error.WriteLine($"[RosterViewModel] StackTrace: {ex.StackTrace}");
             LoadPlaceholderData();
         }
     }
@@ -249,7 +251,7 @@ public sealed class RosterViewModel : ViewModelBase
                     {
                         WorkerId = reader.GetString(0),
                         Name = reader.GetString(1),
-                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetString(2),
+                        Role = reader.IsDBNull(2) ? "N/A" : reader.GetInt32(2).ToString(),
                         Popularity = reader.GetInt32(3),
                         InRing = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
                         Entertainment = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
