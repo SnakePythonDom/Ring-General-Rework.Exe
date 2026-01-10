@@ -11,22 +11,121 @@
         <vm:CalendarViewModel />
     </Design.DataContext>
 
-    <Grid Margin="30" RowDefinitions="Auto,20,*">
+    <Grid x:Name="CalendarViewRoot" Margin="30" RowDefinitions="Auto,20,*,Auto">
 
         <!-- En-tête -->
-        <StackPanel Grid.Row="0" Spacing="8">
-            <TextBlock Text="📅 SHOW CALENDAR" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
-            <TextBlock FontSize="14" Foreground="#888888">
-                <TextBlock.Text>
-                    <MultiBinding StringFormat="{}Current Week: {0}">
-                        <Binding Path="CurrentWeek"/>
-                    </MultiBinding>
-                </TextBlock.Text>
-            </TextBlock>
-        </StackPanel>
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+            <StackPanel Grid.Column="0" Spacing="8">
+                <TextBlock Text="📅 CALENDRIER SHOWS" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+                <TextBlock FontSize="14" Foreground="#888888" Text="{Binding CurrentDateFormatted}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                <Button Content="← Mois précédent" Command="{Binding PreviousMonthCommand}" IsVisible="False"/>
+                <Button Content="Mois suivant →" Command="{Binding NextMonthCommand}" IsVisible="False"/>
+            </StackPanel>
+        </Grid>
 
-        <!-- Contenu Principal (2 colonnes) -->
-        <Grid Grid.Row="2" ColumnDefinitions="2*,15,3*">
+        <!-- Calendrier Mensuel -->
+        <Border Grid.Row="2" Background="#1e293b" CornerRadius="8" Padding="20">
+            <Grid RowDefinitions="Auto,10,*">
+                <!-- En-têtes jours de la semaine -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,*,*,*,*,*,*">
+                    <TextBlock Grid.Column="0" Text="Lundi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="Mardi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="Mercredi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="Jeudi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="Vendredi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="5" Text="Samedi" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="6" Text="Dimanche" FontSize="12" FontWeight="SemiBold" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                </Grid>
+
+                <!-- Grille calendrier (7 colonnes x ~6 lignes) -->
+                <ItemsControl Grid.Row="2" ItemsSource="{Binding CalendarDays}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="7" Rows="6"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#0f172a" CornerRadius="4" Padding="8" Margin="2" 
+                                    BorderBrush="#334155" BorderThickness="1">
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="📺 Ajouter Weekly Show" 
+                                                  Command="{Binding #CalendarViewRoot.DataContext.CreateShowRapideCommand}" 
+                                                  CommandParameter="{Binding Date}"/>
+                                        <MenuItem Header="🏆 Ajouter PPV" 
+                                                  Command="{Binding #CalendarViewRoot.DataContext.CreateShowRapideCommand}" 
+                                                  CommandParameter="{Binding Date}"/>
+                                        <MenuItem Header="🏠 Ajouter House Show" 
+                                                  Command="{Binding #CalendarViewRoot.DataContext.CreateShowRapideCommand}" 
+                                                  CommandParameter="{Binding Date}"/>
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{Binding DayNumber}" FontSize="14" FontWeight="Bold" Foreground="#e0e0e0"/>
+                                    <ItemsControl ItemsSource="{Binding Shows}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#334155" CornerRadius="3" Padding="4" Margin="0,2">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{Binding ShowTypeIcon}" FontSize="12"/>
+                                                        <TextBlock Text="{Binding Name}" FontSize="10" Foreground="#e0e0e0" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+
+        <!-- Liste des shows à venir (en bas) -->
+        <Border Grid.Row="3" Background="#1e293b" CornerRadius="8" Padding="20" Margin="0,20,0,0">
+            <Grid RowDefinitions="Auto,15,*">
+                <TextBlock Grid.Row="0" Text="SHOWS À VENIR" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding UpcomingShows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10">
+                                    <Grid RowDefinitions="Auto,8,Auto,8,Auto">
+                                        <!-- Name + Date -->
+                                        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding ShowTypeIcon}" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0" VerticalAlignment="Center"/>
+                                            <Border Grid.Column="2" Background="#334155" CornerRadius="4" Padding="6,3">
+                                                <TextBlock Text="{Binding DateDisplay}" FontSize="11" Foreground="#94a3b8" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Location -->
+                                        <TextBlock Grid.Row="2" Text="{Binding Location}" FontSize="12" Foreground="#94a3b8"/>
+
+                                        <!-- Broadcast + Status -->
+                                        <Grid Grid.Row="4" ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding Broadcast}" FontSize="12" Foreground="#64748b" FontStyle="Italic"/>
+                                            <Border Grid.Column="1" Background="{Binding StatusColor}" CornerRadius="4" Padding="8,3">
+                                                <TextBlock Text="{Binding StatusDisplay}" FontSize="11" Foreground="#ffffff" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Contenu Principal (2 colonnes) - ANCIEN LAYOUT (masqué pour l'instant) -->
+        <Grid Grid.Row="2" ColumnDefinitions="2*,15,3*" IsVisible="False">
 
             <!-- COLONNE GAUCHE: Upcoming Shows -->
             <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">

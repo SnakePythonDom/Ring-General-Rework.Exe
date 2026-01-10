@@ -3,6 +3,7 @@ using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Validation;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Models.Booker;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Messaging;
 
@@ -18,20 +19,24 @@ public sealed class BookingViewModel : ViewModelBase
     private readonly BookingValidator _validator;
     private readonly SegmentTypeCatalog _segmentCatalog;
     private readonly IEventAggregator _eventAggregator;
+    private readonly SettingsRepository? _settingsRepository;
     private SegmentViewModel? _selectedSegment;
     private string? _validationErrors;
     private string? _validationWarnings;
+    private BookingControlLevel _controlLevel = BookingControlLevel.CoBooker;
 
     public BookingViewModel(
         GameRepository repository,
         BookingValidator validator,
         SegmentTypeCatalog segmentCatalog,
-        IEventAggregator eventAggregator)
+        IEventAggregator eventAggregator,
+        SettingsRepository? settingsRepository = null)
     {
         _repository = repository;
         _validator = validator;
         _segmentCatalog = segmentCatalog;
         _eventAggregator = eventAggregator;
+        _settingsRepository = settingsRepository;
 
         // Collections
         Segments = new ObservableCollection<SegmentViewModel>();
@@ -40,6 +45,16 @@ public sealed class BookingViewModel : ViewModelBase
         StorylinesAvailable = new ObservableCollection<StorylineOptionViewModel>();
         TitlesAvailable = new ObservableCollection<TitleOptionViewModel>();
         SegmentTypes = new ObservableCollection<SegmentTypeOptionViewModel>();
+        ControlLevels = new ObservableCollection<BookingControlLevel>
+        {
+            BookingControlLevel.Spectator,
+            BookingControlLevel.Producer,
+            BookingControlLevel.CoBooker,
+            BookingControlLevel.Dictator
+        };
+
+        // Charger le niveau de contrôle depuis les settings
+        LoadBookingControlLevel();
 
         // Commands
         AddSegmentCommand = ReactiveCommand.Create(AddSegment);
@@ -64,6 +79,7 @@ public sealed class BookingViewModel : ViewModelBase
     public ObservableCollection<StorylineOptionViewModel> StorylinesAvailable { get; }
     public ObservableCollection<TitleOptionViewModel> TitlesAvailable { get; }
     public ObservableCollection<SegmentTypeOptionViewModel> SegmentTypes { get; }
+    public ObservableCollection<BookingControlLevel> ControlLevels { get; }
 
     // ========== PROPRIÉTÉS ==========
 
@@ -110,6 +126,42 @@ public sealed class BookingViewModel : ViewModelBase
     }
 
     public bool IsBookingValid => ValidationIssues.Count == 0;
+
+    /// <summary>
+    /// Niveau de contrôle du booking
+    /// </summary>
+    public BookingControlLevel ControlLevel
+    {
+        get => _controlLevel;
+        set
+        {
+            if (_controlLevel != value)
+            {
+                _controlLevel = value;
+                this.RaisePropertyChanged();
+                this.RaisePropertyChanged(nameof(ControlLevelDescription));
+                this.RaisePropertyChanged(nameof(CanAutoBook));
+                SaveBookingControlLevel();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Description du niveau de contrôle
+    /// </summary>
+    public string ControlLevelDescription => ControlLevel switch
+    {
+        BookingControlLevel.Spectator => "👁️ IA contrôle 100% des décisions",
+        BookingControlLevel.Producer => "🎬 IA propose, vous validez",
+        BookingControlLevel.CoBooker => "🤝 Vous gérez titres majeurs, IA développe midcard",
+        BookingControlLevel.Dictator => "👑 Contrôle total, pas d'intervention IA",
+        _ => "Niveau non défini"
+    };
+
+    /// <summary>
+    /// Indique si l'auto-booking est disponible selon le niveau
+    /// </summary>
+    public bool CanAutoBook => ControlLevel != BookingControlLevel.Dictator;
 
     // ========== COMMANDS ==========
 
@@ -349,6 +401,41 @@ public sealed class BookingViewModel : ViewModelBase
     {
         TotalDuration = Segments.Sum(s => s.DureeMinutes);
         DurationSummary = $"{TotalDuration}/{ShowDuration} min";
+    }
+
+    private void LoadBookingControlLevel()
+    {
+        if (_settingsRepository == null) return;
+
+        try
+        {
+            var levelString = _settingsRepository.ChargerBookingControlLevel();
+            if (Enum.TryParse<BookingControlLevel>(levelString, out var level))
+            {
+                _controlLevel = level;
+                this.RaisePropertyChanged(nameof(ControlLevel));
+                this.RaisePropertyChanged(nameof(ControlLevelDescription));
+                this.RaisePropertyChanged(nameof(CanAutoBook));
+            }
+        }
+        catch
+        {
+            // Utiliser la valeur par défaut si le chargement échoue
+        }
+    }
+
+    private void SaveBookingControlLevel()
+    {
+        if (_settingsRepository == null) return;
+
+        try
+        {
+            _settingsRepository.SauvegarderBookingControlLevel(ControlLevel.ToString());
+        }
+        catch
+        {
+            // Ignorer les erreurs de sauvegarde
+        }
     }
 }
 

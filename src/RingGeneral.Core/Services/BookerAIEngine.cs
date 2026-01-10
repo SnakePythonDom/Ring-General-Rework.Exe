@@ -678,6 +678,21 @@ public sealed class BookerAIEngine : IBookerAIEngine
 
         // Générer les segments
         var generatedSegments = new List<SegmentDefinition>();
+        
+        // Séparer les workers utilisés dans des matches vs segments non-match
+        // Un worker peut apparaître dans un match ET dans un segment non-match, mais pas dans deux matches
+        var usedWorkerIdsInMatches = new HashSet<string>(
+            existingSegments
+                .Where(s => s.TypeSegment == "match")
+                .SelectMany(s => s.Participants)
+        );
+        var usedWorkerIdsInNonMatches = new HashSet<string>(
+            existingSegments
+                .Where(s => s.TypeSegment != "match")
+                .SelectMany(s => s.Participants)
+        );
+        
+        // Pour compatibilité avec le code existant, garder un HashSet global mais on l'utilisera différemment
         var usedWorkerIds = new HashSet<string>(
             existingSegments.SelectMany(s => s.Participants)
         );
@@ -688,7 +703,7 @@ public sealed class BookerAIEngine : IBookerAIEngine
         // 1. Créer le main event si nécessaire et si durée suffisante
         if (!hasMainEvent && constraints.RequireMainEvent && remainingDuration >= 20)
         {
-            var mainEvent = CreateMainEvent(booker, showContext, availableWorkers, usedWorkerIds, memories, constraints);
+            var mainEvent = CreateMainEvent(booker, showContext, availableWorkers, usedWorkerIdsInMatches, memories, constraints);
             if (mainEvent != null)
             {
                 // Appliquer les préférences stylistiques de l'archétype créatif
@@ -699,9 +714,11 @@ public sealed class BookerAIEngine : IBookerAIEngine
 
                 if (constraints.ForbidMultipleAppearances)
                 {
+                    // Main event est toujours un match, donc ajouter seulement à usedWorkerIdsInMatches
                     foreach (var participantId in mainEvent.Participants)
                     {
-                        usedWorkerIds.Add(participantId);
+                        usedWorkerIdsInMatches.Add(participantId);
+                        usedWorkerIds.Add(participantId); // Garder pour compatibilité
                     }
                 }
             }
@@ -711,7 +728,7 @@ public sealed class BookerAIEngine : IBookerAIEngine
         if (constraints.PrioritizeActiveStorylines)
         {
             var storylineSegments = CreateStorylineSegments(
-                booker, showContext, availableWorkers, usedWorkerIds, memories, constraints, remainingDuration);
+                booker, showContext, availableWorkers, usedWorkerIdsInMatches, usedWorkerIdsInNonMatches, memories, constraints, remainingDuration);
 
             foreach (var segment in storylineSegments)
             {
@@ -722,9 +739,18 @@ public sealed class BookerAIEngine : IBookerAIEngine
 
                 if (constraints.ForbidMultipleAppearances)
                 {
+                    // Ajouter selon le type de segment
                     foreach (var participantId in segment.Participants)
                     {
-                        usedWorkerIds.Add(participantId);
+                        if (segment.TypeSegment == "match")
+                        {
+                            usedWorkerIdsInMatches.Add(participantId);
+                        }
+                        else
+                        {
+                            usedWorkerIdsInNonMatches.Add(participantId);
+                        }
+                        usedWorkerIds.Add(participantId); // Garder pour compatibilité
                     }
                 }
             }
@@ -734,7 +760,7 @@ public sealed class BookerAIEngine : IBookerAIEngine
         while (remainingDuration >= 10 && generatedSegments.Count < constraints.MaxSegments)
         {
             var segment = CreateSegmentBasedOnPreferences(
-                booker, showContext, availableWorkers, usedWorkerIds, memories, constraints, remainingDuration);
+                booker, showContext, availableWorkers, usedWorkerIdsInMatches, usedWorkerIdsInNonMatches, memories, constraints, remainingDuration);
 
             if (segment == null)
                 break;
@@ -750,9 +776,18 @@ public sealed class BookerAIEngine : IBookerAIEngine
 
             if (constraints.ForbidMultipleAppearances)
             {
+                // Ajouter selon le type de segment
                 foreach (var participantId in segment.Participants)
                 {
-                    usedWorkerIds.Add(participantId);
+                    if (segment.TypeSegment == "match")
+                    {
+                        usedWorkerIdsInMatches.Add(participantId);
+                    }
+                    else
+                    {
+                        usedWorkerIdsInNonMatches.Add(participantId);
+                    }
+                    usedWorkerIds.Add(participantId); // Garder pour compatibilité
                 }
             }
         }
@@ -909,12 +944,10 @@ public sealed class BookerAIEngine : IBookerAIEngine
         // Exclure les workers avec fatigue trop élevée
         workers = workers.Where(w => w.Fatigue <= constraints.MaxFatigueLevel).ToList();
 
-        // Exclure les workers déjà utilisés si ForbidMultipleAppearances
-        if (constraints.ForbidMultipleAppearances)
-        {
-            var usedWorkerIds = existingSegments.SelectMany(s => s.Participants).ToHashSet();
-            workers = workers.Where(w => !usedWorkerIds.Contains(w.WorkerId)).ToList();
-        }
+        // Note: Le filtrage des workers déjà utilisés selon le type de segment
+        // est maintenant géré de manière plus nuancée dans les méthodes de création
+        // (CreateMainEvent, CreateSegmentBasedOnPreferences, CreateStorylineSegments)
+        // qui vérifient séparément les workers dans des matches vs segments non-match
 
         return workers;
     }
@@ -926,7 +959,7 @@ public sealed class BookerAIEngine : IBookerAIEngine
         Booker booker,
         ShowContext context,
         List<WorkerSnapshot> availableWorkers,
-        HashSet<string> usedWorkerIds,
+        HashSet<string> usedWorkerIdsInMatches,
         List<BookerMemory> memories,
         AutoBookingConstraints constraints)
     {
@@ -934,8 +967,9 @@ public sealed class BookerAIEngine : IBookerAIEngine
         var showImportance = 50; // Valeur par défaut moyenne
 
         // Sélectionner les workers selon l'archétype créatif du booker
+        // Main event est toujours un match, donc vérifier seulement contre usedWorkerIdsInMatches
         var candidates = SelectWorkersByArchetype(booker, availableWorkers, showImportance, memories)
-            .Where(w => !usedWorkerIds.Contains(w.WorkerId))
+            .Where(w => !usedWorkerIdsInMatches.Contains(w.WorkerId))
             .ToList();
 
         if (candidates.Count < 2)
@@ -980,7 +1014,8 @@ public sealed class BookerAIEngine : IBookerAIEngine
         Booker booker,
         ShowContext context,
         List<WorkerSnapshot> availableWorkers,
-        HashSet<string> usedWorkerIds,
+        HashSet<string> usedWorkerIdsInMatches,
+        HashSet<string> usedWorkerIdsInNonMatches,
         List<BookerMemory> memories,
         AutoBookingConstraints constraints,
         int remainingDuration)
@@ -998,20 +1033,25 @@ public sealed class BookerAIEngine : IBookerAIEngine
             if (remainingDuration < 10 || segments.Count >= 3)
                 break;
 
+            // Déterminer le type de segment selon PreferredProductType
+            var segmentType = booker.PreferredProductType == "Entertainment" ? "promo" : "match";
+            var duration = segmentType == "promo" ? 10 : 15;
+
             // Vérifier si les participants de la storyline sont disponibles
+            // Utiliser le HashSet approprié selon le type de segment
+            var relevantUsedWorkerIds = segmentType == "match" 
+                ? usedWorkerIdsInMatches 
+                : usedWorkerIdsInNonMatches;
+            
             var storylineWorkerIds = storyline.Participants.Select(p => p.WorkerId).ToList();
             var availableStorylineWorkers = storylineWorkerIds
-                .Where(wId => !usedWorkerIds.Contains(wId))
+                .Where(wId => !relevantUsedWorkerIds.Contains(wId))
                 .Where(wId => availableWorkers.Any(w => w.WorkerId == wId))
                 .Take(2)
                 .ToList();
 
             if (availableStorylineWorkers.Count < 2)
                 continue;
-
-            // Déterminer le type de segment selon PreferredProductType
-            var segmentType = booker.PreferredProductType == "Entertainment" ? "promo" : "match";
-            var duration = segmentType == "promo" ? 10 : 15;
 
             segments.Add(new SegmentDefinition(
                 $"SEG-AUTO-{Guid.NewGuid():N}".ToUpperInvariant(),
@@ -1029,13 +1069,7 @@ public sealed class BookerAIEngine : IBookerAIEngine
 
             remainingDuration -= duration;
 
-            if (constraints.ForbidMultipleAppearances)
-            {
-                foreach (var wId in availableStorylineWorkers)
-                {
-                    usedWorkerIds.Add(wId);
-                }
-            }
+            // Note: Les HashSets seront mis à jour dans GenerateAutoBooking après création
         }
 
         return segments;
@@ -1048,20 +1082,14 @@ public sealed class BookerAIEngine : IBookerAIEngine
         Booker booker,
         ShowContext context,
         List<WorkerSnapshot> availableWorkers,
-        HashSet<string> usedWorkerIds,
+        HashSet<string> usedWorkerIdsInMatches,
+        HashSet<string> usedWorkerIdsInNonMatches,
         List<BookerMemory> memories,
         AutoBookingConstraints constraints,
         int remainingDuration)
     {
-        // Filtrer les workers non utilisés
-        var candidates = availableWorkers
-            .Where(w => !usedWorkerIds.Contains(w.WorkerId))
-            .ToList();
-
-        if (candidates.Count < 2)
-            return null;
-
-        // Phase 1.1 - Déterminer le type de segment selon l'archétype créatif
+        // Déterminer d'abord le type de segment qu'on va créer
+        // (on le fait avant le filtrage pour utiliser le bon HashSet)
         string segmentType;
         int duration;
         int intensity;
@@ -1114,6 +1142,19 @@ public sealed class BookerAIEngine : IBookerAIEngine
                 participantCount = 2;
                 break;
         }
+
+        // Filtrer les workers selon le type de segment
+        // Un worker peut apparaître dans un match ET dans un segment non-match, mais pas dans deux matches
+        var relevantUsedWorkerIds = segmentType == "match" 
+            ? usedWorkerIdsInMatches 
+            : usedWorkerIdsInNonMatches;
+        
+        var candidates = availableWorkers
+            .Where(w => !relevantUsedWorkerIds.Contains(w.WorkerId))
+            .ToList();
+
+        if (candidates.Count < participantCount)
+            return null;
 
         // Phase 1.1 - Sélectionner les participants selon l'archétype créatif
         var selectedWorkers = SelectWorkersByArchetype(booker, candidates, 50, memories)

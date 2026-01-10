@@ -24,7 +24,7 @@
 - **🆕 Système d'Auto-Booking IA** : Le Booker génère automatiquement des cartes complètes 🎯
 - **🆕 Flux Show Day complet** : Simulation de bout en bout avec impacts automatiques
 - **70+ ViewModels** créés avec navigation complète
-- **Base de données SQLite** avec 23 migrations et import automatique BAKI
+- **Base de données SQLite** avec 27 migrations et import automatique BAKI
 - **Dependency Injection complète** : Microsoft.Extensions.DependencyInjection intégré dans App.axaml.cs
 - **Compilation réussie** : Solution complète avec 0 erreurs, 1 avertissement mineur
 
@@ -101,7 +101,7 @@ dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
 ┌─────────────────────────────────────┐
 │  UI (Avalonia MVVM)                 │ RingGeneral.UI (70+ ViewModels)
 ├─────────────────────────────────────┤
-│  Business Logic (Domain Services)   │ RingGeneral.Core (45+ Services)
+│  Business Logic (Domain Services)   │ RingGeneral.Core (50+ Services)
 ├─────────────────────────────────────┤
 │  Data Access (30+ Repositories)     │ RingGeneral.Data
 ├─────────────────────────────────────┤
@@ -116,7 +116,7 @@ dotnet run --project src/RingGeneral.UI/RingGeneral.UI.csproj
 - ✅ Dependency Injection complète (Microsoft.Extensions.DependencyInjection)
 - ✅ Clean architecture (pas de dépendances circulaires)
 - ✅ Configuration data-driven (JSON specs)
-- ✅ 23 migrations SQL pour schéma évolutif
+- ✅ 27 migrations SQL pour schéma évolutif
 
 **Pour plus de détails :** Consultez l'[Analyse d'architecture](docs/ARCHITECTURE_REVIEW_FR.md)
 
@@ -136,7 +136,7 @@ Ring-General-Rework.Exe/
 ├── specs/                  # Fichiers JSON de configuration
 ├── docs/                   # Documentation complète (24 docs actifs)
 ├── data/                   # Assets & base de test (BAKI1.1.db)
-│   └── migrations/         # 23 migrations SQL
+│   └── migrations/         # 27 migrations SQL
 ├── tests/                  # Tests unitaires
 └── _archived_files/        # Archives (30+ docs obsolètes)
 ```
@@ -588,6 +588,319 @@ WEEKEND
 ---
 
 **Note** : Tous ces flux sont orchestrés par des services spécialisés (`ShowDayOrchestrator`, `WeeklyLoopService`, `BookerAIEngine`, etc.) qui garantissent la cohérence et l'automatisation des processus complexes.
+
+---
+
+## 📊 Diagramme de Flux Principal
+
+Voici le diagramme de flux complet du jeu, de la création d'une compagnie jusqu'à la simulation d'un show :
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🎮 FLUX PRINCIPAL DU JEU                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐
+│  DÉMARRAGE      │
+│  Création       │
+│  Compagnie      │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    📅 BOUCLE HEBDOMADAIRE                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │  LUNDI : INBOX & PLANNING                                    │
+    │  ┌───────────────────────────────────────────────────────┐  │
+    │  │ WeeklyLoopService.PasserSemaineSuivante()             │  │
+    │  │  ├─ Génération événements hebdomadaires               │  │
+    │  │  ├─ Simulation backstage (morale, rumeurs, crises)   │  │
+    │  │  ├─ Génération scouting                               │  │
+    │  │  ├─ Vérification contrats (expirations)               │  │
+    │  │  └─ Simulation monde vivant (autres compagnies)      │  │
+    │  └───────────────────────────────────────────────────────┘  │
+    │                                                               │
+    │  Actions Joueur :                                            │
+    │  ├─ Consulter Inbox (InboxViewModel)                        │
+    │  ├─ Scouting (ScoutingService)                               │
+    │  └─ Négociations (ContractNegotiationService)               │
+    └─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  MARDI-MERCREDI : BOOKING                                    │
+    │  ┌───────────────────────────────────────────────────────┐  │
+    │  │ BookingViewModel                                     │  │
+    │  │  ├─ Mode Manuel :                                    │  │
+    │  │  │   └─ BookingBuilderService                        │  │
+    │  │  │      └─ Création segments manuelle                │  │
+    │  │  │                                                    │  │
+    │  │  └─ Mode Auto-Booking IA :                           │  │
+    │  │      └─ BookerAIEngine.GenerateAutoBooking()         │  │
+    │  │         ├─ Analyse storylines actives                │  │
+    │  │         ├─ Utilise mémoires du Booker                │  │
+    │  │         ├─ Respecte contraintes Owner                │  │
+    │  │         └─ Génère carte complète (4-8 segments)      │  │
+    │  └───────────────────────────────────────────────────────┘  │
+    │                                                               │
+    │  Validation :                                                │
+    │  └─ BookingValidator.ValiderBooking()                       │
+    └─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  JEUDI : SHOW DAY (Match Day)                                │
+    │  ┌───────────────────────────────────────────────────────┐  │
+    │  │ ShowDayOrchestrator.ExecuterFluxComplet()            │  │
+    │  │                                                       │  │
+    │  │  1. Détection Show                                   │  │
+    │  │     └─ DetecterShowAVenir()                         │  │
+    │  │                                                       │  │
+    │  │  2. Chargement Contexte                              │  │
+    │  │     └─ ChargerShowContext()                          │  │
+    │  │        ├─ ShowDefinition                            │  │
+    │  │        ├─ Segments                                  │  │
+    │  │        ├─ Workers (attributs complets)              │  │
+    │  │        ├─ Storylines actives                        │  │
+    │  │        └─ Titres                                    │  │
+    │  │                                                       │  │
+    │  │  3. Simulation                                       │  │
+    │  │     └─ ShowSimulationEngine.Simuler()               │  │
+    │  │        ├─ Pour chaque segment :                     │  │
+    │  │        │   ├─ Calcul note (InRing, Ent, Story)     │  │
+    │  │        │   ├─ Facteurs qualité (chimie, heat)      │  │
+    │  │        │   ├─ Risque blessure                      │  │
+    │  │        │   └─ Calcul audience/revenus              │  │
+    │  │        └─ Note globale du show                     │  │
+    │  │                                                       │  │
+    │  │  4. Application Impacts                              │  │
+    │  │     └─ ImpactApplier.AppliquerImpacts()             │  │
+    │  │        ├─ Finances (billetterie, merch, TV)        │  │
+    │  │        ├─ Popularité workers/compagnie             │  │
+    │  │        ├─ Momentum                                 │  │
+    │  │        ├─ Fatigue                                  │  │
+    │  │        ├─ Storylines (heat progression)            │  │
+    │  │        └─ Titres (changements)                     │  │
+    │  │                                                       │  │
+    │  │  5. Finances FLUX 2                                  │  │
+    │  │     └─ DailyFinanceService.ProcessAppearanceFees() │  │
+    │  │        └─ Déduction frais d'apparition             │  │
+    │  │                                                       │  │
+    │  │  6. Moral Post-Show                                 │  │
+    │  │     └─ MoraleEngine.UpdateMorale()                  │  │
+    │  │        ├─ Workers utilisés : stable                │  │
+    │  │        └─ Workers NON utilisés : -3 points ⚠️      │  │
+    │  │                                                       │  │
+    │  │  7. Finalisation                                    │  │
+    │  │     └─ FinaliserShow()                              │  │
+    │  │        ├─ Changements de titres                     │  │
+    │  │        ├─ InboxItems (blessures, titres)           │  │
+    │  │        └─ Statut → "Simulé"                        │  │
+    │  └───────────────────────────────────────────────────────┘  │
+    └─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  VENDREDI : RÉSULTATS & GESTION                             │
+    │  ┌───────────────────────────────────────────────────────┐  │
+    │  │ Actions Joueur :                                     │  │
+    │  │ ├─ Consulter résultats (ShowResultsView)            │  │
+    │  │ ├─ Analyser performances                             │  │
+    │  │ ├─ Gérer médical (InjuryService)                     │  │
+    │  │ ├─ Gérer staff                                        │  │
+    │  │ └─ Gérer discipline (DisciplineService)              │  │
+    │  └───────────────────────────────────────────────────────┘  │
+    └─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  WEEKEND : PASSAGE DE SEMAINE                               │
+    │  ┌───────────────────────────────────────────────────────┐  │
+    │  │ TimeOrchestratorService.PasserJourSuivant()           │  │
+    │  │  ├─ Incrémentation jour                              │  │
+    │  │  ├─ Mise à jour stats quotidiennes                   │  │
+    │  │  ├─ Génération événements quotidiens                 │  │
+    │  │  └─ Vérification show à venir                         │  │
+    │  │                                                       │  │
+    │  │  Si dernier jour du mois :                           │  │
+    │  │  └─ DailyFinanceService.ProcessMonthlyPayroll()      │  │
+    │  │     └─ FLUX 1 : Paiement mensuel garanti             │  │
+    │  └───────────────────────────────────────────────────────┘  │
+    └─────────────────────────────────────────────────────────────┘
+         │
+         └───► Retour au LUNDI (boucle continue)
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🔄 FLUX FINANCIER                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+FLUX 1 : Paiement Mensuel Garanti
+┌─────────────────────────────────────────────────────────────┐
+│ Dernier jour du mois                                        │
+│ └─ DailyFinanceService.ProcessMonthlyPayroll()             │
+│    └─ Pour chaque contrat avec MonthlyWage > 0             │
+│       └─ Déduction du budget compagnie                     │
+└─────────────────────────────────────────────────────────────┘
+
+FLUX 2 : Frais d'Apparition (Per-Appearance)
+┌─────────────────────────────────────────────────────────────┐
+│ Immédiatement après chaque show                            │
+│ └─ DailyFinanceService.ProcessAppearanceFees()              │
+│    └─ Pour chaque participant du show                      │
+│       └─ Déduction AppearanceFee du budget                 │
+└─────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🤖 FLUX AUTO-BOOKING IA                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Joueur clique "🤖 Laisser le Booker préparer le show"     │
+│ └─ BookerAIEngine.GenerateAutoBooking()                    │
+│    │                                                         │
+│    ├─ Analyse contexte                                      │
+│    │  ├─ Storylines actives (heat, phase)                   │
+│    │  ├─ Titres disponibles                                 │
+│    │  ├─ Workers disponibles (fatigue, blessures)          │
+│    │  └─ Mémoires du Booker (événements passés)            │
+│    │                                                         │
+│    ├─ Application contraintes Owner                         │
+│    │  ├─ Budget disponible                                 │
+│    │  ├─ Workers interdits                                  │
+│    │  ├─ Fatigue maximale autorisée                         │
+│    │  └─ Durée cible du show                                │
+│    │                                                         │
+│    ├─ Génération segments                                   │
+│    │  ├─ Main Event (storyline ou titre)                    │
+│    │  ├─ Mid-card matches                                   │
+│    │  ├─ Promos et angles                                   │
+│    │  └─ Respect style produit (5 styles)                 │
+│    │                                                         │
+│    └─ Retour carte complète                                 │
+│       └─ Joueur peut modifier avant validation              │
+└─────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    📊 FLUX DE SIMULATION                                 │
+└─────────────────────────────────────────────────────────────────────────┘
+
+ShowSimulationEngine.Simuler(ShowContext)
+│
+├─ Pour chaque segment dans l'ordre :
+│  │
+│  ├─ Calcul Note In-Ring
+│  │  ├─ Moyenne attributs In-Ring des participants
+│  │  ├─ Bonus chimie entre workers
+│  │  ├─ Bonus type de match
+│  │  └─ Pénalité fatigue
+│  │
+│  ├─ Calcul Note Entertainment
+│  │  ├─ Moyenne attributs Entertainment
+│  │  ├─ Bonus charisme
+│  │  └─ Bonus storyline heat
+│  │
+│  ├─ Calcul Note Story
+│  │  ├─ Moyenne attributs Story
+│  │  ├─ Bonus storyline active
+│  │  └─ Bonus cohérence narrative
+│  │
+│  ├─ Note Globale Segment
+│  │  └─ Moyenne pondérée (InRing 40%, Ent 30%, Story 30%)
+│  │
+│  ├─ Calcul Audience
+│  │  ├─ Popularité moyenne participants
+│  │  ├─ Popularité compagnie
+│  │  └─ Facteur qualité segment
+│  │
+│  ├─ Calcul Revenus
+│  │  ├─ Billetterie (audience × prix ticket)
+│  │  ├─ Merchandise (popularité × facteur merch)
+│  │  └─ TV (deal actif × audience)
+│  │
+│  ├─ Risque Blessure
+│  │  ├─ Attribut Safety des participants
+│  │  ├─ Type de match (hardcore = +risque)
+│  │  └─ Fatigue actuelle
+│  │
+│  └─ Impacts Immédiats
+│     ├─ Fatigue +X selon durée/intensité
+│     ├─ Momentum ajusté (vainqueur/perdant)
+│     └─ Popularité ajustée (performance)
+│
+├─ Calcul Note Globale Show
+│  └─ Moyenne segments + bonus cohérence
+│
+└─ Retour ShowSimulationResult
+   ├─ RapportShow (notes, audience, revenus)
+   ├─ GameStateDelta (tous les changements)
+   └─ Segments (détails par segment)
+```
+
+---
+
+## 🔗 Flux de Données entre Services
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    ARCHITECTURE DES FLUX                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+UI Layer (ViewModels)
+    │
+    ├─► DashboardViewModel
+    │   └─► ShowDayOrchestrator.ExecuterFluxComplet()
+    │
+    ├─► BookingViewModel
+    │   ├─► BookingBuilderService (manuel)
+    │   └─► BookerAIEngine (auto-booking)
+    │
+    ├─► InboxViewModel
+    │   └─► WeeklyLoopService.PasserSemaineSuivante()
+    │
+    └─► FinanceViewModel
+        └─► DailyFinanceService
+            ├─► ProcessMonthlyPayroll() (FLUX 1)
+            └─► ProcessAppearanceFees() (FLUX 2)
+
+Core Services Layer
+    │
+    ├─► ShowDayOrchestrator
+    │   ├─► ShowSimulationEngine
+    │   ├─► ImpactApplier
+    │   ├─► TitleService
+    │   ├─► MoraleEngine
+    │   └─► DailyFinanceService
+    │
+    ├─► WeeklyLoopService
+    │   ├─► ScoutingService
+    │   ├─► MoraleEngine
+    │   ├─► RumorEngine
+    │   ├─► CrisisEngine
+    │   ├─► BookerAIEngine
+    │   └─► RosterAnalysisService
+    │
+    └─► TimeOrchestratorService
+        ├─► DailyFinanceService
+        ├─► EventGeneratorService
+        └─► ShowDayOrchestrator
+
+Data Layer (Repositories)
+    │
+    ├─► GameRepository (Façade)
+    │   ├─► ShowRepository
+    │   ├─► CompanyRepository
+    │   ├─► WorkerRepository
+    │   ├─► BackstageRepository
+    │   └─► ... (30+ repositories)
+    │
+    └─► RepositoryContainer
+        └─► Tous les repositories spécialisés
+```
 
 ### Systèmes Clés
 

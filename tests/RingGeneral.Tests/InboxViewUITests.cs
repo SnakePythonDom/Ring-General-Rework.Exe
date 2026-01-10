@@ -1,5 +1,6 @@
 using RingGeneral.UI.Views.Inbox;
 using RingGeneral.UI.ViewModels.Inbox;
+using RingGeneral.Core.Models;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -61,13 +62,12 @@ public class InboxViewUITests
         var viewModel = new InboxViewModel(null);
 
         // Ajouter un message de test
-        viewModel.Messages.Add(new InboxMessageViewModel
-        {
-            Subject = "Test Message",
-            Content = "This is a test message",
-            IsRead = false,
-            DateReceived = DateTime.Now
-        });
+        viewModel.Items.Add(new InboxItemViewModel(new InboxItem(
+            Type: "System",
+            Titre: "Test Message",
+            Contenu: "This is a test message",
+            Semaine: 1
+        )));
 
         var view = new InboxView { DataContext = viewModel };
 
@@ -90,15 +90,14 @@ public class InboxViewUITests
         // Arrange
         var viewModel = new InboxViewModel(null);
 
-        var testMessage = new InboxMessageViewModel
-        {
-            Subject = "Important Announcement",
-            Content = "Breaking news in the wrestling world!",
-            Sender = "System",
-            DateReceived = DateTime.Now
-        };
-        viewModel.Messages.Add(testMessage);
-        viewModel.SelectedMessage = testMessage;
+        var testMessage = new InboxItemViewModel(new InboxItem(
+            Type: "System",
+            Titre: "Important Announcement",
+            Contenu: "Breaking news in the wrestling world!",
+            Semaine: 1
+        ));
+        viewModel.Items.Add(testMessage);
+        viewModel.SelectedItem = testMessage;
 
         var view = new InboxView { DataContext = viewModel };
 
@@ -122,9 +121,12 @@ public class InboxViewUITests
         var viewModel = new InboxViewModel(null);
 
         // Ajouter des messages (certains non lus)
-        viewModel.Messages.Add(new InboxMessageViewModel { Subject = "Read Message", IsRead = true });
-        viewModel.Messages.Add(new InboxMessageViewModel { Subject = "Unread Message 1", IsRead = false });
-        viewModel.Messages.Add(new InboxMessageViewModel { Subject = "Unread Message 2", IsRead = false });
+        var readMessage = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Read Message", Contenu: "Content", Semaine: 1));
+        readMessage.IsRead = true;
+        viewModel.Items.Add(readMessage);
+        
+        viewModel.Items.Add(new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Unread Message 1", Contenu: "Content", Semaine: 1)));
+        viewModel.Items.Add(new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Unread Message 2", Contenu: "Content", Semaine: 1)));
 
         var view = new InboxView { DataContext = viewModel };
 
@@ -152,12 +154,12 @@ public class InboxViewUITests
         // Arrange
         var viewModel = new InboxViewModel(null);
 
-        var message1 = new InboxMessageViewModel { Subject = "Message 1", Content = "Content 1" };
-        var message2 = new InboxMessageViewModel { Subject = "Message 2", Content = "Content 2" };
+        var message1 = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Message 1", Contenu: "Content 1", Semaine: 1));
+        var message2 = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Message 2", Contenu: "Content 2", Semaine: 1));
 
-        viewModel.Messages.Add(message1);
-        viewModel.Messages.Add(message2);
-        viewModel.SelectedMessage = message1;
+        viewModel.Items.Add(message1);
+        viewModel.Items.Add(message2);
+        viewModel.SelectedItem = message1;
 
         var view = new InboxView { DataContext = viewModel };
 
@@ -178,16 +180,14 @@ public class InboxViewUITests
         // Arrange
         var viewModel = new InboxViewModel(null);
 
-        var detailedMessage = new InboxMessageViewModel
-        {
-            Subject = "Worker Contract Expired",
-            Content = "The contract for John Cena has expired. Please negotiate a new one.",
-            Sender = "HR Department",
-            DateReceived = DateTime.Now.AddDays(-1),
-            Priority = "High"
-        };
-        viewModel.Messages.Add(detailedMessage);
-        viewModel.SelectedMessage = detailedMessage;
+        var detailedMessage = new InboxItemViewModel(new InboxItem(
+            Type: "Contract",
+            Titre: "Worker Contract Expired",
+            Contenu: "The contract for John Cena has expired. Please negotiate a new one.",
+            Semaine: 1
+        ));
+        viewModel.Items.Add(detailedMessage);
+        viewModel.SelectedItem = detailedMessage;
 
         var view = new InboxView { DataContext = viewModel };
 
@@ -244,13 +244,13 @@ public class InboxViewUITests
         await Task.Delay(100);
 
         // Ajouter un message dynamiquement
-        var newMessage = new InboxMessageViewModel
-        {
-            Subject = "New Important Message",
-            Content = "This is urgent!",
-            IsRead = false
-        };
-        viewModel.Messages.Add(newMessage);
+        var newMessage = new InboxItemViewModel(new InboxItem(
+            Type: "System",
+            Titre: "New Important Message",
+            Contenu: "This is urgent!",
+            Semaine: 1
+        ));
+        viewModel.Items.Add(newMessage);
         await Task.Delay(50);
 
         // Assert - Vérifier que l'UI s'est mise à jour

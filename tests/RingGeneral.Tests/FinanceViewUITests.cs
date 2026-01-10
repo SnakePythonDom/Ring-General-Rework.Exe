@@ -175,10 +175,10 @@ public class FinanceViewUITests
         var viewModel = new FinanceViewModel();
         viewModel.Transactions.Add(new TransactionItemViewModel
         {
+            Category = "Revenue",
             Description = "Test Transaction",
             Amount = 10000.50m,
-            Type = "Revenue",
-            Date = DateTime.Now
+            Week = 1
         });
 
         var view = new FinanceView { DataContext = viewModel };
@@ -193,7 +193,8 @@ public class FinanceViewUITests
             view.GetVisualDescendants().OfType<DataGrid>().FirstOrDefault();
 
         dataGrid.Should().NotBeNull();
-        dataGrid!.Items.Should().NotBeEmpty();
+        dataGrid!.ItemsSource.Should().NotBeNull();
+        ((System.Collections.IEnumerable?)dataGrid.ItemsSource)?.Cast<object>().Should().NotBeEmpty();
     }
 
     [AvaloniaFact]
@@ -223,10 +224,10 @@ public class FinanceViewUITests
         var viewModel = new FinanceViewModel();
         viewModel.TvDeals.Add(new TvDealViewModel
         {
-            NetworkName = "Test Network",
-            DealValue = 500000m,
-            ShowsPerYear = 52,
-            ExclusivityMonths = 12
+            Network = "Test Network",
+            WeeklyPayment = 10000m,
+            MinShows = 48,
+            MaxShows = 52
         });
 
         var view = new FinanceView { DataContext = viewModel };

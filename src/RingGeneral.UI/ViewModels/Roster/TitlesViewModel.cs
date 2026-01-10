@@ -142,11 +142,10 @@ public sealed class TitlesViewModel : ViewModelBase
                     t.TitleId,
                     t.Name,
                     t.Prestige,
-                    t.CurrentChampionId,
-                    w.FullName as ChampionName
+                    COALESCE(t.CurrentChampionId, t.HolderWorkerId) as CurrentChampionId,
+                    COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as ChampionName
                 FROM Titles t
-                LEFT JOIN Workers w ON t.CurrentChampionId = w.WorkerId
-                WHERE t.IsActive = 1
+                LEFT JOIN Workers w ON COALESCE(t.CurrentChampionId, t.HolderWorkerId) = w.WorkerId
                 ORDER BY t.Prestige DESC";
 
             using var reader = cmd.ExecuteReader();
@@ -259,12 +258,12 @@ public sealed class TitlesViewModel : ViewModelBase
                     t.TitleId,
                     t.Name,
                     t.Prestige,
-                    t.CurrentChampionId,
-                    w.FullName as ChampionName,
+                    COALESCE(t.CurrentChampionId, t.HolderWorkerId) as CurrentChampionId,
+                    COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as ChampionName,
                     COALESCE(tr.DefenseCount, 0) as DefenseCount
                 FROM Titles t
-                LEFT JOIN Workers w ON t.CurrentChampionId = w.WorkerId
-                LEFT JOIN TitleReigns tr ON t.TitleId = tr.TitleId AND tr.IsActive = 1
+                LEFT JOIN Workers w ON COALESCE(t.CurrentChampionId, t.HolderWorkerId) = w.WorkerId
+                LEFT JOIN TitleReigns tr ON t.TitleId = tr.TitleId AND tr.IsCurrent = 1
                 ORDER BY t.Prestige DESC";
 
             using var reader = cmd.ExecuteReader();

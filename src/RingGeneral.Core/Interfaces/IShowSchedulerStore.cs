@@ -6,6 +6,7 @@ public interface IShowSchedulerStore
 {
     ShowSchedule? ChargerShow(string showId);
     IReadOnlyList<ShowSchedule> ChargerShows(string companyId);
+    IReadOnlyList<ShowSchedule> ChargerShowsParDate(string companyId, DateOnly date);
     IReadOnlyList<CalendarEntry> ChargerCalendarEntries(string companyId);
     IReadOnlyList<ShowSettings> ChargerShowSettings(string companyId);
     void AjouterShow(ShowSchedule show);

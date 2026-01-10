@@ -59,7 +59,7 @@ public class CalendarViewUITests
     {
         // Arrange
         var viewModel = new CalendarViewModel(null);
-        viewModel.CurrentMonthYear = "January 2024";
+        // CalendarViewModel utilise CurrentDate (DateOnly) au lieu de CurrentWeek
 
         var view = new CalendarView { DataContext = viewModel };
 
@@ -83,12 +83,13 @@ public class CalendarViewUITests
         var viewModel = new CalendarViewModel(null);
 
         // Ajouter un événement
-        viewModel.CalendarEvents.Add(new CalendarEventViewModel
+        viewModel.CalendarEntries.Add(new CalendarEntryItemViewModel
         {
+            EntryId = "CAL_WM",
+            Date = DateTime.Now.AddDays(30).ToString("yyyy-MM-dd"),
+            EntryType = "PPV",
             Title = "WrestleMania",
-            Date = DateTime.Now.AddDays(30),
-            Type = "PPV",
-            Description = "The Grandest Stage of Them All"
+            Notes = "The Grandest Stage of Them All"
         });
 
         var view = new CalendarView { DataContext = viewModel };
@@ -99,7 +100,7 @@ public class CalendarViewUITests
         await Task.Delay(100);
 
         // Assert - Vérifier que les événements sont affichés
-        var eventsList = view.FindControl<ListBox>("CalendarEventsListBox") ??
+        var eventsList = view.FindControl<ListBox>("CalendarEntriesListBox") ??
             view.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
 
         eventsList.Should().NotBeNull();
@@ -137,16 +138,16 @@ public class CalendarViewUITests
         // Arrange
         var viewModel = new CalendarViewModel(null);
 
-        var eventItem = new CalendarEventViewModel
+        var eventItem = new CalendarEntryItemViewModel
         {
+            EntryId = "CAL_RR",
+            Date = DateTime.Now.AddDays(15).ToString("yyyy-MM-dd"),
+            EntryType = "PPV",
             Title = "Royal Rumble",
-            Date = DateTime.Now.AddDays(15),
-            Type = "PPV",
-            Description = "30-man Royal Rumble match",
-            Venue = "Madison Square Garden"
+            Notes = "30-man Royal Rumble match - Madison Square Garden"
         };
-        viewModel.CalendarEvents.Add(eventItem);
-        viewModel.SelectedEvent = eventItem;
+        viewModel.CalendarEntries.Add(eventItem);
+        viewModel.SelectedEntry = eventItem;
 
         var view = new CalendarView { DataContext = viewModel };
 

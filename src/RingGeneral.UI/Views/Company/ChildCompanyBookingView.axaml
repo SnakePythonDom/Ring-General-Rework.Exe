@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Company"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Company.ChildCompanyBookingView"
+             x:DataType="vm:ChildCompanyBookingViewModel">
+
+    <Design.DataContext>
+        <vm:ChildCompanyBookingViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="30" RowDefinitions="Auto,20,*">
+
+        <!-- En-tête -->
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="🎛️ CONTRÔLE BOOKING CHILD COMPANIES" FontSize="28" FontWeight="Bold" Foreground="#e0e0e0"/>
+            <TextBlock Text="Gérez le niveau de contrôle et la planification automatique des shows pour vos filiales" 
+                       FontSize="14" Foreground="#888888"/>
+        </StackPanel>
+
+        <!-- Contenu Principal (2 colonnes) -->
+        <Grid Grid.Row="2" ColumnDefinitions="2*,15,3*">
+
+            <!-- COLONNE GAUCHE: Liste Child Companies -->
+            <Border Grid.Column="0" Background="#1e293b" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto,15,*">
+                    <TextBlock Grid.Row="0" Text="FILIALES" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ChildCompanies}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#0f172a" CornerRadius="6" Padding="15" Margin="0,0,0,10"
+                                            BorderBrush="#334155"
+                                            BorderThickness="2">
+                                        <Grid RowDefinitions="Auto,8,Auto,8,Auto">
+                                            <!-- Name -->
+                                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+
+                                            <!-- Level -->
+                                            <TextBlock Grid.Row="2" Text="{Binding Level}" FontSize="12" Foreground="#94a3b8"/>
+
+                                            <!-- Control Level -->
+                                            <TextBlock Grid.Row="4" Text="{Binding ControlLevelDisplay}" FontSize="12" Foreground="#64748b"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- COLONNE DROITE: Contrôles et Shows -->
+            <Border Grid.Column="2" Background="#1e293b" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto,20,Auto,20,*">
+                    <TextBlock Grid.Row="0" Text="CONTRÔLES" FontSize="16" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+
+                    <!-- Sélecteur niveau de contrôle -->
+                    <StackPanel Grid.Row="2" Spacing="10">
+                        <TextBlock Text="Niveau de Contrôle" FontSize="14" Foreground="#e0e0e0" FontWeight="SemiBold"/>
+                        <ComboBox ItemsSource="{Binding ControlLevels}" SelectedItem="{Binding CurrentControlLevel}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0}">
+                                                <Binding />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding SelectedChildCompany.ControlLevelDescription}" 
+                                   FontSize="12" Foreground="#94a3b8" TextWrapping="Wrap"
+                                   IsVisible="{Binding SelectedChildCompany, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+                        <!-- Planification automatique -->
+                        <CheckBox Content="Planification automatique des shows" 
+                                  IsChecked="{Binding AutoScheduleEnabled}"
+                                  Margin="0,20,0,0"/>
+                    </StackPanel>
+
+                    <!-- Shows planifiés -->
+                    <Grid Grid.Row="4" RowDefinitions="Auto,15,*">
+                        <TextBlock Grid.Row="0" Text="SHOWS PLANIFIÉS" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding UpcomingShows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#0f172a" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                                            <Grid RowDefinitions="Auto,5,Auto">
+                                                <TextBlock Grid.Row="0" Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="#e0e0e0"/>
+                                                <TextBlock Grid.Row="2" Text="{Binding DateDisplay}" FontSize="11" Foreground="#94a3b8"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</UserControl>

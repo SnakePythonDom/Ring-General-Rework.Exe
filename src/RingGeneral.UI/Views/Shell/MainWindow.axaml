@@ -7,6 +7,7 @@
 	   xmlns:vmBooking="using:RingGeneral.UI.ViewModels.Booking"
 	   xmlns:vmRoster="using:RingGeneral.UI.ViewModels.Roster"
 	   xmlns:vmCompanyHub="using:RingGeneral.UI.ViewModels.CompanyHub"
+	   xmlns:vmCompany="using:RingGeneral.UI.ViewModels.Company"
 	   xmlns:vmStorylines="using:RingGeneral.UI.ViewModels.Storylines"
 	   xmlns:vmYouth="using:RingGeneral.UI.ViewModels.Youth"
 	   xmlns:vmFinance="using:RingGeneral.UI.ViewModels.Finance"
@@ -21,6 +22,7 @@
 	   xmlns:booking="using:RingGeneral.UI.Views.Booking"
 	   xmlns:roster="using:RingGeneral.UI.Views.Roster"
 	   xmlns:companyHub="using:RingGeneral.UI.Views.CompanyHub"
+	   xmlns:company="using:RingGeneral.UI.Views.Company"
 	   xmlns:storylines="using:RingGeneral.UI.Views.Storylines"
 	   xmlns:youth="using:RingGeneral.UI.Views.Youth"
 	   xmlns:finance="using:RingGeneral.UI.Views.Finance"
@@ -108,6 +110,11 @@
         <!-- DataTemplate pour ShellViewModel -->
         <DataTemplate DataType="vm:ShellViewModel">
             <shell:NavigationView />
+        </DataTemplate>
+        
+        <!-- DataTemplate pour ChildCompanyBookingViewModel -->
+        <DataTemplate DataType="vmCompany:ChildCompanyBookingViewModel">
+            <company:ChildCompanyBookingView />
         </DataTemplate>
 	</Window.DataTemplates>
 

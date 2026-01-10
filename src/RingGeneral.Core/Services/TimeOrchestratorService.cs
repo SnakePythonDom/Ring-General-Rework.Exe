@@ -14,17 +14,20 @@ public sealed class TimeOrchestratorService : ITimeOrchestratorService
     private readonly IDailyServices? _dailyServices;
     private readonly IEventGeneratorService? _eventGenerator;
     private readonly IShowDayOrchestrator? _showDayOrchestrator;
+    private readonly DailyShowSchedulerService? _dailyShowScheduler;
 
     public TimeOrchestratorService(
         IGameRepository repository,
         IDailyServices? dailyServices = null,
         IEventGeneratorService? eventGenerator = null,
-        IShowDayOrchestrator? showDayOrchestrator = null)
+        IShowDayOrchestrator? showDayOrchestrator = null,
+        DailyShowSchedulerService? dailyShowScheduler = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _dailyServices = dailyServices;
         _eventGenerator = eventGenerator;
         _showDayOrchestrator = showDayOrchestrator;
+        _dailyShowScheduler = dailyShowScheduler;
     }
 
     /// <summary>
@@ -39,10 +42,26 @@ public sealed class TimeOrchestratorService : ITimeOrchestratorService
         // 2. Mise à jour des états (fatigue, blessures)
         _dailyServices?.UpdateDailyStats(companyId, newDay);
 
-        // 3. Génération d'événements aléatoires
+        // 3. Planification automatique des shows pour compagnies IA
+        // Planifier pour les 8 prochaines semaines si on avance significativement
+        // (ex: tous les 30 jours ou au démarrage)
+        if (_dailyShowScheduler != null && (newDay % 30 == 0 || newDay == 1))
+        {
+            try
+            {
+                var startDate = DateOnly.FromDateTime(currentDate);
+                _dailyShowScheduler.PlanifierShowsAutomatiques(companyId, startDate, 8);
+            }
+            catch
+            {
+                // Ignorer les erreurs de planification pour ne pas bloquer le jeu
+            }
+        }
+
+        // 4. Génération d'événements aléatoires
         var events = _eventGenerator?.GenerateDailyEvents(companyId, newDay) ?? [];
 
-        // 4. Vérifier si c'est un jour de show
+        // 5. Vérifier si c'est un jour de show
         // IMPORTANT : Les frais d'apparition seront traités par ShowDayOrchestrator
         // après la simulation, PAS ici dans TimeOrchestratorService
         var showDetection = _showDayOrchestrator?.DetecterShowAVenir(companyId, newDay);

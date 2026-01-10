@@ -4,6 +4,7 @@ using ReactiveUI;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;
+using Microsoft.Data.Sqlite;
 
 namespace RingGeneral.UI.ViewModels.Dashboard;
 
@@ -329,37 +330,63 @@ public sealed class DashboardViewModel : ViewModelBase
             // Charger le budget de la compagnie principale et la date actuelle
             try
             {
+                // Essayer d'abord de charger depuis SaveGames (source de vérité)
+                string? companyIdFromSave = null;
+                try
+                {
+                    using var saveCmd = connection.CreateCommand();
+                    saveCmd.CommandText = """
+                        SELECT PlayerCompanyId, CurrentWeek, CurrentDate 
+                        FROM SaveGames 
+                        WHERE IsActive = 1 
+                        LIMIT 1;
+                        """;
+                    using var saveReader = saveCmd.ExecuteReader();
+                    if (saveReader.Read())
+                    {
+                        companyIdFromSave = saveReader.GetString(0);
+                        CurrentDay = saveReader.GetInt32(1);
+                        var dateStr = saveReader.GetString(2);
+                        if (DateTime.TryParse(dateStr, out var date))
+                        {
+                            CurrentDate = date;
+                        }
+                    }
+                }
+                catch
+                {
+                    // SaveGames peut ne pas exister ou ne pas avoir de sauvegarde active
+                }
+
+                // Charger les informations de la compagnie
                 using var cmd = connection.CreateCommand();
-                cmd.CommandText = "SELECT CompanyId, Name, Treasury FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                
+                // Vérifier si la colonne IsPlayerControlled existe
+                bool hasIsPlayerControlled = ColumnExists(connection, "Companies", "IsPlayerControlled");
+                
+                if (hasIsPlayerControlled)
+                {
+                    // Utiliser IsPlayerControlled si disponible
+                    cmd.CommandText = "SELECT CompanyId, Name, Treasury FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                }
+                else if (!string.IsNullOrEmpty(companyIdFromSave))
+                {
+                    // Utiliser la compagnie depuis SaveGames
+                    cmd.CommandText = "SELECT CompanyId, Name, Treasury FROM Companies WHERE CompanyId = $companyId LIMIT 1";
+                    cmd.Parameters.AddWithValue("$companyId", companyIdFromSave);
+                }
+                else
+                {
+                    // Fallback : prendre la première compagnie
+                    cmd.CommandText = "SELECT CompanyId, Name, Treasury FROM Companies LIMIT 1";
+                }
+                
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     _companyId = reader.GetString(0);
                     CompanyName = reader.GetString(1);
                     CurrentBudget = (decimal)reader.GetDouble(2);
-                }
-
-                // Charger CurrentDay et CurrentDate depuis SaveGames
-                if (!string.IsNullOrEmpty(_companyId))
-                {
-                    using var saveCmd = connection.CreateCommand();
-                    saveCmd.CommandText = """
-                        SELECT CurrentDay, CurrentDate 
-                        FROM SaveGames 
-                        WHERE PlayerCompanyId = $companyId AND IsActive = 1 
-                        LIMIT 1;
-                        """;
-                    saveCmd.Parameters.AddWithValue("$companyId", _companyId);
-                    using var saveReader = saveCmd.ExecuteReader();
-                    if (saveReader.Read())
-                    {
-                        CurrentDay = saveReader.GetInt32(0);
-                        var dateStr = saveReader.GetString(1);
-                        if (DateTime.TryParse(dateStr, out var date))
-                        {
-                            CurrentDate = date;
-                        }
-                    }
                 }
             }
             catch (Exception ex)
@@ -377,36 +404,66 @@ public sealed class DashboardViewModel : ViewModelBase
             LoadCrisisData();
 
             // Mettre à jour l'activité récente
-            var activityUpdates = new List<string>
-            {
-                "✅ Données chargées avec succès",
-                $"🤼 {TotalWorkers} workers dans le roster",
-                "🏆 Titres et storylines actives"
-            };
-
-            if (HasCriticalCrises)
-            {
-                activityUpdates.Add($"⚠️ {CriticalCrisesCount} crise(s) critique(s) !");
-            }
-
-            if (HasUpcomingShow)
-            {
-                activityUpdates.Add($"📺 Show à préparer: {UpcomingShowName}");
-            }
-
-            RecentActivity.Clear();
-            foreach (var activity in activityUpdates)
-            {
-                RecentActivity.Add(activity);
-            }
-
-            Logger.Info($"Dashboard chargé: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
+            UpdateRecentActivity();
         }
         catch (Exception ex)
         {
             Logger.Error($"[DashboardViewModel] Erreur lors du chargement: {ex.Message}");
             LatestNews = $"⚠️ Erreur de chargement: {ex.Message}";
         }
+    }
+
+    /// <summary>
+    /// Vérifie si une colonne existe dans une table
+    /// </summary>
+    private static bool ColumnExists(SqliteConnection connection, string tableName, string columnName)
+    {
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = $"PRAGMA table_info({tableName});";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void UpdateRecentActivity()
+    {
+        var activityUpdates = new List<string>
+        {
+            "✅ Données chargées avec succès",
+            $"🤼 {TotalWorkers} workers dans le roster",
+            "🏆 Titres et storylines actives"
+        };
+
+        if (HasCriticalCrises)
+        {
+            activityUpdates.Add($"⚠️ {CriticalCrisesCount} crise(s) critique(s) !");
+        }
+
+        if (HasUpcomingShow)
+        {
+            activityUpdates.Add($"📺 Show à préparer: {UpcomingShowName}");
+        }
+
+        RecentActivity.Clear();
+        foreach (var activity in activityUpdates)
+        {
+            RecentActivity.Add(activity);
+        }
+
+        Logger.Info($"Dashboard chargé: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
     }
 
     /// <summary>

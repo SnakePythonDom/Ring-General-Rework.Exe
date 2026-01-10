@@ -1,7 +1,9 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models.Booker;
+using RingGeneral.Core.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RingGeneral.Data.Repositories;
@@ -10,7 +12,7 @@ namespace RingGeneral.Data.Repositories;
 /// Implémentation du repository des bookers.
 /// Gère Bookers, BookerMemory, et BookerEmploymentHistory.
 /// </summary>
-public sealed class BookerRepository : IBookerRepository
+public sealed class BookerRepository : IBookerRepository, Core.Interfaces.IBookerRepository
 {
     private readonly string _connectionString;
 
@@ -437,6 +439,82 @@ public sealed class BookerRepository : IBookerRepository
             WHERE BookerId = @BookerId AND RecallStrength < 10";
 
         command.Parameters.AddWithValue("@BookerId", bookerId);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    // ====================================================================
+    // CORE INTERFACE IMPLEMENTATIONS (méthodes supplémentaires)
+    // ====================================================================
+
+    // Implémentation Core.Interfaces.IBookerRepository.GetBookersByCompanyAsync
+    async Task<List<Booker>> Core.Interfaces.IBookerRepository.GetBookersByCompanyAsync(string companyId)
+    {
+        return await GetAllBookersByCompanyIdAsync(companyId);
+    }
+
+    // Implémentation Core.Interfaces.IBookerRepository.GetBookerMemoryByIdAsync
+    async Task<BookerMemory?> Core.Interfaces.IBookerRepository.GetBookerMemoryByIdAsync(int memoryId)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT MemoryId, BookerId, EventType, EventDescription, ImpactScore, RecallStrength, CreatedAt
+            FROM BookerMemory
+            WHERE MemoryId = @MemoryId";
+
+        command.Parameters.AddWithValue("@MemoryId", memoryId);
+
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return MapBookerMemory(reader);
+        }
+
+        return null;
+    }
+
+    // Implémentation Core.Interfaces.IBookerRepository.GetRecentMemoriesAsync (avec limit)
+    async Task<List<BookerMemory>> Core.Interfaces.IBookerRepository.GetRecentMemoriesAsync(string bookerId, int limit)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT MemoryId, BookerId, EventType, EventDescription, ImpactScore, RecallStrength, CreatedAt
+            FROM BookerMemory
+            WHERE BookerId = @BookerId
+            ORDER BY CreatedAt DESC
+            LIMIT @Limit";
+
+        command.Parameters.AddWithValue("@BookerId", bookerId);
+        command.Parameters.AddWithValue("@Limit", limit);
+
+        var memories = new List<BookerMemory>();
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            memories.Add(MapBookerMemory(reader));
+        }
+
+        return memories;
+    }
+
+    // Implémentation Core.Interfaces.IBookerRepository.DeleteWeakMemoriesAsync
+    async Task Core.Interfaces.IBookerRepository.DeleteWeakMemoriesAsync(string bookerId, int threshold)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            DELETE FROM BookerMemory
+            WHERE BookerId = @BookerId AND RecallStrength < @Threshold";
+
+        command.Parameters.AddWithValue("@BookerId", bookerId);
+        command.Parameters.AddWithValue("@Threshold", threshold);
         await command.ExecuteNonQueryAsync();
     }
 

@@ -125,7 +125,16 @@ public sealed class SaveGameManager
         catch (Exception ex)
         {
             transaction.Rollback();
-            throw new InvalidOperationException($"Erreur lors de la création de la sauvegarde pour {companyName}.", ex);
+            var errorMessage = $"Erreur lors de la création de la sauvegarde pour {companyName}.";
+            if (ex is Microsoft.Data.Sqlite.SqliteException sqliteEx)
+            {
+                errorMessage += $"\nErreur SQLite: {sqliteEx.Message}";
+                if (sqliteEx.SqliteErrorCode != 0)
+                {
+                    errorMessage += $"\nCode d'erreur: {sqliteEx.SqliteErrorCode}";
+                }
+            }
+            throw new InvalidOperationException(errorMessage, ex);
         }
     }
 
@@ -417,7 +426,7 @@ public sealed class SaveGameManager
     {
         try
         {
-            var worldPath = _connectionFactory.WorldDatabasePath;
+            var worldPath = _connectionFactory.GeneralDatabasePath;
             if (!File.Exists(worldPath))
                 return 1;
 

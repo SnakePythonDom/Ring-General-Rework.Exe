@@ -28,7 +28,7 @@ public sealed class ShowSchedulerService
             }
         }
 
-        if (DetecterConflitCalendrier(draft.CompanyId, draft.Date, null))
+        if (DetecterConflitCalendrier(draft.CompanyId, draft.Date, null, draft.BrandId))
         {
             erreurs.Add("Conflit de calendrier détecté pour cette date.");
         }
@@ -48,7 +48,8 @@ public sealed class ShowSchedulerService
             draft.VenueId,
             draft.Broadcast,
             draft.TicketPrice,
-            ShowStatus.ABooker);
+            ShowStatus.ABooker,
+            draft.BrandId);
 
         var entry = new CalendarEntry(
             Guid.NewGuid().ToString("N"),
@@ -192,9 +193,146 @@ public sealed class ShowSchedulerService
         }
     }
 
-    private bool DetecterConflitCalendrier(string companyId, DateOnly date, string? showId)
+    private bool DetecterConflitCalendrier(string companyId, DateOnly date, string? showId, string? brandId = null)
     {
-        return _store.ChargerCalendarEntries(companyId)
-            .Any(entry => entry.Date == date && entry.ReferenceId != showId);
+        var shows = _store.ChargerShowsParDate(companyId, date);
+        
+        if (!shows.Any())
+            return false;
+        
+        // Si brandId fourni, vérifier conflit avec même brand
+        if (brandId != null)
+        {
+            return shows.Any(s => s.BrandId == brandId && s.ShowId != showId);
+        }
+        
+        // Sinon, vérifier conflit avec même compagnie sans brand
+        return shows.Any(s => s.CompanyId == companyId && s.BrandId == null && s.ShowId != showId);
+    }
+
+    /// <summary>
+    /// Crée un show rapidement avec des valeurs par défaut selon le type
+    /// </summary>
+    public ShowSchedulerResult CreerShowRapide(
+        string companyId,
+        ShowType type,
+        DateOnly date,
+        string? brandId = null)
+    {
+        var defaults = GetDefaultValuesForType(type);
+        
+        var draft = new ShowScheduleDraft(
+            companyId,
+            GenerateDefaultName(type, date),
+            type,
+            date,
+            defaults.Duration,
+            defaults.VenueId,
+            defaults.Broadcast,
+            defaults.TicketPrice,
+            brandId);
+        
+        // Vérifier conflits (basé sur BrandId)
+        if (DetecterConflitCalendrier(companyId, date, null, brandId))
+        {
+            return new ShowSchedulerResult(
+                false,
+                new[] { "Conflit de calendrier détecté pour cette date." },
+                null, null, null);
+        }
+        
+        return CreerShow(draft);
+    }
+
+    /// <summary>
+    /// Crée plusieurs shows récurrents à partir d'un template
+    /// </summary>
+    public IReadOnlyList<ShowSchedulerResult> CreerShowRecurrent(
+        ShowTemplate template,
+        DateOnly startDate,
+        int numberOfOccurrences)
+    {
+        var results = new List<ShowSchedulerResult>();
+        var currentDate = startDate;
+        
+        // Obtenir les valeurs par défaut pour le type de show, notamment le prix du ticket
+        var defaults = GetDefaultValuesForType(template.ShowType);
+        
+        for (int i = 0; i < numberOfOccurrences; i++)
+        {
+            var draft = new ShowScheduleDraft(
+                template.CompanyId,
+                template.Name,
+                template.ShowType,
+                currentDate,
+                template.DefaultDuration,
+                template.DefaultVenueId,
+                template.DefaultBroadcast,
+                defaults.TicketPrice);
+            
+            var result = CreerShow(draft);
+            results.Add(result);
+            
+            // Calculer prochaine date selon pattern
+            currentDate = CalculateNextDate(currentDate, template.RecurrencePattern, template.DayOfWeek);
+        }
+        
+        return results;
+    }
+
+    /// <summary>
+    /// Détecte tous les shows d'un jour spécifique
+    /// </summary>
+    public IReadOnlyList<ShowSchedule> DetecterShowsDuJour(string companyId, DateOnly date)
+    {
+        return _store.ChargerShowsParDate(companyId, date);
+    }
+
+    private static (int Duration, string? VenueId, string Broadcast, decimal TicketPrice) GetDefaultValuesForType(ShowType type)
+    {
+        return type switch
+        {
+            ShowType.Tv => (120, null, "TBA", 25m),
+            ShowType.Ppv => (180, null, "Pay-Per-View", 50m),
+            ShowType.House => (90, null, "", 20m),
+            ShowType.Youth => (60, null, "", 10m),
+            _ => (120, null, "TBA", 25m)
+        };
+    }
+
+    private static string GenerateDefaultName(ShowType type, DateOnly date)
+    {
+        var typeName = type switch
+        {
+            ShowType.Tv => "TV Show",
+            ShowType.Ppv => "PPV",
+            ShowType.House => "House Show",
+            ShowType.Youth => "Youth Show",
+            _ => "Show"
+        };
+        
+        return $"{typeName} - {date:dd/MM/yyyy}";
+    }
+
+    private static DateOnly CalculateNextDate(DateOnly currentDate, ShowRecurrencePattern pattern, DayOfWeek? dayOfWeek)
+    {
+        return pattern switch
+        {
+            ShowRecurrencePattern.Weekly => dayOfWeek.HasValue 
+                ? GetNextWeekday(currentDate, dayOfWeek.Value)
+                : currentDate.AddDays(7),
+            ShowRecurrencePattern.BiWeekly => dayOfWeek.HasValue
+                ? GetNextWeekday(currentDate.AddDays(7), dayOfWeek.Value)
+                : currentDate.AddDays(14),
+            ShowRecurrencePattern.Monthly => currentDate.AddMonths(1),
+            _ => currentDate.AddDays(7)
+        };
+    }
+
+    private static DateOnly GetNextWeekday(DateOnly date, DayOfWeek targetDay)
+    {
+        var daysUntilTarget = ((int)targetDay - (int)date.DayOfWeek + 7) % 7;
+        if (daysUntilTarget == 0) daysUntilTarget = 7; // Si c'est le même jour, prendre la semaine suivante
+        return date.AddDays(daysUntilTarget);
     }
 }

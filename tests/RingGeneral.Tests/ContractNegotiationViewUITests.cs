@@ -1,5 +1,6 @@
 using RingGeneral.UI.Views.Contracts;
 using RingGeneral.UI.ViewModels.Contracts;
+using RingGeneral.Core.Models;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -19,7 +20,7 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
         var view = new ContractNegotiationView { DataContext = viewModel };
 
         // Act
@@ -38,7 +39,7 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldDisplayNegotiationTitle()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
         var view = new ContractNegotiationView { DataContext = viewModel };
 
         // Act
@@ -58,12 +59,10 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldDisplayWorkerInfo()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
 
-        // Simuler un worker en négociation
-        viewModel.WorkerName = "John Cena";
-        viewModel.WorkerRole = "Main Event Star";
-        viewModel.WorkerPopularity = 95;
+        // WorkerName, WorkerRole, WorkerPopularity properties don't exist
+        // These would be loaded from the workerId in the constructor
 
         var view = new ContractNegotiationView { DataContext = viewModel };
 
@@ -89,14 +88,20 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldDisplayContractTemplates()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
 
         // Ajouter des templates
-        viewModel.ContractTemplates.Add(new ContractTemplateViewModel
-        {
-            Name = "Main Event Star",
-            Description = "High salary, appearance-based contract"
-        });
+        // ContractTemplateViewModel doesn't exist - using ContractTemplate record instead
+        viewModel.ContractTemplates.Add(new ContractTemplate(
+            TemplateId: "TPL_TEST",
+            Name: "Main Event Star",
+            Description: "High salary, appearance-based contract",
+            MonthlyWage: 50000m,
+            AppearanceFee: 5000m,
+            DurationMonths: 24,
+            IsExclusive: true,
+            HasRenewalOption: true
+        ));
 
         var view = new ContractNegotiationView { DataContext = viewModel };
 
@@ -119,8 +124,8 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldDisplaySalaryFields()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
-        viewModel.MonthlySalary = 50000m;
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
+        viewModel.MonthlyWage = 50000m;
         viewModel.AppearanceFee = 10000m;
 
         var view = new ContractNegotiationView { DataContext = viewModel };
@@ -147,8 +152,8 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldDisplayContractDuration()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
-        viewModel.ContractLength = 24; // 24 mois
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
+        viewModel.DurationMonths = 24; // 24 mois
 
         var view = new ContractNegotiationView { DataContext = viewModel };
 
@@ -169,7 +174,7 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldDisplayNegotiationButtons()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
         var view = new ContractNegotiationView { DataContext = viewModel };
 
         // Act
@@ -196,9 +201,9 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldDisplayWorkerDemands()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
-        viewModel.MinimumSalary = 45000m;
-        viewModel.WorkerSatisfaction = 75;
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
+        // MinimumSalary and WorkerSatisfaction properties don't exist
+        viewModel.MonthlyWage = 45000m;
 
         var view = new ContractNegotiationView { DataContext = viewModel };
 
@@ -224,16 +229,20 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldHandleTemplateSelection()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
 
-        var template = new ContractTemplateViewModel
-        {
-            Name = "Mid-Card Regular",
-            MonthlySalary = 25000m,
-            AppearanceFee = 5000m,
-            ContractLength = 12
-        };
+        var template = new ContractTemplate(
+            TemplateId: "TPL_TEST2",
+            Name: "Test Template",
+            Description: "Test description",
+            MonthlyWage: 30000m,
+            AppearanceFee: 3000m,
+            DurationMonths: 12,
+            IsExclusive: true,
+            HasRenewalOption: false
+        );
         viewModel.ContractTemplates.Add(template);
+        viewModel.SelectedTemplate = template;
 
         var view = new ContractNegotiationView { DataContext = viewModel };
 
@@ -251,20 +260,20 @@ public class ContractNegotiationViewUITests
         }
 
         // Assert - Vérifier que les valeurs se sont mises à jour
-        viewModel.MonthlySalary.Should().Be(25000m);
+        viewModel.MonthlyWage.Should().Be(25000m);
         viewModel.AppearanceFee.Should().Be(5000m);
-        viewModel.ContractLength.Should().Be(12);
+        viewModel.DurationMonths.Should().Be(12);
     }
 
     [AvaloniaFact]
     public async Task ContractNegotiationView_ShouldDisplayNegotiationHistory()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
 
         // Ajouter des offres dans l'historique
-        viewModel.NegotiationHistory.Add("Initial offer: $40,000/month");
-        viewModel.NegotiationHistory.Add("Counter offer: $45,000/month");
+        // NegotiationHistory property doesn't exist - using StatusMessage instead
+        viewModel.StatusMessage = "Initial offer: $40,000/month";
 
         var view = new ContractNegotiationView { DataContext = viewModel };
 
@@ -287,8 +296,8 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldUpdateSalaryDisplay()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
-        viewModel.MonthlySalary = 40000m;
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
+        viewModel.MonthlyWage = 40000m;
 
         var view = new ContractNegotiationView { DataContext = viewModel };
 
@@ -298,7 +307,7 @@ public class ContractNegotiationViewUITests
         await Task.Delay(100);
 
         // Changer le salaire
-        viewModel.MonthlySalary = 50000m;
+        viewModel.MonthlyWage = 50000m;
         await Task.Delay(50);
 
         // Assert - Vérifier que l'affichage s'est mis à jour
@@ -313,7 +322,7 @@ public class ContractNegotiationViewUITests
     public async Task ContractNegotiationView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new ContractNegotiationViewModel(null, null);
+        var viewModel = new ContractNegotiationViewModel(null!, null!, null!, "W001", "C001", 1);
         var view = new ContractNegotiationView { DataContext = viewModel };
 
         // Act
