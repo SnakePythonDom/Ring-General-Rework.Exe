@@ -1,18 +1,22 @@
 {
   "version": 2,
-<<<<<<< HEAD
-  "dgSpecHash": "gUfhZ3f30qg=",
+  "dgSpecHash": "nBrqsKZBsYY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\popo2\\Downloads\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj",
-=======
-  "dgSpecHash": "ts/yM1ksLYk=",
-  "success": true,
-  "projectFilePath": "C:\\Users\\popo2\\source\\repos\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj",
->>>>>>> 43f8f8d48b04005e78508e311e2dff51d0f724e0
+  "projectFilePath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\popo2\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.22\\microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
+    "C:\\Users\\popo2\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.22\\microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "message": "Problème de lecture du fichier cache c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\obj\\project.nuget.cache\u00A0: '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0.",
+      "projectPath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj",
+      "warningLevel": 1,
+      "filePath": "c:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Specs\\RingGeneral.Specs.csproj",
+      "targetGraphs": []
+    }
+  ]
 }
