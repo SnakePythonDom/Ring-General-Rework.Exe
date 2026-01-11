@@ -106,9 +106,12 @@ public sealed class WorkerAttributesRepository : RepositoryBase, RingGeneral.Cor
     {
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
+        // Check if Aura column exists dynamically to avoid crashing on old schemas before migration
+        // But since we are doing a generator that fixes schema, we assume schema is correct or will be fixed.
+        // However, for robustness, we should select all known columns.
         command.CommandText = @"
             SELECT WorkerId, Charisma, MicWork, Acting, CrowdConnection, StarPower,
-                   Improvisation, Entrance, SexAppeal, MerchandiseAppeal, CrossoverPotential
+                   Improvisation, Entrance, SexAppeal, MerchandiseAppeal, CrossoverPotential, Aura
             FROM WorkerEntertainmentAttributes
             WHERE WorkerId = $workerId";
 
@@ -129,7 +132,8 @@ public sealed class WorkerAttributesRepository : RepositoryBase, RingGeneral.Cor
                 Entrance = reader.GetInt32(7),
                 SexAppeal = reader.GetInt32(8),
                 MerchandiseAppeal = reader.GetInt32(9),
-                CrossoverPotential = reader.GetInt32(10)
+                CrossoverPotential = reader.GetInt32(10),
+                Aura = reader.FieldCount > 11 && !reader.IsDBNull(11) ? reader.GetInt32(11) : 50
             };
         }
 
@@ -143,9 +147,9 @@ public sealed class WorkerAttributesRepository : RepositoryBase, RingGeneral.Cor
         command.CommandText = @"
             INSERT OR REPLACE INTO WorkerEntertainmentAttributes
             (WorkerId, Charisma, MicWork, Acting, CrowdConnection, StarPower,
-             Improvisation, Entrance, SexAppeal, MerchandiseAppeal, CrossoverPotential)
+             Improvisation, Entrance, SexAppeal, MerchandiseAppeal, CrossoverPotential, Aura)
             VALUES ($workerId, $charisma, $micWork, $acting, $crowdConnection, $starPower,
-                    $improvisation, $entrance, $sexAppeal, $merchandiseAppeal, $crossoverPotential)";
+                    $improvisation, $entrance, $sexAppeal, $merchandiseAppeal, $crossoverPotential, $aura)";
 
         AjouterParametre(command, "$workerId", attributes.WorkerId);
         AjouterParametre(command, "$charisma", attributes.Charisma);
@@ -158,6 +162,7 @@ public sealed class WorkerAttributesRepository : RepositoryBase, RingGeneral.Cor
         AjouterParametre(command, "$sexAppeal", attributes.SexAppeal);
         AjouterParametre(command, "$merchandiseAppeal", attributes.MerchandiseAppeal);
         AjouterParametre(command, "$crossoverPotential", attributes.CrossoverPotential);
+        AjouterParametre(command, "$aura", attributes.Aura);
 
         command.ExecuteNonQuery();
     }
@@ -165,7 +170,7 @@ public sealed class WorkerAttributesRepository : RepositoryBase, RingGeneral.Cor
     public void UpdateEntertainmentAttribute(int workerId, string attributeName, int value)
     {
         var validAttributes = new[] { "Charisma", "MicWork", "Acting", "CrowdConnection", "StarPower",
-                                      "Improvisation", "Entrance", "SexAppeal", "MerchandiseAppeal", "CrossoverPotential" };
+                                      "Improvisation", "Entrance", "SexAppeal", "MerchandiseAppeal", "CrossoverPotential", "Aura" };
 
         if (!validAttributes.Contains(attributeName))
             throw new ArgumentException($"Invalid attribute name: {attributeName}");

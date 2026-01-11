@@ -32,6 +32,7 @@ public sealed class ShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;
     private readonly GameRepository? _repository;
+    private readonly RingGeneral.Core.Interfaces.IDatabaseGeneratorService _databaseGeneratorService;
     private NavigationItemViewModel? _selectedNavigationItem;
     private NavigationItemViewModel? _workersNavigationItem;
     private ViewModelBase? _currentContentViewModel;
@@ -43,11 +44,19 @@ public sealed class ShellViewModel : ViewModelBase
 
     private readonly IEventAggregator _eventAggregator;
 
-    public ShellViewModel(INavigationService navigationService, IEventAggregator eventAggregator, GameRepository? repository = null)
+    public ShellViewModel(
+        INavigationService navigationService,
+        IEventAggregator eventAggregator,
+        RingGeneral.Core.Interfaces.IDatabaseGeneratorService databaseGeneratorService,
+        GameRepository? repository = null)
     {
         _navigationService = navigationService;
         _eventAggregator = eventAggregator;
+        _databaseGeneratorService = databaseGeneratorService;
         _repository = repository;
+
+        // Trigger Database Annealing/Repair on startup
+        _ = InitializeDatabaseAsync();
 
         // Ensure game session exists as early as possible so bindings (commands) are available
         GameSession = new GameSessionViewModel();
@@ -622,6 +631,27 @@ public sealed class ShellViewModel : ViewModelBase
         catch (Exception ex)
         {
             Logger.Error($"Erreur lors du chargement du nombre de workers: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Checks and repairs the database schema asynchronously
+    /// </summary>
+    private async System.Threading.Tasks.Task InitializeDatabaseAsync()
+    {
+        try
+        {
+            Logger.Info("[ShellViewModel] Checking database schema...");
+            await _databaseGeneratorService.EnsureDatabaseSchemaAsync();
+            Logger.Info("[ShellViewModel] Database schema verified.");
+
+            // Refresh counts after potential generation
+            await LoadWorkersCountAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[ShellViewModel] Database initialization failed: {ex.Message}", ex);
+            // In a real app, we might show a dialog or notification here
         }
     }
 }

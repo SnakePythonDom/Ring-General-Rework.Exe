@@ -16,8 +16,14 @@ namespace RingGeneral.Core.Models.Attributes
         // ====================================================================
 
         /// <summary>
+        /// Aura: Immediate presence, the "It Factor" that commands a room instantly.
+        /// Distinct from Charisma (which can be learned), Aura is innate.
+        /// </summary>
+        public int Aura { get; set; } = 50;
+
+        /// <summary>
         /// Charisma: Natural magnetism and presence, even without speaking.
-        /// The "It Factor" that draws audience attention.
+        /// The ability to draw audience attention.
         /// </summary>
         public int Charisma { get; set; } = 50;
 
@@ -88,12 +94,12 @@ namespace RingGeneral.Core.Models.Attributes
         // ====================================================================
 
         /// <summary>
-        /// Entertainment Average: Calculated average of all 10 entertainment attributes.
+        /// Entertainment Average: Calculated average of all 11 entertainment attributes.
         /// Represents overall entertainment value (0-100).
         /// </summary>
-        public int EntertainmentAvg => (Charisma + MicWork + Acting + CrowdConnection +
+        public int EntertainmentAvg => (Aura + Charisma + MicWork + Acting + CrowdConnection +
                                          StarPower + Improvisation + Entrance + SexAppeal +
-                                         MerchandiseAppeal + CrossoverPotential) / 10;
+                                         MerchandiseAppeal + CrossoverPotential) / 11;
 
         // ====================================================================
         // NAVIGATION PROPERTIES
@@ -115,6 +121,7 @@ namespace RingGeneral.Core.Models.Attributes
         {
             return attributeName switch
             {
+                "Aura" => Aura,
                 "Charisma" => Charisma,
                 "MicWork" => MicWork,
                 "Acting" => Acting,
@@ -139,6 +146,7 @@ namespace RingGeneral.Core.Models.Attributes
 
             switch (attributeName)
             {
+                case "Aura": Aura = value; break;
                 case "Charisma": Charisma = value; break;
                 case "MicWork": MicWork = value; break;
                 case "Acting": Acting = value; break;
@@ -157,7 +165,8 @@ namespace RingGeneral.Core.Models.Attributes
         /// </summary>
         public bool Validate()
         {
-            return Charisma >= 0 && Charisma <= 100 &&
+            return Aura >= 0 && Aura <= 100 &&
+                   Charisma >= 0 && Charisma <= 100 &&
                    MicWork >= 0 && MicWork <= 100 &&
                    Acting >= 0 && Acting <= 100 &&
                    CrowdConnection >= 0 && CrowdConnection <= 100 &&

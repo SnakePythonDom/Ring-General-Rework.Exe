@@ -204,6 +204,10 @@ public sealed class App : Application
         services.AddSingleton(dbInitializer);
         services.AddSingleton(dbValidator);
 
+        // Database Generator Service (Rework Phase)
+        services.AddSingleton<IDatabaseGeneratorService>(sp =>
+            new RingGeneral.Data.Services.DatabaseGeneratorService(factory));
+
         // SaveGame manager service
         var saveGameManager = new SaveGameManager(factory, dbInitializer, dbValidator);
         services.AddSingleton(saveGameManager);
@@ -474,6 +478,7 @@ public sealed class App : Application
             new ViewModels.Core.ShellViewModel(
                 navigationService: sp.GetRequiredService<INavigationService>(),
                 eventAggregator: sp.GetRequiredService<RingGeneral.UI.Services.Messaging.IEventAggregator>(),
+                databaseGeneratorService: sp.GetRequiredService<IDatabaseGeneratorService>(),
                 repository: sp.GetService<GameRepository>()));
 
         // ViewModels - Start

@@ -108,3 +108,85 @@ public sealed record YouthStaffAssignmentInfo(
     string Nom,
     string Role,
     int? SemaineDebut);
+
+/// <summary>
+/// Represents a Youth Structure (Training Center/Dojo) in the persistent database.
+/// Based on YouthStructureState blueprint but adapted for Entity usage.
+/// </summary>
+public class YouthStructure
+{
+    /// <summary>
+    /// Unique identifier
+    /// </summary>
+    public string YouthId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the structure
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Owner company ID
+    /// </summary>
+    public string CompanyId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Geographical region
+    /// </summary>
+    public string Region { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Structure type (Dojo, Performance Center, etc.)
+    /// </summary>
+    public string Type { get; set; } = "Dojo";
+
+    /// <summary>
+    /// Annual budget in currency
+    /// </summary>
+    public int BudgetAnnual { get; set; }
+
+    /// <summary>
+    /// Maximum trainee capacity
+    /// </summary>
+    public int MaxCapacity { get; set; }
+
+    /// <summary>
+    /// Equipment level (0-100)
+    /// </summary>
+    public int EquipmentLevel { get; set; }
+
+    /// <summary>
+    /// Coaching quality (0-100)
+    /// </summary>
+    public int CoachingQuality { get; set; }
+
+    /// <summary>
+    /// Training philosophy (Technical, Brawler, etc.)
+    /// </summary>
+    public string Philosophy { get; set; } = "Balanced";
+
+    /// <summary>
+    /// Is the structure currently active?
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// Week number of the last graduation event
+    /// </summary>
+    public int? LastGraduationWeek { get; set; }
+
+    /// <summary>
+    /// Structure Level (1-5)
+    /// </summary>
+    public int Level { get; set; } = 1;
+
+    /// <summary>
+    /// Number of active trainees
+    /// </summary>
+    public int ActiveTraineesCount { get; set; }
+
+    /// <summary>
+    /// Creation timestamp
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
