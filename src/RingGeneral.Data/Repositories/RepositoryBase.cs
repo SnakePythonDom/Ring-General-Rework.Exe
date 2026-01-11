@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models;
@@ -8,6 +9,9 @@ namespace RingGeneral.Data.Repositories;
 public abstract class RepositoryBase
 {
     protected readonly SqliteConnectionFactory _factory;
+
+    // Cache pour l'existence des tables (clé: "DataSource::TableName")
+    private static readonly ConcurrentDictionary<string, bool> _tableExistenceCache = new();
 
     // JsonSerializerOptions static readonly (explicitement immuable)
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -66,6 +70,36 @@ public abstract class RepositoryBase
     // === Helpers techniques (Catégorie A) ===
 
     protected static bool TableExiste(SqliteConnection connexion, string table)
+    {
+        // Ne pas mettre en cache pour les bases en mémoire (tests unitaires ou temporaires)
+        if (string.IsNullOrEmpty(connexion.DataSource) ||
+            connexion.DataSource.Contains(":memory:", StringComparison.OrdinalIgnoreCase))
+        {
+            return VerifierExistenceTable(connexion, table);
+        }
+
+        var key = $"{connexion.DataSource}::{table}";
+
+        // Optimisation : Si on sait déjà que la table existe, on retourne true immédiatement.
+        // On ne cache JAMAIS le résultat 'false' car la table peut être créée juste après le check.
+        if (_tableExistenceCache.TryGetValue(key, out var exists) && exists)
+        {
+            return true;
+        }
+
+        // Vérification réelle en base
+        var existsInDb = VerifierExistenceTable(connexion, table);
+
+        // Si la table existe, on met en cache cette information (on suppose que les tables ne sont pas supprimées au runtime)
+        if (existsInDb)
+        {
+            _tableExistenceCache.TryAdd(key, true);
+        }
+
+        return existsInDb;
+    }
+
+    private static bool VerifierExistenceTable(SqliteConnection connexion, string table)
     {
         using var command = connexion.CreateCommand();
         command.CommandText = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = $table;";
