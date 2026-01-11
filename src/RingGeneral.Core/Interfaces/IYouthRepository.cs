@@ -21,4 +21,9 @@ public interface IYouthRepository
         int niveauEquipements,
         int qualiteCoaching,
         string philosophie);
+
+    /// <summary>
+    /// Charge toutes les structures jeunesse
+    /// </summary>
+    IReadOnlyList<YouthStructureState> ChargerYouthStructures();
 }

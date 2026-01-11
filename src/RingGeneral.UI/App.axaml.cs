@@ -237,6 +237,7 @@ public sealed class App : Application
         services.AddSingleton(repositories.ContractRepository);
         services.AddSingleton(repositories.SettingsRepository);
         services.AddSingleton(repositories.YouthRepository);
+        services.AddSingleton<RingGeneral.Core.Interfaces.IYouthRepository>(sp => repositories.YouthRepository);
         services.AddSingleton(repositories.TitleRepository);
         services.AddSingleton<RingGeneral.Core.Interfaces.ITitleRepository>(sp => repositories.TitleRepository);
         services.AddSingleton<RingGeneral.Core.Interfaces.IContenderRepository>(sp => repositories.TitleRepository);
@@ -561,7 +562,8 @@ public sealed class App : Application
                 sp.GetRequiredService<ICatchStyleRepository>(),
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
                 sp.GetRequiredService<IChildCompanyStaffService>(),
-                sp.GetRequiredService<IChildCompanyStaffRepository>()));
+                sp.GetRequiredService<IChildCompanyStaffRepository>(),
+                sp.GetRequiredService<IYouthRepository>()));
         services.AddTransient<OwnerBookerViewModel>();
         services.AddTransient<CrisisViewModel>();
 
