@@ -225,6 +225,7 @@ public sealed class WorkerDetailViewModel : ViewModelBase, INavigableViewModel
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error loading worker details: {ex}");
             // Fallback placeholder en cas d'erreur
             LoadPlaceholderData();
         }

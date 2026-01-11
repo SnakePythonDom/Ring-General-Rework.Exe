@@ -45,9 +45,9 @@ public sealed class YouthHubViewModel : ViewModelBase
         _youthRepository = youthRepository;
 
         // Initialize sub-VMs
-        StructuresVM = new StructureManagementViewModel(_youthRepository, _gameRepository);
-        LoansVM = new LoanManagementViewModel(_gameRepository, _youthRepository);
-        TraineesVM = new YouthTraineeManagementViewModel(_youthRepository, _gameRepository);
-        StaffVM = new YouthStaffManagementViewModel(_youthRepository, _gameRepository);
+        _structuresVM = new StructureManagementViewModel(_youthRepository, _gameRepository);
+        _loansVM = new LoanManagementViewModel(_gameRepository, _youthRepository);
+        _traineesVM = new YouthTraineeManagementViewModel(_youthRepository, _gameRepository);
+        _staffVM = new YouthStaffManagementViewModel(_youthRepository, _gameRepository);
     }
 }

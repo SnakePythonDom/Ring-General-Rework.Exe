@@ -381,11 +381,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\RingGeneral.Tools.DbManager.csproj",
+      "projectUniqueName": "C:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\RingGeneral.Tools.DbManager.csproj",
       "projectName": "RingGeneral.Tools.DbManager",
-      "projectPath": "c:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\RingGeneral.Tools.DbManager.csproj",
+      "projectPath": "C:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\RingGeneral.Tools.DbManager.csproj",
       "packagesPath": "C:\\Users\\popo2\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\obj\\",
+      "outputPath": "C:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

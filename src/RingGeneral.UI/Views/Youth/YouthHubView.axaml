@@ -119,7 +119,29 @@
                 </ScrollViewer>
             </TabItem>
             <TabItem Header="🏢 Prêts Filiales">
-                <TextBlock Text="Gestion des Prêts (À venir)" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <ScrollViewer>
+                  <ItemsControl ItemsSource="{Binding LoansVM.LoanedWorkers}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="#252525" CornerRadius="5" Margin="5" Padding="10">
+                          <Grid ColumnDefinitions="*, *, *">
+                            <StackPanel Grid.Column="0">
+                              <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White" FontSize="16"/>
+                              <TextBlock Text="{Binding CurrentCompany}" Foreground="#AAA" FontSize="12"/>
+                            </StackPanel>
+                            
+                             <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                 <TextBlock Text="Loaned Duration" FontSize="10" Foreground="#888" HorizontalAlignment="Center"/>
+                                 <TextBlock Text="{Binding MonthsAway, StringFormat='{}{0} months'}" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/>
+                             </StackPanel>
+
+                             <Button Grid.Column="2" Content="Rappeler" Command="{Binding RecallCommand}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
     </Grid>

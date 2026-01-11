@@ -237,6 +237,7 @@ public sealed class BookingViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error loading show: {ex}");
             LoadTestData();
         }
     }
