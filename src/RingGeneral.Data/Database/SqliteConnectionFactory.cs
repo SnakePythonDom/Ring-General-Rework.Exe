@@ -36,7 +36,7 @@ public sealed class SqliteConnectionFactory
         // ???????????????????????????????????????????????????????????????????????????
         // GENERAL DB PATH RESOLUTION (ring_general.db)
         // ???????????????????????????????????????????????????????????????????????????
-        
+
         if (!string.IsNullOrWhiteSpace(generalConnectionString))
         {
             // Path explicite fourni (rare, surtout pour tests)
@@ -58,7 +58,7 @@ public sealed class SqliteConnectionFactory
                 var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 var ringGenDir = Path.Combine(appDataPath, "RingGeneral");
                 GeneralDatabasePath = Path.Combine(ringGenDir, "ring_general.db");
-                
+
                 // Cr?er le r?pertoire s'il n'existe pas
                 Directory.CreateDirectory(ringGenDir);
             }
@@ -124,11 +124,11 @@ public sealed class SqliteConnectionFactory
         {
             // La base existe mais n'a pas le schéma de base - créer le schéma complet
             CreateBaseSchemaIfMissing(connexion);
-            
+
             // Vérifier à nouveau après création du schéma
             hasCompanies = TableExists(connexion, "companies") || TableExists(connexion, "Companies");
             hasWorkers = TableExists(connexion, "workers") || TableExists(connexion, "Workers");
-            
+
             if (!hasCompanies || !hasWorkers)
             {
                 connexion.Dispose();
@@ -138,15 +138,15 @@ public sealed class SqliteConnectionFactory
                     $"Chemin : {GeneralDatabasePath}\n\n" +
                     $"Conseil : Vérifier les permissions d'écriture et que le fichier 001_init.sql existe.");
             }
-            
+
             // Remplir avec des données génériques si la base est vide
             DbSeeder.SeedIfEmpty(connexion);
         }
-        
+
         // ✅ TOUJOURS s'assurer que toutes les tables essentielles existent
         // Cela permet de créer les tables manquantes même si Companies/Workers existent déjà
         EnsureEssentialTablesExist(connexion);
-        
+
         // ✅ Vérification finale : tester que la table shows a bien la colonne show_id
         // Si la vérification échoue, forcer la recréation
         if (TableExists(connexion, "shows"))
@@ -169,7 +169,7 @@ public sealed class SqliteConnectionFactory
                     dropCmd.ExecuteNonQuery();
                     dropCmd.CommandText = "PRAGMA foreign_keys = ON;";
                     dropCmd.ExecuteNonQuery();
-                    
+
                     // Recréer la table
                     EnsureEssentialTablesExist(connexion);
                 }
@@ -293,7 +293,7 @@ public sealed class SqliteConnectionFactory
     private static void CreateBaseSchemaIfMissing(SqliteConnection connection)
     {
         var schemaPath = Path.Combine(AppContext.BaseDirectory, "data", "migrations", "001_init.sql");
-        
+
         // Si le fichier de migration existe, l'exécuter
         if (File.Exists(schemaPath))
         {
@@ -315,7 +315,7 @@ public sealed class SqliteConnectionFactory
             // Créer les tables minimales
             CreateMinimalSchema(connection);
         }
-        
+
         // Toujours s'assurer que les tables essentielles existent (même si 001_init.sql a été exécuté)
         // Cela permet de créer les tables manquantes si elles n'étaient pas dans le fichier de migration
         EnsureEssentialTablesExist(connection);
@@ -463,7 +463,7 @@ public sealed class SqliteConnectionFactory
         // Cette table DOIT exister avec la colonne show_id, même si Shows (majuscule) existe
         var showsTableExists = TableExists(connection, "shows");
         var needsRecreateShowsLegacy = false;
-        
+
         if (showsTableExists)
         {
             // Test direct : essayer de préparer une commande avec show_id
@@ -484,7 +484,7 @@ public sealed class SqliteConnectionFactory
             // La table n'existe pas du tout - la créer
             needsRecreateShowsLegacy = true;
         }
-        
+
         if (needsRecreateShowsLegacy)
         {
             // Supprimer les tables dépendantes et shows si nécessaire
@@ -493,24 +493,24 @@ public sealed class SqliteConnectionFactory
                 using var dropCmd = connection.CreateCommand();
                 dropCmd.CommandText = "PRAGMA foreign_keys = OFF;";
                 dropCmd.ExecuteNonQuery();
-                
+
                 // Supprimer les tables dépendantes (si elles existent)
                 dropCmd.CommandText = "DROP TABLE IF EXISTS segments;";
                 dropCmd.ExecuteNonQuery();
-                
+
                 dropCmd.CommandText = "DROP TABLE IF EXISTS show_history;";
                 dropCmd.ExecuteNonQuery();
-                
+
                 dropCmd.CommandText = "DROP TABLE IF EXISTS segment_history;";
                 dropCmd.ExecuteNonQuery();
-                
+
                 dropCmd.CommandText = "DROP TABLE IF EXISTS audience_history;";
                 dropCmd.ExecuteNonQuery();
-                
+
                 // Supprimer shows (legacy)
                 dropCmd.CommandText = "DROP TABLE IF EXISTS shows;";
                 dropCmd.ExecuteNonQuery();
-                
+
                 dropCmd.CommandText = "PRAGMA foreign_keys = ON;";
                 dropCmd.ExecuteNonQuery();
             }
@@ -525,7 +525,7 @@ public sealed class SqliteConnectionFactory
                 }
                 catch { }
             }
-            
+
             // Créer la table avec la bonne structure (SANS IF NOT EXISTS pour forcer la création)
             try
             {
@@ -546,7 +546,7 @@ public sealed class SqliteConnectionFactory
                     );
                 ";
                 cmd.ExecuteNonQuery();
-                
+
                 // Vérification finale : tester que show_id est accessible
                 using var verifyCmd = connection.CreateCommand();
                 verifyCmd.CommandText = "SELECT show_id FROM shows LIMIT 0;";
@@ -581,13 +581,13 @@ public sealed class SqliteConnectionFactory
                 }
             }
         }
-        
+
         // Vérifier et corriger la table Companies pour ajouter les colonnes manquantes
         if (TableExists(connection, "Companies") || TableExists(connection, "companies"))
         {
             var tableName = TableExists(connection, "Companies") ? "Companies" : "companies";
             var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            
+
             try
             {
                 using var pragmaCmd = connection.CreateCommand();
@@ -603,7 +603,7 @@ public sealed class SqliteConnectionFactory
             {
                 // Si on ne peut pas lire les colonnes, on assume qu'elles n'existent pas
             }
-            
+
             // Ajouter les colonnes manquantes une par une
             var requiredColumns = new Dictionary<string, string>
             {
@@ -617,7 +617,7 @@ public sealed class SqliteConnectionFactory
                 { "CurrentWeek", "INTEGER DEFAULT 1" },
                 { "YouthBudget", "REAL DEFAULT 0.0" }
             };
-            
+
             foreach (var (columnName, columnDef) in requiredColumns)
             {
                 if (!existingColumns.Contains(columnName))
@@ -640,7 +640,7 @@ public sealed class SqliteConnectionFactory
         // Table: Shows (nouvelle version, peut coexister avec shows)
         var showsTableExistsUpper = TableExists(connection, "Shows");
         var needsRecreateShowsUpper = false;
-        
+
         if (showsTableExistsUpper)
         {
             // Vérifier si les colonnes essentielles existent (ShowId et Week)
@@ -669,7 +669,7 @@ public sealed class SqliteConnectionFactory
                 hasShowId = false;
                 hasWeek = false;
             }
-            
+
             // Si ShowId manque, on doit recréer la table (colonne primaire)
             if (!hasShowId)
             {
@@ -691,7 +691,7 @@ public sealed class SqliteConnectionFactory
                 }
             }
         }
-        
+
         if (!showsTableExistsUpper || needsRecreateShowsUpper)
         {
             if (needsRecreateShowsUpper)
@@ -711,7 +711,7 @@ public sealed class SqliteConnectionFactory
                 }
                 catch { }
             }
-            
+
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Shows (
@@ -755,7 +755,7 @@ public sealed class SqliteConnectionFactory
             {
                 // Si on ne peut pas lire les colonnes, on assume qu'elles n'existent pas
             }
-            
+
             // Ajouter les colonnes manquantes une par une
             var requiredColumns = new Dictionary<string, string>
             {
@@ -764,7 +764,7 @@ public sealed class SqliteConnectionFactory
                 { "Status", "TEXT DEFAULT 'ABOOKER'" },
                 { "BrandId", "TEXT" }
             };
-            
+
             foreach (var (columnName, columnDef) in requiredColumns)
             {
                 if (!existingColumns.Contains(columnName))
@@ -1038,7 +1038,7 @@ public sealed class SqliteConnectionFactory
                 { "TvRole", "INTEGER DEFAULT 50" },
                 { "Morale", "INTEGER DEFAULT 50" }
             };
-            
+
             foreach (var (columnName, columnDef) in requiredColumns)
             {
                 if (!existingColumns.Contains(columnName))
@@ -1056,7 +1056,7 @@ public sealed class SqliteConnectionFactory
                 }
             }
         }
-        
+
         // Vérifier et corriger la table workers (minuscule legacy) pour ajouter la colonne prenom
         if (TableExists(connection, "workers"))
         {
@@ -1073,7 +1073,7 @@ public sealed class SqliteConnectionFactory
                 }
             }
             catch { }
-            
+
             if (!existingColumns.Contains("prenom"))
             {
                 try
@@ -1111,7 +1111,7 @@ public sealed class SqliteConnectionFactory
                 { "Status", "TEXT NOT NULL DEFAULT 'ACTIVE'" },
                 { "Phase", "TEXT DEFAULT 'Setup'" }
             };
-            
+
             foreach (var (columnName, columnDef) in requiredColumns)
             {
                 if (!existingColumns.Contains(columnName))
@@ -1178,7 +1178,7 @@ public sealed class SqliteConnectionFactory
                 }
             }
             catch { }
-            
+
             if (!existingColumns.Contains("DefenseCount"))
             {
                 try
@@ -1193,7 +1193,7 @@ public sealed class SqliteConnectionFactory
                 }
             }
         }
-        
+
         // Table: CompanyBalanceSnapshots (snapshots de balance de compagnie - utilisée par FinanceViewModel)
         if (!TableExists(connection, "CompanyBalanceSnapshots"))
         {
@@ -1213,7 +1213,76 @@ public sealed class SqliteConnectionFactory
             ";
             cmd.ExecuteNonQuery();
         }
-        
+
+        // Table: youth_structures (Structures de développement)
+        if (!TableExists(connection, "youth_structures"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS youth_structures (
+                    youth_id TEXT PRIMARY KEY,
+                    company_id TEXT NOT NULL,
+                    nom TEXT NOT NULL,
+                    type TEXT NOT NULL DEFAULT 'DOJO',
+                    region TEXT NOT NULL,
+                    budget_annuel INTEGER NOT NULL,
+                    capacite_max INTEGER NOT NULL,
+                    niveau_equipements INTEGER NOT NULL,
+                    qualite_coaching INTEGER NOT NULL,
+                    philosophie TEXT NOT NULL,
+                    actif INTEGER NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_youth_company ON youth_structures(company_id);
+                CREATE INDEX IF NOT EXISTS idx_youth_region ON youth_structures(region);
+            ";
+            cmd.ExecuteNonQuery();
+        }
+        else
+        {
+            // Vérifier et ajouter les colonnes manquantes (notamment 'type' qui causait une erreur)
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var pragmaCmd = connection.CreateCommand();
+                pragmaCmd.CommandText = "PRAGMA table_info(youth_structures);";
+                using var reader = pragmaCmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var columnName = reader.GetString(1);
+                    existingColumns.Add(columnName);
+                }
+            }
+            catch { }
+
+            // Liste des colonnes critiques à vérifier
+            var requiredColumns = new Dictionary<string, string>
+            {
+                { "type", "TEXT NOT NULL DEFAULT 'DOJO'" },
+                { "budget_annuel", "INTEGER NOT NULL DEFAULT 0" },
+                { "niveau_equipements", "INTEGER NOT NULL DEFAULT 1" },
+                { "qualite_coaching", "INTEGER NOT NULL DEFAULT 50" },
+                { "philosophie", "TEXT NOT NULL DEFAULT 'PURE'" }
+            };
+
+            foreach (var (columnName, columnDef) in requiredColumns)
+            {
+                if (!existingColumns.Contains(columnName))
+                {
+                    try
+                    {
+                        using var alterCmd = connection.CreateCommand();
+                        alterCmd.CommandText = $"ALTER TABLE youth_structures ADD COLUMN {columnName} {columnDef};";
+                        alterCmd.ExecuteNonQuery();
+                        System.Diagnostics.Debug.WriteLine($"Migration: Ajout de la colonne {columnName} à youth_structures");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Erreur lors de l'ajout de {columnName} à youth_structures: {ex.Message}");
+                    }
+                }
+            }
+        }
+
         // Table: CalendarEntries (entrées de calendrier - utilisée par CalendarViewModel)
         var calendarEntriesExists = TableExists(connection, "CalendarEntries");
         if (!calendarEntriesExists)
@@ -1407,11 +1476,11 @@ public sealed class SqliteConnectionFactory
         var logPath = Path.Combine(AppContext.BaseDirectory, ".cursor", "debug.log");
         File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"E\",\"location\":\"SqliteConnectionFactory.cs:232\",\"message\":\"EnsureSaveSchema entry\",\"data\":{{\"dataSource\":\"{connexion.DataSource}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
         // #endregion
-        
+
         try
         {
             var tableExists = TableExists(connexion, "SaveGames");
-            
+
             if (!tableExists)
             {
                 // Créer la table si elle n'existe pas
@@ -1424,20 +1493,20 @@ public sealed class SqliteConnectionFactory
                 // Vérifier que la table a la bonne structure en testant les colonnes essentielles
                 var requiredColumns = new[] { "SaveId", "CompanyId", "CompanyName", "WorldVersion", "CurrentWeek", "CurrentYear", "CurrentDate", "TotalHoursPlayed", "GameDifficulty" };
                 var missingColumns = new List<string>();
-                
+
                 try
                 {
                     using var pragmaCmd = connexion.CreateCommand();
                     pragmaCmd.CommandText = "PRAGMA table_info(SaveGames);";
                     using var reader = pragmaCmd.ExecuteReader();
                     var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    
+
                     while (reader.Read())
                     {
                         var columnName = reader.GetString(1);
                         existingColumns.Add(columnName);
                     }
-                    
+
                     foreach (var requiredCol in requiredColumns)
                     {
                         if (!existingColumns.Contains(requiredCol))
@@ -1451,7 +1520,7 @@ public sealed class SqliteConnectionFactory
                     // Si on ne peut pas lire les colonnes, recréer la table
                     missingColumns.AddRange(requiredColumns);
                 }
-                
+
                 // Si des colonnes manquent, recréer la table
                 if (missingColumns.Count > 0)
                 {
@@ -1464,13 +1533,13 @@ public sealed class SqliteConnectionFactory
                         dropCmd.Transaction = transaction;
                         dropCmd.CommandText = "DROP TABLE IF EXISTS SaveGames;";
                         dropCmd.ExecuteNonQuery();
-                        
+
                         // Recréer avec la bonne structure
                         using var createCmd = connexion.CreateCommand();
                         createCmd.Transaction = transaction;
                         createCmd.CommandText = createSaveGamesTableSql;
                         createCmd.ExecuteNonQuery();
-                        
+
                         transaction.Commit();
                     }
                     catch
@@ -1480,7 +1549,7 @@ public sealed class SqliteConnectionFactory
                     }
                 }
             }
-            
+
             // #region agent log
             File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"E\",\"location\":\"SqliteConnectionFactory.cs:236\",\"message\":\"SaveGames table created/verified\",\"data\":{{}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
             // #endregion
@@ -1490,7 +1559,7 @@ public sealed class SqliteConnectionFactory
             // #region agent log
             File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"E\",\"location\":\"SqliteConnectionFactory.cs:238\",\"message\":\"Failed to create SaveGames table\",\"data\":{{\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
             // #endregion
-            
+
             throw new InvalidOperationException(
                 "❌ Impossible de créer la table SaveGames dans la Save DB.\n" +
                 $"Chemin : {connexion.DataSource}\n" +

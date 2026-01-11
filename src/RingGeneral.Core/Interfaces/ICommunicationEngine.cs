@@ -1,4 +1,5 @@
 using RingGeneral.Core.Models.Crisis;
+using System.Threading.Tasks;
 
 namespace RingGeneral.Core.Interfaces;
 
@@ -33,7 +34,7 @@ public interface ICommunicationEngine
     /// <param name="message">Message</param>
     /// <param name="tone">Ton</param>
     /// <returns>Communication créée</returns>
-    Communication CreateCommunication(
+    Task<Communication> CreateCommunicationAsync(
         string companyId,
         int? crisisId,
         string communicationType,
@@ -47,14 +48,15 @@ public interface ICommunicationEngine
     /// </summary>
     /// <param name="communicationId">ID de la communication</param>
     /// <returns>Résultat de la communication</returns>
-    CommunicationOutcome ExecuteCommunication(int communicationId);
+    /// <returns>Résultat de la communication</returns>
+    Task<CommunicationOutcome> ExecuteCommunicationAsync(int communicationId);
 
     /// <summary>
     /// Applique les impacts d'un résultat de communication
     /// </summary>
     /// <param name="outcome">Résultat à appliquer</param>
     /// <param name="crisisId">ID de la crise (si applicable)</param>
-    void ApplyOutcomeEffects(CommunicationOutcome outcome, int? crisisId);
+    Task ApplyOutcomeEffectsAsync(CommunicationOutcome outcome, int? crisisId);
 
     /// <summary>
     /// Recommande le meilleur type de communication pour une crise
@@ -76,5 +78,5 @@ public interface ICommunicationEngine
     /// </summary>
     /// <param name="companyId">ID de la compagnie</param>
     /// <returns>Taux de succès (0-100)</returns>
-    double GetCommunicationSuccessRate(string companyId);
+    Task<double> GetCommunicationSuccessRateAsync(string companyId);
 }

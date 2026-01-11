@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WKqwZlKwST0=",
+  "dgSpecHash": "9aCVY0WDioY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
+  "projectFilePath": "C:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\popo2\\.nuget\\packages\\autofixture\\4.18.1\\autofixture.4.18.1.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\autofixture.xunit2\\4.18.1\\autofixture.xunit2.4.18.1.nupkg.sha512",
@@ -163,9 +163,9 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "RingGeneral.Tests dépend de ReactiveUI (>= 19.5.40) mais ReactiveUI 19.5.40 est introuvable. ReactiveUI 19.5.41 a été résolu à la place.",
-      "projectPath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
+      "projectPath": "C:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
+      "filePath": "C:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\tests\\RingGeneral.Tests\\RingGeneral.Tests.csproj",
       "libraryId": "ReactiveUI",
       "targetGraphs": [
         "net8.0"

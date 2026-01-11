@@ -1,8 +1,11 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models.Crisis;
+using RingGeneral.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
@@ -10,13 +13,10 @@ namespace RingGeneral.Data.Repositories;
 /// Implémentation du repository des crises.
 /// Gère Crises, Communications, et CommunicationOutcomes.
 /// </summary>
-public sealed class CrisisRepository : ICrisisRepository
+public sealed class CrisisRepository : RepositoryBase, ICrisisRepository
 {
-    private readonly string _connectionString;
-
-    public CrisisRepository(string connectionString)
+    public CrisisRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
     }
 
     // ====================================================================
@@ -30,8 +30,10 @@ public sealed class CrisisRepository : ICrisisRepository
             throw new ArgumentException($"Crisis invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
+        // Transaction is managed by caller or by single command logic?
+        // OpenConnectionAsync returns an open connection.
+        // We do typically want to create a command from it.
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -59,8 +61,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<Crisis?> GetCrisisByIdAsync(int crisisId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -82,8 +83,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<Crisis>> GetActiveCrisesAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -108,8 +108,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<Crisis>> GetCrisesByStageAsync(string companyId, string stage)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -134,8 +133,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<Crisis>> GetCriticalCrisesAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -166,8 +164,7 @@ public sealed class CrisisRepository : ICrisisRepository
             throw new ArgumentException($"Crisis invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -197,8 +194,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task DeleteCrisisAsync(int crisisId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Crises WHERE CrisisId = @CrisisId";
@@ -209,8 +205,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<int> CountActiveCrisesAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -227,8 +222,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<int> GetResolvedCrisesCountAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -254,8 +248,7 @@ public sealed class CrisisRepository : ICrisisRepository
             throw new ArgumentException($"Communication invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -282,8 +275,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<Communication?> GetCommunicationByIdAsync(int communicationId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -305,8 +297,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<Communication>> GetCommunicationsForCrisisAsync(int crisisId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -330,8 +321,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<Communication>> GetRecentCommunicationsAsync(string companyId, int limit = 10)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -357,8 +347,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<Communication>> GetCommunicationsByTypeAsync(string companyId, string communicationType)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -383,8 +372,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task UpdateCommunicationAsync(Communication communication)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -404,8 +392,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task DeleteCommunicationAsync(int communicationId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Communications WHERE CommunicationId = @CommunicationId";
@@ -425,8 +412,7 @@ public sealed class CrisisRepository : ICrisisRepository
             throw new ArgumentException($"CommunicationOutcome invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -451,8 +437,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<CommunicationOutcome?> GetCommunicationOutcomeAsync(int communicationId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -474,8 +459,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<CommunicationOutcome>> GetOutcomesForCrisisAsync(int crisisId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -500,8 +484,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<List<CommunicationOutcome>> GetSuccessfulOutcomesAsync(string companyId, int limit = 10)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -528,8 +511,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task UpdateCommunicationOutcomeAsync(CommunicationOutcome outcome)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -557,8 +539,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task<double> CalculateCommunicationSuccessRateAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -597,8 +578,7 @@ public sealed class CrisisRepository : ICrisisRepository
 
     public async Task CleanupOldCrisesAsync(string companyId, int daysToKeep = 90)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         var cutoffDate = DateTime.Now.AddDays(-daysToKeep);
 

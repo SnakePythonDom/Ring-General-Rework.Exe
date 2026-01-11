@@ -1,10 +1,10 @@
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
-using RingGeneral.Data.Models;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class SettingsRepository : RepositoryBase
+public sealed class SettingsRepository : RepositoryBase, ISettingsRepository
 {
     public SettingsRepository(SqliteConnectionFactory factory) : base(factory)
     {

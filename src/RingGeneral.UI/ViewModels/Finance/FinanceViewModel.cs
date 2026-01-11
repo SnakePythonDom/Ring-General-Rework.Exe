@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Microsoft.Data.Sqlite;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -23,6 +24,8 @@ public sealed class FinanceViewModel : ViewModelBase
     private readonly GameRepository? _repository;
     private readonly IDebtManagementService? _debtService;
     private readonly IRevenueProjectionService? _revenueProjectionService;
+    private readonly IBudgetAllocationService? _budgetService;
+    private readonly ITvDealNegotiationService? _negotiationService;
     private decimal _currentBalance = 10_000_000m;
     private decimal _weeklyRevenue;
     private decimal _weeklyExpenses;
@@ -34,11 +37,15 @@ public sealed class FinanceViewModel : ViewModelBase
     public FinanceViewModel(
         GameRepository? repository = null,
         IDebtManagementService? debtService = null,
-        IRevenueProjectionService? revenueProjectionService = null)
+        IRevenueProjectionService? revenueProjectionService = null,
+        IBudgetAllocationService? budgetService = null,
+        ITvDealNegotiationService? negotiationService = null)
     {
         _repository = repository;
         _debtService = debtService;
         _revenueProjectionService = revenueProjectionService;
+        _budgetService = budgetService;
+        _negotiationService = negotiationService;
 
         Transactions = new ObservableCollection<TransactionItemViewModel>();
 
@@ -277,7 +284,7 @@ public sealed class FinanceViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 SELECT Week, Rating, Viewers, SharePercent
@@ -378,9 +385,15 @@ public sealed class FinanceViewModel : ViewModelBase
                 return;
             }
 
+            if (_negotiationService == null)
+            {
+                 Logger.Warning("Service de négociation non disponible");
+                 return;
+            }
+
             // Créer le ViewModel et la fenêtre
-            var negotiationService = ApplicationServices.Resolve<ITvDealNegotiationService>();
-            var negotiationViewModel = new TvDealNegotiationViewModel(negotiationService, companyId);
+            // Note: On injecte le service déjà résolu
+            var negotiationViewModel = new TvDealNegotiationViewModel(_negotiationService, companyId);
             var window = new Views.Finance.TvDealNegotiationView
             {
                 DataContext = negotiationViewModel
@@ -450,7 +463,7 @@ public sealed class FinanceViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
 
             // Charger le trésor actuel et la semaine courante
             using (var cmd = connection.CreateCommand())

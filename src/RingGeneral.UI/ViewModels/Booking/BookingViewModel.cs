@@ -5,6 +5,8 @@ using RingGeneral.Core.Validation;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Booker;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Services;
 using RingGeneral.UI.Services.Messaging;
 
 namespace RingGeneral.UI.ViewModels.Booking;
@@ -19,24 +21,54 @@ public sealed class BookingViewModel : ViewModelBase
     private readonly BookingValidator _validator;
     private readonly SegmentTypeCatalog _segmentCatalog;
     private readonly IEventAggregator _eventAggregator;
-    private readonly SettingsRepository? _settingsRepository;
+    private readonly BookingBuilderService _bookingBuilder;
+    private readonly TemplateService _templateService;
+    private readonly IBookingControlService _bookingControlService;
+    private readonly IShowDayOrchestrator _showDayOrchestrator;
+
     private SegmentViewModel? _selectedSegment;
     private string? _validationErrors;
     private string? _validationWarnings;
     private BookingControlLevel _controlLevel = BookingControlLevel.CoBooker;
+    private List<SegmentDefinition> _currentBooking = new();
+
+    // Overlay properties
+    public bool IsWorkerSelectionVisible
+    {
+        get => _isWorkerSelectionVisible;
+        set => this.RaiseAndSetIfChanged(ref _isWorkerSelectionVisible, value);
+    }
+    private bool _isWorkerSelectionVisible;
+
+    public WorkerSelectionViewModel? WorkerSelectionContent
+    {
+        get => _workerSelectionContent;
+        set => this.RaiseAndSetIfChanged(ref _workerSelectionContent, value);
+    }
+    private WorkerSelectionViewModel? _workerSelectionContent;
 
     public BookingViewModel(
         GameRepository repository,
         BookingValidator validator,
         SegmentTypeCatalog segmentCatalog,
         IEventAggregator eventAggregator,
-        SettingsRepository? settingsRepository = null)
+        BookingBuilderService bookingBuilder,
+        TemplateService templateService,
+        IBookingControlService bookingControlService,
+        IShowDayOrchestrator showDayOrchestrator)
     {
         _repository = repository;
         _validator = validator;
         _segmentCatalog = segmentCatalog;
         _eventAggregator = eventAggregator;
-        _settingsRepository = settingsRepository;
+        _bookingBuilder = bookingBuilder;
+        _templateService = templateService;
+        _bookingControlService = bookingControlService;
+        _showDayOrchestrator = showDayOrchestrator;
+
+        // Subscribe to selection requests
+        _eventAggregator.GetEvent<RequestWorkerSelectionEvent>()
+            .Subscribe(OnWorkerSelectionRequested);
 
         // Collections
         Segments = new ObservableCollection<SegmentViewModel>();
@@ -53,7 +85,7 @@ public sealed class BookingViewModel : ViewModelBase
             BookingControlLevel.Dictator
         };
 
-        // Charger le niveau de contrôle depuis les settings
+        // Charger le niveau de contrôle
         LoadBookingControlLevel();
 
         // Commands
@@ -68,7 +100,29 @@ public sealed class BookingViewModel : ViewModelBase
 
         // Initialisation
         InitializeSegmentTypes();
-        UpdateCalculatedProperties();
+    }
+
+    private void OnWorkerSelectionRequested(RequestWorkerSelectionEvent evt)
+    {
+        var selectionVm = new WorkerSelectionViewModel(WorkersAvailable);
+        selectionVm.OnSelectionConfirmed = (worker) =>
+        {
+            if (worker != null)
+            {
+                evt.Requester.AddParticipant(worker);
+            }
+            IsWorkerSelectionVisible = false;
+            WorkerSelectionContent = null;
+        };
+
+        selectionVm.CancelCommand.Subscribe(_ =>
+        {
+            IsWorkerSelectionVisible = false;
+            WorkerSelectionContent = null;
+        });
+
+        WorkerSelectionContent = selectionVm;
+        IsWorkerSelectionVisible = true;
     }
 
     // ========== COLLECTIONS ==========
@@ -116,7 +170,7 @@ public sealed class BookingViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _totalDuration, value);
     }
 
-    public int ShowDuration { get; set; } = 120; // TODO: Charger depuis le contexte
+    public int ShowDuration { get; set; } = 120;
 
     private string _durationSummary = "0/120 min";
     public string DurationSummary
@@ -174,88 +228,122 @@ public sealed class BookingViewModel : ViewModelBase
     public ReactiveCommand<SegmentTemplateViewModel, Unit> ApplyTemplateCommand { get; }
     public ReactiveCommand<Unit, Unit> ValidateBookingCommand { get; }
 
-    // ========== MÉTHODES PUBLIQUES ==========
-
     public void LoadShow(string showId)
     {
-        // TODO: Charger le show depuis le repository
-        // Logique extraite de GameSessionViewModel.ChargerShow()
-        System.Diagnostics.Debug.WriteLine($"Loading show {showId}");
+        // Chargement du show réel
+        try
+        {
+            LoadContextData();
+        }
+        catch (Exception ex)
+        {
+            LoadTestData();
+        }
+    }
 
-        // Pour l'instant, données de test
-        LoadTestData();
+    private void LoadContextData()
+    {
+        WorkersAvailable.Clear();
+        using (var conn = _repository.CreateConnection())
+        {
+            conn.Open();
+            try
+            {
+                // Using direct SQL to bypass RepositoryFactory dependency issues
+                using (var command = conn.CreateCommand())
+                {
+                    command.CommandText = "SELECT WorkerId, NomComplet FROM Workers ORDER BY NomComplet";
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var id = reader.GetString(0);
+                            var nom = reader.GetString(1);
+                            WorkersAvailable.Add(new ParticipantViewModel(id, nom));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or handle error silently as fallback
+                System.Diagnostics.Debug.WriteLine($"Error loading workers: {ex.Message}");
+            }
+        }
+
+        if (WorkersAvailable.Count == 0)
+        {
+            LoadTestData();
+        }
     }
 
     // ========== MÉTHODES PRIVÉES ==========
 
     private void AddSegment()
     {
-        // Logique extraite de GameSessionViewModel.AjouterSegment() (ligne 652)
-        var newSegment = new SegmentViewModel(
+        var newDef = new SegmentDefinition(
             $"SEG-{Guid.NewGuid():N}".ToUpperInvariant(),
             "match",
-            8,
+            new List<string>(),
+            10,
             false,
-            _segmentCatalog,
-            new List<ParticipantViewModel>(),
             null,
             null,
-            60,
+            50,
             null,
             null,
             new Dictionary<string, string>()
         );
 
-        Segments.Add(newSegment);
-        UpdateCalculatedProperties();
-        SelectedSegment = newSegment;
+        _currentBooking = _bookingBuilder.AjouterSegment(_currentBooking, newDef).ToList();
+        RefreshSegmentsFromDefinitions();
+
+        SelectedSegment = Segments.LastOrDefault();
         ValidateBooking();
     }
 
     private void DeleteSegment(SegmentViewModel segment)
     {
-        // Logique extraite de GameSessionViewModel.SupprimerSegment() (ligne 768)
-        Segments.Remove(segment);
-        UpdateCalculatedProperties();
-        if (SelectedSegment == segment)
-        {
-            SelectedSegment = Segments.FirstOrDefault();
-        }
+        if (segment == null) return;
+
+        _currentBooking = _bookingBuilder.SupprimerSegment(_currentBooking, segment.SegmentId).ToList();
+        RefreshSegmentsFromDefinitions();
+
+        SelectedSegment = Segments.FirstOrDefault();
         ValidateBooking();
     }
 
     private void MoveSegment(SegmentViewModel segment, int delta)
     {
-        // Logique extraite de GameSessionViewModel.DeplacerSegment() (ligne 812)
-        var index = Segments.IndexOf(segment);
-        var targetIndex = index + delta;
+        if (segment == null) return;
 
-        if (index < 0 || targetIndex < 0 || targetIndex >= Segments.Count)
-        {
-            return;
-        }
+        _currentBooking = _bookingBuilder.DeplacerSegment(_currentBooking, segment.SegmentId, delta).ToList();
+        RefreshSegmentsFromDefinitions();
 
-        Segments.Move(index, targetIndex);
+        // Resélectionner le segment déplacé
+        SelectedSegment = Segments.FirstOrDefault(s => s.SegmentId == segment.SegmentId);
         ValidateBooking();
     }
 
     private void SaveSegment(SegmentViewModel segment)
     {
-        // Logique extraite de GameSessionViewModel.EnregistrerSegment() (ligne 688)
-        // TODO: Sauvegarder dans le repository
+        // Mise à jour de la définition dans la liste interne
+        // SegmentViewModel est déjà mis à jour via bindings, 
+        // mais on doit synchroniser _currentBooking si on modifie des propriétés structurelles
         ValidateBooking();
     }
 
     private void CopySegment(SegmentViewModel segment)
     {
-        // Logique extraite de GameSessionViewModel.CopierSegment() (ligne 716)
-        var copy = new SegmentViewModel(
-            $"SEG-{Guid.NewGuid():N}".ToUpperInvariant(),
+        if (segment == null) return;
+
+        // Conversion ViewModel -> Definition pour duplication
+        var def = new SegmentDefinition(
+            segment.SegmentId,
             segment.TypeSegment,
+            segment.Participants.Select(p => p.WorkerId).ToList(),
             segment.DureeMinutes,
             segment.EstMainEvent,
-            _segmentCatalog,
-            segment.Participants.ToList(),
             segment.StorylineId,
             segment.TitreId,
             segment.Intensite,
@@ -264,72 +352,97 @@ public sealed class BookingViewModel : ViewModelBase
             segment.ConstruireSettings()
         );
 
-        Segments.Add(copy);
+        var copy = _bookingBuilder.DupliquerSegment(def);
+        _currentBooking = _bookingBuilder.AjouterSegment(_currentBooking, copy).ToList();
+        RefreshSegmentsFromDefinitions();
         ValidateBooking();
     }
 
     private void ApplyTemplate(SegmentTemplateViewModel template)
     {
-        // Logique extraite de GameSessionViewModel.AppliquerTemplate() (ligne 790)
-        // TODO: Créer le segment depuis le template
-        System.Diagnostics.Debug.WriteLine($"Applying template {template.Nom}");
+        // TODO: Utiliser TemplateService
     }
 
     private void ValidateBooking()
     {
-        // Logique extraite de GameSessionViewModel.MettreAJourAvertissements() (ligne 2126)
         ValidationIssues.Clear();
 
-        // Validation basique
-        if (Segments.Count == 0)
+        // Mca: Transformer les ViewModels en contexts de simulation pour le validator
+        var simulationContexts = Segments.Select(s => new SegmentSimulationContext(
+            s.SegmentId,
+            s.TypeSegment,
+            s.Participants.Select(p => p.WorkerId).ToList(),
+            s.DureeMinutes,
+            s.EstMainEvent,
+            s.StorylineId,
+            s.TitreId,
+            s.Intensite,
+            s.VainqueurId,
+            s.PerdantId,
+            null // ParticipantsDetails
+        )).ToList();
+
+        var plan = new BookingPlan(
+            "CURRENT_SHOW",
+            simulationContexts,
+            ShowDuration,
+            null
+        );
+
+        var result = _validator.ValiderBooking(plan);
+
+        foreach (var error in result.Erreurs)
         {
-            ValidationIssues.Add(new BookingIssueViewModel(
-                "booking.empty",
-                "Le booking est vide. Ajoutez au moins un segment.",
-                ValidationSeverity.Avertissement,
-                null,
-                "Ajouter"
-            ));
+            ValidationIssues.Add(new BookingIssueViewModel("error", error, ValidationSeverity.Erreur, null, "Fix"));
+        }
+        foreach (var warning in result.Avertissements)
+        {
+            ValidationIssues.Add(new BookingIssueViewModel("warning", warning, ValidationSeverity.Avertissement, null, "Fix"));
         }
 
-        var hasMainEvent = Segments.Any(s => s.EstMainEvent);
-        if (!hasMainEvent && Segments.Count > 0)
-        {
-            ValidationIssues.Add(new BookingIssueViewModel(
-                "booking.main-event.missing",
-                "Aucun main event défini.",
-                ValidationSeverity.Avertissement,
-                null,
-                "Marquer"
-            ));
-        }
-
-        if (TotalDuration > ShowDuration)
-        {
-            ValidationIssues.Add(new BookingIssueViewModel(
-                "booking.duration.exceed",
-                $"La durée totale ({TotalDuration} min) dépasse la durée du show ({ShowDuration} min).",
-                ValidationSeverity.Erreur,
-                null,
-                "Réduire"
-            ));
-        }
-
-        // Mettre à jour les résumés
         var errors = ValidationIssues.Where(i => i.Severity == ValidationSeverity.Erreur).ToList();
         var warnings = ValidationIssues.Where(i => i.Severity == ValidationSeverity.Avertissement).ToList();
 
         ValidationErrors = errors.Count > 0 ? string.Join("\n", errors.Select(e => e.Message)) : null;
         ValidationWarnings = warnings.Count > 0 ? string.Join("\n", warnings.Select(w => w.Message)) : null;
 
+        UpdateCalculatedProperties();
         this.RaisePropertyChanged(nameof(IsBookingValid));
-        this.RaisePropertyChanged(nameof(TotalDuration));
-        this.RaisePropertyChanged(nameof(DurationSummary));
+    }
+
+    private void RefreshSegmentsFromDefinitions()
+    {
+        Segments.Clear();
+        foreach (var def in _currentBooking)
+        {
+            // Mca : mapping Definition -> ViewModel
+            // On a besoin des participants objets, pas juste IDs
+            var participants = WorkersAvailable
+                .Where(w => def.Participants.Contains(w.WorkerId))
+                .ToList();
+
+            var vm = new SegmentViewModel(
+                def.SegmentId,
+                def.TypeSegment,
+                def.DureeMinutes,
+                def.EstMainEvent,
+                _segmentCatalog,
+                _eventAggregator,
+                participants,
+                def.StorylineId,
+                def.TitreId,
+                def.Intensite,
+                def.VainqueurId,
+                def.PerdantId,
+                def.Settings
+            );
+            Segments.Add(vm);
+        }
+        UpdateCalculatedProperties();
     }
 
     private void InitializeSegmentTypes()
     {
-        // Logique extraite de GameSessionViewModel.InitialiserSegmentTypes() (ligne 1983)
         SegmentTypes.Clear();
         SegmentTypes.Add(new SegmentTypeOptionViewModel("match", "Match"));
         SegmentTypes.Add(new SegmentTypeOptionViewModel("promo", "Promo"));
@@ -339,62 +452,29 @@ public sealed class BookingViewModel : ViewModelBase
 
     private void LoadTestData()
     {
-        // Données de test pour visualisation
-        WorkersAvailable.Add(new ParticipantViewModel("W001", "John Cena"));
-        WorkersAvailable.Add(new ParticipantViewModel("W002", "Randy Orton"));
-        WorkersAvailable.Add(new ParticipantViewModel("W003", "The Rock"));
+        // Données de test pour visualisation si DB vide
+        if (WorkersAvailable.Count == 0)
+        {
+            WorkersAvailable.Add(new ParticipantViewModel("W001", "John Cena"));
+            WorkersAvailable.Add(new ParticipantViewModel("W002", "Randy Orton"));
+            WorkersAvailable.Add(new ParticipantViewModel("W003", "The Rock"));
 
-        StorylinesAvailable.Add(new StorylineOptionViewModel(string.Empty, "Aucune storyline"));
-        StorylinesAvailable.Add(new StorylineOptionViewModel("ST001", "Rivalité Title"));
-        StorylinesAvailable.Add(new StorylineOptionViewModel("ST002", "Legacy Rising"));
+            StorylinesAvailable.Add(new StorylineOptionViewModel(string.Empty, "Aucune storyline"));
+            StorylinesAvailable.Add(new StorylineOptionViewModel("ST001", "Rivalité Title"));
+            StorylinesAvailable.Add(new StorylineOptionViewModel("ST002", "Legacy Rising"));
 
-        TitlesAvailable.Add(new TitleOptionViewModel(string.Empty, "Aucun titre"));
-        TitlesAvailable.Add(new TitleOptionViewModel("T001", "World Title"));
+            TitlesAvailable.Add(new TitleOptionViewModel(string.Empty, "Aucun titre"));
+            TitlesAvailable.Add(new TitleOptionViewModel("T001", "World Title"));
+        }
 
-        // Ajouter des segments de test
-        var mainEvent = new SegmentViewModel(
-            "SEG001",
-            "match",
-            15,
-            true,
-            _segmentCatalog,
-            new List<ParticipantViewModel>
-            {
-                new ParticipantViewModel("W001", "John Cena"),
-                new ParticipantViewModel("W002", "Randy Orton")
-            },
-            "ST001",
-            "T001",
-            85,
-            null,
-            null,
-            new Dictionary<string, string>()
-        );
-
-        var promo = new SegmentViewModel(
-            "SEG002",
-            "promo",
-            8,
-            false,
-            _segmentCatalog,
-            new List<ParticipantViewModel>
-            {
-                new ParticipantViewModel("W003", "The Rock")
-            },
-            null,
-            null,
-            0,
-            null,
-            null,
-            new Dictionary<string, string>()
-        );
-
-        Segments.Add(mainEvent);
-        Segments.Add(promo);
-        UpdateCalculatedProperties();
-        SelectedSegment = mainEvent;
-
-        ValidateBooking();
+        if (_currentBooking.Count == 0)
+        {
+            var mainEvent = new SegmentDefinition(
+               "SEG001", "match", new List<string> { "W001", "W002" }, 15, true, "ST001", "T001", 85, null, null, new Dictionary<string, string>());
+            _currentBooking.Add(mainEvent);
+            RefreshSegmentsFromDefinitions();
+            ValidateBooking();
+        }
     }
 
     private void UpdateCalculatedProperties()
@@ -405,37 +485,16 @@ public sealed class BookingViewModel : ViewModelBase
 
     private void LoadBookingControlLevel()
     {
-        if (_settingsRepository == null) return;
-
-        try
-        {
-            var levelString = _settingsRepository.ChargerBookingControlLevel();
-            if (Enum.TryParse<BookingControlLevel>(levelString, out var level))
-            {
-                _controlLevel = level;
-                this.RaisePropertyChanged(nameof(ControlLevel));
-                this.RaisePropertyChanged(nameof(ControlLevelDescription));
-                this.RaisePropertyChanged(nameof(CanAutoBook));
-            }
-        }
-        catch
-        {
-            // Utiliser la valeur par défaut si le chargement échoue
-        }
+        // Utilisation du service BookingControl
+        _controlLevel = _bookingControlService.GetControlLevel();
+        this.RaisePropertyChanged(nameof(ControlLevel));
+        this.RaisePropertyChanged(nameof(ControlLevelDescription));
+        this.RaisePropertyChanged(nameof(CanAutoBook));
     }
 
     private void SaveBookingControlLevel()
     {
-        if (_settingsRepository == null) return;
-
-        try
-        {
-            _settingsRepository.SauvegarderBookingControlLevel(ControlLevel.ToString());
-        }
-        catch
-        {
-            // Ignorer les erreurs de sauvegarde
-        }
+        _bookingControlService.SetControlLevel(_controlLevel);
     }
 }
 

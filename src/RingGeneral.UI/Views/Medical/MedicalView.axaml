@@ -3,9 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:RingGeneral.UI.ViewModels.Medical"
-             xmlns:roster="using:RingGeneral.UI.Views.Roster"
+
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="RingGeneral.UI.Views.Medical.MedicalView"
+             xmlns:local="using:RingGeneral.UI.Views.Medical"
              x:DataType="vm:MedicalViewModel">
 
     <Design.DataContext>
@@ -83,7 +84,7 @@
 
             <!-- Onglet Infirmerie - Intégration d'InjuriesView -->
             <Border IsVisible="{Binding IsInjuredTabSelected}">
-                <roster:InjuriesView DataContext="{Binding InjuriesViewModel}"/>
+                <local:InjuriesView DataContext="{Binding InjuriesViewModel}"/>
             </Border>
 
             <!-- Onglet Historique -->

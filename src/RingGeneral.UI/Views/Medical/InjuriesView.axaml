@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Medical"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-             x:Class="RingGeneral.UI.Views.Roster.InjuriesView"
+             x:Class="RingGeneral.UI.Views.Medical.InjuriesView"
              x:DataType="vm:InjuriesViewModel">
 
     <Design.DataContext>
@@ -14,9 +14,9 @@
     <ScrollViewer>
         <StackPanel Margin="30" Spacing="25">
             <!-- En-tête -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="🏥 BLESSURES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="Gestion des blessures et récupération" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <StackPanel Spacing="{StaticResource SpacingSmall}">
+                <TextBlock Theme="{StaticResource HeadingStyle}" Text="🏥 BLESSURES"/>
+                <TextBlock Text="Gestion des blessures et récupération" FontSize="{StaticResource FontSizeLarge}" Foreground="{StaticResource TextSecondaryBrush}"/>
             </StackPanel>
 
             <!-- Statistiques -->
@@ -47,20 +47,22 @@
             </Grid>
 
             <!-- Barre de recherche -->
-            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
-                <TextBox Watermark="🔍 Rechercher un worker..."
-                         Text="{Binding FilterText}"
-                         Background="{StaticResource BackgroundTertiaryBrush}"
-                         BorderBrush="{StaticResource BorderMediumBrush}"
-                         Foreground="{StaticResource TextPrimaryBrush}"
-                         Padding="12,10"
-                         CornerRadius="6"/>
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="{StaticResource SpacingLarge}" CornerRadius="{StaticResource RadiusLarge}">
+                <TextBox Theme="{StaticResource DefaultTextBox}" 
+                         Watermark="🔍 Rechercher un worker..."
+                         Text="{Binding FilterText}"/>
             </Border>
 
             <!-- Liste des blessures -->
             <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="📋 LISTE DES BLESSURES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="📋 LISTE DES BLESSURES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" 
+                                Content="+ Ajouter blessure" 
+                                Command="{Binding AddInjuryCommand}"
+                                Theme="{StaticResource PrimaryButton}"/>
+                    </Grid>
 
                     <ItemsControl ItemsSource="{Binding Injuries}">
                         <ItemsControl.ItemTemplate>
@@ -101,16 +103,30 @@
                                         </StackPanel>
 
                                         <!-- Actions -->
-                                        <Button Grid.Column="4"
-                                              Content="Voir détails"
-                                              Padding="12,6"
-                                              Background="{StaticResource AccentBlueBrush}"
-                                              Foreground="White"
-                                              CornerRadius="4"
-                                              FontSize="11"
-                                              Margin="10,0,0,0"
-                                              Command="{Binding $parent[UserControl].((vm:InjuriesViewModel)DataContext).ViewWorkerDetailsCommand}"
-                                              CommandParameter="{Binding}"/>
+                                        <!-- Actions -->
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="8" Margin="10,0,0,0">
+                                             <Button Content="Guérir"
+                                                    Command="{Binding $parent[UserControl].((vm:InjuriesViewModel)DataContext).MarkAsHealedCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    IsVisible="{Binding IsActive}"
+                                                    Theme="{StaticResource SuccessButton}"
+                                                    Padding="8,4"
+                                                    FontSize="{StaticResource FontSizeSmall}"/>
+                                            
+                                             <Button Content="Détails"
+                                                    Command="{Binding $parent[UserControl].((vm:InjuriesViewModel)DataContext).ViewWorkerDetailsCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Theme="{StaticResource PrimaryButton}"
+                                                    Padding="8,4"
+                                                    FontSize="{StaticResource FontSizeSmall}"/>
+
+                                            <Button Content="🗑️"
+                                                    Command="{Binding $parent[UserControl].((vm:InjuriesViewModel)DataContext).DeleteInjuryCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Padding="4"/>
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

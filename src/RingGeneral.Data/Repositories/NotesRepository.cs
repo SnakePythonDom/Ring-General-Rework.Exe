@@ -7,7 +7,7 @@ namespace RingGeneral.Data.Repositories;
 /// <summary>
 /// Repository for managing worker notes, specializations, contracts, and history.
 /// </summary>
-public sealed class NotesRepository : RepositoryBase, INotesRepository
+public sealed class NotesRepository : RepositoryBase, RingGeneral.Core.Interfaces.INotesRepository
 {
     public NotesRepository(SqliteConnectionFactory factory) : base(factory)
     {

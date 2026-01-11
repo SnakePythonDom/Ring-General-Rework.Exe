@@ -3,10 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:RingGeneral.UI.ViewModels.Booking"
+             xmlns:views="using:RingGeneral.UI.Views.Booking"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="RingGeneral.UI.Views.Booking.BookingView"
-             x:DataType="vm:BookingViewModel"
+             x:DataType="vm:ShowBookingViewModel"
              Background="{StaticResource BackgroundPrimaryBrush}">
+             
+    <!-- ... -->
+    
+
 
     <Design.DataContext>
         <vm:BookingViewModel />
@@ -116,18 +121,37 @@
                 </Grid>
 
                 <!-- Segments List (ItemsControl) -->
-                <ItemsControl ItemsSource="{Binding Segments}">
-                    <ItemsControl.ItemTemplate>
+                <!-- Segments List (ListBox for selection) -->
+                <ListBox ItemsSource="{Binding Segments}" SelectedItem="{Binding SelectedSegment}" Background="Transparent" Margin="0,-8,0,0">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Template">
+                                <ControlTemplate>
+                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      Padding="{TemplateBinding Padding}"
+                                                      Margin="{TemplateBinding Margin}"/>
+                                </ControlTemplate>
+                            </Setter>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
                         <DataTemplate>
                             <!-- Segment Row -->
-                            <Border Padding="0" CornerRadius="8" Margin="0,0,0,8">
+                            <Border Padding="0" CornerRadius="8" Margin="0,0,0,8" Classes.MainEvent="{Binding EstMainEvent}">
                                 <Border.Styles>
                                     <!-- Style normal -->
                                     <Style Selector="Border">
                                         <Setter Property="Background" Value="{StaticResource BackgroundInputBrush}"/>
                                     </Style>
                                     <!-- Style Main Event -->
-                                    <Style Selector="Border[Tag=MainEvent]">
+                                    <Style Selector="Border.MainEvent">
                                         <Setter Property="Background" Value="{StaticResource AccentBlueBrush}"/>
                                         <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
                                         <Setter Property="BorderThickness" Value="2"/>
@@ -136,13 +160,13 @@
                                     <Style Selector="Border:pointerover">
                                         <Setter Property="Background" Value="{StaticResource BackgroundHoverBrush}"/>
                                     </Style>
+                                    <!-- Style selected (via parent ListBoxItem) -->
+                                    <Style Selector="ListBoxItem:selected Border">
+                                        <Setter Property="Background" Value="{StaticResource BackgroundHoverBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource AccentOrangeBrush}"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                    </Style>
                                 </Border.Styles>
-
-                                <Border.Tag>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                        <Binding Path="EstMainEvent"/>
-                                    </MultiBinding>
-                                </Border.Tag>
 
                                 <Grid Height="60">
                                     <Grid.ColumnDefinitions>
@@ -209,16 +233,18 @@
                                 </Grid>
                             </Border>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ListBox.ItemTemplate>
+                </ListBox>
 
                 <!-- Add Segment Placeholder -->
-                <Border Background="Transparent" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="2" Height="60" CornerRadius="8" Opacity="0.6">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-                        <TextBlock Text="➕" FontSize="20" Foreground="{StaticResource TextDisabledBrush}"/>
-                        <TextBlock Text="Ajouter un segment" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    </StackPanel>
-                </Border>
+                <Button Command="{Binding AddSegmentCommand}" Background="Transparent" BorderThickness="0" Padding="0">
+                    <Border Background="Transparent" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="2" Height="60" CornerRadius="8" Opacity="0.6">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+                            <TextBlock Text="➕" FontSize="20" Foreground="{StaticResource TextDisabledBrush}"/>
+                            <TextBlock Text="Ajouter un segment" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
             </StackPanel>
         </ScrollViewer>
 
@@ -248,5 +274,15 @@
                 <Button Content="▶️ SIMULER LE SHOW" Padding="30,12" Background="{StaticResource AccentGreenBrush}" Foreground="White" CornerRadius="8" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right"/>
             </Grid>
         </Border>
+        <!-- Worker Selection Overlay -->
+        <Grid Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsWorkerSelectionVisible}">
+            <ContentControl Content="{Binding WorkerSelectionContent}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="500">
+                <ContentControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type vm:WorkerSelectionViewModel}">
+                       <views:WorkerSelectionView />
+                    </DataTemplate>
+                </ContentControl.DataTemplates>
+            </ContentControl>
+        </Grid>
     </Grid>
 </UserControl>

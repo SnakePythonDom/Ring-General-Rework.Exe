@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using ReactiveUI;
 using RingGeneral.UI.ViewModels;
-using RingGeneral.UI.ViewModels.Roster;
+
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Medical;
@@ -13,7 +13,8 @@ public sealed class MedicalViewModel : ViewModelBase
 
     public MedicalViewModel(
         GameRepository? gameRepository = null,
-        MedicalRepository? medicalRepository = null)
+        MedicalRepository? medicalRepository = null,
+        RingGeneral.UI.Services.Navigation.INavigationService? navigationService = null)
     {
         Workers = new ObservableCollection<MedicalWorkerRow>
         {
@@ -29,9 +30,9 @@ public sealed class MedicalViewModel : ViewModelBase
         };
 
         // Créer InjuriesViewModel si les repositories sont disponibles
-        if (gameRepository != null && medicalRepository != null)
+        if (gameRepository != null && medicalRepository != null && navigationService != null)
         {
-            _injuriesViewModel = new InjuriesViewModel(gameRepository, medicalRepository);
+            _injuriesViewModel = new InjuriesViewModel(gameRepository, medicalRepository, navigationService);
         }
     }
 

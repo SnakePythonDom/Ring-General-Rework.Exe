@@ -1,4 +1,6 @@
-namespace RingGeneral.Data.Models;
+using System.Collections.Generic;
+
+namespace RingGeneral.Core.Models;
 
 public enum TableSortDirection
 {

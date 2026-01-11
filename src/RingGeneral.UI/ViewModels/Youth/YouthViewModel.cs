@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Microsoft.Data.Sqlite;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
@@ -13,21 +14,26 @@ namespace RingGeneral.UI.ViewModels.Youth;
 /// </summary>
 public sealed class YouthViewModel : ViewModelBase
 {
-    private readonly GameRepository? _repository;
+    private readonly GameRepository _repository;
+    private readonly YouthRepository _youthRepository;
     private ShowContext? _context;
-    private decimal _budget = 100_000m;
+    
+    private decimal _budget;
     private int _totalTrainees;
     private string? _coachName;
     private YouthGenerationOptionViewModel? _generationSelection;
     private YouthStructureViewModel? _structureSelection;
-    private int _budgetNouveau = 50_000;
+    private int _budgetNouveau;
     private string? _coachWorkerId;
     private string? _coachRole;
     private string? _actionMessage;
 
-    public YouthViewModel(GameRepository? repository = null)
+    public YouthViewModel(
+        GameRepository repository,
+        YouthRepository youthRepository)
     {
         _repository = repository;
+        _youthRepository = youthRepository;
 
         // Collections originales
         Trainees = new ObservableCollection<TraineeItemViewModel>();
@@ -162,13 +168,13 @@ public sealed class YouthViewModel : ViewModelBase
 
         try
         {
-            if (_repository == null)
+            if (_repository == null) // Renamed _repository to _repository
             {
                 LoadPlaceholderStructures();
                 return;
             }
 
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection(); // Cast to SqliteConnection
 
             // Charger les structures youth
             using (var cmd = connection.CreateCommand())
@@ -253,7 +259,7 @@ public sealed class YouthViewModel : ViewModelBase
     /// </summary>
     public void CreateStructure()
     {
-        if (_repository == null)
+        if (_repository == null) // Renamed _repository to _repository
         {
             ActionMessage = "Repository non disponible";
             return;
@@ -264,7 +270,7 @@ public sealed class YouthViewModel : ViewModelBase
             var structureId = $"YS-{Guid.NewGuid():N}".ToUpperInvariant();
             var nom = $"Youth System {Structures.Count + 1}";
 
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection(); // Cast to SqliteConnection
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO YouthStructures (StructureId, Name, Budget, TraineeCount, Level)
@@ -302,7 +308,7 @@ public sealed class YouthViewModel : ViewModelBase
     /// </summary>
     private void GraduateTrainee(string workerId)
     {
-        if (_repository == null)
+        if (_repository == null) // Renamed _repository to _repository
         {
             ActionMessage = "Repository non disponible";
             return;
@@ -310,17 +316,9 @@ public sealed class YouthViewModel : ViewModelBase
 
         try
         {
-            // Utiliser YouthRepository pour graduer
-            // Récupérer la connection string depuis la connexion existante
-            string connectionString;
-            using (var tempConnection = _repository.CreateConnection())
-            {
-                connectionString = tempConnection.ConnectionString;
-            }
-            var connectionFactory = new SqliteConnectionFactory(connectionString);
-            var youthRepo = new YouthRepository(connectionFactory);
+            // Utiliser YouthRepository injecté pour graduer
             var currentWeek = 1; // TODO: Récupérer depuis GameState
-            youthRepo.DiplomerTrainee(workerId, currentWeek);
+            _youthRepository.DiplomerTrainee(workerId, currentWeek);
             
             // Retirer le trainee de la liste
             var trainee = Trainees.FirstOrDefault(t => t.WorkerId == workerId);
@@ -348,7 +346,7 @@ public sealed class YouthViewModel : ViewModelBase
     /// </summary>
     public void AssignCoach()
     {
-        if (_repository == null || string.IsNullOrWhiteSpace(CoachWorkerId) ||
+        if (_repository == null || string.IsNullOrWhiteSpace(CoachWorkerId) || // Renamed _repository to _repository
             string.IsNullOrWhiteSpace(CoachRole) || StructureSelection == null)
         {
             ActionMessage = "Veuillez sélectionner coach, rôle et structure";
@@ -359,7 +357,7 @@ public sealed class YouthViewModel : ViewModelBase
         {
             var assignmentId = $"YSA-{Guid.NewGuid():N}".ToUpperInvariant();
 
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection(); // Cast to SqliteConnection
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO YouthStaffAssignments (StaffAssignmentId, WorkerId, Role, StructureId, IsActive)
@@ -407,7 +405,7 @@ public sealed class YouthViewModel : ViewModelBase
     /// </summary>
     public void UpdateBudget(YouthStructureViewModel? structure)
     {
-        if (_repository == null || structure == null)
+        if (_repository == null || structure == null) // Renamed _repository to _repository
         {
             ActionMessage = "Veuillez sélectionner une structure";
             return;
@@ -415,7 +413,7 @@ public sealed class YouthViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection(); // Cast to SqliteConnection
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 UPDATE YouthStructures
@@ -468,7 +466,7 @@ public sealed class YouthViewModel : ViewModelBase
                 var trainee = GenerateRandomTrainee(mode);
                 Trainees.Add(trainee);
 
-                if (_repository != null)
+                if (_repository != null) // Renamed _repository to _repository
                 {
                     SaveTrainee(trainee);
                 }
@@ -492,7 +490,7 @@ public sealed class YouthViewModel : ViewModelBase
 
     private void LoadYouthData()
     {
-        if (_repository == null)
+        if (_repository == null) // Renamed _repository to _repository
         {
             LoadPlaceholderData();
             return;
@@ -500,7 +498,7 @@ public sealed class YouthViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection(); // Cast to SqliteConnection
 
             // Charger le budget youth
             using (var cmd = connection.CreateCommand())
@@ -660,7 +658,7 @@ public sealed class YouthViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO Youth (YouthId, Name, Age, Potential, Progress)

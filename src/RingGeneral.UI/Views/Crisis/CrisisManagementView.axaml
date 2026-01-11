@@ -69,7 +69,7 @@
                 <!-- Crises Critiques (si existantes) -->
                 <Border Background="{StaticResource ErrorDarkBrush}" Padding="20" CornerRadius="8" IsVisible="{Binding CriticalCrisesCount}">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="⚠️ CRISES CRITIQUES - ACTION IMMÉDIATE REQUISE" FontSize="14" Foreground="{StaticResource ErrorLightBrush}" FontWeight="Bold"/>
+                        <TextBlock Text="CRISES CRITIQUES" FontSize="14" Foreground="{StaticResource ErrorLightBrush}" FontWeight="Bold"/>
                         <ItemsControl ItemsSource="{Binding CriticalCrises}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -88,7 +88,7 @@
                                                     Command="{Binding $parent[UserControl].DataContext.OpenCommunicationDialogCommand}"
                                                     CommandParameter="{Binding}"
                                                     Padding="12,8"
-                                                    Classes="danger"
+                                                    Background="{StaticResource ErrorBrush}"
                                                     Foreground="White"
                                                     CornerRadius="6"
                                                     Margin="12,0,0,0"/>
@@ -175,7 +175,7 @@
                                             <!-- Badge critique (si applicable) -->
                                             <Border Grid.Column="2" IsVisible="{Binding IsCritical}"
                                                     Padding="8,4"
-                                                    Classes="danger"
+                                                    Background="{StaticResource ErrorDarkBrush}"
                                                     CornerRadius="4"
                                                     Margin="12,0,12,0"
                                                     VerticalAlignment="Center">
@@ -323,7 +323,8 @@
                                 Command="{Binding CancelCommunicationCommand}"
                                 Content="❌ Annuler"
                                 Padding="12,10"
-                                Classes="secondary"
+                                Background="{StaticResource BrandSecondaryBrush}"
+                                Foreground="White"
                                 CornerRadius="6"
                                 Margin="0,0,6,0"
                                 FontSize="13"

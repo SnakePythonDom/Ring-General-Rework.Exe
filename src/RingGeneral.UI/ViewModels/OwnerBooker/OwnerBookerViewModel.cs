@@ -12,41 +12,48 @@ namespace RingGeneral.UI.ViewModels.OwnerBooker;
 /// </summary>
 public sealed class OwnerBookerViewModel : ViewModelBase
 {
-    private readonly OwnerRepository? _ownerRepository;
-    private readonly BookerRepository? _bookerRepository;
+    private readonly OwnerRepository _ownerRepository;
+    private readonly BookerRepository _bookerRepository;
     private string _companyId = string.Empty;
 
-    // Owner properties
-    private string _ownerName = "Propriétaire";
-    private string _visionType = "Balanced";
-    private int _riskTolerance = 50;
-    private string _preferredProductType = "Entertainment";
-    private int _talentDevelopmentFocus = 33;
-    private int _financialPriority = 33;
-    private int _fanSatisfactionPriority = 34;
-    private string _dominantPriority = "Fan Satisfaction";
+    // Owner fields
+    private string _ownerName = string.Empty;
+    private string _visionType = string.Empty;
+    private int _riskTolerance;
+    private string _preferredProductType = string.Empty;
+    private int _talentDevelopmentFocus;
+    private int _financialPriority;
+    private int _fanSatisfactionPriority;
+    private string _dominantPriority = string.Empty;
 
-    // Booker properties
-    private string _bookerName = "Booker";
-    private int _creativityScore = 70;
-    private int _logicScore = 70;
-    private int _biasResistance = 50;
-    private string _preferredStyle = "Balanced";
-    private bool _likesUnderdog = false;
-    private bool _likesVeteran = false;
-    private bool _likesFastRise = false;
-    private bool _likesSlowBurn = false;
-    private bool _isAutoBookingEnabled = false;
-    private string _employmentStatus = "Active";
-    private DateTime? _hireDate = null;
+    // Booker fields
+    private string _bookerName = string.Empty;
+    private int _creativityScore;
+    private int _logicScore;
+    private int _biasResistance;
+    private string _preferredStyle = string.Empty;
+    private bool _likesUnderdog;
+    private bool _likesVeteran;
+    private bool _likesFastRise;
+    private bool _likesSlowBurn;
+    private bool _isAutoBookingEnabled;
+    private string _employmentStatus = string.Empty;
+    private DateTime? _hireDate;
 
-    // Memory history
-    private int _totalMemories = 0;
-    private int _strongMemories = 0;
+    // Memory fields
+    private int _totalMemories;
+    private int _strongMemories;
+    private int _totalStrongMemories;
+
+    public int TotalStrongMemories
+    {
+        get => _totalStrongMemories;
+        set => this.RaiseAndSetIfChanged(ref _totalStrongMemories, value);
+    }
 
     public OwnerBookerViewModel(
-        OwnerRepository? ownerRepository = null,
-        BookerRepository? bookerRepository = null)
+        OwnerRepository ownerRepository,
+        BookerRepository bookerRepository)
     {
         _ownerRepository = ownerRepository;
         _bookerRepository = bookerRepository;
@@ -245,7 +252,7 @@ public sealed class OwnerBookerViewModel : ViewModelBase
     /// <summary>
     /// Charge les données de l'owner et du booker depuis le repository
     /// </summary>
-    public void LoadOwnerBookerData()
+    public async void LoadOwnerBookerData()
     {
         if (_ownerRepository == null || _bookerRepository == null)
         {
@@ -264,13 +271,13 @@ public sealed class OwnerBookerViewModel : ViewModelBase
             }
 
             // Charger les données de l'owner
-            LoadOwnerData(_companyId);
+            await LoadOwnerData(_companyId);
 
             // Charger les données du booker
-            LoadBookerData(_companyId);
+            await LoadBookerData(_companyId);
 
             // Charger l'historique des mémoires
-            LoadBookerMemories();
+            await LoadBookerMemories();
 
             Console.WriteLine($"[OwnerBookerViewModel] Données chargées pour {_companyId}");
         }
@@ -293,12 +300,12 @@ public sealed class OwnerBookerViewModel : ViewModelBase
     /// <summary>
     /// Charge les données de l'owner
     /// </summary>
-    private void LoadOwnerData(string companyId)
+    private async Task LoadOwnerData(string companyId)
     {
         if (_ownerRepository == null)
             return;
 
-        var owner = _ownerRepository.GetOwnerByCompanyIdAsync(companyId).Result;
+        var owner = await _ownerRepository.GetOwnerByCompanyIdAsync(companyId);
         if (owner != null)
         {
             OwnerName = owner.Name;
@@ -317,12 +324,12 @@ public sealed class OwnerBookerViewModel : ViewModelBase
     /// <summary>
     /// Charge les données du booker actif
     /// </summary>
-    private void LoadBookerData(string companyId)
+    private async Task LoadBookerData(string companyId)
     {
         if (_bookerRepository == null)
             return;
 
-        var booker = _bookerRepository.GetActiveBookerAsync(companyId).Result;
+        var booker = await _bookerRepository.GetActiveBookerAsync(companyId);
         if (booker != null)
         {
             BookerName = booker.Name;
@@ -345,18 +352,18 @@ public sealed class OwnerBookerViewModel : ViewModelBase
     /// <summary>
     /// Charge l'historique des mémoires du booker
     /// </summary>
-    private void LoadBookerMemories()
+    private async Task LoadBookerMemories()
     {
         if (_bookerRepository == null)
             return;
 
         try
         {
-            var booker = _bookerRepository.GetActiveBookerAsync(_companyId).Result;
+            var booker = await _bookerRepository.GetActiveBookerAsync(_companyId);
             if (booker == null)
                 return;
 
-            var memories = _bookerRepository.GetRecentMemoriesAsync(booker.BookerId, 10).Result;
+            var memories = await _bookerRepository.GetRecentMemoriesAsync(booker.BookerId, 10);
 
             BookerMemories.Clear();
             foreach (var memory in memories)
@@ -364,8 +371,8 @@ public sealed class OwnerBookerViewModel : ViewModelBase
                 BookerMemories.Add(new BookerMemoryItemViewModel(memory));
             }
 
-            TotalMemories = _bookerRepository.CountMemoriesAsync(booker.BookerId).Result;
-            StrongMemories = _bookerRepository.GetStrongMemoriesAsync(booker.BookerId).Result.Count;
+            TotalMemories = await _bookerRepository.CountMemoriesAsync(booker.BookerId);
+            TotalStrongMemories = (await _bookerRepository.GetStrongMemoriesAsync(booker.BookerId)).Count;
 
             Console.WriteLine($"[OwnerBookerViewModel] {BookerMemories.Count} mémoires chargées ({StrongMemories} fortes)");
         }
@@ -378,14 +385,14 @@ public sealed class OwnerBookerViewModel : ViewModelBase
     /// <summary>
     /// Action pour activer/désactiver l'auto-booking
     /// </summary>
-    private void OnToggleAutoBooking()
+    private async void OnToggleAutoBooking()
     {
         if (_bookerRepository == null)
             return;
 
         try
         {
-            var booker = _bookerRepository.GetActiveBookerAsync(_companyId).Result;
+            var booker = await _bookerRepository.GetActiveBookerAsync(_companyId);
             if (booker == null)
             {
                 Console.WriteLine("[OwnerBookerViewModel] Aucun booker actif trouvé");
@@ -394,7 +401,7 @@ public sealed class OwnerBookerViewModel : ViewModelBase
 
             // Toggle
             var updatedBooker = booker with { IsAutoBookingEnabled = !booker.IsAutoBookingEnabled };
-            _bookerRepository.UpdateBookerAsync(updatedBooker).Wait();
+            await _bookerRepository.UpdateBookerAsync(updatedBooker);
 
             // Mettre à jour la propriété
             IsAutoBookingEnabled = updatedBooker.IsAutoBookingEnabled;

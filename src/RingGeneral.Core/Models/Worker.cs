@@ -285,6 +285,16 @@ namespace RingGeneral.Core.Models
         public WorkerStoryAttributes? StoryAttributes { get; set; }
 
         /// <summary>
+        /// Personality Profile (Psychological traits)
+        /// </summary>
+        public PersonalityProfile? PersonalityProfile { get; set; }
+
+        /// <summary>
+        /// Mental attributes (Psychology, Determination, etc.)
+        /// </summary>
+        public WorkerMentalAttributes? MentalAttributes { get; set; }
+
+        /// <summary>
         /// Worker's specializations (Brawler, Technical, etc.)
         /// </summary>
         public List<WorkerSpecialization> Specializations { get; set; } = new();

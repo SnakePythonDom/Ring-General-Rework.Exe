@@ -47,7 +47,22 @@ public interface IGameRepository
     bool EstCompagnieJoueur(string companyId);
 
     /// <summary>
+    /// Charge la semaine associée à un show spécifique
+    /// </summary>
+    int ChargerSemaineShow(string showId);
+
+    /// <summary>
     /// Obtient l'ID de l'owner d'une compagnie
     /// </summary>
     string? ObtenirOwnerId(string companyId);
+
+    /// <summary>
+    /// Crée une connexion à la base de données (Utiliser avec précaution)
+    /// </summary>
+    System.Data.Common.DbConnection CreateConnection();
+
+    /// <summary>
+    /// Charge les noms des workers (ID -> Nom)
+    /// </summary>
+    System.Collections.Generic.IReadOnlyDictionary<string, string> ChargerNomsWorkers();
 }

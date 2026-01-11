@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using System.IO; // Added
+using System.Linq; // Added
+using Microsoft.Data.Sqlite;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
@@ -134,7 +137,7 @@ public sealed class RosterViewModel : ViewModelBase, INavigableViewModel
             // Effectuer le travail de base de données sur un thread background
             var result = await Task.Run(() =>
             {
-                using var connection = _repository.CreateConnection();
+                using var connection = (SqliteConnection)_repository.CreateConnection();
 
                 // Vérifier si la table existe
                 using (var checkCmd = connection.CreateCommand())
@@ -306,7 +309,7 @@ public sealed class RosterViewModel : ViewModelBase, INavigableViewModel
             // Charger plus de données depuis un thread background
             var newWorkers = await Task.Run(() =>
             {
-                using var connection = _repository.CreateConnection();
+                using var connection = (SqliteConnection)_repository.CreateConnection();
                 using var cmd = connection.CreateCommand();
                 cmd.CommandText = @"
                     SELECT w.WorkerId, 

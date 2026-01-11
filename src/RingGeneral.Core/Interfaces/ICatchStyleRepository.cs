@@ -1,6 +1,6 @@
 using RingGeneral.Core.Models;
 
-namespace RingGeneral.Data.Repositories;
+namespace RingGeneral.Core.Interfaces;
 
 /// <summary>
 /// Repository pour gérer les styles de catch (CatchStyles)

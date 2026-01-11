@@ -10,10 +10,18 @@ namespace RingGeneral.Core.Services;
 public sealed class BookingControlService : IBookingControlService
 {
     private readonly IBookerAIEngine _bookerAIEngine;
+    private BookingControlLevel _currentControlLevel = BookingControlLevel.Spectator;
 
     public BookingControlService(IBookerAIEngine bookerAIEngine)
     {
         _bookerAIEngine = bookerAIEngine ?? throw new ArgumentNullException(nameof(bookerAIEngine));
+    }
+
+    public BookingControlLevel GetControlLevel() => _currentControlLevel;
+
+    public void SetControlLevel(BookingControlLevel level)
+    {
+        _currentControlLevel = level;
     }
 
     public List<SegmentDefinition> GenerateShowWithControlLevel(

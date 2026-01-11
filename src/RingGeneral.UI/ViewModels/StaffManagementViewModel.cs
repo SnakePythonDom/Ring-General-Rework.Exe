@@ -4,6 +4,7 @@ using ReactiveUI;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Staff;
 using RingGeneral.Core.Services;
+using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
 
 namespace RingGeneral.UI.ViewModels;

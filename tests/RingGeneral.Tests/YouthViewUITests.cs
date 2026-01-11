@@ -19,7 +19,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -38,7 +38,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayYouthTitle()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -58,7 +58,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayTraineesList()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
 
         // Ajouter un trainee de test
         viewModel.Trainees.Add(new TraineeItemViewModel
@@ -93,7 +93,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayTraineeDetails()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
 
         var trainee = new TraineeItemViewModel
         {
@@ -132,7 +132,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayYouthStatistics()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         // TotalTrainees, ActiveTrainees, GraduatedThisMonth are readonly - add trainees to update
         for (int i = 0; i < 12; i++)
         {
@@ -168,7 +168,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayTrainingFacilities()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         // FacilityLevel, TrainingCapacity, and CoachingQuality properties don't exist
         // These would be part of YouthStructureViewModel if needed
 
@@ -196,7 +196,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHaveRecruitButton()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -217,7 +217,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHaveUpgradeFacilityButton()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -238,7 +238,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldDisplayProgressionCharts()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
 
         var trainee = new TraineeItemViewModel
         {
@@ -272,7 +272,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHandleTraineeSelection()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
 
         var trainee1 = new TraineeItemViewModel { Name = "Trainee 1", Age = 18 };
         var trainee2 = new TraineeItemViewModel { Name = "Trainee 2", Age = 19 };
@@ -298,7 +298,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldUpdateWhenTraineesChange()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         var view = new YouthView { DataContext = viewModel };
 
         // Act
@@ -326,7 +326,7 @@ public class YouthViewUITests
     public async Task YouthView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new YouthViewModel();
+        var viewModel = new YouthViewModel(null, null);
         var view = new YouthView { DataContext = viewModel };
 
         // Act

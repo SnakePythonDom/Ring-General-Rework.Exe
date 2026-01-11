@@ -1,6 +1,7 @@
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Crisis;
 using System;
+using System.Threading.Tasks;
 
 namespace RingGeneral.Core.Services;
 
@@ -57,7 +58,7 @@ public sealed class CommunicationEngine : ICommunicationEngine
         return Math.Clamp(baseChance, 10, 95);
     }
 
-    public Communication CreateCommunication(
+    public async Task<Communication> CreateCommunicationAsync(
         string companyId,
         int? crisisId,
         string communicationType,
@@ -69,7 +70,7 @@ public sealed class CommunicationEngine : ICommunicationEngine
         Crisis? crisis = null;
         if (crisisId.HasValue && _crisisRepository != null)
         {
-            crisis = _crisisRepository.GetCrisisByIdAsync(crisisId.Value).Result;
+            crisis = await _crisisRepository.GetCrisisByIdAsync(crisisId.Value);
         }
 
         // Calculer la chance de succès (influence de 70 par défaut pour initiateur)
@@ -91,18 +92,18 @@ public sealed class CommunicationEngine : ICommunicationEngine
         // Sauvegarder
         if (_crisisRepository != null)
         {
-            _crisisRepository.SaveCommunicationAsync(communication).Wait();
+            await _crisisRepository.SaveCommunicationAsync(communication);
         }
 
         return communication;
     }
 
-    public CommunicationOutcome ExecuteCommunication(int communicationId)
+    public async Task<CommunicationOutcome> ExecuteCommunicationAsync(int communicationId)
     {
         if (_crisisRepository == null)
             return CommunicationOutcome.CreateFailed(communicationId);
 
-        var communication = _crisisRepository.GetCommunicationByIdAsync(communicationId).Result;
+        var communication = await _crisisRepository.GetCommunicationByIdAsync(communicationId);
         if (communication == null)
             return CommunicationOutcome.CreateFailed(communicationId);
 
@@ -149,20 +150,20 @@ public sealed class CommunicationEngine : ICommunicationEngine
         }
 
         // Sauvegarder le résultat
-        _crisisRepository.SaveCommunicationOutcomeAsync(outcome).Wait();
+        await _crisisRepository.SaveCommunicationOutcomeAsync(outcome);
 
         // Appliquer les effets
-        ApplyOutcomeEffects(outcome, communication.CrisisId);
+        await ApplyOutcomeEffectsAsync(outcome, communication.CrisisId);
 
         return outcome;
     }
 
-    public void ApplyOutcomeEffects(CommunicationOutcome outcome, int? crisisId)
+    public async Task ApplyOutcomeEffectsAsync(CommunicationOutcome outcome, int? crisisId)
     {
         if (_crisisRepository == null || !crisisId.HasValue)
             return;
 
-        var crisis = _crisisRepository.GetCrisisByIdAsync(crisisId.Value).Result;
+        var crisis = await _crisisRepository.GetCrisisByIdAsync(crisisId.Value);
         if (crisis == null || !crisis.IsActive())
             return;
 
@@ -177,7 +178,7 @@ public sealed class CommunicationEngine : ICommunicationEngine
             updatedCrisis = updatedCrisis.Resolve();
         }
 
-        _crisisRepository.UpdateCrisisAsync(updatedCrisis).Wait();
+        await _crisisRepository.UpdateCrisisAsync(updatedCrisis);
 
         // TODO: Appliquer MoraleImpact et RelationshipImpact via MoraleEngine
         // (nécessiterait injection de IMoraleEngine)
@@ -217,12 +218,12 @@ public sealed class CommunicationEngine : ICommunicationEngine
         return "Diplomatic";
     }
 
-    public double GetCommunicationSuccessRate(string companyId)
+    public async Task<double> GetCommunicationSuccessRateAsync(string companyId)
     {
         if (_crisisRepository == null)
             return 0.0;
 
-        return _crisisRepository.CalculateCommunicationSuccessRateAsync(companyId).Result;
+        return await _crisisRepository.CalculateCommunicationSuccessRateAsync(companyId);
     }
 
     // ====================================================================

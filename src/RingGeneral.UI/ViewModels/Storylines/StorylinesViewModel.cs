@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Microsoft.Data.Sqlite;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
@@ -12,16 +13,20 @@ namespace RingGeneral.UI.ViewModels.Storylines;
 /// </summary>
 public sealed class StorylinesViewModel : ViewModelBase
 {
-    private readonly GameRepository? _repository;
+    private readonly GameRepository _repository;
+    private readonly RingGeneral.Core.Services.StorylineService _storylineService;
     private ShowContext? _context;
     private StorylineListItemViewModel? _selectedStoryline;
     private string _searchText = string.Empty;
     private StorylinePhaseOptionViewModel? _selectedPhase;
     private StorylineStatusOptionViewModel? _selectedStatus;
 
-    public StorylinesViewModel(GameRepository? repository = null)
+    public StorylinesViewModel(
+        GameRepository repository,
+        RingGeneral.Core.Services.StorylineService storylineService)
     {
         _repository = repository;
+        _storylineService = storylineService;
 
         ActiveStorylines = new ObservableCollection<StorylineListItemViewModel>();
         SuspendedStorylines = new ObservableCollection<StorylineListItemViewModel>();
@@ -238,7 +243,7 @@ public sealed class StorylinesViewModel : ViewModelBase
 
             if (_repository == null) return;
 
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 SELECT StorylineId, Name, Heat, Status, Phase
@@ -296,8 +301,8 @@ public sealed class StorylinesViewModel : ViewModelBase
             CompletedStorylines.Clear();
 
             if (_repository == null) return;
-
-            using var connection = _repository.CreateConnection();
+            
+            using var connection = (SqliteConnection)_repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 SELECT StorylineId, Name, Heat, Status, Phase
@@ -348,7 +353,7 @@ public sealed class StorylinesViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 UPDATE Segments

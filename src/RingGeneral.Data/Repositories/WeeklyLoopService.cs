@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Threading.Tasks;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Random;
@@ -20,7 +21,7 @@ public sealed class WeeklyLoopService
     private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly SeededRandomProvider _random = new(42);
     private readonly SpecsReader _specsReader = new();
-    
+
     // Nouveaux services pour l'analyse structurelle
     private readonly RingGeneral.Core.Services.RosterAnalysisService? _rosterAnalysisService;
     private readonly RingGeneral.Core.Services.TrendEngine? _trendEngine;
@@ -48,7 +49,7 @@ public sealed class WeeklyLoopService
         _inertiaService = inertiaService;
     }
 
-    public IReadOnlyList<InboxItem> PasserSemaineSuivante(string showId)
+    public async Task<IReadOnlyList<InboxItem>> PasserSemaineSuivanteAsync(string showId)
     {
         var semaine = _repository.IncrementerSemaine(showId);
         _repository.RecupererFatigueHebdo();
@@ -74,11 +75,13 @@ public sealed class WeeklyLoopService
             inboxItems.Add(scouting);
         }
 
+        inboxItems.AddRange(GenererProgressionYouth(semaine));
+
         // Progression du moral et des rumeurs (Phase 3)
         inboxItems.AddRange(ProgresserMoraleEtRumeurs(semaine, showId));
 
         // Progression des crises (Phase 5)
-        inboxItems.AddRange(ProgresserCrises(semaine, showId));
+        inboxItems.AddRange(await ProgresserCrisesAsync(semaine, showId));
 
         // Déclin des mémoires du booker (Phase 4)
         ProgresserMemoiresBooker(semaine, showId);
@@ -87,7 +90,7 @@ public sealed class WeeklyLoopService
         inboxItems.AddRange(ProcesserAutoBooking(semaine, showId));
 
         // Analyse structurelle et tendances (Phase 6)
-        ProcesserAnalyseStructurelle(semaine, showId);
+        await ProcesserAnalyseStructurelleAsync(semaine, showId);
 
         foreach (var item in inboxItems)
         {
@@ -100,7 +103,7 @@ public sealed class WeeklyLoopService
     /// <summary>
     /// Traite l'analyse structurelle, les tendances et les transitions chaque semaine
     /// </summary>
-    private void ProcesserAnalyseStructurelle(int semaine, string showId)
+    private async Task ProcesserAnalyseStructurelleAsync(int semaine, string showId)
     {
         var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
         if (string.IsNullOrWhiteSpace(compagnieId))
@@ -117,24 +120,24 @@ public sealed class WeeklyLoopService
             // Calculer l'analyse structurelle chaque semaine
             if (_rosterAnalysisService != null)
             {
-                _rosterAnalysisService.CalculateStructuralAnalysisAsync(compagnieId, semaineDansAnnee, annee).Wait();
+                await _rosterAnalysisService.CalculateStructuralAnalysisAsync(compagnieId, semaineDansAnnee, annee);
             }
 
             // Progresser les tendances
             if (_trendEngine != null)
             {
-                _trendEngine.ProgressTrendsAsync().Wait();
+                await _trendEngine.ProgressTrendsAsync();
                 // Générer de nouvelles tendances si nécessaire (10% de chance chaque semaine)
                 if (_random.Next(0, 100) < 10)
                 {
-                    _trendEngine.GenerateRandomTrendsIfNeededAsync().Wait();
+                    await _trendEngine.GenerateRandomTrendsIfNeededAsync();
                 }
             }
 
             // Progresser les transitions d'ADN
             if (_inertiaService != null)
             {
-                _inertiaService.ProgressTransitionsAsync().Wait();
+                await _inertiaService.ProgressTransitionsAsync();
             }
         }
         catch (Exception ex)
@@ -450,7 +453,7 @@ public sealed class WeeklyLoopService
                 "🎓 Graduation Youth",
                 $"{resultat.Nom} est diplômé de la structure Youth. InRing: {resultat.InRing}, Entertainment: {resultat.Entertainment}, Story: {resultat.Story}",
                 semaine);
-            
+
             // Phase 4.1 - Générer contrat automatique pour le worker gradué
             // TODO: Intégrer avec ContractNegotiationService pour créer contrat automatique
             // Pour l'instant, le worker devient disponible pour contrat manuel
@@ -513,7 +516,7 @@ public sealed class WeeklyLoopService
 
         var contrats = _repository.ChargerPaieContrats(companyId);
         var context = new WeeklyFinanceContext(semaine, contrats);
-        
+
         // Créer FinanceSettings par défaut
         var settings = new FinanceSettings
         {
@@ -524,7 +527,7 @@ public sealed class WeeklyLoopService
             Production = new ProductionSettings { CoutBase = 500.0, CoutParMinute = 5.0, CoutParSpectateur = 0.1 },
             Paie = new PaieSettings { SemainesParMois = 4 }
         };
-        
+
         var engine = new FinanceEngine(settings);
         var tick = new WeeklyFinanceTick(engine);
         var resultat = tick.Executer(context);
@@ -619,7 +622,7 @@ public sealed class WeeklyLoopService
     /// <summary>
     /// Progresse toutes les crises actives (Phase 5)
     /// </summary>
-    private IEnumerable<InboxItem> ProgresserCrises(int semaine, string showId)
+    private async Task<IEnumerable<InboxItem>> ProgresserCrisesAsync(int semaine, string showId)
     {
         var compagnieId = _repository.ChargerCompagnieIdPourShow(showId);
         if (string.IsNullOrWhiteSpace(compagnieId))
@@ -647,7 +650,7 @@ public sealed class WeeklyLoopService
                             : "Tensions backstage grandissantes";
 
                     var severity = moraleScore < 30 ? 4 : activeRumorsCount >= 5 ? 3 : 2;
-                    var newCrisis = _crisisEngine.CreateCrisis(compagnieId, triggerReason, severity);
+                    var newCrisis = await _crisisEngine.CreateCrisisAsync(compagnieId, triggerReason, severity);
 
                     items.Add(new InboxItem(
                         "crise",
@@ -657,10 +660,10 @@ public sealed class WeeklyLoopService
                 }
 
                 // Progresser les crises existantes
-                _crisisEngine.ProgressCrises(compagnieId);
+                await _crisisEngine.ProgressCrisesAsync(compagnieId);
 
                 // Notifier les crises critiques
-                var criticalCrises = _crisisEngine.GetCriticalCrises(compagnieId);
+                var criticalCrises = await _crisisEngine.GetCriticalCrisesAsync(compagnieId);
                 foreach (var crisis in criticalCrises.Take(2)) // Max 2 notifications par semaine
                 {
                     items.Add(new InboxItem(

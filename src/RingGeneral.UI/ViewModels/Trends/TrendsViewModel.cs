@@ -15,16 +15,16 @@ namespace RingGeneral.UI.ViewModels.Trends;
 /// </summary>
 public sealed class TrendsViewModel : ViewModelBase
 {
-    private readonly ITrendRepository? _trendRepository;
-    private readonly IRosterAnalysisRepository? _rosterAnalysisRepository;
-    private readonly CompatibilityCalculator? _compatibilityCalculator;
+    private readonly ITrendRepository _trendRepository;
+    private readonly IRosterAnalysisRepository _rosterAnalysisRepository;
+    private readonly CompatibilityCalculator _compatibilityCalculator;
     private string _companyId = string.Empty;
     private RosterDNA? _currentDNA;
 
     public TrendsViewModel(
-        ITrendRepository? trendRepository = null,
-        IRosterAnalysisRepository? rosterAnalysisRepository = null,
-        CompatibilityCalculator? compatibilityCalculator = null)
+        ITrendRepository trendRepository,
+        IRosterAnalysisRepository rosterAnalysisRepository,
+        CompatibilityCalculator compatibilityCalculator)
     {
         _trendRepository = trendRepository;
         _rosterAnalysisRepository = rosterAnalysisRepository;

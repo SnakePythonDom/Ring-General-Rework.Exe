@@ -12,13 +12,13 @@ using RingGeneral.Core.Services;
 using RingGeneral.Core.Simulation;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Database;
-using RingGeneral.Data.Models;
 using RingGeneral.Data.Repositories;
 using RingGeneral.Specs.Models;
 using RingGeneral.Specs.Services;
 using RingGeneral.UI.Services;
 using System.Reactive;
 using LogLevel = RingGeneral.Core.Interfaces.LogLevel;
+using RingGeneral.UI.Services.Messaging;
 
 namespace RingGeneral.UI.ViewModels;
 
@@ -58,6 +58,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     private readonly TemplateService _templateService = new();
     private readonly SegmentTypeCatalog _segmentCatalog;
     private readonly BookingBuilderService _bookingBuilder = new();
+    private readonly IEventAggregator _eventAggregator = new RingGeneral.UI.Services.Messaging.EventAggregator();
     private readonly HelpContentProvider _helpProvider = new();
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _helpPages;
     private readonly IReadOnlyDictionary<string, HelpPageEntry> _impactPages;
@@ -70,7 +71,7 @@ public sealed class GameSessionViewModel : ViewModelBase
 
     public GameSessionViewModel(string? cheminDb = null, ServiceContainer? services = null)
     {
-        AvancerTempsCommand = ReactiveCommand.Create(PasserSemaineSuivante);
+        AvancerTempsCommand = ReactiveCommand.CreateFromTask(PasserSemaineSuivante);
         // Initialize logger from service container or use default
         _logger = services?.IsRegistered<ILoggingService>() == true
             ? services.Resolve<ILoggingService>()
@@ -228,7 +229,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         ChargerYouth();
         // INITIALISATION DE LA COMMANDE
         // On la crée ici pour que le bouton soit actif et visible
-        
+
         // Chargement initial des données
         RafraichirDonneesSession();
     }
@@ -293,7 +294,7 @@ public sealed class GameSessionViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _youthGenerationSelection, value);
     }
     private YouthGenerationOptionViewModel? _youthGenerationSelection;
-    public void PasserSemaineSuivante()
+    public async Task PasserSemaineSuivante()
     {
         // On vérifie que les services sont bien chargés
         if (_repository is null || _scoutingRepository is null)
@@ -307,7 +308,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             // Initialisation du service de boucle hebdomadaire
             // Note: Les nouveaux services seront injectés via DI dans une version future
             var weekly = new WeeklyLoopService(
-                _repository, 
+                _repository,
                 _scoutingRepository,
                 moraleEngine: null,
                 rumorEngine: null,
@@ -318,7 +319,7 @@ public sealed class GameSessionViewModel : ViewModelBase
                 inertiaService: null);
 
             // Exécution de la simulation de passage de semaine
-            weekly.PasserSemaineSuivante(ShowId);
+            await weekly.PasserSemaineSuivanteAsync(ShowId);
 
             // Mise à jour de l'interface utilisateur
             RafraichirDonneesSession();
@@ -341,8 +342,16 @@ public sealed class GameSessionViewModel : ViewModelBase
         if (show != null)
         {
             this.CurrentWeek = show.Semaine;
+            this.CurrentCompanyId = show.CompagnieId;
         }
     }
+
+    public string? CurrentCompanyId
+    {
+        get => _currentCompanyId;
+        set => this.RaiseAndSetIfChanged(ref _currentCompanyId, value);
+    }
+    private string? _currentCompanyId;
 
     public WorldGenerationOptionViewModel? WorldGenerationSelection
     {
@@ -975,7 +984,7 @@ public sealed class GameSessionViewModel : ViewModelBase
     {
         NouveauSegmentParticipants.Remove(participant);
     }
-   
+
 
     public void CorrigerIssue(BookingIssueViewModel issue)
     {
@@ -1114,6 +1123,7 @@ public sealed class GameSessionViewModel : ViewModelBase
                 segment.DureeMinutes,
                 segment.EstMainEvent,
                 _segmentCatalog,
+                _eventAggregator,
                 participants,
                 segment.StorylineId,
                 segment.TitreId,

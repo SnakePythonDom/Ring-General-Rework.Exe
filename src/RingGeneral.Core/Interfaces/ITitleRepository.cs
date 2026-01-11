@@ -12,4 +12,5 @@ public interface ITitleRepository
     void CloreRegne(int titleReignId, int semaineFin);
     void AjouterMatch(TitleMatchRecord match);
     void MettreAJourPrestige(string titleId, int delta);
+    IReadOnlyList<TitleOverview> ChargerTousLesTitres(string companyId);
 }

@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Interfaces;
+using RingGeneral.Data.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,13 @@ namespace RingGeneral.Data.Repositories;
 /// Implémentation du repository des bookers.
 /// Gère Bookers, BookerMemory, et BookerEmploymentHistory.
 /// </summary>
-public sealed class BookerRepository : IBookerRepository, Core.Interfaces.IBookerRepository
+public sealed class BookerRepository : RepositoryBase, RingGeneral.Core.Interfaces.IBookerRepository
 {
     private readonly string _connectionString;
 
-    public BookerRepository(string connectionString)
+    public BookerRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+        _connectionString = factory.GetConnectionString();
     }
 
     // ====================================================================

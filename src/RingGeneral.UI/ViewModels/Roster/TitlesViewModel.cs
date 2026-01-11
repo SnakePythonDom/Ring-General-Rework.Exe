@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Services;
 
 namespace RingGeneral.UI.ViewModels.Roster;
 
@@ -11,14 +14,24 @@ namespace RingGeneral.UI.ViewModels.Roster;
 /// </summary>
 public sealed class TitlesViewModel : ViewModelBase
 {
-    private readonly GameRepository? _repository;
+    private readonly ITitleRepository? _titleRepository;
+    private readonly ContenderService? _contenderService;
+    private readonly GameRepository? _gameRepository;
     private TitleListItemViewModel? _selectedTitle;
     private string _searchText = string.Empty;
     private readonly List<TitleListItemViewModel> _allTitles = new List<TitleListItemViewModel>();
+    
+    // Temporaire: ID Compagnie par défaut (sera injecté via context plus tard)
+    private const string CurrentCompanyId = "C001";
 
-    public TitlesViewModel(GameRepository? repository = null)
+    public TitlesViewModel(
+        ITitleRepository? titleRepository = null,
+        ContenderService? contenderService = null,
+        GameRepository? gameRepository = null)
     {
-        _repository = repository;
+        _titleRepository = titleRepository;
+        _contenderService = contenderService;
+        _gameRepository = gameRepository;
 
         Titles = new ObservableCollection<TitleListItemViewModel>();
         TitleHistory = new ObservableCollection<TitleReignHistoryItem>();
@@ -66,6 +79,11 @@ public sealed class TitlesViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _selectedTitle, value);
             LoadTitleHistory(value?.TitleId);
+            if (value != null && _contenderService != null)
+            {
+               // Exemple: Charger les contenders
+               // _contenderService.MettreAJourClassement(value.TitleId);
+            }
         }
     }
 
@@ -127,7 +145,7 @@ public sealed class TitlesViewModel : ViewModelBase
     {
         AvailableForBooking.Clear();
 
-        if (_repository == null)
+        if (_titleRepository == null)
         {
             LoadPlaceholderBookingTitles();
             return;
@@ -135,33 +153,16 @@ public sealed class TitlesViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT
-                    t.TitleId,
-                    t.Name,
-                    t.Prestige,
-                    COALESCE(t.CurrentChampionId, t.HolderWorkerId) as CurrentChampionId,
-                    COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as ChampionName
-                FROM Titles t
-                LEFT JOIN Workers w ON COALESCE(t.CurrentChampionId, t.HolderWorkerId) = w.WorkerId
-                ORDER BY t.Prestige DESC";
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            var overviewList = _titleRepository.ChargerTousLesTitres(CurrentCompanyId);
+            foreach (var title in overviewList)
             {
-                var championId = reader.IsDBNull(3) ? null : reader.GetString(3);
-                var championName = reader.IsDBNull(4) ? "VACANT" : reader.GetString(4);
-                var isVacant = string.IsNullOrEmpty(championId);
-
                 AvailableForBooking.Add(new TitleOptionViewModel
                 {
-                    TitleId = reader.GetString(0),
-                    Name = reader.GetString(1),
-                    Prestige = reader.GetInt32(2),
-                    CurrentChampion = championName,
-                    IsVacant = isVacant
+                    TitleId = title.TitleId,
+                    Name = title.Name,
+                    Prestige = title.Prestige,
+                    CurrentChampion = title.ChampionName,
+                    IsVacant = title.IsVacant
                 });
             }
 
@@ -179,7 +180,7 @@ public sealed class TitlesViewModel : ViewModelBase
     /// </summary>
     public void AssignToSegment(string segmentId)
     {
-        if (_repository == null || string.IsNullOrWhiteSpace(segmentId) || SelectedTitle == null)
+        if (_gameRepository == null || string.IsNullOrWhiteSpace(segmentId) || SelectedTitle == null)
         {
             Logger.Warning("Impossible d'assigner titre : paramètres invalides");
             return;
@@ -187,7 +188,7 @@ public sealed class TitlesViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_gameRepository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 UPDATE Segments
@@ -243,7 +244,7 @@ public sealed class TitlesViewModel : ViewModelBase
         Titles.Clear();
         _allTitles.Clear();
 
-        if (_repository == null)
+        if (_titleRepository == null)
         {
             LoadPlaceholderTitles();
             return;
@@ -251,41 +252,22 @@ public sealed class TitlesViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT
-                    t.TitleId,
-                    t.Name,
-                    t.Prestige,
-                    COALESCE(t.CurrentChampionId, t.HolderWorkerId) as CurrentChampionId,
-                    COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as ChampionName,
-                    COALESCE(tr.DefenseCount, 0) as DefenseCount
-                FROM Titles t
-                LEFT JOIN Workers w ON COALESCE(t.CurrentChampionId, t.HolderWorkerId) = w.WorkerId
-                LEFT JOIN TitleReigns tr ON t.TitleId = tr.TitleId AND tr.IsCurrent = 1
-                ORDER BY t.Prestige DESC";
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            var overviewList = _titleRepository.ChargerTousLesTitres(CurrentCompanyId);
+            foreach (var title in overviewList)
             {
-                var championId = reader.IsDBNull(3) ? null : reader.GetString(3);
-                var championName = reader.IsDBNull(4) ? "VACANT" : reader.GetString(4);
-                var isVacant = string.IsNullOrEmpty(championId);
-
-                var title = new TitleListItemViewModel
+                var vm = new TitleListItemViewModel
                 {
-                    TitleId = reader.GetString(0),
-                    Name = reader.GetString(1),
-                    Prestige = reader.GetInt32(2),
-                    CurrentChampion = championName,
-                    ReignDays = 0, // TODO: Calculer depuis StartWeek
-                    ReignCount = reader.GetInt32(5),
-                    IsVacant = isVacant
+                    TitleId = title.TitleId,
+                    Name = title.Name,
+                    Prestige = title.Prestige,
+                    CurrentChampion = title.ChampionName,
+                    ReignDays = 0, // TODO: Calculer depuis StartWeek via TitleRepository si nécessaire
+                    ReignCount = title.DefenseCount,
+                    IsVacant = title.IsVacant
                 };
 
-                _allTitles.Add(title);
-                Titles.Add(title);
+                _allTitles.Add(vm);
+                Titles.Add(vm);
             }
 
             Logger.Info($"{Titles.Count} titres chargés depuis la DB");
@@ -375,8 +357,7 @@ public sealed class TitlesViewModel : ViewModelBase
             });
         }
 
-        // TODO: Charger l'historique réel depuis la DB
-        // var history = _repository.ChargerHistoriqueTitre(titleId);
+        // TODO: Charger l'historique réel depuis la DB via ITitleRepository ou TitleService
     }
 
     /// <summary>

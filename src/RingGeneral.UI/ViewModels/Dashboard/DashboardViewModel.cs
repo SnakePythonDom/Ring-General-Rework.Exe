@@ -294,7 +294,7 @@ public sealed class DashboardViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
 
             // Charger le nombre de workers
             using (var cmd = connection.CreateCommand())
@@ -542,7 +542,10 @@ public sealed class DashboardViewModel : ViewModelBase
     /// <summary>
     /// Charge les données de crises de la compagnie
     /// </summary>
-    private void LoadCrisisData()
+    /// <summary>
+    /// Charge les données de crises de la compagnie
+    /// </summary>
+    private async void LoadCrisisData()
     {
         if (_crisisEngine is null || string.IsNullOrEmpty(_companyId))
         {
@@ -555,8 +558,8 @@ public sealed class DashboardViewModel : ViewModelBase
 
         try
         {
-            var activeCrises = _crisisEngine.GetActiveCrises(_companyId);
-            var criticalCrises = _crisisEngine.GetCriticalCrises(_companyId);
+            var activeCrises = await _crisisEngine.GetActiveCrisesAsync(_companyId);
+            var criticalCrises = await _crisisEngine.GetCriticalCrisesAsync(_companyId);
 
             ActiveCrisesCount = activeCrises.Count;
             CriticalCrisesCount = criticalCrises.Count;

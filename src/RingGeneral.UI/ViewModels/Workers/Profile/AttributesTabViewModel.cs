@@ -1,6 +1,7 @@
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models.Attributes;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Workers.Profile;
@@ -116,6 +117,28 @@ public sealed class AttributesTabViewModel : ViewModelBase
         InRingAttributes = inRing;
         EntertainmentAttributes = entertainment;
         StoryAttributes = story;
+
+        this.RaisePropertyChanged(nameof(OverallAverage));
+    }
+
+    /// <summary>
+    /// Load attributes from an existing Worker object
+    /// </summary>
+    public void LoadWorker(RingGeneral.Core.Models.Worker worker)
+    {
+        WorkerId = worker.Id;
+
+        // Use attributes from the provided worker object if available
+        InRingAttributes = worker.InRingAttributes;
+        EntertainmentAttributes = worker.EntertainmentAttributes;
+        StoryAttributes = worker.StoryAttributes;
+
+        // If not populated in the object, try to fetch (fallback to existing behavior)
+        if (InRingAttributes == null || EntertainmentAttributes == null || StoryAttributes == null)
+        {
+            LoadWorker(worker.Id);
+            return;
+        }
 
         this.RaisePropertyChanged(nameof(OverallAverage));
     }

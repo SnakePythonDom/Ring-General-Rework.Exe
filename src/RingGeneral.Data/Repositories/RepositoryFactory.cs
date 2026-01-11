@@ -1,4 +1,5 @@
 using RingGeneral.Core.Interfaces;
+using Microsoft.Data.Sqlite;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
@@ -36,6 +37,10 @@ public sealed class RepositoryContainer
     // Child Company Staff Management
     public IChildCompanyStaffRepository ChildCompanyStaffRepository { get; }
 
+    // Worker Detailed Data (Phase 10)
+    public IRelationsRepository RelationsRepository { get; }
+    public INotesRepository NotesRepository { get; }
+
     public RepositoryContainer(
         GameRepository gameRepository,
         ShowRepository showRepository,
@@ -58,7 +63,9 @@ public sealed class RepositoryContainer
         INicheFederationRepository nicheFederationRepository,
         IChildCompanyExtendedRepository childCompanyExtendedRepository,
         IDNATransitionRepository dnaTransitionRepository,
-        IChildCompanyStaffRepository childCompanyStaffRepository)
+        IChildCompanyStaffRepository childCompanyStaffRepository,
+        IRelationsRepository relationsRepository,
+        INotesRepository notesRepository)
     {
         GameRepository = gameRepository;
         ShowRepository = showRepository;
@@ -82,6 +89,8 @@ public sealed class RepositoryContainer
         ChildCompanyExtendedRepository = childCompanyExtendedRepository;
         DNATransitionRepository = dnaTransitionRepository;
         ChildCompanyStaffRepository = childCompanyStaffRepository;
+        RelationsRepository = relationsRepository;
+        NotesRepository = notesRepository;
     }
 }
 
@@ -106,13 +115,14 @@ public static class RepositoryFactory
         var titleRepository = new TitleRepository(factory);
         var medicalRepository = new MedicalRepository(factory);
         var workerAttributesRepository = new WorkerAttributesRepository(factory);
+        var relationsRepository = new RelationsRepository(factory);
+        var notesRepository = new NotesRepository(factory);
 
         // Company Governance & Identity repositories
-        var connectionString = factory.GetConnectionString();
-        var ownerRepository = new OwnerRepository(connectionString);
-        var bookerRepository = new BookerRepository(connectionString);
+        var ownerRepository = new OwnerRepository(factory);
+        var bookerRepository = new BookerRepository(factory);
         var catchStyleRepository = new CatchStyleRepository(factory);
-        var eraRepository = new EraRepository(connectionString);
+        var eraRepository = new EraRepository(factory);
 
         var gameRepository = new GameRepository(
             factory,
@@ -131,7 +141,7 @@ public static class RepositoryFactory
         var nicheFederationRepository = new NicheFederationRepository(factory);
         var childCompanyExtendedRepository = new ChildCompanyExtendedRepository(factory);
         var dnaTransitionRepository = new DNATransitionRepository(factory);
-        var childCompanyStaffRepository = new ChildCompanyStaffRepository(connectionString);
+        var childCompanyStaffRepository = new ChildCompanyStaffRepository(factory);
 
         return new RepositoryContainer(
             gameRepository,
@@ -155,7 +165,9 @@ public static class RepositoryFactory
             nicheFederationRepository,
             childCompanyExtendedRepository,
             dnaTransitionRepository,
-            childCompanyStaffRepository);
+            childCompanyStaffRepository,
+            relationsRepository,
+            notesRepository);
     }
 
     /// <summary>

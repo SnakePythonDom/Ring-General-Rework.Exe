@@ -230,14 +230,14 @@ public sealed class YouthRepository : RepositoryBase, RingGeneral.Core.Interface
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-            INSERT INTO YouthStructures (
-                YouthStructureId, CompanyId, Name, RegionId, Type, 
-                BudgetAnnuel, CapaciteMax, NiveauEquipements, QualiteCoaching, 
-                Philosophie, IsActive, CreatedAt
+            INSERT INTO youth_structures (
+                youth_id, company_id, nom, region, type, 
+                budget_annuel, capacite_max, niveau_equipements, qualite_coaching, 
+                philosophie, actif
             ) VALUES (
                 $youthStructureId, $companyId, $name, $regionId, $type,
                 $budgetAnnuel, $capaciteMax, $niveauEquipements, $qualiteCoaching,
-                $philosophie, 1, datetime('now')
+                $philosophie, 1
             );
             """;
         command.Parameters.AddWithValue("$youthStructureId", youthStructureId);
@@ -259,6 +259,15 @@ public sealed class YouthRepository : RepositoryBase, RingGeneral.Core.Interface
         using var command = connexion.CreateCommand();
         command.CommandText = "UPDATE youth_structures SET budget_annuel = $budget WHERE youth_id = $youthId;";
         command.Parameters.AddWithValue("$budget", nouveauBudget);
+        command.Parameters.AddWithValue("$youthId", youthId);
+        command.ExecuteNonQuery();
+    }
+
+    public void AmeliorerEquipements(string youthId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "UPDATE youth_structures SET niveau_equipements = niveau_equipements + 1 WHERE youth_id = $youthId;";
         command.Parameters.AddWithValue("$youthId", youthId);
         command.ExecuteNonQuery();
     }

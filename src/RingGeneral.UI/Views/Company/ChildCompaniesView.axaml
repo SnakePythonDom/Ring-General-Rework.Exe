@@ -36,19 +36,61 @@
                      Margin="0,0,0,10"
                      Foreground="{StaticResource TextPrimaryBrush}"/>
 
-          <Grid ColumnDefinitions="*,Auto">
+          <!-- Nom et Acronyme -->
+          <Grid ColumnDefinitions="*, 100" RowDefinitions="Auto, Auto" ShowGridLines="False">
+            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+              <TextBlock Text="Nom de la filiale" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+              <TextBox Text="{Binding NewChildCompanyName}" Watermark="Ex: World Wrestling Entertainment" />
+            </StackPanel>
+            
+            <StackPanel Grid.Column="1" Spacing="5">
+              <TextBlock Text="Acronyme" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+              <TextBox Text="{Binding NewChildCompanyAcronym}" Watermark="Ex: WWE" MaxLength="6" />
+            </StackPanel>
+          </Grid>
+
+          <!-- Région et Taille -->
+          <Grid ColumnDefinitions="*, 120" RowDefinitions="Auto, Auto" ShowGridLines="False">
+            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+              <TextBlock Text="Région / Pays" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+              <ComboBox ItemsSource="{Binding AvailableRegions}"
+                        SelectedItem="{Binding SelectedRegion}"
+                        PlaceholderText="Sélectionner une région..."
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock>
+                      <Run Text="{Binding CountryName}" FontWeight="Bold"/>
+                      <Run Text=" - "/>
+                      <Run Text="{Binding Name}"/>
+                    </TextBlock>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="5">
+              <TextBlock Text="Limite Roster" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+              <NumericUpDown Value="{Binding NewChildCompanyRosterLimit}" 
+                            Minimum="10" Maximum="100" Increment="5" FormatString="0" />
+            </StackPanel>
+          </Grid>
+
+          <Grid ColumnDefinitions="*,Auto" Margin="0,5,0,0">
 
             <!-- Sélection de l'objectif -->
             <ComboBox x:Name="ObjectiveComboBox"
                      Grid.Column="0"
-                     ItemsSource="{Binding Source={StaticResource ChildCompanyObjectives}, Converter={StaticResource StringToCollectionConverter}}"
-                     PlaceholderText="Sélectionner un objectif pour la filiale"/>
+                     ItemsSource="{Binding AvailableObjectives}"
+                     SelectedItem="{Binding SelectedObjective}"
+                     PlaceholderText="Sélectionner un objectif pour la filiale"
+                     HorizontalAlignment="Stretch"
+                     Margin="0,0,10,0"/>
 
             <!-- Bouton de création -->
             <Button Grid.Column="1"
                     Content="🚀 Créer Filiale"
                     Command="{Binding CreateChildCompanyCommand}"
-                    CommandParameter="{Binding #ObjectiveComboBox.SelectedItem}"
                     VerticalAlignment="Center"
                     Padding="15,8"/>
 

@@ -19,7 +19,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
         var view = new StorylinesView { DataContext = viewModel };
 
         // Act
@@ -38,7 +38,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldDisplayStorylinesTitle()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
         var view = new StorylinesView { DataContext = viewModel };
 
         // Act
@@ -58,7 +58,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldDisplayActiveStorylines()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
 
         // Ajouter une storyline active
         viewModel.ActiveStorylines.Add(new StorylineListItemViewModel
@@ -89,7 +89,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldDisplayStorylineDetails()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
 
         var storyline = new StorylineListItemViewModel
         {
@@ -131,7 +131,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldDisplayStorylineStatistics()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
         // TotalActiveStorylines, AverageHeat, CompletedThisMonth properties don't exist
         // TotalActive is readonly and calculated from ActiveStorylines.Count
         for (int i = 0; i < 8; i++)
@@ -168,7 +168,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldHaveCreateStorylineButton()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
         var view = new StorylinesView { DataContext = viewModel };
 
         // Act
@@ -189,7 +189,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldHaveAdvanceStorylineButton()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
         var view = new StorylinesView { DataContext = viewModel };
 
         // Act
@@ -210,7 +210,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldDisplayStorylineHeat()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
 
         var highHeatStoryline = new StorylineListItemViewModel
         {
@@ -241,7 +241,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldDisplayParticipants()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
 
         var storyline = new StorylineListItemViewModel
         {
@@ -278,7 +278,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldHandleStorylineSelection()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
 
         var storyline1 = new StorylineListItemViewModel { StorylineId = "S1", Name = "Storyline A", Heat = 70 };
         var storyline2 = new StorylineListItemViewModel { StorylineId = "S2", Name = "Storyline B", Heat = 80 };
@@ -304,7 +304,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldUpdateWhenStorylinesChange()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
         var view = new StorylinesView { DataContext = viewModel };
 
         // Act
@@ -334,7 +334,7 @@ public class StorylinesViewUITests
     public async Task StorylinesView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new StorylinesViewModel(null);
+        var viewModel = new StorylinesViewModel(null, null);
         var view = new StorylinesView { DataContext = viewModel };
 
         // Act

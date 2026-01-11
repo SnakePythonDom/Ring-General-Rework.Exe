@@ -213,8 +213,8 @@ public sealed class ImpactApplier : IImpactApplier
             var result = _injuryService.AppliquerBlessure(workerId, "Match", severite, semaine, fatigue, "Blessure détectée pendant le show.");
             var injuryId = _medicalRepository.AjouterBlessure(result.Blessure);
             var plan = result.Plan with { InjuryId = injuryId };
-            _medicalRepository.AjouterPlanRecuperation(plan);
-            _medicalRepository.AjouterNoteMedicale(new MedicalNote(0, injuryId, workerId, result.Recommendation.Message, DateTimeOffset.UtcNow));
+            _medicalRepository.AjouterPlan(plan);
+            _medicalRepository.AjouterNote(new MedicalNote(0, injuryId, workerId, result.Recommendation.Message, DateTimeOffset.UtcNow));
 
             var nom = noms.TryGetValue(workerId, out var workerNom) ? workerNom : workerId;
             var contenu = $"{nom} est blessé ({statut}). {result.Recommendation.Message} Retour visé S{plan.TargetWeek}.";

@@ -22,12 +22,9 @@ using RingGeneral.Data.Repositories;
 using RingGeneral.Core.Validation;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Interfaces;
-using RingGeneral.Core.Models;
-using IOwnerRepo = RingGeneral.Data.Repositories.IOwnerRepository;
-using IBookerRepo = RingGeneral.Data.Repositories.IBookerRepository;
-using IOwnerRepository = RingGeneral.Core.Interfaces.IOwnerRepository;
-using IBookerRepository = RingGeneral.Core.Interfaces.IBookerRepository;
 using RingGeneral.UI.ViewModels;
+using CoreInterfaces = RingGeneral.Core.Interfaces;
+using DataRepositories = RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI;
 
@@ -52,7 +49,7 @@ public sealed class App : Application
         // ═════════════════════════════════════════════════════════════════════════
         // 🗂️ INITIALISATION DE LA GENERAL DB (ring_general.db)
         // ═════════════════════════════════════════════════════════════════════════
-        
+
         try
         {
             var generalDbPath = Path.Combine(
@@ -88,57 +85,57 @@ public sealed class App : Application
                         logger.Warning($"  - {path}");
                     }
                     logger.Info($"Création de la base avec schéma et données génériques...");
-                    
+
                     // Créer la base vide et appliquer le schéma + seed
                     var tempInitializer = new DbInitializer();
                     tempInitializer.CreateDatabaseIfMissing(generalDbPath);
-                    
+
                     // Remplir avec des données génériques
                     using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={generalDbPath}");
                     connection.Open();
-                    
+
                     // S'assurer que toutes les tables essentielles existent avant de seed
                     SqliteConnectionFactory.EnsureEssentialTablesExist(connection);
-                    
+
                     // Configurer le logger pour DbSeeder
                     DbSeeder.SetLogger(logger);
-                    
+
                     DbSeeder.SeedIfEmpty(connection);
-                    
+
                     logger.Info($"✅ General DB créée avec données génériques : {generalDbPath}");
                 }
             }
             else
             {
                 logger.Info($"✅ General DB existe déjà : {generalDbPath}");
-                
+
                 // Vérifier que la base contient les tables nécessaires
                 try
                 {
                     using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={generalDbPath}");
                     connection.Open();
-                    
+
                     // Vérifier si les tables existent
                     using var checkCmd = connection.CreateCommand();
                     checkCmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND (name='Companies' OR name='companies')";
                     var hasCompaniesTable = Convert.ToInt64(checkCmd.ExecuteScalar()) > 0;
-                    
+
                     checkCmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND (name='Workers' OR name='workers')";
                     var hasWorkersTable = Convert.ToInt64(checkCmd.ExecuteScalar()) > 0;
-                    
+
                     if (!hasCompaniesTable || !hasWorkersTable)
                     {
                         logger.Warning($"⚠️ Base de données existe mais schéma manquant. Création du schéma...");
                         var tempInitializer = new DbInitializer();
                         tempInitializer.CreateDatabaseIfMissing(generalDbPath);
-                        
+
                         // Vérifier à nouveau et remplir avec des données génériques
                         checkCmd.CommandText = "SELECT COUNT(*) FROM Companies";
                         var companiesCount = Convert.ToInt64(checkCmd.ExecuteScalar());
-                        
+
                         checkCmd.CommandText = "SELECT COUNT(*) FROM Workers";
                         var workersCount = Convert.ToInt64(checkCmd.ExecuteScalar());
-                        
+
                         if (companiesCount == 0 || workersCount == 0)
                         {
                             logger.Info($"Remplissage avec données génériques...");
@@ -157,10 +154,10 @@ public sealed class App : Application
                         using var cmd = connection.CreateCommand();
                         cmd.CommandText = "SELECT COUNT(*) FROM Companies";
                         var companiesCount = Convert.ToInt64(cmd.ExecuteScalar());
-                        
+
                         cmd.CommandText = "SELECT COUNT(*) FROM Workers";
                         var workersCount = Convert.ToInt64(cmd.ExecuteScalar());
-                        
+
                         if (companiesCount == 0 || workersCount == 0)
                         {
                             logger.Warning($"⚠️ Base de données vide. Remplissage avec données génériques...");
@@ -214,9 +211,10 @@ public sealed class App : Application
 
         // Register all repositories
         services.AddSingleton(repositories.GameRepository);
+        services.AddSingleton<IGameRepository>(sp => repositories.GameRepository);
         services.AddSingleton(repositories.ShowRepository);
         services.AddSingleton(repositories.CompanyRepository);
-        
+
         // Show Scheduling System (Daily Show System)
         // Note: Ces services sont enregistrés ici mais DailyShowSchedulerService sera créé après IShowDayOrchestrator
         services.AddSingleton<RingGeneral.Core.Interfaces.IShowSchedulerStore>(sp =>
@@ -226,7 +224,7 @@ public sealed class App : Application
         services.AddSingleton<RingGeneral.Core.Services.ShowSchedulerService>(sp =>
             new RingGeneral.Core.Services.ShowSchedulerService(
                 sp.GetRequiredService<RingGeneral.Core.Interfaces.IShowSchedulerStore>()));
-        
+
         // Child Company Booking System
         services.AddSingleton<RingGeneral.Core.Interfaces.IChildCompanyBookingRepository>(sp =>
             new RingGeneral.Data.Repositories.ChildCompanyBookingRepository(
@@ -238,19 +236,28 @@ public sealed class App : Application
         services.AddSingleton(repositories.SettingsRepository);
         services.AddSingleton(repositories.YouthRepository);
         services.AddSingleton(repositories.TitleRepository);
-        services.AddSingleton<RingGeneral.Core.Interfaces.ITitleRepository>(sp => repositories.TitleRepository);
-        services.AddSingleton<RingGeneral.Core.Interfaces.IContenderRepository>(sp => repositories.TitleRepository);
-        services.AddSingleton(repositories.MedicalRepository);
-        services.AddSingleton<RingGeneral.Core.Interfaces.IWorkerAttributesRepository>(sp => (RingGeneral.Core.Interfaces.IWorkerAttributesRepository)repositories.WorkerAttributesRepository);
+        services.AddSingleton<CoreInterfaces.ITitleRepository>(sp => repositories.TitleRepository);
+        services.AddSingleton<CoreInterfaces.IContenderRepository>(sp => repositories.TitleRepository);
+        services.AddSingleton<CoreInterfaces.ISettingsRepository>(sp => repositories.SettingsRepository);
+        services.AddSingleton<CoreInterfaces.IYouthRepository>(sp => repositories.YouthRepository);
+        services.AddSingleton<CoreInterfaces.IBackstageRepository>(sp => repositories.BackstageRepository);
+        services.AddSingleton<IMedicalRepository>(sp => repositories.MedicalRepository);
+        services.AddSingleton<CoreInterfaces.IWorkerAttributesRepository>(sp => (CoreInterfaces.IWorkerAttributesRepository)repositories.WorkerAttributesRepository);
+        services.AddSingleton<IRelationsRepository>(sp => repositories.RelationsRepository);
+        services.AddSingleton<INotesRepository>(sp => repositories.NotesRepository);
+        services.AddSingleton<IContractRepository>(sp => repositories.ContractRepository);
 
         // Company Governance & Identity
         services.AddSingleton(repositories.OwnerRepository);
         services.AddSingleton(repositories.BookerRepository);
         // Enregistrer aussi avec l'interface Core pour compatibilité
-        services.AddSingleton<RingGeneral.Core.Interfaces.IBookerRepository>(sp => 
-            (RingGeneral.Core.Interfaces.IBookerRepository)repositories.BookerRepository);
+        services.AddSingleton<CoreInterfaces.IBookerRepository>(sp =>
+            (CoreInterfaces.IBookerRepository)repositories.BookerRepository);
+        services.AddSingleton<CoreInterfaces.IOwnerRepository>(sp => (CoreInterfaces.IOwnerRepository)repositories.OwnerRepository);
         services.AddSingleton(repositories.CatchStyleRepository);
+        services.AddSingleton<RingGeneral.Core.Interfaces.ICatchStyleRepository>(sp => repositories.CatchStyleRepository);
         services.AddSingleton(repositories.EraRepository);
+        services.AddSingleton<RingGeneral.Core.Interfaces.IEraRepository>(sp => repositories.EraRepository);
         services.AddSingleton<IRegionRepository>(_ => new RegionRepository(factory));
 
         // Structural Analysis & Niche Strategies Repositories (Phase 6)
@@ -282,14 +289,19 @@ public sealed class App : Application
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
                 sp.GetRequiredService<ITrendRepository>(),
                 sp.GetRequiredService<YouthRepository>())); // Phase 2.3
-        
+
         // Staff Repository
         services.AddSingleton<IStaffRepository>(sp =>
         {
             var connectionString = sp.GetRequiredService<SqliteConnectionFactory>().GetConnectionString();
             return new StaffRepository(connectionString);
         });
-        
+
+        // Crisis Repository
+        // Crisis Repository
+        services.AddSingleton<CoreInterfaces.ICrisisRepository>(sp =>
+            new CrisisRepository(sp.GetRequiredService<SqliteConnectionFactory>()));
+
         // Child Company Staff Service
         services.AddSingleton<IChildCompanyStaffService>(sp =>
         {
@@ -324,10 +336,8 @@ public sealed class App : Application
             new RumorEngine(sp.GetRequiredService<IRumorRepository>()));
 
         // Crisis System Services (Phase 5)
-        // Note: CrisisEngine accepte ICrisisRepository optionnel, donc on peut passer null pour l'instant
-        // TODO: Créer un adaptateur ou faire implémenter Core.Interfaces.ICrisisRepository par CrisisRepository
         services.AddSingleton<ICrisisEngine>(sp =>
-            new CrisisEngine(crisisRepository: null));  // CrisisEngine fonctionne sans repository
+            new CrisisEngine(sp.GetRequiredService<ICrisisRepository>()));
 
         // Owner & Booker Decision Engines
         services.AddSingleton<IOwnerDecisionEngine>(sp =>
@@ -339,7 +349,7 @@ public sealed class App : Application
                 sp.GetRequiredService<IEraRepository>(),
                 sp.GetRequiredService<PersonalityDetectorService>(),
                 sp.GetRequiredService<RingGeneral.Core.Interfaces.IWorkerAttributesRepository>()));
-        
+
         // Legacy registration (removed)
         // services.AddSingleton<IBookerAIEngine>(sp =>
         //     new BookerAIEngine(null)); // Ces services fonctionnent sans repository
@@ -347,9 +357,13 @@ public sealed class App : Application
         // Phase 2.1 - TV Deal Negotiation Service
         services.AddSingleton<ICompanyRepository>(repositories.CompanyRepository);
         services.AddSingleton<ITvDealRepository>(repositories.CompanyRepository);
+        services.AddSingleton<CoreInterfaces.IBrandRepository>(sp => new BrandRepository(factory));
+        services.AddSingleton<CoreInterfaces.IEraRepository>(sp => new EraRepository(factory));
+        services.AddSingleton<CoreInterfaces.INicheFederationRepository>(sp => new NicheFederationRepository(factory));
+
         services.AddSingleton<ITvDealNegotiationService>(sp =>
             new TvDealNegotiationService(
-                sp.GetRequiredService<ICompanyRepository>(),
+                sp.GetRequiredService<CoreInterfaces.ICompanyRepository>(),
                 sp.GetRequiredService<ITvDealRepository>()));
 
         // Phase 2.2 - Revenue Projection & Budget Allocation Services
@@ -359,7 +373,7 @@ public sealed class App : Application
                 sp.GetRequiredService<ITvDealRepository>()));
         services.AddSingleton<IBudgetAllocationService>(sp =>
             new BudgetAllocationService());
-        
+
         // Phase 2.2 - Debt Management Service
         services.AddSingleton<IDebtManagementService>(sp =>
             new DebtManagementService(
@@ -369,16 +383,17 @@ public sealed class App : Application
         services.AddSingleton<IBookingControlService>(sp =>
             new BookingControlService(
                 sp.GetRequiredService<IBookerAIEngine>()));
-        
+
         // Booking Builder & Template Services
         services.AddSingleton<RingGeneral.Core.Services.BookingBuilderService>();
         services.AddSingleton<RingGeneral.Core.Services.TemplateService>();
+        services.AddSingleton<RingGeneral.Core.Contracts.ContractNegotiationService>();
 
         // Daily Time System Services (Phase 7)
         services.AddSingleton<IGameRepository>(repositories.GameRepository);
         services.AddSingleton<IDailyServices>(sp =>
             new DailyFinanceService(sp.GetRequiredService<IGameRepository>()));
-        
+
         // Show Day Orchestrator (doit être enregistré avant TimeOrchestratorService)
         services.AddSingleton<IShowDayOrchestrator>(sp =>
             new ShowDayOrchestrator(
@@ -392,7 +407,7 @@ public sealed class App : Application
                 contextLoader: null,  // Sera fourni par GameRepository
                 statusUpdater: null,  // Sera fourni par ShowRepository
                 inboxItemAdder: item => repositories.GameRepository.AjouterInboxItem(item))); // Phase 3.2
-        
+
         // DailyShowSchedulerService (doit être créé après IShowDayOrchestrator)
         services.AddSingleton<RingGeneral.Core.Services.DailyShowSchedulerService>(sp =>
             new RingGeneral.Core.Services.DailyShowSchedulerService(
@@ -401,7 +416,7 @@ public sealed class App : Application
                 sp.GetRequiredService<RingGeneral.Core.Interfaces.IGameRepository>(),
                 sp.GetService<RingGeneral.Core.Interfaces.IShowDayOrchestrator>(),
                 sp.GetService<RingGeneral.Core.Interfaces.IBookerAIEngine>()));
-        
+
         services.AddSingleton<ITimeOrchestratorService>(sp =>
             new TimeOrchestratorService(
                 sp.GetRequiredService<IGameRepository>(),
@@ -409,7 +424,7 @@ public sealed class App : Application
                 eventGenerator: null,     // TODO: Implémenter IEventGeneratorService
                 showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>(),
                 dailyShowScheduler: sp.GetRequiredService<RingGeneral.Core.Services.DailyShowSchedulerService>()));
-        
+
         // Additional Core Services
         services.AddSingleton<RingGeneral.Core.Services.TitleService>(sp =>
             new RingGeneral.Core.Services.TitleService(
@@ -458,6 +473,7 @@ public sealed class App : Application
         services.AddSingleton<ViewModels.Core.ShellViewModel>(sp =>
             new ViewModels.Core.ShellViewModel(
                 navigationService: sp.GetRequiredService<INavigationService>(),
+                eventAggregator: sp.GetRequiredService<RingGeneral.UI.Services.Messaging.IEventAggregator>(),
                 repository: sp.GetService<GameRepository>()));
 
         // ViewModels - Start
@@ -482,7 +498,10 @@ public sealed class App : Application
                 sp.GetRequiredService<BookingValidator>(),
                 sp.GetRequiredService<SegmentTypeCatalog>(),
                 sp.GetRequiredService<IEventAggregator>(),
-                sp.GetService<SettingsRepository>()));
+                sp.GetRequiredService<RingGeneral.Core.Services.BookingBuilderService>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.TemplateService>(),
+                sp.GetRequiredService<RingGeneral.Core.Interfaces.IBookingControlService>(),
+                sp.GetRequiredService<RingGeneral.Core.Interfaces.IShowDayOrchestrator>()));
         services.AddTransient<LibraryViewModel>();
         services.AddTransient<ShowHistoryPageViewModel>();
         services.AddTransient<BookingSettingsViewModel>();
@@ -490,6 +509,9 @@ public sealed class App : Application
             new ShowBookingViewModel(
                 sp.GetRequiredService<GameRepository>(),
                 sp.GetRequiredService<SegmentTypeCatalog>(),
+                sp.GetRequiredService<BookingValidator>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.BookingBuilderService>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.TemplateService>(),
                 sp.GetRequiredService<IBookerAIEngine>(),
                 sp.GetRequiredService<IBookingControlService>(),
                 sp.GetRequiredService<SettingsRepository>()));
@@ -501,14 +523,18 @@ public sealed class App : Application
                 navigationService: sp.GetRequiredService<INavigationService>()));
         services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>(sp =>
             new ViewModels.Roster.WorkerDetailViewModel(
-                repository: sp.GetRequiredService<GameRepository>()));
+                repository: sp.GetRequiredService<GameRepository>(),
+                profileViewModel: sp.GetRequiredService<ViewModels.Workers.Profile.ProfileViewModel>()));
         services.AddTransient<ViewModels.Roster.TitlesViewModel>(sp =>
             new ViewModels.Roster.TitlesViewModel(
-                repository: sp.GetRequiredService<GameRepository>()));
-        services.AddTransient<ViewModels.Roster.InjuriesViewModel>(sp =>
-            new ViewModels.Roster.InjuriesViewModel(
-                repository: sp.GetRequiredService<GameRepository>(),
-                medicalRepository: sp.GetRequiredService<MedicalRepository>()));
+                sp.GetRequiredService<ITitleRepository>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.ContenderService>(),
+                sp.GetRequiredService<GameRepository>()));
+        services.AddTransient<ViewModels.Medical.InjuriesViewModel>(sp =>
+            new ViewModels.Medical.InjuriesViewModel(
+                sp.GetRequiredService<IGameRepository>(),
+                sp.GetRequiredService<IMedicalRepository>(),
+                sp.GetRequiredService<INavigationService>()));
         services.AddTransient<ViewModels.Roster.StructuralDashboardViewModel>(sp =>
             new ViewModels.Roster.StructuralDashboardViewModel(
                 sp.GetRequiredService<IRosterAnalysisRepository>(),
@@ -530,7 +556,16 @@ public sealed class App : Application
         services.AddTransient<ViewModels.Company.ChildCompaniesViewModel>(sp =>
             new ViewModels.Company.ChildCompaniesViewModel(
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
-                sp.GetRequiredService<ChildCompanyService>()));
+                sp.GetRequiredService<ChildCompanyService>(),
+                sp.GetService<IRegionRepository>(),
+                sp.GetRequiredService<INavigationService>()));
+        services.AddTransient<ViewModels.Company.ChildCompanyDetailViewModel>(sp =>
+            new ViewModels.Company.ChildCompanyDetailViewModel(
+                sp.GetRequiredService<IGameRepository>(),
+                sp.GetRequiredService<IStaffRepository>(),
+                sp.GetRequiredService<IChildCompanyExtendedRepository>(),
+                sp.GetRequiredService<WorkerRepository>(),
+                sp.GetRequiredService<INavigationService>()));
         services.AddTransient<ViewModels.Company.ChildCompanyBookingViewModel>(sp =>
             new ViewModels.Company.ChildCompanyBookingViewModel(
                 sp.GetRequiredService<RingGeneral.Core.Services.ChildCompanyBookingService>(),
@@ -540,14 +575,23 @@ public sealed class App : Application
         // Other ViewModels
         services.AddTransient<StorylinesViewModel>(sp =>
             new StorylinesViewModel(
-                repository: sp.GetRequiredService<GameRepository>()));
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.StorylineService>()));
         services.AddTransient<YouthViewModel>(sp =>
             new YouthViewModel(
-                repository: sp.GetRequiredService<GameRepository>()));
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<YouthRepository>()));
+        services.AddTransient<YouthHubViewModel>(sp =>
+            new YouthHubViewModel(
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<YouthRepository>()));
         services.AddTransient<FinanceViewModel>(sp =>
             new FinanceViewModel(
                 sp.GetRequiredService<GameRepository>(),
-                sp.GetRequiredService<IDebtManagementService>()));
+                sp.GetRequiredService<IDebtManagementService>(),
+                sp.GetRequiredService<IRevenueProjectionService>(),
+                sp.GetRequiredService<IBudgetAllocationService>(),
+                sp.GetRequiredService<ITvDealNegotiationService>()));
         services.AddTransient<CalendarViewModel>(sp =>
             new CalendarViewModel(
                 sp.GetRequiredService<GameRepository>(),
@@ -561,17 +605,56 @@ public sealed class App : Application
                 sp.GetRequiredService<ICatchStyleRepository>(),
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
                 sp.GetRequiredService<IChildCompanyStaffService>(),
-                sp.GetRequiredService<IChildCompanyStaffRepository>()));
-        services.AddTransient<OwnerBookerViewModel>();
-        services.AddTransient<CrisisViewModel>();
+                sp.GetRequiredService<IChildCompanyStaffRepository>(),
+                sp.GetRequiredService<IStaffRepository>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.StaffCompatibilityCalculator>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.StaffProposalService>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.StaffSharingEngine>(),
+                sp.GetRequiredService<IBrandRepository>(),
+                sp.GetRequiredService<IEraRepository>(),
+                sp.GetRequiredService<INicheFederationRepository>()));
+        services.AddTransient<OwnerBookerViewModel>(sp =>
+            new OwnerBookerViewModel(
+                sp.GetRequiredService<OwnerRepository>(),
+                sp.GetRequiredService<BookerRepository>()));
+        services.AddTransient<CrisisViewModel>(sp =>
+            new CrisisViewModel(
+                sp.GetRequiredService<ICrisisRepository>(),
+                sp.GetRequiredService<ICrisisEngine>(),
+                sp.GetRequiredService<ICommunicationEngine>()));
 
+        // Modal ViewModels (Phase 10)
+        services.AddTransient<ViewModels.Workers.Profile.ProfileViewModel>(sp =>
+            new ViewModels.Workers.Profile.ProfileViewModel(
+                sp.GetRequiredService<IWorkerAttributesRepository>(),
+                sp.GetRequiredService<IRelationsRepository>(),
+                sp.GetRequiredService<INotesRepository>(),
+                sp.GetRequiredService<PersonalityDetectorService>(),
+                sp.GetRequiredService<AgentReportGeneratorService>()));
+
+        services.AddSingleton<Func<string, string, int, ViewModels.Contracts.ContractNegotiationViewModel>>(sp =>
+            (workerId, companyId, currentWeek) => new ViewModels.Contracts.ContractNegotiationViewModel(
+                sp.GetRequiredService<RingGeneral.Core.Contracts.ContractNegotiationService>(),
+                sp.GetRequiredService<RingGeneral.Core.Services.TemplateService>(),
+                sp.GetRequiredService<GameRepository>(),
+                workerId,
+                companyId,
+                currentWeek));
+
+        services.AddSingleton<Func<string, ViewModels.Finance.TvDealNegotiationViewModel>>(sp =>
+            companyId => new ViewModels.Finance.TvDealNegotiationViewModel(
+                sp.GetRequiredService<ITvDealNegotiationService>(),
+                companyId));
         // Inbox & Settings ViewModels
-        services.AddTransient<ViewModels.Inbox.InboxViewModel>();
+        services.AddTransient<ViewModels.Inbox.InboxViewModel>(sp =>
+            new ViewModels.Inbox.InboxViewModel(
+                sp.GetRequiredService<GameRepository>()));
         services.AddTransient<ViewModels.Settings.SettingsViewModel>();
         services.AddTransient<MedicalViewModel>(sp =>
             new MedicalViewModel(
                 gameRepository: sp.GetRequiredService<GameRepository>(),
-                medicalRepository: sp.GetRequiredService<MedicalRepository>()));
+                medicalRepository: sp.GetRequiredService<MedicalRepository>(),
+                navigationService: sp.GetRequiredService<INavigationService>()));
 
         var provider = services.BuildServiceProvider();
 
@@ -622,14 +705,14 @@ public sealed class App : Application
             Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
             File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"A\",\"location\":\"App.axaml.cs:402\",\"message\":\"CheckForActiveSave entry\",\"data\":{{\"saveGameManagerType\":\"{saveGameManager.GetType().Name}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
             // #endregion
-            
+
             // Utiliser SaveGameManager qui accède à la Save DB
             var activeSave = saveGameManager.ChargerSauvegardeActive();
-            
+
             // #region agent log
             File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"A\",\"location\":\"App.axaml.cs:408\",\"message\":\"After ChargerSauvegardeActive\",\"data\":{{\"hasActiveSave\":{activeSave != null}}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
             // #endregion
-            
+
             return activeSave != null;
         }
         catch (Exception ex)
@@ -639,7 +722,7 @@ public sealed class App : Application
             Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
             File.AppendAllText(logPath, $"{{\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"A\",\"location\":\"App.axaml.cs:412\",\"message\":\"Exception caught\",\"data\":{{\"exceptionType\":\"{ex.GetType().Name}\",\"message\":\"{ex.Message.Replace("\"", "\\\"")}\",\"stackTrace\":\"{ex.StackTrace?.Replace("\"", "\\\"").Substring(0, Math.Min(200, ex.StackTrace?.Length ?? 0))}\"}},\"timestamp\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}\n");
             // #endregion
-            
+
             ApplicationServices.Logger.Error($"Erreur lors de la vérification de sauvegarde: {ex.Message}", ex);
             return false;
         }

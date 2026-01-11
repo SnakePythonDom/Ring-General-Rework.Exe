@@ -29,23 +29,32 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             }
 
             using var connexion = OpenConnection();
+
+            // Phase 2.3 - S'assurer que les colonnes existent
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "YouthStructureId", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Name", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Acronym", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RegionId", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RosterLimit", "INTEGER");
+
             using var command = connexion.CreateCommand();
 
             command.CommandText = @"
                 INSERT INTO ChildCompaniesExtended (
                     ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                     AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                    CreatedAt, IsActive, YouthStructureId
+                    CreatedAt, IsActive, YouthStructureId, Name, Acronym, RegionId, RosterLimit
                 ) VALUES (
                     $childCompanyId, $parentCompanyId, $objective, $hasFullAutonomy,
                     $assignedBookerId, $isLaboratory, $testStyle, $nicheType,
-                    $createdAt, $isActive, $youthStructureId
+                    $createdAt, $isActive, $youthStructureId, $name, $acronym, $regionId, $rosterLimit
                 )
                 ON CONFLICT(ChildCompanyId) DO UPDATE SET
                     ParentCompanyId = $parentCompanyId, Objective = $objective,
                     HasFullAutonomy = $hasFullAutonomy, AssignedBookerId = $assignedBookerId,
                     IsLaboratory = $isLaboratory, TestStyle = $testStyle,
-                    NicheType = $nicheType, IsActive = $isActive, YouthStructureId = $youthStructureId;";
+                    NicheType = $nicheType, IsActive = $isActive, YouthStructureId = $youthStructureId,
+                    Name = $name, Acronym = $acronym, RegionId = $regionId, RosterLimit = $rosterLimit;";
 
             AjouterParametre(command, "$childCompanyId", childCompany.ChildCompanyId);
             AjouterParametre(command, "$parentCompanyId", childCompany.ParentCompanyId);
@@ -57,7 +66,11 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             AjouterParametre(command, "$nicheType", childCompany.NicheType?.ToString());
             AjouterParametre(command, "$createdAt", childCompany.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
             AjouterParametre(command, "$isActive", childCompany.IsActive ? 1 : 0);
-            AjouterParametre(command, "$youthStructureId", childCompany.YouthStructureId); // Phase 2.3
+            AjouterParametre(command, "$youthStructureId", childCompany.YouthStructureId);
+            AjouterParametre(command, "$name", childCompany.Name);
+            AjouterParametre(command, "$acronym", childCompany.Acronym);
+            AjouterParametre(command, "$regionId", childCompany.RegionId);
+            AjouterParametre(command, "$rosterLimit", childCompany.RosterLimit);
 
             command.ExecuteNonQuery();
         });
@@ -70,10 +83,16 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             using var connexion = OpenConnection();
             using var command = connexion.CreateCommand();
 
+            // S'assurer que les colonnes existent pour éviter les erreurs de SELECT *
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Name", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Acronym", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RegionId", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RosterLimit", "INTEGER");
+
             command.CommandText = @"
                 SELECT ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                        AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                       CreatedAt, IsActive, YouthStructureId
+                       CreatedAt, IsActive, YouthStructureId, Name, Acronym, RegionId, RosterLimit
                 FROM ChildCompaniesExtended
                 WHERE ChildCompanyId = $childCompanyId
                 LIMIT 1;";
@@ -97,10 +116,16 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             using var connexion = OpenConnection();
             using var command = connexion.CreateCommand();
 
+            // S'assurer que les colonnes existent
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Name", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Acronym", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RegionId", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RosterLimit", "INTEGER");
+
             command.CommandText = @"
                 SELECT ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                        AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                       CreatedAt, IsActive, YouthStructureId
+                       CreatedAt, IsActive, YouthStructureId, Name, Acronym, RegionId, RosterLimit
                 FROM ChildCompaniesExtended
                 WHERE ParentCompanyId = $parentCompanyId AND IsActive = 1
                 ORDER BY CreatedAt DESC;";
@@ -126,10 +151,16 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             using var connexion = OpenConnection();
             using var command = connexion.CreateCommand();
 
+            // S'assurer que les colonnes existent
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Name", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "Acronym", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RegionId", "TEXT");
+            AjouterColonneSiAbsente(connexion, "ChildCompaniesExtended", "RosterLimit", "INTEGER");
+
             command.CommandText = @"
                 SELECT ChildCompanyId, ParentCompanyId, Objective, HasFullAutonomy,
                        AssignedBookerId, IsLaboratory, TestStyle, NicheType,
-                       CreatedAt, IsActive, YouthStructureId
+                       CreatedAt, IsActive, YouthStructureId, Name, Acronym, RegionId, RosterLimit
                 FROM ChildCompaniesExtended
                 WHERE Objective = $objective AND IsActive = 1
                 ORDER BY CreatedAt DESC;";
@@ -180,7 +211,11 @@ public class ChildCompanyExtendedRepository : RepositoryBase, IChildCompanyExten
             NicheType = reader.IsDBNull(7) ? null : Enum.Parse<NicheType>(reader.GetString(7)),
             CreatedAt = DateTime.Parse(reader.GetString(8)),
             IsActive = reader.GetInt32(9) == 1,
-            YouthStructureId = reader.IsDBNull(10) ? null : reader.GetString(10) // Phase 2.3
+            YouthStructureId = reader.IsDBNull(10) ? null : reader.GetString(10),
+            Name = reader.IsDBNull(11) ? null : reader.GetString(11),
+            Acronym = reader.IsDBNull(12) ? null : reader.GetString(12),
+            RegionId = reader.IsDBNull(13) ? null : reader.GetString(13),
+            RosterLimit = reader.IsDBNull(14) ? 20 : reader.GetInt32(14)
         };
     }
 }

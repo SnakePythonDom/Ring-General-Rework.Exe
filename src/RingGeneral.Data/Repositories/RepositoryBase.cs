@@ -25,6 +25,13 @@ public abstract class RepositoryBase
         return _factory.CreateGeneralConnection();
     }
 
+    protected async Task<SqliteConnection> OpenConnectionAsync()
+    {
+        var connection = _factory.CreateGeneralConnection();
+        await connection.OpenAsync();
+        return connection;
+    }
+
     protected void WithTransaction(Action<SqliteConnection, SqliteTransaction> action)
     {
         using var connexion = OpenConnection();

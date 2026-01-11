@@ -7,7 +7,7 @@ namespace RingGeneral.Data.Repositories;
 /// <summary>
 /// Repository for managing worker relations and factions.
 /// </summary>
-public sealed class RelationsRepository : RepositoryBase, IRelationsRepository
+public sealed class RelationsRepository : RepositoryBase, RingGeneral.Core.Interfaces.IRelationsRepository
 {
     public RelationsRepository(SqliteConnectionFactory factory) : base(factory)
     {

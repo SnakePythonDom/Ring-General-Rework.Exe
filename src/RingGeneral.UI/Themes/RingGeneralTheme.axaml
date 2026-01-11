@@ -137,6 +137,8 @@
     <CornerRadius x:Key="RadiusMedium">6</CornerRadius>
     <CornerRadius x:Key="RadiusLarge">8</CornerRadius>
 
+    <BoxShadows x:Key="CardShadow">0 8 32 #40000000</BoxShadows>
+
     <!-- ==================== DATA RESOURCES ==================== -->
 
     <!-- Child Company Objectives -->

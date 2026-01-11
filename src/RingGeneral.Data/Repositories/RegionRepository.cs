@@ -1,4 +1,6 @@
 using RingGeneral.Data.Database;
+using RingGeneral.Core.Interfaces;
+using System.Collections.Generic;
 
 namespace RingGeneral.Data.Repositories;
 
@@ -34,5 +36,3 @@ public sealed class RegionRepository : RepositoryBase, IRegionRepository
         return regions;
     }
 }
-
-public sealed record RegionSelection(string RegionId, string RegionName, string CountryName);

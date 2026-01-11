@@ -3,6 +3,7 @@ using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Services;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Workers.Profile;
@@ -173,13 +174,21 @@ public sealed class ProfileViewModel : ViewModelBase
         if (worker == null) return;
 
         // Load data for all tabs
-        AttributesTab.LoadWorker(worker.Id);
-        ContractsTab.LoadWorker(worker.Id);
-        GimmickTab.LoadWorker(worker.Id);
-        RelationsTab.LoadWorker(worker.Id);
-        HistoryTab.LoadWorker(worker.Id);
-        NotesTab.LoadWorker(worker.Id);
-        PersonalityTab.LoadWorker(worker.Id);
+        // Load data for all tabs
+        // Prefer using the Worker object directly where supported to handle fallback scenarios
+        AttributesTab.LoadWorker(worker);
+        PersonalityTab.LoadWorker(worker);
+
+        // Other tabs still rely on ID fetching for now
+        // If Worker.Id is 0 (fallback), these will likely be empty
+        if (worker.Id != 0)
+        {
+            ContractsTab.LoadWorker(worker.Id);
+            GimmickTab.LoadWorker(worker.Id);
+            RelationsTab.LoadWorker(worker.Id);
+            HistoryTab.LoadWorker(worker.Id);
+            NotesTab.LoadWorker(worker.Id);
+        }
     }
 
     private void Refresh()

@@ -6,7 +6,9 @@ public interface IMedicalRepository
 {
     int AjouterBlessure(InjuryRecord injury);
     InjuryRecord? ChargerBlessure(int injuryId);
+    List<InjuryRecord> ChargerToutesBlessures();
     void MettreAJourBlessure(InjuryRecord injury);
+    void SupprimerBlessure(int injuryId);
     int AjouterPlan(RecoveryPlan plan);
     RecoveryPlan? ChargerPlanPourBlessure(int injuryId);
     void MettreAJourPlanStatut(int injuryId, string statut, int? completedWeek);

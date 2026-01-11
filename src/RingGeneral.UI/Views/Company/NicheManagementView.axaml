@@ -299,7 +299,7 @@
                         Command="{Binding AbandonNicheCommand}"
                         IsEnabled="{Binding IsNicheFederation}"
                         HorizontalAlignment="Stretch"
-                        Background="Red"
+                        Background="{StaticResource AccentRedBrush}"
                         Foreground="White"/>
               </StackPanel>
             </Border>

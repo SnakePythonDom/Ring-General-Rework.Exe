@@ -13,20 +13,16 @@ namespace RingGeneral.UI.ViewModels.Inbox;
 /// </summary>
 public sealed class InboxViewModel : ViewModelBase
 {
-    private readonly GameRepository? _repository;
+    private readonly GameRepository _repository;
     private InboxItemViewModel? _selectedItem;
     private InboxTab _selectedTab = InboxTab.All;
 
-    public InboxViewModel()
+    public InboxViewModel(GameRepository repository)
     {
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         Items = new ObservableCollection<InboxItemViewModel>();
         FilteredItems = new ObservableCollection<InboxItemViewModel>();
         Items.CollectionChanged += (_, _) => UpdateFilter();
-    }
-
-    public InboxViewModel(GameRepository repository) : this()
-    {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     }
 
     /// <summary>

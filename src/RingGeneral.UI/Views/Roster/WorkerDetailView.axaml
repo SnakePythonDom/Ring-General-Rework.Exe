@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
-             xmlns:shared="using:RingGeneral.UI.Views.Shared"
+             xmlns:profile="using:RingGeneral.UI.Views.Workers.Profile"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="RingGeneral.UI.Views.Roster.WorkerDetailView"
              x:DataType="vm:WorkerDetailViewModel">
@@ -12,16 +12,17 @@
         <vm:WorkerDetailViewModel />
     </Design.DataContext>
 
-    <Grid Margin="30">
-        <Grid RowDefinitions="Auto,*">
-            <shared:ProfileView Grid.Row="0" DataContext="{Binding Profile}" IsVisible="{Binding !IsLoading}"/>
+        <Grid>
+            <!-- Main Content - Always visible (below spinner) -->
+            <profile:ProfileView DataContext="{Binding Profile}" />
 
-            <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                        Spacing="12" IsVisible="{Binding IsLoading}">
-                <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center"/>
-                <TextBlock Text="Chargement..." FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-            </StackPanel>
+            <!-- Loading Indicator - Overlay -->
+            <Grid IsVisible="{Binding IsLoading}" Background="#80000000">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                    <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Chargement..." FontSize="14" Foreground="White" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
         </Grid>
-    </Grid>
 
 </UserControl>

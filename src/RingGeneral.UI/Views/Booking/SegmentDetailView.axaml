@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
+             x:Class="RingGeneral.UI.Views.Booking.SegmentDetailView"
+             x:DataType="vm:SegmentViewModel">
+    
+    <StackPanel Spacing="15">
+        <!-- HEADER -->
+        <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="8" Padding="12">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding Libelle}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding TypeSegment}" FontSize="12" Foreground="{StaticResource TextDisabledBrush}"/>
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding EstMainEvent}" OnContent="⭐" OffContent="" ToolTip.Tip="Main Event"/>
+            </Grid>
+        </Border>
+
+        <!-- TYPE SELECTOR (Placeholder for future ComboBox) -->
+        <StackPanel Spacing="5">
+            <TextBlock Text="TYPE DE SEGMENT" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <ComboBox SelectedItem="{Binding TypeSegment}" HorizontalAlignment="Stretch">
+                <x:String>Match</x:String>
+                <x:String>Promo</x:String>
+                <x:String>Angle</x:String>
+                <x:String>Interview</x:String>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- DURATION -->
+        <StackPanel Spacing="5">
+            <TextBlock Text="DURÉE (MIN)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <NumericUpDown Value="{Binding DureeMinutes}" Minimum="1" Maximum="60" FormatString="0"/>
+        </StackPanel>
+
+        <!-- INTENSITY -->
+        <StackPanel Spacing="5">
+            <TextBlock Text="INTENSITÉ (%)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <Slider Value="{Binding Intensite}" Minimum="0" Maximum="100" />
+            <TextBlock Text="{Binding Intensite, StringFormat='{}{0}%'}" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimaryBrush}"/>
+        </StackPanel>
+        
+        <!-- PARTICIPANTS PLACEHOLDER -->
+        <StackPanel Spacing="5">
+            <TextBlock Text="PARTICIPANTS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <ItemsControl ItemsSource="{Binding Participants}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource BackgroundInputBrush}" Padding="8,4" CornerRadius="4" Margin="0,0,0,4">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Column="0" Text="{Binding Nom}" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="❌" 
+                                        Command="{Binding $parent[UserControl].DataContext.RemoveParticipantCommand}" 
+                                        CommandParameter="{Binding}"
+                                        Background="Transparent" BorderThickness="0" Padding="4"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="+ Ajouter participant" Command="{Binding AddParticipantCommand}" HorizontalAlignment="Stretch" Background="Transparent" BorderBrush="{StaticResource BorderSecondaryBrush}" BorderThickness="1" Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+        
+        <!-- WINNER/LOSER (If Match) -->
+        <StackPanel Spacing="5" IsVisible="{Binding IsMatch}">
+             <TextBlock Text="VAINQUEUR" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+             <ComboBox ItemsSource="{Binding Participants}" SelectedItem="{Binding VainqueurId}" HorizontalAlignment="Stretch">
+                 <ComboBox.ItemTemplate>
+                     <DataTemplate>
+                         <TextBlock Text="{Binding Nom}"/>
+                     </DataTemplate>
+                 </ComboBox.ItemTemplate>
+             </ComboBox>
+        </StackPanel>
+
+    </StackPanel>
+</UserControl>

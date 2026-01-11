@@ -1,10 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
+using RingGeneral.UI.Services.Navigation;
 
-namespace RingGeneral.UI.ViewModels.Roster;
+namespace RingGeneral.UI.ViewModels.Medical;
 
 /// <summary>
 /// ViewModel pour la gestion des blessures du roster
@@ -12,18 +15,23 @@ namespace RingGeneral.UI.ViewModels.Roster;
 /// </summary>
 public sealed class InjuriesViewModel : ViewModelBase
 {
-    private readonly MedicalRepository _medicalRepository;
-    private readonly GameRepository _gameRepository;
+    private readonly IMedicalRepository _medicalRepository;
+    private readonly IGameRepository _gameRepository;
+    private readonly INavigationService _navigationService;
     private InjuryRecordViewModel? _selectedInjury;
     private string _filterStatus = "Tous";
     private string _filterText = string.Empty;
     private bool _showOnlyActive = true;
     private readonly List<InjuryRecordViewModel> _allInjuries = new List<InjuryRecordViewModel>();
 
-    public InjuriesViewModel(GameRepository repository, MedicalRepository medicalRepository)
+    public InjuriesViewModel(
+        IGameRepository repository, 
+        IMedicalRepository medicalRepository,
+        INavigationService navigationService)
     {
         _gameRepository = repository;
         _medicalRepository = medicalRepository;
+        _navigationService = navigationService;
 
         // Collections
         Injuries = new ObservableCollection<InjuryRecordViewModel>();
@@ -204,7 +212,7 @@ public sealed class InjuriesViewModel : ViewModelBase
         {
             Logger.Info($"Chargement des noms pour {workerIds.Count} workers...");
             
-            using var connection = _gameRepository.CreateConnection();
+            using var connection = (SqliteConnection)_gameRepository.CreateConnection();
             
             // Vérifier si la table existe
             using (var checkCmd = connection.CreateCommand())
@@ -254,48 +262,111 @@ public sealed class InjuriesViewModel : ViewModelBase
 
     private void ViewWorkerDetails(InjuryRecordViewModel injury)
     {
-        // TODO: Naviguer vers WorkerDetailViewModel
-        System.Diagnostics.Debug.WriteLine($"Viewing worker details: {injury.WorkerName}");
+        if (injury != null && !string.IsNullOrEmpty(injury.WorkerId))
+        {
+            _navigationService.NavigateTo<RingGeneral.UI.ViewModels.Roster.WorkerDetailViewModel>(injury.WorkerId);
+        }
     }
 
     private void MarkAsHealed(InjuryRecordViewModel injury)
     {
-        injury.MarkAsHealed();
-        UpdateStatistics();
+        if (injury == null) return;
+
+        try
+        {
+            // Parse ID (format "INJ123" -> 123)
+            // Note: Le ViewModel utilise "INJ" + Id
+            var idString = injury.InjuryId.StartsWith("INJ") ? injury.InjuryId.Substring(3) : injury.InjuryId;
+            
+            if (int.TryParse(idString, out int id))
+            {
+                var record = _medicalRepository.ChargerBlessure(id);
+                if (record != null)
+                {
+                    // Utiliser le système quotidien pour obtenir la date/semaine
+                    int currentWeek = 1;
+                    try 
+                    { 
+                         // Note: SHOW-001 est utilisé comme référence de progression temporelle
+                         // Une amélioration future serait d'injecter ITimeOrchestrator
+                         var week = _gameRepository.ChargerSemaineShow("SHOW-001");
+                         if (week > 0) currentWeek = week;
+                    } 
+                    catch {}
+
+                    var updated = record with { IsActive = false, EndWeek = currentWeek };
+                    _medicalRepository.MettreAJourBlessure(updated);
+                    LoadInjuries();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur lors de la guérison: {ex.Message}");
+        }
     }
 
     private void AddInjury()
     {
-        var newInjury = new InjuryRecordViewModel(
-            $"INJ-{Guid.NewGuid():N}".ToUpperInvariant(),
-            "Worker inconnu",
-            "WORK000",
-            "Blessure légère",
-            DateTime.Now,
-            7,
-            "Actif",
-            InjurySeverity.Legere
-        );
+        try
+        {
+            // Simulation d'ajout (TODO: utiliser Dialog pour UX complète)
+            var workers = _gameRepository.ChargerNomsWorkers();
+            if (!workers.Any()) return;
+            
+            var randomWorkerId = workers.Keys.Skip(new Random().Next(workers.Count)).First();
+            
+            int currentWeek = 1; 
+             try 
+            { 
+                 var week = _gameRepository.ChargerSemaineShow("SHOW-001");
+                 if (week > 0) currentWeek = week;
+            } 
+            catch {}
 
-        Injuries.Add(newInjury);
-        SelectedInjury = newInjury;
-        UpdateStatistics();
+            var newInjury = new InjuryRecord(
+                0, // Auto-inc
+                randomWorkerId,
+                "Blessure Légère (Sim)",
+                InjurySeverity.Legere,
+                currentWeek,
+                null,
+                true,
+                "Ajouté manuellement"
+            );
+
+            _medicalRepository.AjouterBlessure(newInjury);
+            LoadInjuries();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur ajout blessure: {ex.Message}");
+        }
     }
 
     private void EditInjury(InjuryRecordViewModel injury)
     {
         // TODO: Ouvrir dialogue d'édition
-        System.Diagnostics.Debug.WriteLine($"Editing injury: {injury.InjuryType} for {injury.WorkerName}");
+        // Pour l'instant non implémenté (low priority)
     }
 
     private void DeleteInjury(InjuryRecordViewModel injury)
     {
-        Injuries.Remove(injury);
-        if (SelectedInjury == injury)
+        if (injury == null) return;
+
+        try
         {
-            SelectedInjury = Injuries.FirstOrDefault();
+            var idString = injury.InjuryId.StartsWith("INJ") ? injury.InjuryId.Substring(3) : injury.InjuryId;
+            if (int.TryParse(idString, out int id))
+            {
+                _medicalRepository.SupprimerBlessure(id);
+                LoadInjuries();
+            }
         }
-        UpdateStatistics();
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur suppression blessure: {ex.Message}");
+        }
     }
 
     private void ApplyFilter()

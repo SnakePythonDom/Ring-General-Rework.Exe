@@ -128,8 +128,8 @@
                                 </ItemsControl>
 
                                 <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                                    <Button Content="Tester" Command="{Binding TestValidationCommand}" Classes="secondary" CornerRadius="6" Padding="12,6"/>
-                                    <Button Content="Réinitialiser" Command="{Binding ResetToDefaultsCommand}" Classes="secondary" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Tester" Command="{Binding TestValidationCommand}" Background="{StaticResource BrandSecondaryBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                    <Button Content="Réinitialiser" Command="{Binding ResetToDefaultsCommand}" Background="{StaticResource BrandSecondaryBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
                                     <Button Content="Enregistrer" Command="{Binding SaveSettingsCommand}" Background="{StaticResource AccentGreenBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
                                 </StackPanel>
                             </StackPanel>

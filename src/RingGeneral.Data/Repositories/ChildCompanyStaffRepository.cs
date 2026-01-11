@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Enums;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.ChildCompany;
+using RingGeneral.Data.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +17,9 @@ public sealed class ChildCompanyStaffRepository : IChildCompanyStaffRepository
 {
     private readonly string _connectionString;
 
-    public ChildCompanyStaffRepository(string connectionString)
+    public ChildCompanyStaffRepository(SqliteConnectionFactory factory)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+        _connectionString = factory.GetConnectionString();
     }
 
     // ====================================================================

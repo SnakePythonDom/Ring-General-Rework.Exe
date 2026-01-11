@@ -1,12 +1,23 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models;
+using RingGeneral.UI.Services.Messaging;
 
 namespace RingGeneral.UI.ViewModels;
 
-public sealed class SegmentViewModel : ReactiveObject
+public sealed class SegmentViewModel : ViewModelBase
 {
     private readonly SegmentTypeCatalog _catalog;
+    private readonly IEventAggregator _eventAggregator;
+
+    public bool IsMatch => TypeSegment == "Match" || TypeSegment == "match"; // Case insensitive safety
+
+    public ReactiveCommand<Unit, Unit> AddParticipantCommand { get; }
+    public ReactiveCommand<ParticipantViewModel, Unit> RemoveParticipantCommand { get; }
 
     public SegmentViewModel(
         string segmentId,
@@ -14,6 +25,7 @@ public sealed class SegmentViewModel : ReactiveObject
         int dureeMinutes,
         bool estMainEvent,
         SegmentTypeCatalog catalog,
+        IEventAggregator eventAggregator,
         IReadOnlyList<ParticipantViewModel> participants,
         string? storylineId,
         string? titreId,
@@ -24,7 +36,9 @@ public sealed class SegmentViewModel : ReactiveObject
     {
         SegmentId = segmentId;
         _catalog = catalog;
+        _eventAggregator = eventAggregator;
         _typeSegment = typeSegment;
+
         _typeSegmentLibelle = ObtenirLibelle(typeSegment);
         _dureeMinutes = dureeMinutes;
         _estMainEvent = estMainEvent;
@@ -36,19 +50,23 @@ public sealed class SegmentViewModel : ReactiveObject
         Participants = new ObservableCollection<ParticipantViewModel>(participants);
         Consignes = new ObservableCollection<SegmentConsigneViewModel>();
         RechargerConsignes(settings);
+
+        AddParticipantCommand = ReactiveCommand.Create(AddParticipant);
+        RemoveParticipantCommand = ReactiveCommand.Create<ParticipantViewModel>(RemoveParticipant);
     }
 
     /// <summary>
     /// Constructeur à partir d'une SegmentDefinition.
     /// Utilisé pour charger les segments depuis le contexte du show.
     /// </summary>
-    public SegmentViewModel(SegmentDefinition segment)
+    public SegmentViewModel(SegmentDefinition segment, IEventAggregator eventAggregator)
         : this(
             segment.SegmentId,
             segment.TypeSegment,
             segment.DureeMinutes,
             segment.EstMainEvent,
             new SegmentTypeCatalog(),
+            eventAggregator,
             Array.Empty<ParticipantViewModel>(),
             segment.StorylineId,
             segment.TitreId,
@@ -57,6 +75,24 @@ public sealed class SegmentViewModel : ReactiveObject
             segment.PerdantId,
             segment.Settings)
     {
+    }
+
+    public void AddParticipant(ParticipantViewModel participant)
+    {
+        Participants.Add(participant);
+    }
+
+    private void AddParticipant()
+    {
+        _eventAggregator.Publish(new RequestWorkerSelectionEvent(this));
+    }
+
+    private void RemoveParticipant(ParticipantViewModel participant)
+    {
+        if (participant != null && Participants.Contains(participant))
+        {
+            Participants.Remove(participant);
+        }
     }
 
     public string SegmentId { get; }
@@ -69,6 +105,7 @@ public sealed class SegmentViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _typeSegment, value);
             TypeSegmentLibelle = ObtenirLibelle(value);
             RechargerConsignes(null);
+            this.RaisePropertyChanged(nameof(IsMatch));
         }
     }
     private string _typeSegment;

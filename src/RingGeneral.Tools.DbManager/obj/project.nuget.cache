@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "OnNXUxplyhw=",
+  "dgSpecHash": "3T4dRHFIITA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\popo2\\.cursor\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\RingGeneral.Tools.DbManager.csproj",
+  "projectFilePath": "C:\\Users\\popo2\\.gemini\\Ring-General-Rework.Exe\\src\\RingGeneral.Tools.DbManager\\RingGeneral.Tools.DbManager.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
     "C:\\Users\\popo2\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",

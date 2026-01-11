@@ -43,3 +43,12 @@ public sealed record TitleMatchOutcome(
     bool TitleChanged,
     int PrestigeDelta,
     int? NewReignId);
+
+public sealed record TitleOverview(
+    string TitleId,
+    string Name,
+    int Prestige,
+    string? ChampionId,
+    string ChampionName,
+    int DefenseCount,
+    bool IsVacant);

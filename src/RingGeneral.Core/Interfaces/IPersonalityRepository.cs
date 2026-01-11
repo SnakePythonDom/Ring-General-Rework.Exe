@@ -2,7 +2,7 @@ using RingGeneral.Core.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace RingGeneral.Data.Repositories;
+namespace RingGeneral.Core.Interfaces;
 
 /// <summary>
 /// Repository pour la gestion des attributs mentaux et personnalités.

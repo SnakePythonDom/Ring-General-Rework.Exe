@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Models.Relations;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Workers.Profile;

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.Services.Messaging;
 using RingGeneral.UI.ViewModels.Shared.Navigation;
 using RingGeneral.UI.ViewModels.Booking;
 using RingGeneral.UI.ViewModels.Dashboard;
@@ -40,9 +41,12 @@ public sealed class ShellViewModel : ViewModelBase
     // Expose a live GameSession so XAML can bind to its commands/props
     public GameSessionViewModel GameSession { get; }
 
-    public ShellViewModel(INavigationService navigationService, GameRepository? repository = null)
+    private readonly IEventAggregator _eventAggregator;
+
+    public ShellViewModel(INavigationService navigationService, IEventAggregator eventAggregator, GameRepository? repository = null)
     {
         _navigationService = navigationService;
+        _eventAggregator = eventAggregator;
         _repository = repository;
 
         // Ensure game session exists as early as possible so bindings (commands) are available
@@ -50,7 +54,7 @@ public sealed class ShellViewModel : ViewModelBase
 
         // Construction de l'arbre de navigation
         NavigationItems = BuildNavigationTree();
-        
+
         // Charger le nombre de workers dynamiquement
         _ = LoadWorkersCountAsync();
 
@@ -60,8 +64,31 @@ public sealed class ShellViewModel : ViewModelBase
             {
                 Logger.Info($"CurrentViewModel changé: {vm?.GetType().Name ?? "null"}");
                 CurrentContentViewModel = vm;
+
+                // Initialization contextuelle des ViewModels
+                if (vm is ChildCompaniesViewModel childCompaniesVm && !string.IsNullOrEmpty(GameSession.CurrentCompanyId))
+                {
+                    // Charger les filiales pour la compagnie courante
+                    _ = childCompaniesVm.LoadChildCompaniesAsync(GameSession.CurrentCompanyId);
+                }
+
                 // Mettre à jour le context panel selon le contenu
                 UpdateContextPanel(vm);
+            });
+
+        // =========================================================
+        // SUBSCRIPTIONS TO EVENT AGGREGATOR
+        // =========================================================
+        // We need to listen to segment selection to show segment details in the context panel
+        // This connects the BookingViewModel selection to the Shell's ContextPanel
+        _eventAggregator.GetEvent<SegmentSelectedEvent>()
+            .Subscribe(evt =>
+            {
+                if (evt?.Segment != null)
+                {
+                    // Update context panel with the selected segment
+                    CurrentContextViewModel = evt.Segment;
+                }
             });
 
         // Commandes
@@ -70,7 +97,7 @@ public sealed class ShellViewModel : ViewModelBase
         InboxCommand = ReactiveCommand.Create(OpenInbox);
         HelpCommand = ReactiveCommand.Create(OpenHelp);
         SettingsCommand = ReactiveCommand.Create(OpenSettings);
-        
+
         // Commandes de navigation rapide pour la top bar
         NavigateToDashboardCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<DashboardViewModel>());
         NavigateToBookingCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<BookingViewModel>());
@@ -224,7 +251,7 @@ public sealed class ShellViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> InboxCommand { get; }
     public ReactiveCommand<Unit, Unit> HelpCommand { get; }
     public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
-    
+
     // Commandes de navigation rapide pour la top bar
     public ReactiveCommand<Unit, Unit> NavigateToDashboardCommand { get; }
     public ReactiveCommand<Unit, Unit> NavigateToBookingCommand { get; }
@@ -304,7 +331,8 @@ public sealed class ShellViewModel : ViewModelBase
             "  🏆",
             typeof(TitlesViewModel),
             roster
-        ) { Badge = "(5)" });
+        )
+        { Badge = "(5)" });
         roster.Children.Add(new NavigationItemViewModel(
             "roster.analysis",
             "Analyse Structurelle",
@@ -382,7 +410,7 @@ public sealed class ShellViewModel : ViewModelBase
             "youth",
             "YOUTH",
             "🎓",
-            typeof(YouthViewModel)
+            typeof(YouthHubViewModel)
         );
         root.Add(youth);
 
@@ -428,7 +456,7 @@ public sealed class ShellViewModel : ViewModelBase
     private void NavigateToItem(NavigationItemViewModel item)
     {
         Logger.Info($"NavigateToItem appelé pour: ID={item.Id}, Label={item.Label}, TargetType={item.TargetViewModelType?.FullName ?? "null"}");
-        
+
         if (item.TargetViewModelType == null)
         {
             // Si pas de ViewModel cible, c'est juste une catégorie
@@ -466,10 +494,10 @@ public sealed class ShellViewModel : ViewModelBase
         try
         {
             Logger.Info($"Tentative de navigation vers {viewModelType.FullName} (nom court: {viewModelType.Name})");
-            
+
             // Navigation vers un ViewModel spécifique via reflection
             var navigateMethod = typeof(INavigationService)
-                .GetMethod(nameof(INavigationService.NavigateTo), 
+                .GetMethod(nameof(INavigationService.NavigateTo),
                     System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance,
                     null,
                     System.Reflection.CallingConventions.HasThis,
@@ -551,7 +579,7 @@ public sealed class ShellViewModel : ViewModelBase
         _navigationService.NavigateTo<SettingsViewModel>();
         Logger.Info("Navigation vers SettingsViewModel");
     }
-    
+
     private void OpenReports()
     {
         // Ouvrir les rapports (pour l'instant, rediriger vers Finance)

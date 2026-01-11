@@ -20,7 +20,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -39,7 +39,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayInboxTitle()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -59,7 +59,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayMessagesList()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
 
         // Ajouter un message de test
         viewModel.Items.Add(new InboxItemViewModel(new InboxItem(
@@ -91,7 +91,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayMessageContent()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
 
         var testMessage = new InboxItemViewModel(new InboxItem(
             Type: "System",
@@ -121,7 +121,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayUnreadCount()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
 
         // Ajouter des messages (certains non lus)
         var readMessage = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Read Message", Contenu: "Content", Semaine: 1));
@@ -155,7 +155,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldHandleMessageSelection()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
 
         var message1 = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Message 1", Contenu: "Content 1", Semaine: 1));
         var message2 = new InboxItemViewModel(new InboxItem(Type: "System", Titre: "Message 2", Contenu: "Content 2", Semaine: 1));
@@ -181,7 +181,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldDisplayMessageDetails()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
 
         var detailedMessage = new InboxItemViewModel(new InboxItem(
             Type: "Contract",
@@ -217,7 +217,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldHaveMarkAsReadButton()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -238,7 +238,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldUpdateWhenMessagesChange()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
         var view = new InboxView { DataContext = viewModel };
 
         // Act
@@ -266,7 +266,7 @@ public class InboxViewUITests
     public async Task InboxView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new InboxViewModel();
+        var viewModel = new InboxViewModel(null);
         var view = new InboxView { DataContext = viewModel };
 
         // Act

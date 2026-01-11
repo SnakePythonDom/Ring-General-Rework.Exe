@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="📺 TV Deal Negotiation" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+        <TextBlock Grid.Row="0" Theme="{StaticResource TitleStyle}" Text="📺 TV Deal Negotiation" Margin="0,0,0,20"/>
 
         <!-- Step Indicator -->
         <TextBlock Grid.Row="1" 
@@ -119,9 +119,9 @@
 
                 <TextBlock Text="Request Increase:" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button Content="+10%" Command="{Binding NegotiateCommand}" CommandParameter="10" Background="{StaticResource BrandPrimaryBrush}" Foreground="White"/>
-                    <Button Content="+20%" Command="{Binding NegotiateCommand}" CommandParameter="20" Background="{StaticResource BrandPrimaryBrush}" Foreground="White"/>
-                    <Button Content="+30%" Command="{Binding NegotiateCommand}" CommandParameter="30" Background="{StaticResource BrandPrimaryBrush}" Foreground="White"/>
+                    <Button Theme="{StaticResource PrimaryButton}" Content="+10%" Command="{Binding NegotiateCommand}" CommandParameter="10"/>
+                    <Button Theme="{StaticResource PrimaryButton}" Content="+20%" Command="{Binding NegotiateCommand}" CommandParameter="20"/>
+                    <Button Theme="{StaticResource PrimaryButton}" Content="+30%" Command="{Binding NegotiateCommand}" CommandParameter="30"/>
                 </StackPanel>
 
                 <TextBlock Text="{Binding NegotiationMessage}" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
@@ -154,10 +154,10 @@
 
         <!-- Navigation Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Background="{StaticResource ErrorDarkBrush}" Foreground="White" Padding="15,8"/>
-            <Button Content="Previous" Command="{Binding PreviousStepCommand}" IsEnabled="{Binding CanGoBack}" Background="{StaticResource BorderMediumBrush}" Foreground="White" Padding="15,8"/>
-            <Button Content="Next" Command="{Binding NextStepCommand}" IsEnabled="{Binding CanProceedToNextStep}" Background="{StaticResource BrandPrimaryBrush}" Foreground="White" Padding="15,8"/>
-            <Button Content="Sign Deal" Command="{Binding SignDealCommand}" IsEnabled="{Binding CanSignDeal}" IsVisible="{Binding IsStep4}" Background="{StaticResource SuccessDarkBrush}" Foreground="White" Padding="15,8"/>
+            <Button Theme="{StaticResource DangerButton}" Content="Cancel" Command="{Binding CancelCommand}"/>
+            <Button Theme="{StaticResource SecondaryButton}" Content="Previous" Command="{Binding PreviousStepCommand}" IsEnabled="{Binding CanGoBack}"/>
+            <Button Theme="{StaticResource PrimaryButton}" Content="Next" Command="{Binding NextStepCommand}" IsEnabled="{Binding CanProceedToNextStep}"/>
+            <Button Theme="{StaticResource SuccessButton}" Content="Sign Deal" Command="{Binding SignDealCommand}" IsEnabled="{Binding CanSignDeal}" IsVisible="{Binding IsStep4}"/>
         </StackPanel>
     </Grid>
 </Window>

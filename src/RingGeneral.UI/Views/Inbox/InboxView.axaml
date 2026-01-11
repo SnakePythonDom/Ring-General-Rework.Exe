@@ -28,7 +28,7 @@
 
         <Grid Grid.Row="1" ColumnDefinitions="*,2*">
             <!-- Liste Messages -->
-            <Border Classes="card" Grid.Column="0">
+            <Border Background="{StaticResource BackgroundCardBrush}" BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="1" CornerRadius="{StaticResource RadiusLarge}" Grid.Column="0">
                 <ListBox ItemsSource="{Binding FilteredItems}"
                          SelectedItem="{Binding SelectedItem}"
                          Background="Transparent"
@@ -78,7 +78,7 @@
             </Border>
 
             <!-- Lecture Message -->
-            <Border Grid.Column="1" Classes="card" Padding="24">
+            <Border Grid.Column="1" Background="{StaticResource BackgroundCardBrush}" BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="1" CornerRadius="{StaticResource RadiusLarge}" Padding="24">
                 <Grid RowDefinitions="Auto,*">
                     <TextBlock Text="DÉTAILS DU MESSAGE"
                                FontSize="18"

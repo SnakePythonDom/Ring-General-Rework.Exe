@@ -33,7 +33,10 @@ public class ChildCompanyService
         string childCompanyId,
         string parentCompanyId,
         ChildCompanyObjective objective,
-        string? regionId = null)
+        string? name,
+        string? acronym,
+        string? regionId = null,
+        int rosterLimit = 20)
     {
         string? youthStructureId = null;
 
@@ -55,7 +58,11 @@ public class ChildCompanyService
             NicheType = objective == ChildCompanyObjective.Niche ? DetermineNicheType(parentCompanyId) : null,
             CreatedAt = DateTime.Now,
             IsActive = true,
-            YouthStructureId = youthStructureId // Phase 2.3
+            YouthStructureId = youthStructureId, // Phase 2.3
+            Name = name,
+            Acronym = acronym,
+            RegionId = regionId,
+            RosterLimit = rosterLimit
         };
 
         await _childCompanyRepository.SaveChildCompanyExtendedAsync(childCompany);
@@ -84,7 +91,7 @@ public class ChildCompanyService
             name,
             regionId,
             "DEVELOPMENT", // Type
-            100_000m, // BudgetAnnuel par défaut
+            100_000, // BudgetAnnuel par défaut
             20, // CapaciteMax par défaut
             1, // NiveauEquipements basique
             10, // QualiteCoaching par défaut
@@ -104,6 +111,21 @@ public class ChildCompanyService
             throw new InvalidOperationException($"Filiale {childCompanyId} introuvable");
         }
 
+        if (objective == ChildCompanyObjective.Development && childCompany.Objective != ChildCompanyObjective.Development)
+        {
+            // Si on passe en Développement et qu'on n'a pas de structure, on en crée une
+            if (string.IsNullOrEmpty(childCompany.YouthStructureId) && _youthRepository != null)
+            {
+                var youthStructureId = await CreateYouthStructureForChildCompanyAsync(
+                    childCompany.ChildCompanyId,
+                    childCompany.ParentCompanyId,
+                    childCompany.RegionId); // Assumes RegionId exists on ChildCompanyExtended
+
+                // Update local object to include the new ID
+                childCompany = childCompany with { YouthStructureId = youthStructureId };
+            }
+        }
+
         var updated = new ChildCompanyExtended
         {
             ChildCompanyId = childCompany.ChildCompanyId,
@@ -115,7 +137,12 @@ public class ChildCompanyService
             TestStyle = objective == ChildCompanyObjective.Entertainment ? "Experimental" : childCompany.TestStyle,
             NicheType = objective == ChildCompanyObjective.Niche ? DetermineNicheType(childCompany.ParentCompanyId) : childCompany.NicheType,
             CreatedAt = childCompany.CreatedAt,
-            IsActive = childCompany.IsActive
+            IsActive = childCompany.IsActive,
+            YouthStructureId = childCompany.YouthStructureId, // Preserve or update ID
+            Name = childCompany.Name,
+            Acronym = childCompany.Acronym,
+            RegionId = childCompany.RegionId,
+            RosterLimit = childCompany.RosterLimit
         };
 
         await _childCompanyRepository.UpdateChildCompanyExtendedAsync(updated);

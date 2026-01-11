@@ -202,4 +202,45 @@ public sealed class TitleRepository : RepositoryBase, ITitleRepository, IContend
 
         transaction.Commit();
     }
+
+    public IReadOnlyList<TitleOverview> ChargerTousLesTitres(string companyId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT 
+                t.TitleId, 
+                t.Name, 
+                t.Prestige, 
+                COALESCE(t.CurrentChampionId, t.HolderWorkerId) as ChampionId,
+                COALESCE(w.Name, w.FirstName || ' ' || w.LastName, w.RingName, 'Unknown') as ChampionName,
+                COALESCE(tr.DefenseCount, 0) as DefenseCount
+            FROM Titles t
+            LEFT JOIN Workers w ON COALESCE(t.CurrentChampionId, t.HolderWorkerId) = w.WorkerId
+            LEFT JOIN TitleReigns tr ON t.TitleId = tr.TitleId AND tr.IsCurrent = 1
+            WHERE t.CompanyId = $companyId
+            ORDER BY t.Prestige DESC;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+
+        using var reader = command.ExecuteReader();
+        var result = new List<TitleOverview>();
+        while (reader.Read())
+        {
+            var championId = reader.IsDBNull(3) ? null : reader.GetString(3);
+            var championName = reader.IsDBNull(4) ? "VACANT" : reader.GetString(4);
+            var isVacant = string.IsNullOrEmpty(championId);
+
+            result.Add(new TitleOverview(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetInt32(2),
+                championId,
+                championName,
+                reader.GetInt32(5),
+                isVacant));
+        }
+
+        return result;
+    }
 }

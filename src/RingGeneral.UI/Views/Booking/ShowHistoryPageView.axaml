@@ -225,7 +225,7 @@
                     <StackPanel Spacing="15" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,40">
                         <TextBlock Text="📺" FontSize="64" HorizontalAlignment="Center" Foreground="{StaticResource BorderLightBrush}"/>
                         <TextBlock Text="Aucun show dans l'historique" FontSize="14" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Les shows complétés apparaîtront ici" FontSize="12" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Les shows complétés apparaîtront ici" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
                     </StackPanel>
                     -->
                 </StackPanel>

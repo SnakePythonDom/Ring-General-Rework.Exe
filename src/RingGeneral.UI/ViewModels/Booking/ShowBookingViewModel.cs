@@ -7,6 +7,7 @@ using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Services;
 using RingGeneral.Core.Validation;
 using RingGeneral.Data.Repositories;
+using RingGeneral.UI.Services.Messaging;
 
 namespace RingGeneral.UI.ViewModels.Booking;
 
@@ -25,6 +26,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
     private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly IBookingControlService? _bookingControlService;
     private readonly SettingsRepository? _settingsRepository;
+    private readonly IEventAggregator _eventAggregator;
     private ShowContext? _context;
     private string? _showId;
     private BookingControlLevel _controlLevel = BookingControlLevel.CoBooker; // Phase 1.2
@@ -32,19 +34,24 @@ public sealed class ShowBookingViewModel : ViewModelBase
     public ShowBookingViewModel(
         GameRepository repository,
         SegmentTypeCatalog catalog,
+        BookingValidator validator,
+        BookingBuilderService builder,
+        TemplateService templateService,
         IBookerAIEngine? bookerAIEngine = null,
         IBookingControlService? bookingControlService = null,
-        SettingsRepository? settingsRepository = null)
+        SettingsRepository? settingsRepository = null,
+        IEventAggregator? eventAggregator = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
+        _builder = builder ?? throw new ArgumentNullException(nameof(builder));
+        _templateService = templateService ?? throw new ArgumentNullException(nameof(templateService));
         _bookerAIEngine = bookerAIEngine;
         _bookingControlService = bookingControlService;
         _settingsRepository = settingsRepository;
-        _validator = new BookingValidator();
-        _builder = new BookingBuilderService();
-        _templateService = new TemplateService();
-        
+        _eventAggregator = eventAggregator ?? new EventAggregator();
+
         // Phase 1.2 - Charger le niveau de contrôle depuis GameState
         LoadBookingControlLevel();
 
@@ -58,7 +65,12 @@ public sealed class ShowBookingViewModel : ViewModelBase
         WhyNote = new ObservableCollection<string>();
         Tips = new ObservableCollection<string>();
         BookingGuidelines = new ObservableCollection<string>();
-        
+        WorkersAvailable = new ObservableCollection<ParticipantViewModel>();
+
+        // Event Subscription
+        _eventAggregator.GetEvent<RequestWorkerSelectionEvent>()
+             .Subscribe(OnWorkerSelectionRequested);
+
         // Phase 1.2 - Collection des niveaux de contrôle disponibles
         ControlLevels = new ObservableCollection<BookingControlLevel>
         {
@@ -93,6 +105,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
     public ObservableCollection<string> WhyNote { get; }
     public ObservableCollection<string> Tips { get; }
     public ObservableCollection<string> BookingGuidelines { get; }
+    public ObservableCollection<ParticipantViewModel> WorkersAvailable { get; }
 
     /// <summary>
     /// Phase 1.2 - Niveaux de contrôle disponibles
@@ -135,6 +148,20 @@ public sealed class ShowBookingViewModel : ViewModelBase
     {
         get => _validationWarnings;
         private set => this.RaiseAndSetIfChanged(ref _validationWarnings, value);
+    }
+
+    private bool _isWorkerSelectionVisible;
+    public bool IsWorkerSelectionVisible
+    {
+        get => _isWorkerSelectionVisible;
+        set => this.RaiseAndSetIfChanged(ref _isWorkerSelectionVisible, value);
+    }
+
+    private WorkerSelectionViewModel? _workerSelectionContent;
+    public WorkerSelectionViewModel? WorkerSelectionContent
+    {
+        get => _workerSelectionContent;
+        set => this.RaiseAndSetIfChanged(ref _workerSelectionContent, value);
     }
 
     public int TotalDuration => Segments.Sum(s => s.DureeMinutes);
@@ -207,7 +234,16 @@ public sealed class ShowBookingViewModel : ViewModelBase
         Segments.Clear();
         foreach (var segment in context.Segments)
         {
-            Segments.Add(new SegmentViewModel(segment));
+            Segments.Add(new SegmentViewModel(segment, _eventAggregator));
+        }
+
+        WorkersAvailable.Clear();
+        if (context.Workers != null)
+        {
+            foreach (var worker in context.Workers)
+            {
+                WorkersAvailable.Add(new ParticipantViewModel(worker.WorkerId, worker.NomComplet));
+            }
         }
 
         LoadTemplates();
@@ -245,7 +281,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
             new Dictionary<string, string>());
 
         _repository.AjouterSegment(_showId, newSegment, Segments.Count + 1);
-        Segments.Add(new SegmentViewModel(newSegment));
+        Segments.Add(new SegmentViewModel(newSegment, _eventAggregator));
 
         SelectedSegment = Segments.Last();
         ValidateBooking();
@@ -341,7 +377,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
         var index = Segments.IndexOf(segment);
         _repository.AjouterSegment(_showId, duplicated, index + 2);
-        Segments.Insert(index + 1, new SegmentViewModel(duplicated));
+        Segments.Insert(index + 1, new SegmentViewModel(duplicated, _eventAggregator));
 
         this.RaisePropertyChanged(nameof(TotalDuration));
         this.RaisePropertyChanged(nameof(SegmentCount));
@@ -531,7 +567,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
             foreach (var segment in generatedSegments)
             {
                 _repository.AjouterSegment(_showId, segment, Segments.Count + 1);
-                Segments.Add(new SegmentViewModel(segment));
+                Segments.Add(new SegmentViewModel(segment, _eventAggregator));
             }
 
             // Valider le booking
@@ -595,6 +631,29 @@ public sealed class ShowBookingViewModel : ViewModelBase
     #endregion
 
     #region Private Methods
+
+    private void OnWorkerSelectionRequested(RequestWorkerSelectionEvent evt)
+    {
+        var selectionVm = new WorkerSelectionViewModel(WorkersAvailable);
+        selectionVm.OnSelectionConfirmed = (worker) =>
+        {
+            if (worker != null)
+            {
+                evt.Requester.AddParticipant(worker);
+            }
+            IsWorkerSelectionVisible = false;
+            WorkerSelectionContent = null;
+        };
+
+        selectionVm.CancelCommand.Subscribe(_ =>
+        {
+            IsWorkerSelectionVisible = false;
+            WorkerSelectionContent = null;
+        });
+
+        WorkerSelectionContent = selectionVm;
+        IsWorkerSelectionVisible = true;
+    }
 
     /// <summary>
     /// Construit un BookingPlan à partir des segments actuels.

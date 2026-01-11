@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Owner;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
 using RingGeneral.UI.ViewModels.Dashboard;
@@ -106,7 +107,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         try
         {
             Logger.Info("[CreateCompanyViewModel] Chargement des pays...");
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT CountryId, Name FROM Countries ORDER BY Name";
             
@@ -360,7 +361,7 @@ public sealed class CreateCompanyViewModel : ViewModelBase
 
         try
         {
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
 
             // Générer un ID unique
             var companyId = $"COMP_CUSTOM_{Guid.NewGuid():N}".Substring(0, 20);

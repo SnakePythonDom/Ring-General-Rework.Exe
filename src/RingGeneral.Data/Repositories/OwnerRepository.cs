@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Models.Owner;
+using RingGeneral.Data.Database;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,13 +10,13 @@ namespace RingGeneral.Data.Repositories;
 /// <summary>
 /// Implémentation du repository des propriétaires (Owners).
 /// </summary>
-public sealed class OwnerRepository : IOwnerRepository
+public sealed class OwnerRepository : RepositoryBase, RingGeneral.Core.Interfaces.IOwnerRepository
 {
     private readonly string _connectionString;
 
-    public OwnerRepository(string connectionString)
+    public OwnerRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+        _connectionString = factory.GetConnectionString();
     }
 
     public async Task SaveOwnerAsync(Owner owner)

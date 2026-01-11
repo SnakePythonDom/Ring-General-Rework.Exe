@@ -2,6 +2,7 @@ using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Crisis;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Linq;
 
 namespace RingGeneral.Core.Services;
@@ -45,7 +46,7 @@ public sealed class CrisisEngine : ICrisisEngine
         return false;
     }
 
-    public Crisis CreateCrisis(string companyId, string triggerReason, int severity)
+    public async Task<Crisis> CreateCrisisAsync(string companyId, string triggerReason, int severity)
     {
         // Déterminer le type de crise basé sur la raison
         var crisisType = DetermineCrisisType(triggerReason, severity);
@@ -65,18 +66,18 @@ public sealed class CrisisEngine : ICrisisEngine
         // Sauvegarder
         if (_crisisRepository != null)
         {
-            _crisisRepository.SaveCrisisAsync(crisis).Wait();
+            await _crisisRepository.SaveCrisisAsync(crisis);
         }
 
         return crisis;
     }
 
-    public void ProgressCrises(string companyId)
+    public async Task ProgressCrisesAsync(string companyId)
     {
         if (_crisisRepository == null)
             return;
 
-        var activeCrises = _crisisRepository.GetActiveCrisesAsync(companyId).Result;
+        var activeCrises = await _crisisRepository.GetActiveCrisesAsync(companyId);
 
         foreach (var crisis in activeCrises)
         {
@@ -97,31 +98,31 @@ public sealed class CrisisEngine : ICrisisEngine
             }
 
             // Sauvegarder les changements
-            _crisisRepository.UpdateCrisisAsync(updatedCrisis).Wait();
+            await _crisisRepository.UpdateCrisisAsync(updatedCrisis);
         }
     }
 
-    public Crisis? EscalateCrisis(int crisisId)
+    public async Task<Crisis?> EscalateCrisisAsync(int crisisId)
     {
         if (_crisisRepository == null)
             return null;
 
-        var crisis = _crisisRepository.GetCrisisByIdAsync(crisisId).Result;
+        var crisis = await _crisisRepository.GetCrisisByIdAsync(crisisId);
         if (crisis == null || !crisis.IsActive())
             return null;
 
         var escalated = crisis.Escalate();
-        _crisisRepository.UpdateCrisisAsync(escalated).Wait();
+        await _crisisRepository.UpdateCrisisAsync(escalated);
 
         return escalated;
     }
 
-    public bool AttemptResolution(int crisisId, int interventionQuality)
+    public async Task<bool> AttemptResolutionAsync(int crisisId, int interventionQuality)
     {
         if (_crisisRepository == null)
             return false;
 
-        var crisis = _crisisRepository.GetCrisisByIdAsync(crisisId).Result;
+        var crisis = await _crisisRepository.GetCrisisByIdAsync(crisisId);
         if (crisis == null || !crisis.IsActive())
             return false;
 
@@ -152,7 +153,7 @@ public sealed class CrisisEngine : ICrisisEngine
             updatedCrisis = updatedCrisis.DecreaseEscalation(reduction);
         }
 
-        _crisisRepository.UpdateCrisisAsync(updatedCrisis).Wait();
+        await _crisisRepository.UpdateCrisisAsync(updatedCrisis);
         return success;
     }
 
@@ -201,20 +202,20 @@ public sealed class CrisisEngine : ICrisisEngine
         return false;
     }
 
-    public List<Crisis> GetActiveCrises(string companyId)
+    public async Task<List<Crisis>> GetActiveCrisesAsync(string companyId)
     {
         if (_crisisRepository == null)
             return new List<Crisis>();
 
-        return _crisisRepository.GetActiveCrisesAsync(companyId).Result;
+        return await _crisisRepository.GetActiveCrisesAsync(companyId);
     }
 
-    public List<Crisis> GetCriticalCrises(string companyId)
+    public async Task<List<Crisis>> GetCriticalCrisesAsync(string companyId)
     {
         if (_crisisRepository == null)
             return new List<Crisis>();
 
-        return _crisisRepository.GetCriticalCrisesAsync(companyId).Result;
+        return await _crisisRepository.GetCriticalCrisesAsync(companyId);
     }
 
     // ====================================================================

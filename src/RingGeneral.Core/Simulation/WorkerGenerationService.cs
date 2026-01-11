@@ -191,6 +191,69 @@ public sealed class WorkerGenerationService : IWorkerGenerationService
         return new WorkerGenerationReport(state.Semaine, workers, resultatStructures, resultatMonde, notices);
     }
 
+    public YouthProgressionReport CalculerProgressionHebdomadaire(IEnumerable<YouthTraineeProgressionState> trainees, int semaine, int seed)
+    {
+        _random.Reseed(seed);
+        var resultats = new List<YouthTraineeProgressionResult>();
+
+        foreach (var trainee in trainees)
+        {
+            // Chance de progression basée sur le coaching et les équipements
+            // Qualité Coaching (0-100) / 5 => 0-20% base
+            // Equipements (1-5) * 2 => 2-10% bonus
+            var chanceBase = (trainee.QualiteCoaching / 5.0) + (trainee.NiveauEquipements * 2.0);
+            var roll = _random.NextDouble() * 100;
+
+            if (roll <= chanceBase)
+            {
+                // Progression !
+                var points = _random.Next(1, 4); // +1 à +3 points
+                var statRoll = _random.Next(0, 3);
+
+                var inRing = trainee.InRing;
+                var ent = trainee.Entertainment;
+                var story = trainee.Story;
+                var aProgresse = false;
+
+                switch (statRoll)
+                {
+                    case 0:
+                        if (inRing < 100) { inRing = Math.Min(100, inRing + points); aProgresse = true; }
+                        break;
+                    case 1:
+                        if (ent < 100) { ent = Math.Min(100, ent + points); aProgresse = true; }
+                        break;
+                    case 2:
+                        if (story < 100) { story = Math.Min(100, story + points); aProgresse = true; }
+                        break;
+                }
+
+                if (aProgresse)
+                {
+                    // Vérification diplôme (si moyenne > 70 ou max temporel atteint ?)
+                    // Pour l'instant on ne diplôme pas automatiquement ici, c'est manuel via UI.
+                    // Sauf si critères très stricts.
+
+                    // On renvoie juste la progression
+                    resultats.Add(new YouthTraineeProgressionResult(
+                        trainee.WorkerId,
+                        trainee.YouthId,
+                        trainee.Nom,
+                        inRing,
+                        ent,
+                        story,
+                        inRing - trainee.InRing,
+                        ent - trainee.Entertainment,
+                        story - trainee.Story,
+                        false // Pas de diplôme auto pour l'instant
+                    ));
+                }
+            }
+        }
+
+        return new YouthProgressionReport(semaine, resultats);
+    }
+
     private double CalculerBaseQuantite(YouthStructureState youth)
     {
         if (!_spec.Facteurs.TypeYouth.TryGetValue(youth.Type, out var typeFactor))

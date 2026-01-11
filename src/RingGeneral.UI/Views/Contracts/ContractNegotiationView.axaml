@@ -26,10 +26,8 @@
 
         <!-- Header -->
         <TextBlock Grid.Row="0" 
+                   Theme="{StaticResource TitleStyle}"
                    Text="📝 Contract Negotiation" 
-                   FontSize="24" 
-                   FontWeight="Bold" 
-                   Foreground="{StaticResource TextPrimaryBrush}" 
                    Margin="0,0,0,20"/>
 
         <!-- Phase 3.1 - Template Selection -->
@@ -65,11 +63,7 @@
                 <Button Content="Appliquer Template"
                         Command="{Binding ApplyTemplateCommand}"
                         HorizontalAlignment="Stretch"
-                        Padding="10,6"
-                        Background="{StaticResource AccentGreenBrush}"
-                        Foreground="White"
-                        CornerRadius="4"
-                        FontWeight="SemiBold"/>
+                        Theme="{StaticResource PrimaryButton}"/>
             </StackPanel>
         </Border>
 
@@ -118,7 +112,7 @@
         </Grid>
 
         <!-- Duration -->
-        <Grid Grid.Row="5" Margin="0,0,0,10">
+        <Grid Grid.Row="5" Margin="0,0,0,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="3*"/>
@@ -136,7 +130,7 @@
         </Grid>
 
         <!-- Options -->
-        <StackPanel Grid.Row="6" Spacing="10" Margin="0,0,0,15">
+        <StackPanel Grid.Row="6" Spacing="{StaticResource SpacingSmall}" Margin="0,0,0,12">
             <CheckBox Content="Contrat Exclusif"
                       IsChecked="{Binding IsExclusive}"
                       Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -149,7 +143,7 @@
         <TextBlock Grid.Row="7" 
                    Text="{Binding StatusMessage}" 
                    Foreground="{StaticResource WarningBrush}" 
-                   Margin="0,0,0,15"
+                   Margin="0,0,0,12"
                    TextWrapping="Wrap"/>
 
         <!-- Spacer -->
@@ -158,21 +152,16 @@
         <!-- Buttons -->
         <Grid Grid.Row="9" ColumnDefinitions="*,10,*">
             <Button Grid.Column="0"
+                    Theme="{StaticResource SecondaryButton}"
                     Content="Annuler"
                     Command="{Binding CancelCommand}"
-                    Padding="15,8"
-                    Classes="secondary"
-                    CornerRadius="4"
-                    FontWeight="SemiBold"/>
+                    HorizontalAlignment="Stretch"/>
             
             <Button Grid.Column="2"
+                    Theme="{StaticResource SuccessButton}"
                     Content="Créer l'Offre"
                     Command="{Binding CreateOfferCommand}"
-                    Padding="15,8"
-                    Background="{StaticResource AccentGreenBrush}"
-                    Foreground="White"
-                    CornerRadius="4"
-                    FontWeight="SemiBold"/>
+                    HorizontalAlignment="Stretch"/>
         </Grid>
 
     </Grid>

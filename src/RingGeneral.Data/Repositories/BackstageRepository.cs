@@ -1,11 +1,12 @@
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class BackstageRepository : RepositoryBase
+public sealed class BackstageRepository : RepositoryBase, IBackstageRepository
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

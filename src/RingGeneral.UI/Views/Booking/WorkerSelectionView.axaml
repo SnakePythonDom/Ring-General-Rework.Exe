@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Booking"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
+             x:Class="RingGeneral.UI.Views.Booking.WorkerSelectionView"
+             x:DataType="vm:WorkerSelectionViewModel">
+
+    <Border Background="{StaticResource BackgroundSecondaryBrush}" BorderBrush="{StaticResource BorderPrimaryBrush}" BorderThickness="1" CornerRadius="8" Padding="16" BoxShadow="0 4 10 0 #40000000">
+        <Grid RowDefinitions="Auto, Auto, *, Auto">
+            
+            <!-- Header -->
+            <TextBlock Grid.Row="0" Text="Sélectionner un participant" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+            <!-- Search -->
+            <TextBox Grid.Row="1" Text="{Binding SearchText}" Watermark="Rechercher..." Margin="0,0,0,12"/>
+
+            <!-- List -->
+            <ListBox Grid.Row="2" ItemsSource="{Binding FilteredWorkers}" Background="Transparent" SelectionMode="Single" Margin="0,0,0,16">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding Nom}" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Popularite, StringFormat='Pop: {0}'}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                
+                <ListBox.Styles>
+                     <Style Selector="ListBoxItem">
+                         <Setter Property="Padding" Value="8,6"/>
+                         <Setter Property="CornerRadius" Value="4"/>
+                     </Style>
+                </ListBox.Styles>
+                
+                <!-- Double click to select -->
+                <!-- Note: Interactivity behaviors would be better, but simple button per item works too -->
+            </ListBox>
+
+            <!-- Footer Buttons -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Annuler" Command="{Binding CancelCommand}" Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <!-- 'Select' button logic would require binding SelectedItem from ListBox to VM -->
+                <!-- Simpler to just use a button on each item OR bind SelectedItem and have a main button -->
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

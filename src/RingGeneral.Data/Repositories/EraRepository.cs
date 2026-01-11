@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Enums;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Company;
+using RingGeneral.Data.Database;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,13 +12,10 @@ namespace RingGeneral.Data.Repositories;
 /// <summary>
 /// Implémentation du repository des ères et transitions.
 /// </summary>
-public sealed class EraRepository : IEraRepository
+public sealed class EraRepository : RepositoryBase, IEraRepository
 {
-    private readonly string _connectionString;
-
-    public EraRepository(string connectionString)
+    public EraRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
     }
 
     // ====================================================================
@@ -31,8 +29,7 @@ public sealed class EraRepository : IEraRepository
             throw new ArgumentException($"Era invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -66,8 +63,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<Era?> GetEraByIdAsync(string eraId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -90,8 +86,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<List<Era>> GetErasByCompanyIdAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -116,8 +111,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<Era?> GetCurrentEraAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -146,8 +140,7 @@ public sealed class EraRepository : IEraRepository
             throw new ArgumentException($"Era invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -181,8 +174,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task EndEraAsync(string eraId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -198,8 +190,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task SetCurrentEraAsync(string companyId, string eraId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var transaction = connection.BeginTransaction();
 
@@ -243,8 +234,7 @@ public sealed class EraRepository : IEraRepository
             throw new ArgumentException($"EraTransition invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -280,8 +270,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<EraTransition?> GetTransitionByIdAsync(string transitionId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -304,8 +293,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<EraTransition?> GetActiveTransitionAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -329,8 +317,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<List<EraTransition>> GetTransitionsByCompanyIdAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -355,8 +342,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<List<EraTransition>> GetTransitionsByBookerAsync(string bookerId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -386,8 +372,7 @@ public sealed class EraRepository : IEraRepository
             throw new ArgumentException($"EraTransition invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -413,8 +398,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task CompleteTransitionAsync(string transitionId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -430,8 +414,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task CancelTransitionAsync(string transitionId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -456,8 +439,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<int> CountErasAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM Eras WHERE CompanyId = @CompanyId";
@@ -469,8 +451,7 @@ public sealed class EraRepository : IEraRepository
 
     public async Task<List<Era>> GetEraHistoryAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"

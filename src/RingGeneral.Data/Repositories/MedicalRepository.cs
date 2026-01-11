@@ -1,9 +1,12 @@
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
+using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
 
 namespace RingGeneral.Data.Repositories;
 
-public sealed class MedicalRepository : RepositoryBase
+public sealed class MedicalRepository : RepositoryBase, IMedicalRepository
 {
     public MedicalRepository(SqliteConnectionFactory factory) : base(factory)
     {
@@ -28,7 +31,7 @@ public sealed class MedicalRepository : RepositoryBase
         return Convert.ToInt32(command.ExecuteScalar());
     }
 
-    public int AjouterPlanRecuperation(RecoveryPlan plan)
+    public int AjouterPlan(RecoveryPlan plan)
     {
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
@@ -47,7 +50,7 @@ public sealed class MedicalRepository : RepositoryBase
         return Convert.ToInt32(command.ExecuteScalar());
     }
 
-    public int AjouterNoteMedicale(MedicalNote note)
+    public void AjouterNote(MedicalNote note)
     {
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
@@ -59,7 +62,7 @@ public sealed class MedicalRepository : RepositoryBase
         command.Parameters.AddWithValue("$injuryId", note.InjuryId.HasValue ? note.InjuryId.Value : DBNull.Value);
         command.Parameters.AddWithValue("$workerId", note.WorkerId);
         command.Parameters.AddWithValue("$note", note.Note);
-        return Convert.ToInt32(command.ExecuteScalar());
+        command.ExecuteNonQuery();
     }
 
     public InjuryRecord? ChargerBlessure(int injuryId)
@@ -107,10 +110,22 @@ public sealed class MedicalRepository : RepositoryBase
         command.ExecuteNonQuery();
     }
 
+    public void SupprimerBlessure(int injuryId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "DELETE FROM Injuries WHERE InjuryId = $injuryId;";
+        command.Parameters.AddWithValue("$injuryId", injuryId);
+        command.ExecuteNonQuery();
+    }
+
     /// <summary>
     /// Charge toutes les blessures depuis la base de données
     /// </summary>
-    public IReadOnlyList<InjuryRecord> ChargerToutesBlessures()
+    /// <summary>
+    /// Charge toutes les blessures depuis la base de données
+    /// </summary>
+    public List<InjuryRecord> ChargerToutesBlessures()
     {
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
@@ -143,7 +158,70 @@ public sealed class MedicalRepository : RepositoryBase
     /// <summary>
     /// Charge toutes les blessures actives pour un worker spécifique
     /// </summary>
-    public IReadOnlyList<InjuryRecord> ChargerBlessuresWorker(string workerId)
+    public RecoveryPlan? ChargerPlanPourBlessure(int injuryId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT RecoveryPlanId, InjuryId, WorkerId, StartDate, TargetDate, RecommendedRestWeeks, RiskLevel, Status, CreatedAt
+            FROM RecoveryPlans
+            WHERE InjuryId = $injuryId;
+            """;
+        command.Parameters.AddWithValue("$injuryId", injuryId);
+        
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new RecoveryPlan(
+            reader.GetInt32(0),
+            reader.GetInt32(1),
+            reader.GetString(2),
+            reader.GetInt32(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5),
+            reader.GetString(6),
+            reader.GetString(7),
+            DateTimeOffset.Parse(reader.GetString(8))
+        );
+    }
+
+    public void MettreAJourPlanStatut(int injuryId, string statut, int? completedWeek)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        // Note: completedWeek is not currently stored in the schema
+        command.CommandText = "UPDATE RecoveryPlans SET Status = $statut WHERE InjuryId = $injuryId;";
+        command.Parameters.AddWithValue("$statut", statut);
+        command.Parameters.AddWithValue("$injuryId", injuryId);
+        command.ExecuteNonQuery();
+    }
+
+    public void MettreAJourStatutBlessureWorker(string workerId, string statut)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "UPDATE Workers SET blessure = $statut WHERE WorkerId = $workerId;";
+        command.Parameters.AddWithValue("$statut", statut);
+        command.Parameters.AddWithValue("$workerId", workerId);
+        command.ExecuteNonQuery();
+    }
+
+    public string? ChargerStatutBlessureWorker(string workerId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = "SELECT blessure FROM Workers WHERE WorkerId = $workerId;";
+        command.Parameters.AddWithValue("$workerId", workerId);
+        return command.ExecuteScalar()?.ToString();
+    }
+
+    /// <summary>
+    /// Charge toutes les blessures actives pour un worker spécifique
+    /// </summary>
+    public List<InjuryRecord> ChargerBlessuresWorker(string workerId)
     {
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();

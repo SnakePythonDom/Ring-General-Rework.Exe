@@ -1,13 +1,11 @@
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Data.Database;
-using RingGeneral.Data.Models;
 using MatchType = RingGeneral.Core.Models.MatchType;
 
 namespace RingGeneral.Data.Repositories;
-
-using RingGeneral.Core.Interfaces;
 
 /// <summary>
 /// GameRepository acts as a Façade orchestrating specialized repositories.
@@ -32,9 +30,8 @@ using RingGeneral.Core.Interfaces;
 /// Note: GameRepository no longer implements IScoutingRepository or IContractRepository.
 /// Use RepositoryContainer from RepositoryFactory.CreateRepositories() to access specialized repositories directly.
 /// </summary>
-public sealed class GameRepository : IGameRepository
+public sealed class GameRepository : RepositoryBase, IGameRepository
 {
-    private readonly SqliteConnectionFactory _factory;
     private readonly ShowRepository _showRepository;
     private readonly CompanyRepository _companyRepository;
     private readonly WorkerRepository _workerRepository;
@@ -58,9 +55,8 @@ public sealed class GameRepository : IGameRepository
         ScoutingRepository scoutingRepository,
         ContractRepository contractRepository,
         SettingsRepository settingsRepository,
-        YouthRepository youthRepository)
+        YouthRepository youthRepository) : base(factory)
     {
-        _factory = factory;
         _showRepository = showRepository;
         _companyRepository = companyRepository;
         _workerRepository = workerRepository;
@@ -75,7 +71,7 @@ public sealed class GameRepository : IGameRepository
     /// Crée et ouvre une nouvelle connexion à la base de données
     /// </summary>
     /// <returns>Connexion SQLite ouverte</returns>
-    public SqliteConnection CreateConnection()
+    public System.Data.Common.DbConnection CreateConnection()
     {
         return _factory.CreateGeneralConnection();
     }
@@ -470,7 +466,7 @@ public sealed class GameRepository : IGameRepository
         return contracts;
     }
 
-    public IReadOnlyDictionary<string, string> ChargerNomsWorkers()
+    public System.Collections.Generic.IReadOnlyDictionary<string, string> ChargerNomsWorkers()
         => _workerRepository.ChargerNomsWorkers();
 
     public int ChargerSemaineShow(string showId)
@@ -484,6 +480,12 @@ public sealed class GameRepository : IGameRepository
 
     public void RecupererFatigueHebdo()
         => _workerRepository.RecupererFatigueHebdo();
+
+    public WorkerSnapshot? ChargerWorker(string workerId)
+        => _workerRepository.ChargerWorker(workerId);
+
+    public Worker? GetWorker(int id)
+        => _workerRepository.GetWorker(id);
 
     public void AjouterOffre(ContractOffer offre, IReadOnlyList<ContractClause> clauses)
         => _contractRepository.AjouterOffre(offre, clauses);
@@ -526,28 +528,6 @@ public sealed class GameRepository : IGameRepository
 
     public ContractNegotiationState? ChargerNegociationPourWorker(string workerId, string companyId)
         => _contractRepository.ChargerNegociationPourWorker(workerId, companyId);
-
-    private static T? LireJson<T>(SqliteDataReader reader, int index)
-    {
-        if (reader.IsDBNull(index))
-        {
-            return default;
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<T>(reader.GetString(index), _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return default;
-        }
-    }
-
-    private static string? SerializeJson<T>(T value)
-    {
-        return value is null ? null : JsonSerializer.Serialize(value, _jsonOptions);
-    }
 
     public ShowDefinition? ChargerShowDefinition(string showId)
         => _showRepository.ChargerShowDefinition(showId);
@@ -695,22 +675,6 @@ public sealed class GameRepository : IGameRepository
             reader.GetDouble(4),
             reader.GetInt32(5),
             reader.GetInt32(6));
-    }
-
-    private static bool ColonneExiste(SqliteConnection connexion, string table, string colonne)
-    {
-        using var command = connexion.CreateCommand();
-        command.CommandText = $"PRAGMA table_info({table});";
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
-        {
-            if (string.Equals(reader.GetString(1), colonne, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private List<SegmentDefinition> ChargerSegments(SqliteConnection connexion, string showId)
@@ -1001,7 +965,7 @@ public sealed class GameRepository : IGameRepository
     {
         using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
-        
+
         // Récupérer le SaveGameId actif pour cette compagnie
         command.CommandText = """
             SELECT SaveGameId FROM SaveGames 
@@ -1009,14 +973,14 @@ public sealed class GameRepository : IGameRepository
             """;
         command.Parameters.AddWithValue("$companyId", companyId);
         var saveGameIdObj = command.ExecuteScalar();
-        
+
         if (saveGameIdObj is null)
         {
             throw new InvalidOperationException($"Aucune sauvegarde active trouvée pour la compagnie {companyId}");
         }
-        
+
         var saveGameId = Convert.ToInt32(saveGameIdObj);
-        
+
         // Incrémenter CurrentDay et CurrentDate
         using var updateCommand = connexion.CreateCommand();
         updateCommand.CommandText = """
@@ -1038,19 +1002,19 @@ public sealed class GameRepository : IGameRepository
     {
         using var connexion = _factory.CreateGeneralConnection();
         using var command = connexion.CreateCommand();
-        
+
         command.CommandText = """
             SELECT CurrentDate FROM SaveGames 
             WHERE PlayerCompanyId = $companyId AND IsActive = 1;
             """;
         command.Parameters.AddWithValue("$companyId", companyId);
         var dateStr = command.ExecuteScalar()?.ToString();
-        
+
         if (string.IsNullOrWhiteSpace(dateStr))
         {
             return new DateTime(2024, 1, 1); // Date par défaut
         }
-        
+
         return DateTime.Parse(dateStr);
     }
 
@@ -1092,14 +1056,14 @@ public sealed class GameRepository : IGameRepository
     {
         try
         {
-            using var connection = CreateConnection();
+            using var connection = OpenConnection();
             using var command = connection.CreateCommand();
             command.CommandText = """
                 SELECT IsPlayerControlled 
                 FROM Companies 
                 WHERE CompanyId = $companyId;
                 """;
-            command.Parameters.AddWithValue("$companyId", companyId);
+            AjouterParametre(command, "$companyId", companyId);
             var result = command.ExecuteScalar();
             return result != null && result != DBNull.Value && Convert.ToInt32(result) == 1;
         }
@@ -1116,14 +1080,14 @@ public sealed class GameRepository : IGameRepository
     {
         try
         {
-            using var connection = CreateConnection();
+            using var connection = OpenConnection();
             using var command = connection.CreateCommand();
             command.CommandText = """
                 SELECT OwnerId 
                 FROM Companies 
                 WHERE CompanyId = $companyId;
                 """;
-            command.Parameters.AddWithValue("$companyId", companyId);
+            AjouterParametre(command, "$companyId", companyId);
             var result = command.ExecuteScalar();
             return result != null && result != DBNull.Value ? result.ToString() : null;
         }

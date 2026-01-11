@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using ReactiveUI;
 using RingGeneral.Core.Models;
-using RingGeneral.Data.Models;
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Tables;

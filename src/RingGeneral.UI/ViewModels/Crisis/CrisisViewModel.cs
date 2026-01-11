@@ -3,7 +3,7 @@ using System.Reactive;
 using ReactiveUI;
 using RingGeneral.Core.Interfaces;
 using CrisisModel = RingGeneral.Core.Models.Crisis.Crisis;
-using ICrisisRepository = RingGeneral.Data.Repositories.ICrisisRepository;
+using ICrisisRepository = RingGeneral.Core.Interfaces.ICrisisRepository;
 
 namespace RingGeneral.UI.ViewModels.Crisis;
 
@@ -13,9 +13,9 @@ namespace RingGeneral.UI.ViewModels.Crisis;
 /// </summary>
 public sealed class CrisisViewModel : ViewModelBase
 {
-    private readonly ICrisisRepository? _crisisRepository;
-    private readonly ICrisisEngine? _crisisEngine;
-    private readonly ICommunicationEngine? _communicationEngine;
+    private readonly ICrisisRepository _crisisRepository;
+    private readonly ICrisisEngine _crisisEngine;
+    private readonly ICommunicationEngine _communicationEngine;
     private string _companyId = string.Empty;
 
     // Properties
@@ -33,9 +33,9 @@ public sealed class CrisisViewModel : ViewModelBase
     private int _predictedSuccessChance = 50;
 
     public CrisisViewModel(
-        ICrisisRepository? crisisRepository = null,
-        ICrisisEngine? crisisEngine = null,
-        ICommunicationEngine? communicationEngine = null)
+        ICrisisRepository crisisRepository,
+        ICrisisEngine crisisEngine,
+        ICommunicationEngine communicationEngine)
     {
         _crisisRepository = crisisRepository;
         _crisisEngine = crisisEngine;
@@ -184,7 +184,7 @@ public sealed class CrisisViewModel : ViewModelBase
     /// <summary>
     /// Charge les données des crises depuis le repository
     /// </summary>
-    public void LoadCrisisData()
+    public async void LoadCrisisData()
     {
         if (_crisisRepository == null || _crisisEngine == null || _communicationEngine == null)
         {
@@ -203,8 +203,8 @@ public sealed class CrisisViewModel : ViewModelBase
             }
 
             // Charger les crises actives
-            var activeCrises = _crisisEngine.GetActiveCrises(_companyId);
-            var criticalCrises = _crisisEngine.GetCriticalCrises(_companyId);
+            var activeCrises = await _crisisEngine.GetActiveCrisesAsync(_companyId);
+            var criticalCrises = await _crisisEngine.GetCriticalCrisesAsync(_companyId);
 
             // Mettre à jour les collections
             ActiveCrises.Clear();
@@ -222,10 +222,10 @@ public sealed class CrisisViewModel : ViewModelBase
             // Mettre à jour les statistiques
             ActiveCrisesCount = activeCrises.Count;
             CriticalCrisesCount = criticalCrises.Count;
-            CommunicationSuccessRate = _communicationEngine.GetCommunicationSuccessRate(_companyId);
+            CommunicationSuccessRate = await _communicationEngine.GetCommunicationSuccessRateAsync(_companyId);
 
             // Compter les crises résolues
-            TotalCrisesResolved = _crisisRepository.GetResolvedCrisesCountAsync(_companyId).Result;
+            TotalCrisesResolved = await _crisisRepository.GetResolvedCrisesCountAsync(_companyId);
 
             Console.WriteLine($"[CrisisViewModel] {ActiveCrisesCount} crises actives, {CriticalCrisesCount} critiques");
         }
@@ -304,7 +304,10 @@ public sealed class CrisisViewModel : ViewModelBase
     /// <summary>
     /// Envoie une communication et traite le résultat
     /// </summary>
-    private void OnSendCommunication()
+    /// <summary>
+    /// Envoie une communication et traite le résultat
+    /// </summary>
+    private async void OnSendCommunication()
     {
         if (_communicationEngine == null || SelectedCrisis == null)
             return;
@@ -312,7 +315,7 @@ public sealed class CrisisViewModel : ViewModelBase
         try
         {
             // Créer la communication
-            var communication = _communicationEngine.CreateCommunication(
+            var communication = await _communicationEngine.CreateCommunicationAsync(
                 _companyId,
                 SelectedCrisis.CrisisId,
                 SelectedCommunicationType,
@@ -323,7 +326,7 @@ public sealed class CrisisViewModel : ViewModelBase
             );
 
             // Exécuter la communication
-            var outcome = _communicationEngine.ExecuteCommunication(communication.CommunicationId);
+            var outcome = await _communicationEngine.ExecuteCommunicationAsync(communication.CommunicationId);
 
             // Afficher le résultat
             Console.WriteLine($"[CrisisViewModel] Communication {(outcome.WasSuccessful ? "réussie" : "échouée")}: {outcome.Feedback}");
@@ -353,16 +356,26 @@ public sealed class CrisisViewModel : ViewModelBase
     /// <summary>
     /// Force l'escalade manuelle d'une crise
     /// </summary>
-    private void OnEscalateCrisis(CrisisItemViewModel crisisItem)
+    /// <summary>
+    /// Force l'escalade manuelle d'une crise
+    /// </summary>
+    private async void OnEscalateCrisis(CrisisItemViewModel crisisItem)
     {
         if (_crisisEngine == null || crisisItem.Crisis == null)
             return;
 
-        var escalated = _crisisEngine.EscalateCrisis(crisisItem.Crisis.CrisisId);
-        if (escalated != null)
+        try
         {
-            Console.WriteLine($"[CrisisViewModel] Crise escaladée au stage: {escalated.Stage}");
-            LoadCrisisData();
+            var escalated = await _crisisEngine.EscalateCrisisAsync(crisisItem.Crisis.CrisisId);
+            if (escalated != null)
+            {
+                Console.WriteLine($"[CrisisViewModel] Crise escaladée au stage: {escalated.Stage}");
+                LoadCrisisData();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[CrisisViewModel] Erreur lors de l'escalade: {ex.Message}");
         }
     }
 }

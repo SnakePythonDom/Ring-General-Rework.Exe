@@ -69,8 +69,14 @@
                                         <!-- Champion actuel -->
                                         <TextBlock Grid.Row="1"
                                                    FontSize="12"
-                                                   Foreground="{Binding IsVacant, Converter={StaticResource BoolToColorConverter}, ConverterParameter={StaticResource AccentOrangeBrush}:{StaticResource AccentBlueBrush}}"
+                                                   Foreground="{StaticResource AccentBlueBrush}"
+                                                   Classes.vacant="{Binding IsVacant}"
                                                    Margin="0,3,0,3">
+                                            <TextBlock.Styles>
+                                                <Style Selector="TextBlock.vacant">
+                                                    <Setter Property="Foreground" Value="{StaticResource AccentOrangeBrush}"/>
+                                                </Style>
+                                            </TextBlock.Styles>
                                             <TextBlock.Text>
                                                 <MultiBinding StringFormat="Champion: {0}">
                                                     <Binding Path="CurrentChampion"/>

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Primitives;
 using System.Collections.Generic;
+using RingGeneral.UI.Services.Messaging;
 
 namespace RingGeneral.Tests;
 
@@ -28,7 +29,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         var view = new BookingView { DataContext = viewModel };
@@ -53,7 +58,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         var view = new BookingView { DataContext = viewModel };
@@ -79,7 +88,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         var view = new BookingView { DataContext = viewModel };
@@ -107,14 +120,19 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         // Ajouter quelques segments
         var catalog = new SegmentTypeCatalog();
-        viewModel.Segments.Add(new SegmentViewModel("SEG1", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
-        viewModel.Segments.Add(new SegmentViewModel("SEG2", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
-        viewModel.Segments.Add(new SegmentViewModel("SEG3", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
+        var eventAggregator = new EventAggregator();
+        viewModel.Segments.Add(new SegmentViewModel("SEG1", "match", 8, false, catalog, eventAggregator, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
+        viewModel.Segments.Add(new SegmentViewModel("SEG2", "match", 8, false, catalog, eventAggregator, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
+        viewModel.Segments.Add(new SegmentViewModel("SEG3", "match", 8, false, catalog, eventAggregator, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>()));
 
         var view = new BookingView { DataContext = viewModel };
 
@@ -139,12 +157,17 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         // Ajouter un segment de test
         var catalog = new SegmentTypeCatalog();
-        var testSegment = new SegmentViewModel("SEG_TEST", "match", 8, false, catalog, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>());
+        var eventAggregator = new EventAggregator();
+        var testSegment = new SegmentViewModel("SEG_TEST", "match", 8, false, catalog, eventAggregator, new List<ParticipantViewModel>(), null, null, 60, null, null, new Dictionary<string, string>());
         viewModel.Segments.Add(testSegment);
 
         var view = new BookingView { DataContext = viewModel };
@@ -170,7 +193,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         var view = new BookingView { DataContext = viewModel };
@@ -197,7 +224,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         // Ajouter un worker disponible
@@ -228,7 +259,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         var view = new BookingView { DataContext = viewModel };
@@ -256,7 +291,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         // Ajouter un problème de validation
@@ -293,7 +332,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         // Ajouter une storyline disponible
@@ -324,7 +367,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         // Ajouter un titre disponible
@@ -355,7 +402,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         var view = new BookingView { DataContext = viewModel };
@@ -388,7 +439,11 @@ public class BookingViewUITests
             repository: null!,
             validator: null!,
             segmentCatalog: null!,
-            eventAggregator: null!
+            eventAggregator: null!,
+            bookingBuilder: null!,
+            templateService: null!,
+            bookingControlService: null!,
+            showDayOrchestrator: null!
         );
 
         var view = new BookingView { DataContext = viewModel };

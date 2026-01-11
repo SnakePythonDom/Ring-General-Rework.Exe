@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace RingGeneral.UI.Views.Roster;
+namespace RingGeneral.UI.Views.Medical;
 
 public partial class InjuriesView : UserControl
 {

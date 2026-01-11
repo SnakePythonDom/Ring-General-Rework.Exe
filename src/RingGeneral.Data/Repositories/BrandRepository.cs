@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using RingGeneral.Core.Enums;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Company;
+using RingGeneral.Data.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,10 @@ namespace RingGeneral.Data.Repositories;
 /// <summary>
 /// Implémentation du repository des brands et hiérarchies.
 /// </summary>
-public sealed class BrandRepository : IBrandRepository
+public sealed class BrandRepository : RepositoryBase, IBrandRepository
 {
-    private readonly string _connectionString;
-
-    public BrandRepository(string connectionString)
+    public BrandRepository(SqliteConnectionFactory factory) : base(factory)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
     }
 
     // ====================================================================
@@ -32,8 +30,7 @@ public sealed class BrandRepository : IBrandRepository
             throw new ArgumentException($"Brand invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -69,8 +66,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<Brand?> GetBrandByIdAsync(string brandId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -93,8 +89,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<List<Brand>> GetBrandsByCompanyIdAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -119,8 +114,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<List<Brand>> GetActiveBrandsByCompanyIdAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -145,8 +139,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<Brand?> GetFlagshipBrandAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -176,8 +169,7 @@ public sealed class BrandRepository : IBrandRepository
             throw new ArgumentException($"Brand invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -217,8 +209,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task DeactivateBrandAsync(string brandId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -234,8 +225,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task DeleteBrandAsync(string brandId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Brands WHERE BrandId = @BrandId";
@@ -247,8 +237,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task AssignBookerToBrandAsync(string brandId, string bookerId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "UPDATE Brands SET BookerId = @BookerId WHERE BrandId = @BrandId";
@@ -261,8 +250,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task RemoveBookerFromBrandAsync(string brandId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "UPDATE Brands SET BookerId = NULL WHERE BrandId = @BrandId";
@@ -283,8 +271,7 @@ public sealed class BrandRepository : IBrandRepository
             throw new ArgumentException($"CompanyHierarchy invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -313,8 +300,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<CompanyHierarchy?> GetHierarchyByCompanyIdAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -342,8 +328,7 @@ public sealed class BrandRepository : IBrandRepository
             throw new ArgumentException($"CompanyHierarchy invalide: {errorMessage}");
         }
 
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -373,8 +358,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task AssignHeadBookerAsync(string companyId, string headBookerId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -391,8 +375,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task RemoveHeadBookerAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -408,8 +391,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task ConvertToMultiBrandAsync(string companyId, string headBookerId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -431,8 +413,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<int> CountActiveBrandsAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM Brands WHERE CompanyId = @CompanyId AND IsActive = 1";
@@ -444,8 +425,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<List<Brand>> GetBrandsWithoutBookerAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -470,8 +450,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<List<Brand>> GetBrandsByObjectiveAsync(string companyId, string objective)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -503,8 +482,7 @@ public sealed class BrandRepository : IBrandRepository
 
     public async Task<double> CalculateTotalBrandBudgetAsync(string companyId)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = await OpenConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT SUM(BudgetPerShow) FROM Brands WHERE CompanyId = @CompanyId AND IsActive = 1";

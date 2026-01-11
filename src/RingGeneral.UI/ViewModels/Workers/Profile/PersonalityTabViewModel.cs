@@ -3,6 +3,7 @@ using ReactiveUI;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Attributes;
 using RingGeneral.Core.Services;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Data.Repositories;
 
 namespace RingGeneral.UI.ViewModels.Workers.Profile;
@@ -193,6 +194,72 @@ public sealed class PersonalityTabViewModel : ViewModelBase
         else
         {
             // No mental attributes yet - initialize defaults
+            Profile = PersonalityProfile.NonDéterminé;
+            ProfileDisplayName = "❓ Non Déterminé";
+            ProfileDescription = "Aucune donnée de personnalité disponible.";
+            AgentReport = null;
+            QuickAssessment = "Données insuffisantes";
+        }
+
+        this.RaisePropertyChanged(nameof(ShowDetailedAttributes));
+        this.RaisePropertyChanged(nameof(ScoutingLevelText));
+        this.RaisePropertyChanged(nameof(ShowDetailedAttributes));
+        this.RaisePropertyChanged(nameof(ScoutingLevelText));
+    }
+
+    /// <summary>
+    /// Load personality data from an existing Worker object
+    /// </summary>
+    public void LoadWorker(Worker worker)
+    {
+        WorkerId = worker.Id;
+
+        // Use mental attributes from worker object if available
+        if (worker.MentalAttributes != null)
+        {
+            MentalAttributes = worker.MentalAttributes;
+        }
+
+        // Use personality profile from worker object if available
+        if (worker.PersonalityProfile.HasValue)
+        {
+            Profile = worker.PersonalityProfile.Value;
+        }
+
+        // If mental attributes exist (either from object or pre-existing), generate report
+        if (MentalAttributes != null)
+        {
+            // Only re-detect profile if we don't have one or if attributes changed
+            if (!worker.PersonalityProfile.HasValue)
+            {
+                Profile = _detectorService.DetectProfile(MentalAttributes);
+            }
+
+            ProfileDisplayName = PersonalityDetectorService.GetProfileDisplayName(Profile);
+            ProfileDescription = PersonalityDetectorService.GetProfileDescription(Profile);
+            AgentReport = _reportService.GenerateReport(MentalAttributes, "Système d'analyse automatique");
+            QuickAssessment = AgentReportGeneratorService.GenerateQuickAssessment(MentalAttributes);
+        }
+        else if (worker.PersonalityProfile.HasValue)
+        {
+            // We have profile but no detailed attributes (e.g. from Snapshot/Fallback)
+            // Set basic info based on the enum
+            Profile = worker.PersonalityProfile.Value;
+            ProfileDisplayName = PersonalityDetectorService.GetProfileDisplayName(Profile);
+            ProfileDescription = PersonalityDetectorService.GetProfileDescription(Profile);
+            AgentReport = null; // Cannot generate full report without attributes
+            QuickAssessment = "Données détaillées manquantes";
+        }
+        else
+        {
+            // Check if we need to fetch from repo (fallback)
+            if (WorkerId != 0)
+            {
+                LoadWorker(WorkerId);
+                return;
+            }
+
+            // No data available
             Profile = PersonalityProfile.NonDéterminé;
             ProfileDisplayName = "❓ Non Déterminé";
             ProfileDescription = "Aucune donnée de personnalité disponible.";

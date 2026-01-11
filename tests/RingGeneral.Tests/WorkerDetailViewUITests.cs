@@ -1,6 +1,9 @@
 using RingGeneral.UI.Views.Roster;
 using RingGeneral.UI.ViewModels.Roster;
+using RingGeneral.UI.ViewModels.Workers.Profile;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Services;
+using RingGeneral.Core.Interfaces;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -16,11 +19,19 @@ namespace RingGeneral.Tests;
 /// </summary>
 public class WorkerDetailViewUITests
 {
+    private ProfileViewModel CreateMockProfile() => new ProfileViewModel(
+        null,
+        null,
+        null,
+        new PersonalityDetectorService(),
+        new AgentReportGeneratorService()
+    );
+
     [AvaloniaFact]
     public async Task WorkerDetailView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         var view = new WorkerDetailView { DataContext = viewModel };
 
         // Act
@@ -39,7 +50,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldDisplayWorkerName()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         // Worker is readonly - set WorkerId instead, which will load placeholder data
         viewModel.WorkerId = "W001";
 
@@ -62,7 +73,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldDisplayWorkerAttributes()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         // Worker is readonly - set WorkerId instead
         viewModel.WorkerId = "W002";
 
@@ -95,7 +106,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldDisplayWorkerStats()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         // Worker is readonly - set WorkerId instead
         viewModel.WorkerId = "W003";
 
@@ -128,7 +139,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldDisplayWorkerRole()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         // Worker is readonly - set WorkerId instead
         viewModel.WorkerId = "W004";
 
@@ -156,7 +167,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldDisplayAttributeBars()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         // Worker is readonly - set WorkerId instead
         viewModel.WorkerId = "W005";
 
@@ -176,7 +187,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldHaveEditButton()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         var view = new WorkerDetailView { DataContext = viewModel };
 
         // Act
@@ -197,7 +208,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldHaveBackButton()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         var view = new WorkerDetailView { DataContext = viewModel };
 
         // Act
@@ -218,7 +229,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldUpdateWhenViewModelChanges()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         // Worker is readonly - set WorkerId instead
         viewModel.WorkerId = "W006";
 
@@ -245,7 +256,7 @@ public class WorkerDetailViewUITests
     public async Task WorkerDetailView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new WorkerDetailViewModel(null);
+        var viewModel = new WorkerDetailViewModel(null, CreateMockProfile());
         var view = new WorkerDetailView { DataContext = viewModel };
 
         // Act

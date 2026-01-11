@@ -1,6 +1,6 @@
 using RingGeneral.Core.Models.Relations;
 
-namespace RingGeneral.Data.Repositories;
+namespace RingGeneral.Core.Interfaces;
 
 /// <summary>
 /// Repository interface for managing worker relations and factions.

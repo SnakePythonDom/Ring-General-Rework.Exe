@@ -4,6 +4,7 @@ using ReactiveUI;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Services;
 using RingGeneral.Data.Repositories;
+using Microsoft.Data.Sqlite;
 
 namespace RingGeneral.UI.ViewModels.Calendar;
 
@@ -13,28 +14,27 @@ namespace RingGeneral.UI.ViewModels.Calendar;
 /// </summary>
 public sealed class CalendarViewModel : ViewModelBase
 {
-    private readonly GameRepository? _repository;
-    private readonly ShowSchedulerService? _showScheduler;
-    private readonly ShowRepository? _showRepository;
+    private readonly GameRepository _repository;
+    private readonly ShowSchedulerService _showScheduler;
+    private readonly ShowRepository _showRepository;
     private DateOnly _currentDate = DateOnly.FromDateTime(DateTime.Now);
     private CalendarEntryItemViewModel? _selectedEntry;
     private ShowScheduleItemViewModel? _selectedShow;
     private string? _companyId;
+    private readonly Dictionary<DateOnly, List<ShowScheduleItemViewModel>> ShowsParJour = new();
 
-    // Collections pour shows par jour
-    public Dictionary<DateOnly, List<ShowScheduleItemViewModel>> ShowsParJour { get; } = new();
-
-    // Phase 6.3 - Propriétés pour nouveau show
     private string _newShowName = string.Empty;
     private DateOnly _newShowDate = DateOnly.FromDateTime(DateTime.Now);
     private int _newShowDuration = 120;
     private string _newShowLocation = string.Empty;
     private string _newShowType = "TV";
 
+    // ... (rest of props)
+
     public CalendarViewModel(
-        GameRepository? repository = null,
-        ShowSchedulerService? showScheduler = null,
-        ShowRepository? showRepository = null)
+        GameRepository repository,
+        ShowSchedulerService showScheduler,
+        ShowRepository showRepository)
     {
         _repository = repository;
         _showScheduler = showScheduler;
@@ -430,7 +430,7 @@ public sealed class CalendarViewModel : ViewModelBase
         try
         {
             // Obtenir la compagnie du joueur
-            using var connection = _repository.CreateConnection();
+            using var connection = (SqliteConnection)_repository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = """
                 SELECT CompanyId, CurrentDate 

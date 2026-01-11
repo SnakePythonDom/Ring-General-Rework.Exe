@@ -4,6 +4,7 @@ using ReactiveUI;
 using RingGeneral.Core.Models.Booker;
 using RingGeneral.Core.Services;
 using RingGeneral.Data.Repositories;
+using Microsoft.Data.Sqlite;
 using RingGeneral.UI.ViewModels.Calendar;
 
 namespace RingGeneral.UI.ViewModels.Company;
@@ -122,7 +123,7 @@ public sealed class ChildCompanyBookingViewModel : ViewModelBase
         {
             // Obtenir la compagnie du joueur
             string? parentCompanyId = null;
-            using var connection = _gameRepository.CreateConnection();
+            using var connection = (SqliteConnection)_gameRepository.CreateConnection();
             using var cmd = connection.CreateCommand();
             cmd.CommandText = """
                 SELECT PlayerCompanyId 

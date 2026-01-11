@@ -19,7 +19,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldRenderCorrectly()
     {
         // Arrange
-        var viewModel = new CalendarViewModel();
+        var viewModel = new CalendarViewModel(null, null, null);
         var view = new CalendarView { DataContext = viewModel };
 
         // Act
@@ -38,7 +38,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayCalendarTitle()
     {
         // Arrange
-        var viewModel = new CalendarViewModel();
+        var viewModel = new CalendarViewModel(null, null, null);
         var view = new CalendarView { DataContext = viewModel };
 
         // Act
@@ -58,7 +58,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayCurrentMonth()
     {
         // Arrange
-        var viewModel = new CalendarViewModel();
+        var viewModel = new CalendarViewModel(null, null, null);
         // CalendarViewModel utilise CurrentDate (DateOnly) au lieu de CurrentWeek
 
         var view = new CalendarView { DataContext = viewModel };
@@ -80,7 +80,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayEvents()
     {
         // Arrange
-        var viewModel = new CalendarViewModel();
+        var viewModel = new CalendarViewModel(null, null, null);
 
         // Ajouter un événement
         viewModel.CalendarEntries.Add(new CalendarEntryItemViewModel
@@ -114,7 +114,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayNavigationButtons()
     {
         // Arrange
-        var viewModel = new CalendarViewModel();
+        var viewModel = new CalendarViewModel(null, null, null);
         var view = new CalendarView { DataContext = viewModel };
 
         // Act
@@ -139,7 +139,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldDisplayEventDetails()
     {
         // Arrange
-        var viewModel = new CalendarViewModel();
+        var viewModel = new CalendarViewModel(null, null, null);
 
         var eventItem = new CalendarEntryItemViewModel
         {
@@ -176,7 +176,7 @@ public class CalendarViewUITests
     public async Task CalendarView_ShouldHaveCorrectLayout()
     {
         // Arrange
-        var viewModel = new CalendarViewModel();
+        var viewModel = new CalendarViewModel(null, null, null);
         var view = new CalendarView { DataContext = viewModel };
 
         // Act

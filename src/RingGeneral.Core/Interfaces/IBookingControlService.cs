@@ -17,4 +17,7 @@ public interface IBookingControlService
         ShowContext showContext,
         List<SegmentDefinition>? existingSegments = null,
         AutoBookingConstraints? constraints = null);
+
+    BookingControlLevel GetControlLevel();
+    void SetControlLevel(BookingControlLevel level);
 }

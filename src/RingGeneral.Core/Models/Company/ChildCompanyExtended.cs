@@ -66,6 +66,26 @@ public sealed record ChildCompanyExtended
     public required bool IsActive { get; init; }
 
     /// <summary>
+    /// Nom de la filiale
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
+    /// Acronyme de la filiale (ex: WWE)
+    /// </summary>
+    public string? Acronym { get; init; }
+
+    /// <summary>
+    /// Région de la filiale
+    /// </summary>
+    public string? RegionId { get; init; }
+
+    /// <summary>
+    /// Limite de taille du roster
+    /// </summary>
+    public int RosterLimit { get; init; } = 20;
+
+    /// <summary>
     /// Phase 2.3 - Identifiant de la YouthStructure liée si Objective = Development
     /// </summary>
     public string? YouthStructureId { get; init; }
