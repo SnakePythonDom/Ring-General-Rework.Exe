@@ -98,6 +98,14 @@ public sealed class SaveStorageService
             }
 
             tempDb = Path.Combine(Path.GetTempPath(), $"ringgeneral_{Guid.NewGuid():N}.db");
+
+            // SECURITY: Prevent Zip Bomb / Resource Exhaustion
+            // Limit uncompressed size to 500 MB
+            if (entry.Length > 500 * 1024 * 1024)
+            {
+                throw new InvalidOperationException("Le fichier de base de données est trop volumineux (max 500 Mo).");
+            }
+
             entry.ExtractToFile(tempDb, true);
 
             var validation = ValiderBase(tempDb);
