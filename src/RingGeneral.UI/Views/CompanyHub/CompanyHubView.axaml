@@ -232,6 +232,114 @@
           </StackPanel>
         </Border>
       </TabItem>
+
+      <TabItem Header="YOUTH">
+        <Grid RowDefinitions="Auto,*">
+          <!-- Create New Structure -->
+          <Border Grid.Row="0" Classes="card" Margin="0,0,0,20" Padding="16">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="10">
+                <TextBlock Text="CRÉER UNE NOUVELLE STRUCTURE"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+
+                <Grid ColumnDefinitions="*,*,Auto" RowDefinitions="Auto,Auto">
+                  <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <TextBlock Text="Nom de la Structure" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewYouthStructureName}" Watermark="Ex: Dojo Performance Center"/>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                    <TextBlock Text="Type" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding YouthStructureTypes}"
+                              SelectedItem="{Binding NewYouthStructureType}"
+                              HorizontalAlignment="Stretch"/>
+                  </StackPanel>
+
+                  <Button Grid.Column="2"
+                          VerticalAlignment="Bottom"
+                          Content="CRÉER"
+                          Command="{Binding CreateYouthStructureCommand}"
+                          Background="{StaticResource BrandPrimaryBrush}"
+                          Foreground="White"
+                          Padding="24,8"
+                          CornerRadius="6"
+                          FontWeight="Bold"/>
+                </Grid>
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- List Structures -->
+          <Border Grid.Row="1" Classes="card" Padding="20">
+            <Grid RowDefinitions="Auto,*,Auto">
+              <TextBlock Grid.Row="0"
+                         Text="MES STRUCTURES JEUNESSE"
+                         FontSize="16"
+                         FontWeight="Bold"
+                         Foreground="White"
+                         Margin="0,0,0,16"/>
+
+              <ScrollViewer Grid.Row="1">
+                <ItemsControl ItemsSource="{Binding YouthStructures}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="{StaticResource BackgroundCardDarkBrush}"
+                              BorderBrush="{StaticResource BorderMediumBrush}"
+                              BorderThickness="1"
+                              CornerRadius="8"
+                              Padding="16"
+                              Margin="0,0,0,12">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <StackPanel Spacing="8">
+                            <TextBlock Text="{Binding Nom}"
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       Foreground="White"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                              <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
+                                <Run Text="Type: "/>
+                                <Run Text="{Binding Type}" FontWeight="Bold" Foreground="White"/>
+                              </TextBlock>
+                              <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
+                                <Run Text="Niveau: "/>
+                                <Run Text="{Binding NiveauEquipements}" FontWeight="Bold" Foreground="White"/>
+                              </TextBlock>
+                              <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
+                                <Run Text="Capacité: "/>
+                                <Run Text="{Binding CapaciteMax}" FontWeight="Bold" Foreground="White"/>
+                              </TextBlock>
+                              <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
+                                <Run Text="Trainees: "/>
+                                <Run Text="{Binding NbTrainees}" FontWeight="Bold" Foreground="White"/>
+                              </TextBlock>
+                            </StackPanel>
+                          </StackPanel>
+                          <Button Grid.Column="1"
+                                  Content="GÉRER"
+                                  Background="{StaticResource BrandPrimaryBrush}"
+                                  Foreground="White"
+                                  Padding="12,6"
+                                  CornerRadius="6"
+                                  FontWeight="Bold"/>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+
+              <TextBlock Grid.Row="2"
+                         Text="{Binding YouthStructures.Count, StringFormat='Total: {0} structure(s)'}"
+                         FontSize="12"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         HorizontalAlignment="Right"
+                         Margin="0,16,0,0"/>
+            </Grid>
+          </Border>
+        </Grid>
+      </TabItem>
     </TabControl>
   </Grid>
 </UserControl>

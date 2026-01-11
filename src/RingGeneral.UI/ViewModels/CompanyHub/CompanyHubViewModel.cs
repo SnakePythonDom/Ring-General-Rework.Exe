@@ -26,6 +26,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     private readonly IChildCompanyExtendedRepository _childCompanyRepository;
     private readonly IChildCompanyStaffService _childCompanyStaffService;
     private readonly IChildCompanyStaffRepository _childCompanyStaffRepository;
+    private readonly IYouthRepository _youthRepository;
 
     private int _selectedTabIndex = 0;
     private bool _isViewingRival = false;
@@ -36,6 +37,10 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     private CatchStyle? _currentStyle;
     private ObservableCollection<CompanyState> _rivalCompanies;
     private ObservableCollection<ChildCompanyExtended> _playerCompanies;
+    private ObservableCollection<YouthStructureState> _youthStructures;
+
+    private string _newYouthStructureName = string.Empty;
+    private string _newYouthStructureType = "ACADEMY";
 
     public CompanyHubViewModel(
         GameRepository? gameRepository = null,
@@ -44,7 +49,8 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
         ICatchStyleRepository? catchStyleRepository = null,
         IChildCompanyExtendedRepository? childCompanyRepository = null,
         IChildCompanyStaffService? childCompanyStaffService = null,
-        IChildCompanyStaffRepository? childCompanyStaffRepository = null)
+        IChildCompanyStaffRepository? childCompanyStaffRepository = null,
+        IYouthRepository? youthRepository = null)
     {
         _gameRepository = gameRepository ?? throw new ArgumentNullException(nameof(gameRepository));
         _ownerRepository = ownerRepository ?? throw new ArgumentNullException(nameof(ownerRepository));
@@ -53,9 +59,11 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
         _childCompanyRepository = childCompanyRepository ?? throw new ArgumentNullException(nameof(childCompanyRepository));
         _childCompanyStaffService = childCompanyStaffService ?? throw new ArgumentNullException(nameof(childCompanyStaffService));
         _childCompanyStaffRepository = childCompanyStaffRepository ?? throw new ArgumentNullException(nameof(childCompanyStaffRepository));
+        _youthRepository = youthRepository ?? throw new ArgumentNullException(nameof(youthRepository));
 
         _rivalCompanies = new ObservableCollection<CompanyState>();
         _playerCompanies = new ObservableCollection<ChildCompanyExtended>();
+        _youthStructures = new ObservableCollection<YouthStructureState>();
 
         // Prédicat pour HireStaffCommand : vérifie budget et absence de Manager
         // Le prédicat sera vérifié dynamiquement dans la commande avec le childCompanyId
@@ -67,6 +75,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
         SwitchToRivalsCommand = ReactiveCommand.Create(SwitchToRivals);
         SwitchToMyCompanyCommand = ReactiveCommand.Create(SwitchToMyCompany);
         HireStaffCommand = ReactiveCommand.CreateFromTask<string>(HireStaffAsync, canHireStaff);
+        CreateYouthStructureCommand = ReactiveCommand.CreateFromTask(CreateYouthStructureAsync);
     }
 
     #region Properties
@@ -169,6 +178,35 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     }
 
     /// <summary>
+    /// Liste des structures jeunesse
+    /// </summary>
+    public ObservableCollection<YouthStructureState> YouthStructures
+    {
+        get => _youthStructures;
+        private set => this.RaiseAndSetIfChanged(ref _youthStructures, value);
+    }
+
+    public string NewYouthStructureName
+    {
+        get => _newYouthStructureName;
+        set => this.RaiseAndSetIfChanged(ref _newYouthStructureName, value);
+    }
+
+    public string NewYouthStructureType
+    {
+        get => _newYouthStructureType;
+        set => this.RaiseAndSetIfChanged(ref _newYouthStructureType, value);
+    }
+
+    public ObservableCollection<string> YouthStructureTypes { get; } = new ObservableCollection<string>
+    {
+        "ACADEMY",
+        "DOJO",
+        "PERFORMANCE_CENTER",
+        "DEVELOPMENT"
+    };
+
+    /// <summary>
     /// Texte du bouton de switch
     /// </summary>
     public string SwitchButtonText => IsViewingRival ? "📊 Ma Compagnie" : "👁️ Voir Rivales";
@@ -200,6 +238,7 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     public ReactiveCommand<Unit, Unit> SwitchToRivalsCommand { get; }
     public ReactiveCommand<Unit, Unit> SwitchToMyCompanyCommand { get; }
     public ReactiveCommand<string, Unit> HireStaffCommand { get; }
+    public ReactiveCommand<Unit, Unit> CreateYouthStructureCommand { get; }
 
     #endregion
 
@@ -211,6 +250,8 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
         LoadPlayerCompany();
         // Charger les filiales du joueur
         _ = LoadPlayerCompaniesAsync();
+        // Charger les structures jeunesse
+        _ = LoadYouthStructuresAsync();
     }
 
     #endregion
@@ -263,6 +304,9 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
 
                 // Charger les filiales du joueur
                 await LoadPlayerCompaniesAsync();
+
+                // Charger les structures jeunesse
+                await LoadYouthStructuresAsync();
 
                 IsViewingRival = false;
                 Logger.Info($"Company Hub chargé pour: {CurrentCompany.Nom}");
@@ -328,6 +372,38 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
         catch (Exception ex)
         {
             Logger.Error($"[CompanyHubViewModel] Erreur chargement filiales: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Charge les structures jeunesse
+    /// </summary>
+    private async Task LoadYouthStructuresAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_currentCompanyId))
+            {
+                return;
+            }
+
+            // Charger les structures (maintenant via l'interface standard)
+            var structures = await Task.Run(() =>
+            {
+                return _youthRepository.ChargerYouthStructures()
+                    .Where(y => y.CompanyId == _currentCompanyId)
+                    .ToList();
+            });
+
+            YouthStructures.Clear();
+            foreach (var s in structures)
+            {
+                YouthStructures.Add(s);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[CompanyHubViewModel] Erreur chargement youth structures: {ex.Message}", ex);
         }
     }
 
@@ -410,6 +486,56 @@ public sealed class CompanyHubViewModel : ViewModelBase, INavigableViewModel
     {
         LoadPlayerCompany();
         IsViewingRival = false;
+    }
+
+    /// <summary>
+    /// Crée une nouvelle structure jeunesse
+    /// </summary>
+    private async Task CreateYouthStructureAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_currentCompanyId))
+            {
+                Logger.Error("Impossible de créer une structure: CompanyId manquant");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewYouthStructureName))
+            {
+                // Idéalement afficher une erreur à l'utilisateur
+                Logger.Warning("Nom de structure manquant");
+                return;
+            }
+
+            var id = $"YS-{Guid.NewGuid():N}".ToUpperInvariant();
+
+            // Valeurs par défaut basiques pour une création manuelle
+            await _youthRepository.CreateYouthStructureAsync(
+                id,
+                _currentCompanyId,
+                NewYouthStructureName,
+                CurrentCompany?.RegionId, // Utilise la région de la compagnie mère
+                NewYouthStructureType,
+                100_000m, // Budget par défaut
+                20,       // Capacité par défaut
+                1,        // Niveau équipements
+                10,       // Qualité coaching
+                "HYBRIDE" // Philosophie
+            );
+
+            Logger.Info($"Structure jeunesse créée: {NewYouthStructureName}");
+
+            // Reset form
+            NewYouthStructureName = string.Empty;
+
+            // Reload list
+            await LoadYouthStructuresAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur création structure jeunesse: {ex.Message}", ex);
+        }
     }
 
     /// <summary>
