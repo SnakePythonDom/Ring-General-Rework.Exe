@@ -1,535 +1,986 @@
-# 🗺️ Architecture Maps - État Actuel de la Codebase
+# Cartographie MVVM - ViewModels
 
-> Documentation générée le 2026-01-12
-> Analyse des dossiers: `src/RingGeneral.Core` et `src/RingGeneral.UI`
+Cartographie générée à partir de `src/RingGeneral.UI/ViewModels`, avec relations d'héritage, dépendances injectées et commandes ReactiveUI.
 
----
+## 1. Core ViewModels (Racine)
 
-## 1. FLUX D'ARCHITECTURE (Dépendances MVVM)
-
-**Type:** `classDiagram`
-**Objectif:** Visualiser les dépendances des ViewModels principaux vers les Services Core
+### Titre : Root ViewModels
 
 ```mermaid
 classDiagram
-    %% VIEWMODELS
-    class ShellViewModel {
-        <<ViewModel>>
-    }
-
-    class ShowBookingViewModel {
-        <<ViewModel>>
-    }
-
-    class FinanceViewModel {
-        <<ViewModel>>
-    }
-
-    class CompanyHubViewModel {
-        <<ViewModel>>
-    }
-
-    %% SERVICES & REPOSITORIES
-    class INavigationService {
-        <<Service>>
-    }
-
-    class IEventAggregator {
-        <<Service>>
-    }
-
-    class GameRepository {
-        <<Repository>>
-    }
-
-    class BookingValidator {
-        <<Service>>
-    }
-
-    class BookingBuilderService {
-        <<Service>>
-    }
-
-    class SegmentTypeCatalog {
-        <<Service>>
-    }
-
-    class TemplateService {
-        <<Service>>
-    }
-
-    class IBookerAIEngine {
-        <<Service>>
-    }
-
-    class IBookingControlService {
-        <<Service>>
-    }
-
-    class SettingsRepository {
-        <<Repository>>
-    }
-
-    class IDebtManagementService {
-        <<Service>>
-    }
-
-    class IRevenueProjectionService {
-        <<Service>>
-    }
-
-    class IBudgetAllocationService {
-        <<Service>>
-    }
-
-    class ITvDealNegotiationService {
-        <<Service>>
-    }
-
-    class IOwnerRepository {
-        <<Repository>>
-    }
-
-    class IBookerRepository {
-        <<Repository>>
-    }
-
-    class IChildCompanyExtendedRepository {
-        <<Repository>>
-    }
-
-    class IChildCompanyStaffService {
-        <<Service>>
-    }
-
-    class StaffCompatibilityCalculator {
-        <<Service>>
-    }
-
-    class StaffProposalService {
-        <<Service>>
-    }
-
-    class StaffSharingEngine {
-        <<Service>>
-    }
-
-    %% DEPENDENCIES
-    ShellViewModel --> INavigationService : navigates
-    ShellViewModel --> IEventAggregator : publishes/subscribes
-    ShellViewModel --> GameRepository : loads game state
-
-    ShowBookingViewModel --> GameRepository : persists bookings
-    ShowBookingViewModel --> SegmentTypeCatalog : gets segment types
-    ShowBookingViewModel --> BookingValidator : validates
-    ShowBookingViewModel --> BookingBuilderService : builds segments
-    ShowBookingViewModel --> TemplateService : manages templates
-    ShowBookingViewModel --> IBookerAIEngine : auto-booking
-    ShowBookingViewModel --> IBookingControlService : control levels
-    ShowBookingViewModel --> SettingsRepository : settings
-    ShowBookingViewModel --> IEventAggregator : events
-
-    FinanceViewModel --> GameRepository : financial data
-    FinanceViewModel --> IDebtManagementService : debt tracking
-    FinanceViewModel --> IRevenueProjectionService : forecasting
-    FinanceViewModel --> IBudgetAllocationService : budget mgmt
-    FinanceViewModel --> ITvDealNegotiationService : TV deals
-
-    CompanyHubViewModel --> GameRepository : company data
-    CompanyHubViewModel --> IOwnerRepository : owner data
-    CompanyHubViewModel --> IBookerRepository : booker data
-    CompanyHubViewModel --> IChildCompanyExtendedRepository : child companies
-    CompanyHubViewModel --> IChildCompanyStaffService : staff management
-    CompanyHubViewModel --> StaffCompatibilityCalculator : compatibility
-    CompanyHubViewModel --> StaffProposalService : proposals
-    CompanyHubViewModel --> StaffSharingEngine : staff sharing
+class StaffCompatibilityCalculator
+class ServiceContainer
+class SegmentTypeCatalog
+class SaveStorageService
+class IStaffRepository
+class IStaffCompatibilityRepository
+class IEventAggregator
+class IEraRepository
+class IBrandRepository
+class EraTransitionService
+class BrandManagementService
+class ReactiveObject
+class AttributeViewModel
+class AudienceHistoryItemViewModel
+class BrandConflictViewModel
+class BrandListItemViewModel
+class BrandManagementViewModel {
+  +ReactiveCommand CreateBrandCommand
+  +ReactiveCommand CloseBrandCommand
+  +ReactiveCommand UpdateBrandCommand
+  +ReactiveCommand SwitchToMultiBrandCommand
+  +ReactiveCommand RefreshDataCommand
+}
+class BrandObjectiveOptionViewModel
+class CodexArticleViewModel
+class CodexViewModel
+class CompanyHierarchyViewModel
+class CreativeStaffViewModel
+class EraListItemViewModel
+class EraManagementViewModel {
+  +ReactiveCommand InitiateTransitionCommand
+  +ReactiveCommand AccelerateTransitionCommand
+  +ReactiveCommand CancelTransitionCommand
+  +ReactiveCommand RefreshDataCommand
+}
+class EraTransitionViewModel
+class EraTypeOptionViewModel
+class GameSessionViewModel {
+  +ReactiveCommand AvancerTempsCommand
+  +ReactiveCommand OuvrirRechercheGlobaleCommand
+  +ReactiveCommand FermerRechercheGlobaleCommand
+}
+class GlobalSearchResultViewModel
+class HelpPanelViewModel
+class HelpSectionViewModel
+class ImpactPageViewModel
+class InboxItemViewModel
+class MatchTypeOptionViewModel
+class MatchTypeViewModel
+class ParticipantViewModel
+class ReachMapItemViewModel
+class SaveGameEntryViewModel
+class SaveManagerViewModel
+class SaveSlotViewModel
+class SegmentConsigneViewModel
+class SegmentResultViewModel
+class SegmentTemplateViewModel
+class SegmentTypeOptionViewModel
+class SegmentViewModel {
+  +ReactiveCommand AddParticipantCommand
+  +ReactiveCommand RemoveParticipantCommand
+}
+class ShowCalendarItemViewModel
+class ShowHistoryEntryViewModel
+class ShowHistoryViewModel
+class StaffCompatibilityViewModel
+class StaffManagementViewModel {
+  +ReactiveCommand HireStaffCommand
+  +ReactiveCommand TerminateStaffCommand
+  +ReactiveCommand CalculateCompatibilityCommand
+  +ReactiveCommand RecalculateAllCompatibilitiesCommand
+  +ReactiveCommand RefreshDataCommand
+}
+class StaffMemberListItemViewModel
+class StorylineListItemViewModel
+class StorylineOptionViewModel
+class StorylineParticipantViewModel
+class StorylinePhaseOptionViewModel
+class StorylineStatusOptionViewModel
+class StructuralStaffViewModel
+class TableColumnOrderViewModel
+class TableFilterOptionViewModel
+class TableViewConfigurationViewModel
+class TableViewItemViewModel
+class TrainerViewModel
+class TvDealViewModel
+class ViewModelBase
+class YouthStructureViewModel
+ViewModelBase <|-- BrandListItemViewModel
+ViewModelBase <|-- BrandManagementViewModel
+ViewModelBase <|-- CodexViewModel
+ViewModelBase <|-- CompanyHierarchyViewModel
+ViewModelBase <|-- CreativeStaffViewModel
+ViewModelBase <|-- EraListItemViewModel
+ViewModelBase <|-- EraManagementViewModel
+ViewModelBase <|-- EraTransitionViewModel
+ViewModelBase <|-- GameSessionViewModel
+ViewModelBase <|-- HelpPanelViewModel
+ViewModelBase <|-- ImpactPageViewModel
+ReactiveObject <|-- MatchTypeViewModel
+ViewModelBase <|-- SaveManagerViewModel
+ViewModelBase <|-- SaveSlotViewModel
+ReactiveObject <|-- SegmentConsigneViewModel
+ReactiveObject <|-- SegmentTemplateViewModel
+ViewModelBase <|-- SegmentViewModel
+ViewModelBase <|-- StaffCompatibilityViewModel
+ViewModelBase <|-- StaffManagementViewModel
+ViewModelBase <|-- StaffMemberListItemViewModel
+ViewModelBase <|-- StorylineListItemViewModel
+ViewModelBase <|-- StructuralStaffViewModel
+ViewModelBase <|-- TableViewConfigurationViewModel
+ViewModelBase <|-- TableViewItemViewModel
+ViewModelBase <|-- TrainerViewModel
+ReactiveObject <|-- ViewModelBase
+ViewModelBase <|-- YouthStructureViewModel
+BrandManagementViewModel ..> BrandManagementService
+BrandManagementViewModel ..> IBrandRepository
+EraManagementViewModel ..> EraTransitionService
+EraManagementViewModel ..> IEraRepository
+GameSessionViewModel ..> ServiceContainer
+SaveManagerViewModel ..> SaveStorageService
+SegmentViewModel ..> IEventAggregator
+SegmentViewModel ..> SegmentTypeCatalog
+StaffManagementViewModel ..> IStaffCompatibilityRepository
+StaffManagementViewModel ..> IStaffRepository
+StaffManagementViewModel ..> StaffCompatibilityCalculator
 ```
 
-### 🔍 Analyse des Dépendances
+**Note**
+- ViewModels sans injection de service: AttributeViewModel, AudienceHistoryItemViewModel, BrandConflictViewModel, BrandListItemViewModel, BrandObjectiveOptionViewModel, CodexArticleViewModel, CodexViewModel, CompanyHierarchyViewModel, CreativeStaffViewModel, EraListItemViewModel, EraTransitionViewModel, EraTypeOptionViewModel, GlobalSearchResultViewModel, HelpPanelViewModel, HelpSectionViewModel, ImpactPageViewModel, InboxItemViewModel, MatchTypeOptionViewModel, MatchTypeViewModel, ParticipantViewModel, ReachMapItemViewModel, SaveGameEntryViewModel, SaveSlotViewModel, SegmentConsigneViewModel, SegmentResultViewModel, SegmentTemplateViewModel, SegmentTypeOptionViewModel, ShowCalendarItemViewModel, ShowHistoryEntryViewModel, ShowHistoryViewModel, StaffCompatibilityViewModel, StaffMemberListItemViewModel, StorylineListItemViewModel, StorylineOptionViewModel, StorylineParticipantViewModel, StorylinePhaseOptionViewModel, StorylineStatusOptionViewModel, StructuralStaffViewModel, TableColumnOrderViewModel, TableFilterOptionViewModel, TableViewConfigurationViewModel, TableViewItemViewModel, TrainerViewModel, TvDealViewModel, ViewModelBase, YouthStructureViewModel
+- ViewModels sans commandes observables: AttributeViewModel, AudienceHistoryItemViewModel, BrandConflictViewModel, BrandListItemViewModel, BrandObjectiveOptionViewModel, CodexArticleViewModel, CodexViewModel, CompanyHierarchyViewModel, CreativeStaffViewModel, EraListItemViewModel, EraTransitionViewModel, EraTypeOptionViewModel, GlobalSearchResultViewModel, HelpPanelViewModel, HelpSectionViewModel, ImpactPageViewModel, InboxItemViewModel, MatchTypeOptionViewModel, MatchTypeViewModel, ParticipantViewModel, ReachMapItemViewModel, SaveGameEntryViewModel, SaveManagerViewModel, SaveSlotViewModel, SegmentConsigneViewModel, SegmentResultViewModel, SegmentTemplateViewModel, SegmentTypeOptionViewModel, ShowCalendarItemViewModel, ShowHistoryEntryViewModel, ShowHistoryViewModel, StaffCompatibilityViewModel, StaffMemberListItemViewModel, StorylineListItemViewModel, StorylineOptionViewModel, StorylineParticipantViewModel, StorylinePhaseOptionViewModel, StorylineStatusOptionViewModel, StructuralStaffViewModel, TableColumnOrderViewModel, TableFilterOptionViewModel, TableViewConfigurationViewModel, TableViewItemViewModel, TrainerViewModel, TvDealViewModel, ViewModelBase, YouthStructureViewModel
 
-**✅ Points Forts:**
-- Séparation claire entre UI (ViewModels) et logique métier (Services/Repositories)
-- Injection de dépendances cohérente via constructeurs
-- Services spécialisés pour chaque domaine métier
-- Pattern Repository bien appliqué pour l'accès aux données
-
-**⚠️ Points d'Attention:**
-- **ShowBookingViewModel** a 9 dépendances → complexité élevée, candidat au refactoring
-- **CompanyHubViewModel** a 8 dépendances directes → pourrait bénéficier d'un service façade
-- Certaines dépendances sont optionnelles (nullable) → vérifier la logique de fallback
-
-**🔴 Aucune dépendance circulaire détectée** ✓
-
----
-
-## 2. FLUX DU "DAILY TICK" (Logique Temporelle)
-
-**Type:** `sequenceDiagram`
-**Objectif:** Tracer l'exécution d'une journée de simulation
+### Titre : Core Domain ViewModels
 
 ```mermaid
-sequenceDiagram
-    participant UI as DashboardViewModel
-    participant TOrc as TimeOrchestratorService
-    participant GRepo as GameRepository
-    participant Daily as IDailyServices
-    participant Event as IEventGeneratorService
-    participant SDO as IShowDayOrchestrator
-    participant Sched as DailyShowSchedulerService
-
-    UI->>TOrc: PasserJourSuivant()
-    activate TOrc
-
-    Note over TOrc: 1. INCRÉMENTATION JOUR
-    TOrc->>GRepo: IncrementerJour()
-    activate GRepo
-    GRepo-->>TOrc: currentDay++
-    deactivate GRepo
-
-    Note over TOrc: 2. MISE À JOUR STATS QUOTIDIENNES
-    TOrc->>Daily: UpdateDailyStats(companyId, currentDay)
-    activate Daily
-    Daily->>GRepo: UpdateFatigue() (récupération)
-    Daily->>GRepo: UpdateInjuries() (guérison)
-    Daily-->>TOrc: Stats mises à jour
-    deactivate Daily
-
-    Note over TOrc: 3. AUTO-SCHEDULING IA (tous les 30j)
-    TOrc->>Sched: ScheduleAICompanyShows(currentDay)
-    activate Sched
-    Sched->>GRepo: GetAICompanies()
-    GRepo-->>Sched: List<Company>
-    loop Pour chaque compagnie IA
-        Sched->>GRepo: CreateShow(date: currentDay + 30)
-    end
-    Sched-->>TOrc: Shows planifiés
-    deactivate Sched
-
-    Note over TOrc: 4. GÉNÉRATION ÉVÉNEMENTS
-    TOrc->>Event: GenerateDailyEvents(companyId, currentDay)
-    activate Event
-    Event-->>TOrc: List<string> events
-    Note right of Event: ⚠️ NON IMPLÉMENTÉ<br/>Retourne liste vide
-    deactivate Event
-
-    Note over TOrc: 5. DÉTECTION SHOW AUJOURD'HUI
-    TOrc->>SDO: DetecterShowAVenir(companyId, currentDay)
-    activate SDO
-    SDO->>GRepo: GetScheduledShows(date: currentDay)
-    GRepo-->>SDO: List<Show>
-    alt Show trouvé
-        SDO-->>TOrc: ShowDayDetectionResult(hasShow: true)
-        Note over TOrc: Déclenche ExecuterFluxComplet<br/>(voir diagramme 3)
-    else Pas de show
-        SDO-->>TOrc: ShowDayDetectionResult(hasShow: false)
-    end
-    deactivate SDO
-
-    Note over TOrc: 6. PAIE MENSUELLE (FIN DE MOIS)
-    alt currentDay.Day == daysInMonth
-        TOrc->>Daily: ProcessMonthlyPayroll(companyId, currentDay)
-        activate Daily
-        Note right of Daily: FLUX 1: Salaire mensuel garanti<br/>(PAS les frais d'apparition)
-        Daily->>GRepo: GetActiveContracts(frequency: Mensuelle)
-        GRepo-->>Daily: List<Contract>
-        Daily->>GRepo: AppliquerTransactionsFinancieres(salaires)
-        Daily-->>TOrc: Paie traitée
-        deactivate Daily
-    end
-
-    TOrc-->>UI: Jour suivant exécuté
-    deactivate TOrc
+classDiagram
+class INavigationService
+class IEventAggregator
+class GameRepository
+class ViewModelBase
+class ShellViewModel {
+  +ReactiveCommand NavigateCommand
+  +ReactiveCommand GlobalSearchCommand
+  +ReactiveCommand InboxCommand
+  +ReactiveCommand HelpCommand
+  +ReactiveCommand SettingsCommand
+  +ReactiveCommand NavigateToDashboardCommand
+  +ReactiveCommand NavigateToBookingCommand
+  +ReactiveCommand NavigateToCompanyCommand
+  +ReactiveCommand NavigateToLibraryCommand
+  +ReactiveCommand NavigateToReportsCommand
+  +ReactiveCommand NavigateToSettingsCommand
+  +ReactiveCommand NavigateToCalendarCommand
+}
+ViewModelBase <|-- ShellViewModel
+ShellViewModel ..> GameRepository
+ShellViewModel ..> IEventAggregator
+ShellViewModel ..> INavigationService
 ```
 
-### 🔍 Analyse du Flux Temporel
-
-**✅ Points Forts:**
-- Séquence logique claire: incrémentation → stats → scheduling → events → shows → paie
-- Séparation des responsabilités (stats, scheduling, events, shows, paie)
-- Gestion distincte des flux de paiement (FLUX 1 mensuel vs FLUX 2 par apparition)
-
-**⚠️ Points d'Attention:**
-- **IEventGeneratorService non implémenté** → Les événements aléatoires ne sont pas générés
-- L'auto-scheduling des shows IA est fixé à 30 jours → manque de flexibilité
-- Pas de gestion des transactions en base de données → risque d'incohérence en cas d'erreur
-
-**🔴 Risque d'Incohérence:**
-- Si `ProcessMonthlyPayroll` échoue après `IncrementerJour`, le jour avance mais la paie non → nécessite transaction ou compensation
-
----
-
-## 3. FLUX DU "SHOW DAY" (Simulation)
-
-**Type:** `flowchart TD`
-**Objectif:** Visualiser les étapes de simulation d'un show, de la validation à l'application des impacts
+### Titre : Start Domain ViewModels
 
 ```mermaid
-flowchart TD
-    Start([User clique<br/>'Simuler Show']) --> Load[Charger ShowContext]
-
-    Load --> LoadDetails{Chargement réussi?}
-    LoadDetails -->|Non| Error1[Afficher erreur]
-    LoadDetails -->|Oui| Context[ShowContext créé]
-
-    Context --> Validate[BookingValidator.<br/>ValiderBooking]
-
-    Validate --> Check{Validation}
-    Check -->|Erreurs bloquantes| Error2[Afficher erreurs<br/>+ Bloquer simulation]
-    Check -->|Warnings seulement| Warn[Afficher warnings<br/>+ Continuer]
-    Check -->|Aucun problème| Warn
-
-    Warn --> Simulate[ShowSimulationEngine.<br/>Simuler]
-
-    Simulate --> LoopSegments[Pour chaque segment]
-
-    LoopSegments --> CalcRating[Calculer Rating<br/>skills + crowd + pacing<br/>+ chemistry + morale]
-    CalcRating --> RandomEvents[Appliquer événements<br/>botches, incidents]
-    RandomEvents --> Fatigue[Accumuler fatigue]
-    Fatigue --> Injuries[Déterminer blessures<br/>basé sur risque]
-    Injuries --> Momentum[Tracker momentum<br/>winners/losers]
-    Momentum --> PopUpdate[Maj popularité,<br/>storyline heat,<br/>title prestige]
-
-    PopUpdate --> NextSegment{Segment suivant?}
-    NextSegment -->|Oui| LoopSegments
-    NextSegment -->|Non| ShowLevel[Calculs Show-Level]
-
-    ShowLevel --> GlobalRating[Rating global<br/>moyenne segments]
-    GlobalRating --> Audience[Calcul audience<br/>reach + score + stars<br/>- saturation]
-    Audience --> Finances[Calcul finances<br/>tickets + merch + TV]
-    Finances --> NicheBonuses[Appliquer bonus niche<br/>stable tickets, merch x,<br/>TV reduction]
-
-    NicheBonuses --> Delta[Créer GameStateDelta<br/>injuries, popularity,<br/>finances, morale]
-
-    Delta --> Finalize[ShowDayOrchestrator.<br/>FinaliserShow]
-
-    Finalize --> Titles[TitleService.<br/>Appliquer changements titres]
-    Titles --> ApplyImpacts[ImpactApplier.<br/>AppliquerImpacts]
-
-    ApplyImpacts --> Implemented{Implémenté?}
-    Implemented -->|Non| Manual[⚠️ Application manuelle<br/>des impacts via<br/>GameStateDelta]
-    Implemented -->|Oui| Apply[Applique finances,<br/>blessures, popularité,<br/>morale]
-
-    Manual --> AppearanceFees
-    Apply --> AppearanceFees[IDailyServices.<br/>ProcessAppearanceFees]
-
-    AppearanceFees --> PayWorkers[FLUX 2: Payer workers<br/>ayant participé au show]
-    PayWorkers --> Morale[MoraleEngine.<br/>UpdateUnusedWorkers<br/>-3 morale]
-
-    Morale --> MarkSimulated[Marquer show<br/>status: SIMULATED]
-
-    MarkSimulated --> Inbox[Générer notifications<br/>InboxItem]
-    Inbox --> End([Simulation terminée])
-
-    Error1 --> End
-    Error2 --> End
-
-    style Start fill:#4CAF50
-    style End fill:#2196F3
-    style Error1 fill:#F44336
-    style Error2 fill:#F44336
-    style Implemented fill:#FF9800
-    style Manual fill:#FF5722
-    style ApplyImpacts fill:#FF9800
+classDiagram
+class SaveGameManager
+class IRegionRepository
+class IOwnerRepository
+class INavigationService
+class ICatchStyleRepository
+class IBookerRepository
+class GameRepository
+class ViewModelBase
+class CompanyListItem
+class CompanySelectorViewModel {
+  +ReactiveCommand SelectCompanyCommand
+  +ReactiveCommand CreateNewCompanyCommand
+  +ReactiveCommand BackCommand
+}
+class CreateCompanyViewModel {
+  +ReactiveCommand CreateCompanyCommand
+  +ReactiveCommand ContinueCommand
+  +ReactiveCommand CancelCommand
+}
+class StartViewModel {
+  +ReactiveCommand NewGameCommand
+  +ReactiveCommand LoadGameCommand
+  +ReactiveCommand ExitCommand
+}
+ViewModelBase <|-- CompanyListItem
+ViewModelBase <|-- CompanySelectorViewModel
+ViewModelBase <|-- CreateCompanyViewModel
+ViewModelBase <|-- StartViewModel
+CompanySelectorViewModel ..> GameRepository
+CompanySelectorViewModel ..> INavigationService
+CompanySelectorViewModel ..> SaveGameManager
+CreateCompanyViewModel ..> GameRepository
+CreateCompanyViewModel ..> IBookerRepository
+CreateCompanyViewModel ..> ICatchStyleRepository
+CreateCompanyViewModel ..> INavigationService
+CreateCompanyViewModel ..> IOwnerRepository
+CreateCompanyViewModel ..> IRegionRepository
+StartViewModel ..> GameRepository
+StartViewModel ..> INavigationService
 ```
 
-### 🔍 Analyse du Flux Show Day
+**Note**
+- ViewModels sans injection de service: CompanyListItem
+- ViewModels sans commandes observables: CompanyListItem
 
-**✅ Points Forts:**
-- Validation rigoureuse avant simulation (erreurs bloquantes vs warnings)
-- Simulation détaillée segment par segment avec multiples facteurs
-- Séparation claire entre simulation (lecture) et application (écriture)
-- Gestion des deux flux de paiement distincts (FLUX 2 pour apparitions)
+## 2. Booking ViewModels
 
-**⚠️ Points d'Attention:**
-- **IImpactApplier non implémenté** → Les impacts sont appliqués manuellement via GameStateDelta
-- Risque de doubles paiements si FLUX 1 et FLUX 2 ne sont pas coordonnés correctement
-- Le calcul de finances est complexe (reach, stars, saturation, niche) → potentiel de bugs
+### Titre : Booking Domain ViewModels
 
-**🔴 Incohérences Détectées:**
-1. **Interface vs Implémentation:** `IImpactApplier` défini mais non implémenté → code fragile
-2. **Responsabilité partagée:** Les impacts sont appliqués à la fois dans `ShowDayOrchestrator.FinaliserShow()` et via `IImpactApplier` → duplication potentielle
-3. **Workflow incomplet:** Si `ProcessAppearanceFees` échoue, le show est marqué SIMULATED mais la paie non → incohérence
+```mermaid
+classDiagram
+class TemplateService
+class SettingsRepository
+class SegmentTypeCatalog
+class IShowDayOrchestrator
+class IEventAggregator
+class IBookingControlService
+class IBookerAIEngine
+class GameRepository
+class BookingValidator
+class BookingBuilderService
+class ViewModelBase
+class BookingSettingsViewModel {
+  +ReactiveCommand SaveSettingsCommand
+  +ReactiveCommand ResetToDefaultsCommand
+  +ReactiveCommand AddValidationRuleCommand
+  +ReactiveCommand RemoveValidationRuleCommand
+  +ReactiveCommand TestValidationCommand
+}
+class BookingViewModel {
+  +ReactiveCommand AddSegmentCommand
+  +ReactiveCommand DeleteSegmentCommand
+  +ReactiveCommand MoveSegmentUpCommand
+  +ReactiveCommand MoveSegmentDownCommand
+  +ReactiveCommand SaveSegmentCommand
+  +ReactiveCommand CopySegmentCommand
+  +ReactiveCommand ApplyTemplateCommand
+  +ReactiveCommand ValidateBookingCommand
+}
+class LibraryViewModel {
+  +ReactiveCommand CreateTemplateCommand
+  +ReactiveCommand EditTemplateCommand
+  +ReactiveCommand DeleteTemplateCommand
+  +ReactiveCommand DuplicateTemplateCommand
+  +ReactiveCommand ApplyTemplateCommand
+  +ReactiveCommand SearchCommand
+  +ReactiveCommand RefreshCommand
+}
+class ShowBookingViewModel {
+  +ReactiveCommand AddSegmentCommand
+  +ReactiveCommand RemoveSegmentCommand
+  +ReactiveCommand MoveSegmentUpCommand
+  +ReactiveCommand MoveSegmentDownCommand
+  +ReactiveCommand DuplicateSegmentCommand
+  +ReactiveCommand SimulateShowCommand
+  +ReactiveCommand ValidateBookingCommand
+  +ReactiveCommand AutoBookCommand
+}
+class ShowHistoryEntryViewModel
+class ShowHistoryPageViewModel {
+  +ReactiveCommand ViewDetailsCommand
+  +ReactiveCommand ExportCommand
+  +ReactiveCommand FilterCommand
+  +ReactiveCommand RefreshCommand
+}
+class ShowWorkersViewModel {
+  +ReactiveCommand AddParticipantCommand
+  +ReactiveCommand RemoveParticipantCommand
+  +ReactiveCommand ClearParticipantsCommand
+}
+class ValidationRuleViewModel
+class WorkerSelectionViewModel {
+  +ReactiveCommand SelectWorkerCommand
+  +ReactiveCommand CancelCommand
+}
+ViewModelBase <|-- BookingSettingsViewModel
+ViewModelBase <|-- BookingViewModel
+ViewModelBase <|-- LibraryViewModel
+ViewModelBase <|-- ShowBookingViewModel
+ViewModelBase <|-- ShowHistoryEntryViewModel
+ViewModelBase <|-- ShowHistoryPageViewModel
+ViewModelBase <|-- ShowWorkersViewModel
+ViewModelBase <|-- ValidationRuleViewModel
+ViewModelBase <|-- WorkerSelectionViewModel
+BookingSettingsViewModel ..> GameRepository
+BookingViewModel ..> BookingBuilderService
+BookingViewModel ..> BookingValidator
+BookingViewModel ..> GameRepository
+BookingViewModel ..> IBookingControlService
+BookingViewModel ..> IEventAggregator
+BookingViewModel ..> IShowDayOrchestrator
+BookingViewModel ..> SegmentTypeCatalog
+BookingViewModel ..> TemplateService
+LibraryViewModel ..> GameRepository
+ShowBookingViewModel ..> BookingBuilderService
+ShowBookingViewModel ..> BookingValidator
+ShowBookingViewModel ..> GameRepository
+ShowBookingViewModel ..> IBookerAIEngine
+ShowBookingViewModel ..> IBookingControlService
+ShowBookingViewModel ..> IEventAggregator
+ShowBookingViewModel ..> SegmentTypeCatalog
+ShowBookingViewModel ..> SettingsRepository
+ShowBookingViewModel ..> TemplateService
+ShowHistoryPageViewModel ..> GameRepository
+ShowWorkersViewModel ..> GameRepository
+```
 
-**💡 Recommandations:**
-- Implémenter `IImpactApplier` pour centraliser l'application des impacts
-- Utiliser une transaction de base de données pour garantir l'atomicité du flux complet
-- Ajouter des compensations en cas d'échec partiel (rollback ou retry)
+**Note**
+- ViewModels sans injection de service: ShowHistoryEntryViewModel, ValidationRuleViewModel, WorkerSelectionViewModel
+- ViewModels sans commandes observables: ShowHistoryEntryViewModel, ValidationRuleViewModel
 
----
+## 3. Finance ViewModels
 
-stateDiagram-v2
-    [*] --> AppStart: Lancement application
+### Titre : Finance Domain ViewModels
 
-    AppStart --> CheckSave: App.axaml.cs<br/>OnFrameworkInitializationCompleted
+```mermaid
+classDiagram
+class ITvDealNegotiationService
+class IRevenueProjectionService
+class IDebtManagementService
+class IBudgetAllocationService
+class GameRepository
+class ViewModelBase
+class AudienceHistoryItemViewModel
+class CompanyDebtViewModel
+class FinanceViewModel {
+  +ReactiveCommand LoadTvDealsCommand
+  +ReactiveCommand LoadAudienceHistoryCommand
+  +ReactiveCommand CalculateReachCommand
+  +ReactiveCommand OpenTvDealNegotiationCommand
+}
+class ReachMapItemViewModel
+class TransactionItemViewModel
+class TvDealNegotiationViewModel {
+  +ReactiveCommand NextStepCommand
+  +ReactiveCommand PreviousStepCommand
+  +ReactiveCommand NegotiateCommand
+  +ReactiveCommand SignDealCommand
+  +ReactiveCommand CancelCommand
+}
+class TvDealViewModel
+ViewModelBase <|-- AudienceHistoryItemViewModel
+ViewModelBase <|-- CompanyDebtViewModel
+ViewModelBase <|-- FinanceViewModel
+ViewModelBase <|-- ReachMapItemViewModel
+ViewModelBase <|-- TransactionItemViewModel
+ViewModelBase <|-- TvDealNegotiationViewModel
+ViewModelBase <|-- TvDealViewModel
+CompanyDebtViewModel ..> IDebtManagementService
+FinanceViewModel ..> GameRepository
+FinanceViewModel ..> IBudgetAllocationService
+FinanceViewModel ..> IDebtManagementService
+FinanceViewModel ..> IRevenueProjectionService
+FinanceViewModel ..> ITvDealNegotiationService
+TvDealNegotiationViewModel ..> ITvDealNegotiationService
+```
 
-    state if_save <<choice>>
-    CheckSave --> if_save: Save game exists?
+**Note**
+- ViewModels sans injection de service: AudienceHistoryItemViewModel, ReachMapItemViewModel, TransactionItemViewModel, TvDealViewModel
+- ViewModels sans commandes observables: AudienceHistoryItemViewModel, CompanyDebtViewModel, ReachMapItemViewModel, TransactionItemViewModel, TvDealViewModel
 
-    if_save --> StartScreen: Non
-    if_save --> Dashboard: Oui
+## 4. Autres Domaines (Company, Youth, etc.)
 
-    state "Mode Start (Pas de partie en cours)" as StartMode {
-        StartScreen --> CompanySelector: Nouvelle partie
-        StartScreen --> LoadGame: Charger partie
+### Titre : Calendar Domain ViewModels
 
-        CompanySelector --> CreateCompany: Créer nouvelle<br/>compagnie
-        CompanySelector --> Dashboard: Compagnie sélectionnée
+```mermaid
+classDiagram
+class ShowSchedulerService
+class ShowRepository
+class GameRepository
+class ViewModelBase
+class CalendarDayViewModel
+class CalendarEntryItemViewModel
+class CalendarViewModel {
+  +ReactiveCommand CreateNewShowCommand
+  +ReactiveCommand CreateShowRapideCommand
+  +ReactiveCommand UpdateShowScheduleCommand
+  +ReactiveCommand CancelShowCommand
+  +ReactiveCommand PreviousMonthCommand
+  +ReactiveCommand NextMonthCommand
+}
+class ShowScheduleItemViewModel
+ViewModelBase <|-- CalendarDayViewModel
+ViewModelBase <|-- CalendarEntryItemViewModel
+ViewModelBase <|-- CalendarViewModel
+ViewModelBase <|-- ShowScheduleItemViewModel
+CalendarViewModel ..> GameRepository
+CalendarViewModel ..> ShowRepository
+CalendarViewModel ..> ShowSchedulerService
+```
 
-        CreateCompany --> Dashboard: Compagnie créée
-        LoadGame --> Dashboard: Save chargée
-    }
+**Note**
+- ViewModels sans injection de service: CalendarDayViewModel, CalendarEntryItemViewModel, ShowScheduleItemViewModel
+- ViewModels sans commandes observables: CalendarDayViewModel, CalendarEntryItemViewModel, ShowScheduleItemViewModel
 
-    state "Mode Game (Partie active - ShellViewModel)" as GameMode {
-        Dashboard --> BookingMenu: BOOKING (menu)
-        Dashboard --> RosterMenu: ROSTER (menu)
-        Dashboard --> Medical: MÉDICAL
-        Dashboard --> CompanyHub: COMPANY HUB
-        Dashboard --> AnalysisMenu: ANALYSE (menu)
-        Dashboard --> Storylines: STORYLINES
-        Dashboard --> YouthHub: YOUTH
-        Dashboard --> Finance: FINANCE
-        Dashboard --> OwnerBooker: OWNER & BOOKER
-        Dashboard --> Crisis: CRISES
-        Dashboard --> Calendar: CALENDRIER
+### Titre : Company Domain ViewModels
 
-        state "Booking (4 écrans)" as BookingMenu {
-            [*] --> ActiveShows
-            ActiveShows --> Library: Bibliothèque templates
-            ActiveShows --> ShowHistory: Historique shows
-            ActiveShows --> BookingSettings: Paramètres booking
-            Library --> ActiveShows
-            ShowHistory --> ActiveShows
-            BookingSettings --> ActiveShows
+```mermaid
+classDiagram
+class WorkerRepository
+class ShowRepository
+class NicheFederationService
+class IStaffRepository
+class IRegionRepository
+class IOwnerDecisionEngine
+class INicheFederationRepository
+class INavigationService
+class IGameRepository
+class IChildCompanyExtendedRepository
+class GameRepository
+class ChildCompanyService
+class ChildCompanyBookingService
+class ViewModelBase
+class ChildCompaniesViewModel {
+  +ReactiveCommand RefreshCommand
+  +ReactiveCommand CreateChildCompanyCommand
+  +ReactiveCommand ManageChildCompanyCommand
+}
+class ChildCompanyBookingItemViewModel
+class ChildCompanyBookingViewModel {
+  +ReactiveCommand SetControlLevelCommand
+  +ReactiveCommand ToggleAutoScheduleCommand
+  +ReactiveCommand ViewShowsCommand
+  +ReactiveCommand RefreshCommand
+}
+class ChildCompanyDetailViewModel {
+  +ReactiveCommand BackCommand
+}
+class NicheManagementViewModel {
+  +ReactiveCommand EstablishNicheCommand
+  +ReactiveCommand AbandonNicheCommand
+  +ReactiveCommand EvaluateNicheCommand
+}
+ViewModelBase <|-- ChildCompaniesViewModel
+ViewModelBase <|-- ChildCompanyBookingItemViewModel
+ViewModelBase <|-- ChildCompanyBookingViewModel
+ViewModelBase <|-- ChildCompanyDetailViewModel
+ViewModelBase <|-- NicheManagementViewModel
+ChildCompaniesViewModel ..> ChildCompanyService
+ChildCompaniesViewModel ..> IChildCompanyExtendedRepository
+ChildCompaniesViewModel ..> INavigationService
+ChildCompaniesViewModel ..> IRegionRepository
+ChildCompanyBookingViewModel ..> ChildCompanyBookingService
+ChildCompanyBookingViewModel ..> GameRepository
+ChildCompanyBookingViewModel ..> ShowRepository
+ChildCompanyDetailViewModel ..> IChildCompanyExtendedRepository
+ChildCompanyDetailViewModel ..> IGameRepository
+ChildCompanyDetailViewModel ..> INavigationService
+ChildCompanyDetailViewModel ..> IStaffRepository
+ChildCompanyDetailViewModel ..> WorkerRepository
+NicheManagementViewModel ..> INicheFederationRepository
+NicheManagementViewModel ..> IOwnerDecisionEngine
+NicheManagementViewModel ..> NicheFederationService
+```
 
-            ActiveShows --> WorkerSelection: Sélection worker<br/>pour segment
-            WorkerSelection --> ActiveShows: Worker assigné
+**Note**
+- ViewModels sans injection de service: ChildCompanyBookingItemViewModel
+- ViewModels sans commandes observables: ChildCompanyBookingItemViewModel
 
-            ActiveShows --> SimulateShow: Simuler show
-            SimulateShow --> ShowResults: Résultats
-            ShowResults --> ActiveShows: Retour
-        }
+### Titre : CompanyHub Domain ViewModels
 
-        state "Roster (3 écrans)" as RosterMenu {
-            [*] --> WorkersList
-            WorkersList --> WorkerDetail: Clic sur worker
-            WorkerDetail --> WorkersList: Retour
+```mermaid
+classDiagram
+class StaffSharingEngine
+class StaffProposalService
+class StaffCompatibilityCalculator
+class IStaffRepository
+class IOwnerRepository
+class INicheFederationRepository
+class IEraRepository
+class IChildCompanyStaffService
+class IChildCompanyStaffRepository
+class IChildCompanyExtendedRepository
+class ICatchStyleRepository
+class IBrandRepository
+class IBookerRepository
+class GameRepository
+class ViewModelBase
+class CompanyHubViewModel {
+  +ReactiveCommand SwitchToRivalsCommand
+  +ReactiveCommand SwitchToMyCompanyCommand
+  +ReactiveCommand HireStaffCommand
+  +ReactiveCommand FireStaffCommand
+  +ReactiveCommand CheckCompatibilityCommand
+}
+class StaffItemViewModel
+ViewModelBase <|-- CompanyHubViewModel
+ViewModelBase <|-- StaffItemViewModel
+CompanyHubViewModel ..> GameRepository
+CompanyHubViewModel ..> IBookerRepository
+CompanyHubViewModel ..> IBrandRepository
+CompanyHubViewModel ..> ICatchStyleRepository
+CompanyHubViewModel ..> IChildCompanyExtendedRepository
+CompanyHubViewModel ..> IChildCompanyStaffRepository
+CompanyHubViewModel ..> IChildCompanyStaffService
+CompanyHubViewModel ..> IEraRepository
+CompanyHubViewModel ..> INicheFederationRepository
+CompanyHubViewModel ..> IOwnerRepository
+CompanyHubViewModel ..> IStaffRepository
+CompanyHubViewModel ..> StaffCompatibilityCalculator
+CompanyHubViewModel ..> StaffProposalService
+CompanyHubViewModel ..> StaffSharingEngine
+```
 
-            WorkersList --> Titles: Gestion titres
-            Titles --> WorkersList: Retour
+**Note**
+- ViewModels sans injection de service: StaffItemViewModel
+- ViewModels sans commandes observables: StaffItemViewModel
 
-            WorkersList --> StructuralDashboard: Analyse structurelle
-            StructuralDashboard --> WorkersList: Retour
-        }
+### Titre : Contracts Domain ViewModels
 
-        state "Analyse (4 écrans)" as AnalysisMenu {
-            [*] --> Trends
-            Trends --> NicheManagement: Gestion niche
-            Trends --> ChildCompanies: Filiales
-            Trends --> ChildCompanyBooking: Booking filiales
-            NicheManagement --> Trends
-            ChildCompanies --> ChildCompanyDetail: Détail filiale
-            ChildCompanyDetail --> ChildCompanies
-            ChildCompanyBooking --> Trends
-        }
+```mermaid
+classDiagram
+class TemplateService
+class GameRepository
+class ContractNegotiationService
+class ViewModelBase
+class ContractNegotiationViewModel {
+  +ReactiveCommand ApplyTemplateCommand
+  +ReactiveCommand CreateOfferCommand
+  +ReactiveCommand CancelCommand
+}
+ViewModelBase <|-- ContractNegotiationViewModel
+ContractNegotiationViewModel ..> ContractNegotiationService
+ContractNegotiationViewModel ..> GameRepository
+ContractNegotiationViewModel ..> TemplateService
+```
 
-        Finance --> TvDealNegotiation: Négocier TV Deal
-        TvDealNegotiation --> Finance: Deal signé/refusé
+### Titre : Crisis Domain ViewModels
 
-        CompanyHub --> ContractNegotiation: Négocier contrat
-        ContractNegotiation --> CompanyHub: Contrat signé/refusé
+```mermaid
+classDiagram
+class ICrisisRepository
+class ICrisisEngine
+class ICommunicationEngine
+class ViewModelBase
+class CrisisItemViewModel
+class CrisisViewModel {
+  +ReactiveCommand RefreshDataCommand
+  +ReactiveCommand OpenCommunicationDialogCommand
+  +ReactiveCommand SendCommunicationCommand
+  +ReactiveCommand CancelCommunicationCommand
+  +ReactiveCommand EscalateCrisisCommand
+}
+ViewModelBase <|-- CrisisItemViewModel
+ViewModelBase <|-- CrisisViewModel
+CrisisViewModel ..> ICommunicationEngine
+CrisisViewModel ..> ICrisisEngine
+CrisisViewModel ..> ICrisisRepository
+```
 
-        Dashboard --> Inbox: Notifications (overlay)
-        Inbox --> Dashboard: Fermer
+**Note**
+- ViewModels sans injection de service: CrisisItemViewModel
+- ViewModels sans commandes observables: CrisisItemViewModel
 
-        Dashboard --> Settings: Paramètres (overlay)
-        Settings --> Dashboard: Fermer
-    }
+### Titre : Dashboard Domain ViewModels
 
-    Dashboard --> [*]: Quitter application
+```mermaid
+classDiagram
+class ITimeOrchestratorService
+class IShowSchedulerStore
+class IShowDayOrchestrator
+class IMoraleEngine
+class ICrisisEngine
+class GameRepository
+class ViewModelBase
+class DashboardViewModel {
+  +ReactiveCommand ContinueCommand
+  +ReactiveCommand PrepareShowCommand
+}
+ViewModelBase <|-- DashboardViewModel
+DashboardViewModel ..> GameRepository
+DashboardViewModel ..> ICrisisEngine
+DashboardViewModel ..> IMoraleEngine
+DashboardViewModel ..> IShowDayOrchestrator
+DashboardViewModel ..> IShowSchedulerStore
+DashboardViewModel ..> ITimeOrchestratorService
+```
 
-    note right of CheckSave
-        NavigationService gère
-        toutes les transitions.
-        ShellViewModel écoute
-        CurrentViewModelObservable.
-    end note
+### Titre : Inbox Domain ViewModels
 
-### 🔍 Analyse de la Navigation
+```mermaid
+classDiagram
+class GameRepository
+class ViewModelBase
+class InboxItemViewModel
+class InboxViewModel
+ViewModelBase <|-- InboxItemViewModel
+ViewModelBase <|-- InboxViewModel
+InboxViewModel ..> GameRepository
+```
 
-**✅ Points Forts:**
-- Architecture de navigation centralisée via `INavigationService`
-- Type-safety: navigation typée avec `NavigateTo<TViewModel>()`
-- Séparation claire Mode Start vs Mode Game
-- Hiérarchie logique des écrans (menus → sous-écrans → détails)
-- Navigation réactive avec ReactiveUI (`BehaviorSubject`)
+**Note**
+- ViewModels sans injection de service: InboxItemViewModel
+- ViewModels sans commandes observables: InboxItemViewModel, InboxViewModel
 
-**⚠️ Points d'Attention:**
-- **Navigation profonde:** Booking et Roster ont 3-4 niveaux de profondeur → risque de désorientation utilisateur
-- **Pas de breadcrumb visible:** Difficile de savoir où on se trouve dans l'arborescence
-- **Back navigation limitée:** Seul `GoBack()` disponible, pas de navigation par historique
-- **Context Panel dynamique:** Le panneau de droite change selon l'écran → peut dérouter l'utilisateur
+### Titre : Medical Domain ViewModels
 
-**🔴 Incohérences Détectées:**
-1. **Dual-mode UI:** `IsInGameMode` bascule entre deux layouts complètement différents → transition brusque
-2. **Navigation Tree vs Direct Navigation:** Certains écrans accessibles via Tree, d'autres via commandes directes → incohérence UX
-3. **Overlays vs Pages:** Inbox et Settings sont des overlays, mais pas CompanyHub → incohérence de présentation
+```mermaid
+classDiagram
+class MedicalRepository
+class INavigationService
+class IMedicalRepository
+class IGameRepository
+class GameRepository
+class ViewModelBase
+class InjuriesViewModel {
+  +ReactiveCommand ViewWorkerDetailsCommand
+  +ReactiveCommand MarkAsHealedCommand
+  +ReactiveCommand AddInjuryCommand
+  +ReactiveCommand EditInjuryCommand
+  +ReactiveCommand DeleteInjuryCommand
+  +ReactiveCommand RefreshCommand
+}
+class InjuryRecordViewModel
+class MedicalViewModel
+class MedicalWorkerRow
+ViewModelBase <|-- InjuriesViewModel
+ViewModelBase <|-- InjuryRecordViewModel
+ViewModelBase <|-- MedicalViewModel
+ViewModelBase <|-- MedicalWorkerRow
+InjuriesViewModel ..> IGameRepository
+InjuriesViewModel ..> IMedicalRepository
+InjuriesViewModel ..> INavigationService
+MedicalViewModel ..> GameRepository
+MedicalViewModel ..> INavigationService
+MedicalViewModel ..> MedicalRepository
+```
 
-**💡 Recommandations:**
-- Ajouter un breadcrumb pour montrer la position dans la hiérarchie
-- Unifier l'accès aux écrans (soit tout via Tree, soit tout via commandes)
-- Considérer une transition progressive entre Mode Start et Mode Game (animation, tutoriel)
-- Documenter le Context Panel dans l'UI pour éviter la confusion utilisateur
+**Note**
+- ViewModels sans injection de service: InjuryRecordViewModel, MedicalWorkerRow
+- ViewModels sans commandes observables: InjuryRecordViewModel, MedicalViewModel, MedicalWorkerRow
 
----
+### Titre : OwnerBooker Domain ViewModels
 
-## 📊 Statistiques Globales
+```mermaid
+classDiagram
+class OwnerRepository
+class BookerRepository
+class ViewModelBase
+class BookerMemoryItemViewModel
+class OwnerBookerViewModel {
+  +ReactiveCommand ToggleAutoBookingCommand
+  +ReactiveCommand RefreshDataCommand
+}
+ViewModelBase <|-- BookerMemoryItemViewModel
+ViewModelBase <|-- OwnerBookerViewModel
+OwnerBookerViewModel ..> BookerRepository
+OwnerBookerViewModel ..> OwnerRepository
+```
 
-**Codebase Core:**
-- **59 interfaces** de repositories et services
-- **53 implémentations** de services
-- **87 ViewModels** dans la couche UI
-- **37 Views** Avalonia (XAML)
+**Note**
+- ViewModels sans injection de service: BookerMemoryItemViewModel
+- ViewModels sans commandes observables: BookerMemoryItemViewModel
 
-**Complexité des ViewModels principaux:**
-- `ShellViewModel`: 3 dépendances (simple)
-- `ShowBookingViewModel`: 9 dépendances ⚠️ (complexe)
-- `FinanceViewModel`: 5 dépendances (modéré)
-- `CompanyHubViewModel`: 8 dépendances ⚠️ (complexe)
+### Titre : Roster Domain ViewModels
 
-**Services non implémentés:**
-- ❌ `IEventGeneratorService` (génération événements quotidiens)
-- ❌ `IImpactApplier` (application impacts show)
+```mermaid
+classDiagram
+class RosterAnalysisService
+class ITitleRepository
+class IRosterAnalysisRepository
+class INavigationService
+class GameRepository
+class ContenderService
+class ViewModelBase
+class AttributeDisplayItem
+class RosterViewModel {
+  +ReactiveCommand ViewWorkerDetailsCommand
+  +ReactiveCommand LoadWorkersCommand
+  +ReactiveCommand LoadMoreWorkersCommand
+}
+class StructuralDashboardViewModel {
+  +ReactiveCommand RefreshCommand
+}
+class TitleListItemViewModel
+class TitleOptionViewModel
+class TitleReignHistoryItem
+class TitlesViewModel {
+  +ReactiveCommand LoadAvailableTitlesCommand
+  +ReactiveCommand AssignToSegmentCommand
+  +ReactiveCommand GetVacantTitlesCommand
+  +ReactiveCommand GetDefendedTitlesCommand
+}
+class WorkerDetailViewModel
+class WorkerListItemViewModel
+ViewModelBase <|-- AttributeDisplayItem
+ViewModelBase <|-- RosterViewModel
+ViewModelBase <|-- StructuralDashboardViewModel
+ViewModelBase <|-- TitleListItemViewModel
+ViewModelBase <|-- TitleOptionViewModel
+ViewModelBase <|-- TitleReignHistoryItem
+ViewModelBase <|-- TitlesViewModel
+ViewModelBase <|-- WorkerDetailViewModel
+ViewModelBase <|-- WorkerListItemViewModel
+RosterViewModel ..> GameRepository
+RosterViewModel ..> INavigationService
+StructuralDashboardViewModel ..> IRosterAnalysisRepository
+StructuralDashboardViewModel ..> RosterAnalysisService
+TitlesViewModel ..> ContenderService
+TitlesViewModel ..> GameRepository
+TitlesViewModel ..> ITitleRepository
+WorkerDetailViewModel ..> GameRepository
+```
 
----
+**Note**
+- ViewModels sans injection de service: AttributeDisplayItem, TitleListItemViewModel, TitleOptionViewModel, TitleReignHistoryItem, WorkerListItemViewModel
+- ViewModels sans commandes observables: AttributeDisplayItem, TitleListItemViewModel, TitleOptionViewModel, TitleReignHistoryItem, WorkerDetailViewModel, WorkerListItemViewModel
 
-## 🎯 Recommandations Architecturales
+### Titre : Search Domain ViewModels
 
-### Haute Priorité
-1. **Implémenter IEventGeneratorService** pour enrichir la simulation temporelle
-2. **Implémenter IImpactApplier** pour centraliser l'application des impacts
-3. **Refactoriser ShowBookingViewModel** (9 dépendances → créer services façade)
-4. **Ajouter transactions DB** pour garantir l'atomicité des flux critiques
+```mermaid
+classDiagram
+class ViewModelBase
+class GlobalSearchResultViewModel
+class GlobalSearchViewModel {
+  +ReactiveCommand OpenCommand
+  +ReactiveCommand CloseCommand
+}
+ViewModelBase <|-- GlobalSearchViewModel
+```
 
-### Priorité Moyenne
-5. **Créer service façade** pour CompanyHubViewModel (8 dépendances)
-6. **Uniformiser la navigation** (breadcrumb, historique, transitions)
-7. **Documenter les deux flux de paiement** (FLUX 1 vs FLUX 2) pour éviter confusion
+**Note**
+- ViewModels sans injection de service: GlobalSearchResultViewModel, GlobalSearchViewModel
+- ViewModels sans commandes observables: GlobalSearchResultViewModel
 
-### Basse Priorité
-8. **Ajouter compensation/retry** en cas d'échec partiel de simulation
-9. **Améliorer testabilité** avec interfaces pour tous les services
-10. **Créer dashboard de monitoring** pour suivre les performances de simulation
+### Titre : Settings Domain ViewModels
 
----
+```mermaid
+classDiagram
+class ViewModelBase
+class SettingsViewModel {
+  +ReactiveCommand SaveSettingsCommand
+  +ReactiveCommand ResetDefaultsCommand
+}
+ViewModelBase <|-- SettingsViewModel
+```
 
-## 🔧 Outils Utilisés
+**Note**
+- ViewModels sans injection de service: SettingsViewModel
 
-- **Mermaid Live Editor** pour visualiser: https://mermaid.live
-- **Analyse statique** via exploration récursive de `src/RingGeneral.Core` et `src/RingGeneral.UI`
-- **Pattern Detection** pour identifier les relations de dépendances
+### Titre : Shared Domain ViewModels
 
----
+```mermaid
+classDiagram
+class ViewModelBase
+class ProfileAttributeGroup
+class ProfileAttributeItem
+class ProfileViewModel
+ViewModelBase <|-- ProfileAttributeGroup
+ViewModelBase <|-- ProfileAttributeItem
+ViewModelBase <|-- ProfileViewModel
+```
 
-**Date de génération:** 2026-01-12
-**Architecte:** Claude (Sonnet 4.5)
-**Commanditaire:** SnakePythonDom
+**Note**
+- ViewModels sans injection de service: ProfileAttributeGroup, ProfileAttributeItem, ProfileViewModel
+- ViewModels sans commandes observables: ProfileAttributeGroup, ProfileAttributeItem, ProfileViewModel
+
+### Titre : Shared Navigation Domain ViewModels
+
+```mermaid
+classDiagram
+class ViewModelBase
+class NavigationItemViewModel
+ViewModelBase <|-- NavigationItemViewModel
+```
+
+**Note**
+- ViewModels sans injection de service: NavigationItemViewModel
+- ViewModels sans commandes observables: NavigationItemViewModel
+
+### Titre : Storylines Domain ViewModels
+
+```mermaid
+classDiagram
+class StorylineService
+class GameRepository
+class ViewModelBase
+class StorylineListItemViewModel
+class StorylineOptionViewModel
+class StorylinePhaseOptionViewModel
+class StorylineStatusOptionViewModel
+class StorylinesViewModel {
+  +ReactiveCommand FilterByPhaseCommand
+  +ReactiveCommand FilterByStatusCommand
+  +ReactiveCommand AssignToSegmentCommand
+}
+ViewModelBase <|-- StorylineListItemViewModel
+ViewModelBase <|-- StorylineOptionViewModel
+ViewModelBase <|-- StorylinePhaseOptionViewModel
+ViewModelBase <|-- StorylineStatusOptionViewModel
+ViewModelBase <|-- StorylinesViewModel
+StorylinesViewModel ..> GameRepository
+StorylinesViewModel ..> StorylineService
+```
+
+**Note**
+- ViewModels sans injection de service: StorylineListItemViewModel, StorylineOptionViewModel, StorylinePhaseOptionViewModel, StorylineStatusOptionViewModel
+- ViewModels sans commandes observables: StorylineListItemViewModel, StorylineOptionViewModel, StorylinePhaseOptionViewModel, StorylineStatusOptionViewModel
+
+### Titre : Tables Domain ViewModels
+
+```mermaid
+classDiagram
+class ViewModelBase
+class TableViewViewModel
+ViewModelBase <|-- TableViewViewModel
+```
+
+**Note**
+- ViewModels sans injection de service: TableViewViewModel
+- ViewModels sans commandes observables: TableViewViewModel
+
+### Titre : Trends Domain ViewModels
+
+```mermaid
+classDiagram
+class ITrendRepository
+class IRosterAnalysisRepository
+class CompatibilityCalculator
+class ViewModelBase
+class TrendsViewModel {
+  +ReactiveCommand RefreshCommand
+}
+ViewModelBase <|-- TrendsViewModel
+TrendsViewModel ..> CompatibilityCalculator
+TrendsViewModel ..> IRosterAnalysisRepository
+TrendsViewModel ..> ITrendRepository
+```
+
+### Titre : Workers Profile Domain ViewModels
+
+```mermaid
+classDiagram
+class PersonalityDetectorService
+class IWorkerAttributesRepository
+class IRelationsRepository
+class INotesRepository
+class AgentReportGeneratorService
+class ViewModelBase
+class AttributesTabViewModel {
+  +ReactiveCommand ToggleEditModeCommand
+  +ReactiveCommand SaveAttributesCommand
+  +ReactiveCommand CancelEditCommand
+}
+class ContractsTabViewModel {
+  +ReactiveCommand AddContractCommand
+  +ReactiveCommand EditContractCommand
+  +ReactiveCommand ExpireContractCommand
+  +ReactiveCommand TerminateContractCommand
+}
+class GimmickTabViewModel {
+  +ReactiveCommand AddSpecializationCommand
+  +ReactiveCommand RemoveSpecializationCommand
+}
+class HistoryTabViewModel {
+  +ReactiveCommand ViewMatchDetailsCommand
+  +ReactiveCommand ViewReignDetailsCommand
+}
+class NotesTabViewModel {
+  +ReactiveCommand AddNoteCommand
+  +ReactiveCommand EditNoteCommand
+  +ReactiveCommand DeleteNoteCommand
+  +ReactiveCommand FilterByCategoryCommand
+}
+class PersonalityTabViewModel {
+  +ReactiveCommand RecalculateProfileCommand
+  +ReactiveCommand LaunchScoutingCommand
+  +ReactiveCommand RevealBasicScoutingCommand
+  +ReactiveCommand RevealFullScoutingCommand
+}
+class ProfileViewModel {
+  +ReactiveCommand RefreshCommand
+  +ReactiveCommand CloseProfileCommand
+}
+class RelationsTabViewModel {
+  +ReactiveCommand AddRelationCommand
+  +ReactiveCommand EditRelationCommand
+  +ReactiveCommand DeleteRelationCommand
+  +ReactiveCommand AddToFactionCommand
+  +ReactiveCommand RemoveFromFactionCommand
+}
+ViewModelBase <|-- AttributesTabViewModel
+ViewModelBase <|-- ContractsTabViewModel
+ViewModelBase <|-- GimmickTabViewModel
+ViewModelBase <|-- HistoryTabViewModel
+ViewModelBase <|-- NotesTabViewModel
+ViewModelBase <|-- PersonalityTabViewModel
+ViewModelBase <|-- ProfileViewModel
+ViewModelBase <|-- RelationsTabViewModel
+AttributesTabViewModel ..> IWorkerAttributesRepository
+ContractsTabViewModel ..> INotesRepository
+GimmickTabViewModel ..> INotesRepository
+HistoryTabViewModel ..> INotesRepository
+NotesTabViewModel ..> INotesRepository
+PersonalityTabViewModel ..> AgentReportGeneratorService
+PersonalityTabViewModel ..> IWorkerAttributesRepository
+PersonalityTabViewModel ..> PersonalityDetectorService
+ProfileViewModel ..> AgentReportGeneratorService
+ProfileViewModel ..> INotesRepository
+ProfileViewModel ..> IRelationsRepository
+ProfileViewModel ..> IWorkerAttributesRepository
+ProfileViewModel ..> PersonalityDetectorService
+RelationsTabViewModel ..> IRelationsRepository
+```
+
+### Titre : Youth Domain ViewModels
+
+```mermaid
+classDiagram
+class YouthRepository
+class GameRepository
+class ViewModelBase
+class LoanManagementViewModel
+class LoanedWorkerItemViewModel {
+  +ReactiveCommand RecallCommand
+}
+class StructureManagementViewModel
+class TraineeItemViewModel
+class YouthGenerationOptionViewModel
+class YouthHubViewModel
+class YouthProgramViewModel
+class YouthStaffAssignmentViewModel
+class YouthStaffItemViewModel
+class YouthStaffManagementViewModel
+class YouthStructureItemViewModel {
+  +ReactiveCommand UpgradeEquipmentCommand
+  +ReactiveCommand IncreaseBudgetCommand
+}
+class YouthStructureViewModel
+class YouthTraineeItemViewModel
+class YouthTraineeManagementViewModel
+class YouthViewModel {
+  +ReactiveCommand GraduateTraineeCommand
+  +ReactiveCommand CreateStructureCommand
+  +ReactiveCommand AssignCoachCommand
+  +ReactiveCommand UpdateBudgetCommand
+  +ReactiveCommand GenerateTraineesCommand
+}
+ViewModelBase <|-- LoanManagementViewModel
+ViewModelBase <|-- LoanedWorkerItemViewModel
+ViewModelBase <|-- StructureManagementViewModel
+ViewModelBase <|-- TraineeItemViewModel
+ViewModelBase <|-- YouthGenerationOptionViewModel
+ViewModelBase <|-- YouthHubViewModel
+ViewModelBase <|-- YouthProgramViewModel
+ViewModelBase <|-- YouthStaffAssignmentViewModel
+ViewModelBase <|-- YouthStaffItemViewModel
+ViewModelBase <|-- YouthStaffManagementViewModel
+ViewModelBase <|-- YouthStructureItemViewModel
+ViewModelBase <|-- YouthStructureViewModel
+ViewModelBase <|-- YouthTraineeItemViewModel
+ViewModelBase <|-- YouthTraineeManagementViewModel
+ViewModelBase <|-- YouthViewModel
+LoanManagementViewModel ..> GameRepository
+LoanManagementViewModel ..> YouthRepository
+StructureManagementViewModel ..> GameRepository
+StructureManagementViewModel ..> YouthRepository
+YouthHubViewModel ..> GameRepository
+YouthHubViewModel ..> YouthRepository
+YouthStaffManagementViewModel ..> GameRepository
+YouthStaffManagementViewModel ..> YouthRepository
+YouthStructureItemViewModel ..> GameRepository
+YouthStructureItemViewModel ..> YouthRepository
+YouthTraineeManagementViewModel ..> GameRepository
+YouthTraineeManagementViewModel ..> YouthRepository
+YouthViewModel ..> GameRepository
+YouthViewModel ..> YouthRepository
+```
+
+**Note**
+- ViewModels sans injection de service: LoanedWorkerItemViewModel, TraineeItemViewModel, YouthGenerationOptionViewModel, YouthProgramViewModel, YouthStaffAssignmentViewModel, YouthStaffItemViewModel, YouthStructureViewModel, YouthTraineeItemViewModel
+- ViewModels sans commandes observables: LoanManagementViewModel, StructureManagementViewModel, TraineeItemViewModel, YouthGenerationOptionViewModel, YouthHubViewModel, YouthProgramViewModel, YouthStaffAssignmentViewModel, YouthStaffItemViewModel, YouthStaffManagementViewModel, YouthStructureViewModel, YouthTraineeItemViewModel, YouthTraineeManagementViewModel
