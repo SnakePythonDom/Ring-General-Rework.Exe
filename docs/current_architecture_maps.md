@@ -357,21 +357,16 @@ flowchart TD
 
 ---
 
-## 4. FLUX DE NAVIGATION (Expérience Utilisateur)
-
-**Type:** `stateDiagram-v2`
-**Objectif:** Visualiser les écrans majeurs et les transitions de navigation
-
-```mermaid
 stateDiagram-v2
     [*] --> AppStart: Lancement application
 
     AppStart --> CheckSave: App.axaml.cs<br/>OnFrameworkInitializationCompleted
 
-    CheckSave --> HasSave{Save game exists?}
+    state if_save <<choice>>
+    CheckSave --> if_save: Save game exists?
 
-    HasSave -->|Non| StartScreen: NavigateTo<br/>StartViewModel
-    HasSave -->|Oui| Dashboard: NavigateTo<br/>DashboardViewModel
+    if_save --> StartScreen: Non
+    if_save --> Dashboard: Oui
 
     state "Mode Start (Pas de partie en cours)" as StartMode {
         StartScreen --> CompanySelector: Nouvelle partie
@@ -458,15 +453,6 @@ stateDiagram-v2
         ShellViewModel écoute
         CurrentViewModelObservable.
     end note
-
-    note right of GameMode
-        Layout 3 panneaux:
-        - Gauche: NavigationTree
-        - Centre: ContentControl
-        - Droite: ContextPanel
-        (dynamique selon écran)
-    end note
-```
 
 ### 🔍 Analyse de la Navigation
 
