@@ -1,0 +1,43 @@
+{
+  "meta": {"langue": "fr", "pageId": "contrats", "titre": "Contrats"},
+  "onglets": [
+    {"id": "actifs", "libelle": "Actifs"},
+    {"id": "offres", "libelle": "Offres"},
+    {"id": "expirations", "libelle": "Expirations"},
+    {"id": "historique", "libelle": "Historique"}
+  ],
+  "tables": [
+    {
+      "id": "liste_contrats",
+      "libelle": "Contrats",
+      "colonnes": ["Nom", "Type", "Salaire", "Fin", "Exclusivité", "Statut"]
+    },
+    {
+      "id": "liste_offres",
+      "libelle": "Offres",
+      "colonnes": ["Nom", "Type", "Salaire", "Expiration", "Statut", "Origine"]
+    }
+  ],
+  "filtres": ["Type", "Statut", "Exclusivité"],
+  "panneauDetail": {
+    "sections": ["Détails", "Clauses", "Historique des offres"]
+  },
+  "actions": [
+    {"id": "proposer", "libelle": "Proposer"},
+    {"id": "contre_proposer", "libelle": "Contre-proposer"},
+    {"id": "accepter", "libelle": "Accepter"},
+    {"id": "refuser", "libelle": "Refuser"},
+    {"id": "liberer", "libelle": "Libérer"}
+  ],
+  "validations": [
+    {"id": "contrat.salaire", "message": "Le salaire doit être supérieur à 0."},
+    {"id": "contrat.duree", "message": "La durée doit être supérieure à 0."}
+  ],
+  "warnings": ["Des contrats expirent dans moins de 30 jours."],
+  "etatVide": "Aucun contrat à afficher.",
+  "tooltips": [
+    {"id": "clause.buyout", "libelle": "Buyout", "texte": "Montant requis pour racheter un contrat."},
+    {"id": "clause.noncompete", "libelle": "Non-compete", "texte": "Période d'exclusivité après rupture."}
+  ],
+  "messagesErreur": ["Impossible de charger les contrats."]
+}

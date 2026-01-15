@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "reseau"
+  },
+  "relations": ["FILIALE", "PARTENAIRE", "TERRITOIRE_DEV"],
+  "niveauxControle": ["TOTAL", "DELEGUE", "HYBRIDE"],
+  "champsEntreprise": [
+    {"id": "companyId", "libelle": "ID entreprise"},
+    {"id": "nom", "libelle": "Nom"},
+    {"id": "parentCompanyId", "libelle": "ParentCompanyId"},
+    {"id": "relation", "libelle": "Relation", "enum": ["FILIALE", "PARTENAIRE", "TERRITOIRE_DEV"]},
+    {"id": "niveauControle", "libelle": "Niveau de contrôle", "enum": ["TOTAL", "DELEGUE", "HYBRIDE"]},
+    {"id": "region", "libelle": "Région"},
+    {"id": "priorites", "libelle": "Priorités"}
+  ],
+  "echangesTalents": {
+    "types": ["PRET", "EXCURSION", "RACHAT"],
+    "champs": [
+      {"id": "type", "libelle": "Type"},
+      {"id": "dureeSemaines", "libelle": "Durée (semaines)"},
+      {"id": "clauses", "libelle": "Clauses"},
+      {"id": "objectifsImposes", "libelle": "Objectifs imposés"}
+    ],
+    "clauses": [
+      {"id": "rappel", "libelle": "Clause de rappel"},
+      {"id": "optionAchat", "libelle": "Option d'achat"},
+      {"id": "partageSalaire", "libelle": "Partage de salaire"}
+    ]
+  },
+  "uiAttendue": {
+    "page": "Réseau",
+    "panneaux": [
+      {"id": "listeEntreprises", "libelle": "Liste des entreprises"},
+      {"id": "detailsEntreprise", "libelle": "Détails de l'entreprise"},
+      {"id": "echanges", "libelle": "Échanges de talents"}
+    ],
+    "interactions": [
+      "Filtrer par relation et région",
+      "Comparer les niveaux de contrôle",
+      "Lancer un prêt ou une excursion",
+      "Mettre à jour les objectifs imposés"
+    ]
+  },
+  "etatVide": {
+    "libelle": "Aucune entreprise dans le réseau.",
+    "messageErreur": "Impossible de charger le réseau."
+  }
+}

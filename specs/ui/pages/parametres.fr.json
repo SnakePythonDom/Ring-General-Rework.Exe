@@ -1,0 +1,32 @@
+{
+  "meta": {"langue": "fr", "pageId": "parametres", "titre": "Paramètres"},
+  "onglets": [
+    {"id": "general", "libelle": "Général"},
+    {"id": "interface", "libelle": "Interface"},
+    {"id": "simulation", "libelle": "Simulation"}
+  ],
+  "tables": [
+    {
+      "id": "options",
+      "libelle": "Options",
+      "colonnes": ["Option", "Valeur", "Description"]
+    }
+  ],
+  "filtres": ["Catégorie"],
+  "panneauDetail": {
+    "sections": ["Détails", "Valeurs par défaut"]
+  },
+  "actions": [
+    {"id": "sauvegarder", "libelle": "Sauvegarder"},
+    {"id": "reinitialiser", "libelle": "Réinitialiser"}
+  ],
+  "validations": [
+    {"id": "parametres.valeur", "message": "Valeur invalide pour ce paramètre."}
+  ],
+  "warnings": ["La modification de la simulation peut affecter les résultats."],
+  "etatVide": "Aucun paramètre disponible.",
+  "tooltips": [
+    {"id": "simulation", "libelle": "Simulation", "texte": "Ajuste les pondérations et le déterminisme."}
+  ],
+  "messagesErreur": ["Impossible de charger les paramètres."]
+}

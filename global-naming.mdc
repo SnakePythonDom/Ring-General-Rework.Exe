@@ -1,0 +1,162 @@
+# Global Naming Standards - Ring General
+
+## 🚨 RÈGLE ABSOLUE : NAMESPACE = CHEMIN DU FICHIER
+
+### VÉRIFICATION OBLIGATOIRE APRÈS CHAQUE MODIFICATION
+
+**TOUJOURS** vérifier que le namespace correspond **EXACTEMENT** au chemin du fichier.
+
+### Exemples Corrects
+
+#### Fichier : `src/RingGeneral.UI/ViewModels/Booking/BookingViewModel.cs`
+```csharp
+namespace RingGeneral.UI.ViewModels.Booking;
+
+public sealed class BookingViewModel : ViewModelBase
+{
+    // ...
+}
+```
+
+#### Fichier : `src/RingGeneral.Core/Models/WorkerSnapshot.cs`
+```csharp
+namespace RingGeneral.Core.Models;
+
+public sealed record WorkerSnapshot(
+    // ...
+);
+```
+
+#### Fichier : `src/RingGeneral.Data/Repositories/WorkerRepository.cs`
+```csharp
+namespace RingGeneral.Data.Repositories;
+
+public sealed class WorkerRepository : IWorkerRepository
+{
+    // ...
+}
+```
+
+#### Fichier : `src/RingGeneral.Core/Services/BookingBuilderService.cs`
+```csharp
+namespace RingGeneral.Core.Services;
+
+public sealed class BookingBuilderService : IBookingBuilderService
+{
+    // ...
+}
+```
+
+### Exemples Incorrects (INTERDITS)
+
+#### ❌ ERREUR : Namespace trop court
+```csharp
+// Fichier : src/RingGeneral.UI/ViewModels/Booking/BookingViewModel.cs
+namespace RingGeneral.UI.ViewModels; // ❌ Manque "Booking"
+
+public sealed class BookingViewModel : ViewModelBase
+{
+}
+```
+
+#### ❌ ERREUR : Namespace trop long
+```csharp
+// Fichier : src/RingGeneral.Core/Models/WorkerSnapshot.cs
+namespace RingGeneral.Core.Models.Workers; // ❌ "Workers" n'existe pas dans le chemin
+
+public sealed record WorkerSnapshot(
+    // ...
+);
+```
+
+#### ❌ ERREUR : Namespace incorrect
+```csharp
+// Fichier : src/RingGeneral.Data/Repositories/WorkerRepository.cs
+namespace RingGeneral.Data; // ❌ Manque "Repositories"
+
+public sealed class WorkerRepository : IWorkerRepository
+{
+}
+```
+
+### Règles de Conversion Chemin → Namespace
+
+1. **Commencer par** : `src/`
+2. **Supprimer** : `src/`
+3. **Remplacer** : `/` par `.`
+4. **Résultat** : Le namespace exact
+
+#### Exemples de Conversion :
+- `src/RingGeneral.UI/ViewModels/Core/ShellViewModel.cs` → `RingGeneral.UI.ViewModels.Core`
+- `src/RingGeneral.Core/Simulation/ShowSimulationEngine.cs` → `RingGeneral.Core.Simulation`
+- `src/RingGeneral.Data/Migrations/DbInitializer.cs` → `RingGeneral.Data.Migrations`
+
+### Outils de Vérification
+
+#### Vérification Manuelle (RECOMMANDÉ)
+Après chaque création/déplacement de fichier :
+1. Regarder le chemin complet du fichier
+2. Convertir selon les règles ci-dessus
+3. Vérifier que le namespace correspond exactement
+
+#### Commandes de Validation
+```bash
+# Compiler pour détecter les erreurs de namespace
+dotnet build
+
+# Chercher les fichiers avec namespace incorrect (si outil disponible)
+# Utiliser File Cleaner pour correction automatique
+```
+
+### Conséquences des Erreurs de Namespace
+
+#### ❌ Compilation Impossible
+- Erreurs CS0246 : "The type or namespace name 'XXX' could not be found"
+- Erreurs CS0234 : "The type or namespace name 'XXX' does not exist in the namespace 'YYY'"
+
+#### ❌ Fonctionnalités Cassées
+- Injection de dépendances qui ne trouve pas les types
+- Imports qui ne fonctionnent plus
+- Navigation entre namespaces cassée
+
+#### ❌ Maintenance Difficile
+- Confusion pour les développeurs
+- Refactorings plus risqués
+- Debugging plus complexe
+
+### Bonnes Pratiques
+
+#### ✅ Vérification Systématique
+- Vérifier le namespace à chaque création de fichier
+- Vérifier après chaque déplacement/renommage
+- Vérifier avant chaque commit
+
+#### ✅ Outils Automatisés
+- Utiliser des extensions IDE pour validation
+- Scripts de vérification dans CI/CD
+- Outils comme "File Cleaner" pour correction
+
+#### ✅ Conventions Cohérentes
+- Tous les fichiers suivent la même règle
+- Pas d'exceptions, même pour les fichiers temporaires
+- Documentation claire pour les nouveaux développeurs
+
+### Exceptions (RARES)
+
+#### Cas Légitimes d'Exception :
+- Fichiers de test dans des namespaces différents (mais même règle appliquée)
+- Fichiers générés automatiquement (mais vérification obligatoire après génération)
+
+#### Cas JAMAIS Acceptés :
+- "C'est juste temporaire"
+- "Ça marche comme ça"
+- "Personne ne regarde les namespaces"
+
+### Vérification Finale
+
+**AVANT CHAQUE COMMIT :**
+- [ ] Compiler le projet (`dotnet build`)
+- [ ] Vérifier que tous les namespaces correspondent aux chemins
+- [ ] Corriger toute erreur détectée
+
+Cette règle est **ABSOLUE** et **NON NÉGOCIABLE** pour maintenir la cohérence et la maintenabilité du projet Ring General.

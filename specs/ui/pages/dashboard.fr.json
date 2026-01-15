@@ -1,0 +1,37 @@
+{
+  "meta": {"langue": "fr", "pageId": "dashboard", "titre": "Tableau de bord"},
+  "onglets": [
+    {"id": "vue_generale", "libelle": "Vue générale"},
+    {"id": "alertes", "libelle": "Alertes"},
+    {"id": "tendances", "libelle": "Tendances"}
+  ],
+  "tables": [
+    {
+      "id": "prochains_shows",
+      "libelle": "Prochains shows",
+      "colonnes": ["Date", "Show", "Lieu", "Statut", "Audience prévue"]
+    }
+  ],
+  "filtres": ["Semaine", "Région", "Type de show"],
+  "panneauDetail": {
+    "sections": ["Résumé financier", "Top storylines", "Blessures critiques"]
+  },
+  "actions": [
+    {"id": "ouvrir_booking", "libelle": "Aller au booking"},
+    {"id": "voir_inbox", "libelle": "Voir l'inbox"}
+  ],
+  "validations": [
+    {"id": "dashboard.refresh", "message": "Actualisation en cours."}
+  ],
+  "warnings": [
+    "Trésorerie en baisse cette semaine.",
+    "Contrats expirant dans 30 jours."
+  ],
+  "etatVide": "Aucune donnée disponible pour le tableau de bord.",
+  "tooltips": [
+    {"id": "kpi.audience", "libelle": "Audience", "texte": "Moyenne des audiences des 4 dernières semaines."}
+  ],
+  "messagesErreur": [
+    "Impossible de charger le tableau de bord."
+  ]
+}

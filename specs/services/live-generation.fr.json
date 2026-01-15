@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "langue": "fr",
+    "service": "generation-catcheurs"
+  },
+  "sourcesAPI": [
+    {"id": "RandomUser", "libelle": "RandomUser", "type": "externe"},
+    {"id": "NameFake", "libelle": "NameFake", "type": "externe"},
+    {"id": "FakerAPI", "libelle": "FakerAPI", "type": "externe"},
+    {"id": "LocalFallback", "libelle": "LocalFallback", "type": "local"}
+  ],
+  "mappingIdentiteVersProfil": {
+    "champsSource": ["prenom", "nom", "sexe", "pays", "photo"],
+    "champsCibles": ["nomRing", "genre", "nationalite", "avatar"]
+  },
+  "limites": {
+    "cache": {
+      "active": true,
+      "dureeMinutes": 60,
+      "message": "Résultats en cache pour limiter les appels."
+    },
+    "rateLimit": {
+      "maxParMinute": 30,
+      "messageErreur": "Limite d'appels atteinte. Réessayez plus tard."
+    },
+    "modeOffline": {
+      "active": true,
+      "fallback": "LocalFallback",
+      "message": "Mode hors ligne : génération locale utilisée."
+    }
+  },
+  "ui": {
+    "onglet": "Générateur",
+    "page": "Scouting",
+    "champs": [
+      {"id": "source", "libelle": "Source", "type": "select"},
+      {"id": "genre", "libelle": "Genre", "type": "select", "options": ["Masculin", "Féminin", "Mixte"]},
+      {"id": "region", "libelle": "Région", "type": "select"},
+      {"id": "nombre", "libelle": "Nombre de profils", "type": "number"}
+    ],
+    "boutons": [
+      {"id": "generer", "libelle": "Générer"},
+      {"id": "ajouterShortlist", "libelle": "Ajouter à la shortlist"}
+    ],
+    "messages": {
+      "success": "Profils générés avec succès.",
+      "empty": "Aucun profil généré.",
+      "error": "Erreur de génération."
+    }
+  }
+}

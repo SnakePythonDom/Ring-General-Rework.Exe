@@ -1,0 +1,358 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace RingGeneral.Core.Models.Booker;
+
+/// <summary>
+/// Types d'archétypes créatifs pour les bookers.
+/// Chaque archétype définit une philosophie de booking et des préférences stylistiques.
+/// </summary>
+public enum BookerCreativeArchetype
+{
+    /// <summary>
+    /// Power Booker : Favorise stabilité, hiérarchie claire, stars établies, règnes longs
+    /// Rotation limitée, main event stable, narration simple et lisible
+    /// </summary>
+    PowerBooker,
+
+    /// <summary>
+    /// Puroresu : Priorité absolue à la qualité in-ring, attributs techniques
+    /// Matchs longs et compétitifs, psychologie de match, endurance
+    /// Popularité/micro passent au second plan
+    /// </summary>
+    Puroresu,
+
+    /// <summary>
+    /// Attitude Era : Segments micro percutants, retournements, angles controversés
+    /// Star Power brut, storylines chaotiques, moments marquants
+    /// Ring n'est plus centre unique, segments et personnalités dominent
+    /// </summary>
+    AttitudeEra,
+
+    /// <summary>
+    /// Modern/Indie : Rotation élevée, renouvellement constant, montées rapides
+    /// Matchs longs/compétitifs, changements fréquents de champions
+    /// Gimmicks organiques, arcs évolutifs, remise en question hiérarchie
+    /// </summary>
+    ModernIndie
+}
+
+/// <summary>
+/// Niveaux de contrôle du joueur sur le booking IA.
+/// Définit le degré d'implication du joueur dans les décisions créatives.
+/// </summary>
+public enum BookingControlLevel
+{
+    /// <summary>
+    /// Spectator : IA contrôle 100% des décisions
+    /// Le joueur observe passivement, l'IA gère tout le booking
+    /// Idéal pour les joueurs qui veulent une expérience narrative pure
+    /// </summary>
+    Spectator,
+
+    /// <summary>
+    /// Producer : IA propose, joueur valide
+    /// L'IA génère les shows complets mais le joueur peut veto certaines décisions
+    /// Collaboration entre IA créative et validation humaine
+    /// </summary>
+    Producer,
+
+    /// <summary>
+    /// CoBooker : Partage des responsabilités
+    /// Le joueur gère les éléments majeurs (titres, main events)
+    /// L'IA développe les midcard et segments secondaires
+    /// Équilibre entre contrôle créatif et délégation
+    /// </summary>
+    CoBooker,
+
+    /// <summary>
+    /// Dictator : Contrôle total du joueur
+    /// Pas d'intervention IA, le joueur décide de tout
+    /// Booking manuel traditionnel, aucune pénalité pour préférer ce mode
+    /// </summary>
+    Dictator
+}
+
+/// <summary>
+/// Actions possibles dans l'interface de booking.
+/// Utilisé pour restreindre les actions selon le BookingControlLevel.
+/// </summary>
+public enum BookingAction
+{
+    AddSegment,
+    DeleteSegment,
+    MoveSegment,
+    EditSegment,
+    SimulateShow,
+    VetoProposal
+}
+
+/// <summary>
+/// Représente un booker avec préférences créatives et capacité d'auto-booking.
+/// Influence le style de booking et peut prendre des décisions autonomes si activé.
+/// </summary>
+public sealed record Booker
+{
+    /// <summary>
+    /// Identifiant unique du booker
+    /// </summary>
+    [Required]
+    public required string BookerId { get; init; }
+
+    /// <summary>
+    /// Identifiant de la compagnie actuelle
+    /// </summary>
+    [Required]
+    public required string CompanyId { get; init; }
+
+    /// <summary>
+    /// Nom du booker
+    /// </summary>
+    [Required]
+    [StringLength(200, MinimumLength = 2)]
+    public required string Name { get; init; }
+
+    /// <summary>
+    /// Score de créativité (0-100)
+    /// - 0-30: Préfère formules éprouvées, peu créatif
+    /// - 31-70: Mix de créativité et tradition
+    /// - 71-100: Très créatif, aime innovations et surprises
+    /// </summary>
+    [Range(0, 100)]
+    public required int CreativityScore { get; init; }
+
+    /// <summary>
+    /// Score de logique (0-100)
+    /// - 0-30: Décisions émotionnelles, peu cohérentes
+    /// - 31-70: Équilibre logique/émotion
+    /// - 71-100: Très logique, cohérence long terme
+    /// </summary>
+    [Range(0, 100)]
+    public required int LogicScore { get; init; }
+
+    /// <summary>
+    /// Résistance au biais (0-100)
+    /// - 0-30: Facilement influencé par relations personnelles
+    /// - 31-70: Résistance modérée
+    /// - 71-100: Décisions purement méritocratiques
+    /// </summary>
+    [Range(0, 100)]
+    public required int BiasResistance { get; init; }
+
+    /// <summary>
+    /// Style de booking préféré: "Long-Term", "Short-Term", "Flexible"
+    /// - Long-Term: Storylines de 6+ mois, slow burn
+    /// - Short-Term: Matches one-shot, changements rapides
+    /// - Flexible: Adapte selon situation
+    /// </summary>
+    [Required]
+    public required string PreferredStyle { get; init; }
+
+    /// <summary>
+    /// Type de produit préféré: "Hardcore", "Puroresu", "Technical", "Entertainment", "Balanced"
+    /// - Hardcore: Stipulations violentes, matches extrêmes
+    /// - Puroresu: Matchs longs et techniques, strong style
+    /// - Technical: Wrestling technique pur, soumissions
+    /// - Entertainment: Segments narratifs, promos, angles
+    /// - Balanced: Mix équilibré de tous les styles
+    /// </summary>
+    [Required]
+    public string PreferredProductType { get; init; } = "Balanced";
+
+    /// <summary>
+    /// Archétype créatif du booker définissant sa philosophie de booking
+    /// Détermine automatiquement basé sur PreferredProductType et historique
+    /// </summary>
+    public BookerCreativeArchetype CreativeArchetype { get; init; }
+
+    /// <summary>
+    /// Aime pousser les underdogs (workers peu populaires)
+    /// </summary>
+    public bool LikesUnderdog { get; init; }
+
+    /// <summary>
+    /// Aime utiliser les vétérans établis
+    /// </summary>
+    public bool LikesVeteran { get; init; }
+
+    /// <summary>
+    /// Aime les ascensions rapides (rookie to champion en 6 mois)
+    /// </summary>
+    public bool LikesFastRise { get; init; }
+
+    /// <summary>
+    /// Aime les slow burns (storylines lentes et méthodiques)
+    /// </summary>
+    public bool LikesSlowBurn { get; init; }
+
+    /// <summary>
+    /// Auto-booking activé (le booker AI prend les décisions)
+    /// </summary>
+    public bool IsAutoBookingEnabled { get; init; }
+
+    /// <summary>
+    /// Statut d'emploi: "Active", "Inactive", "Fired"
+    /// </summary>
+    [Required]
+    public required string EmploymentStatus { get; init; }
+
+    /// <summary>
+    /// Date d'embauche
+    /// </summary>
+    public required DateTime HireDate { get; init; }
+
+    /// <summary>
+    /// Date de création
+    /// </summary>
+    public DateTime CreatedAt { get; init; } = DateTime.Now;
+
+    /// <summary>
+    /// Valide que le Booker respecte les contraintes métier
+    /// </summary>
+    public bool IsValid(out string? errorMessage)
+    {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(BookerId))
+        {
+            errorMessage = "BookerId ne peut pas être vide";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(CompanyId))
+        {
+            errorMessage = "CompanyId ne peut pas être vide";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(Name) || Name.Length < 2)
+        {
+            errorMessage = "Name doit contenir au moins 2 caractères";
+            return false;
+        }
+
+        var validStyles = new[] { "Long-Term", "Short-Term", "Flexible" };
+        if (!validStyles.Contains(PreferredStyle))
+        {
+            errorMessage = $"PreferredStyle doit être: {string.Join(", ", validStyles)}";
+            return false;
+        }
+
+        var validProductTypes = new[] { "Hardcore", "Puroresu", "Technical", "Entertainment", "Balanced" };
+        if (!validProductTypes.Contains(PreferredProductType))
+        {
+            errorMessage = $"PreferredProductType doit être: {string.Join(", ", validProductTypes)}";
+            return false;
+        }
+
+        var validStatuses = new[] { "Active", "Inactive", "Fired" };
+        if (!validStatuses.Contains(EmploymentStatus))
+        {
+            errorMessage = $"EmploymentStatus doit être: {string.Join(", ", validStatuses)}";
+            return false;
+        }
+
+        if (CreativityScore is < 0 or > 100)
+        {
+            errorMessage = "CreativityScore doit être entre 0 et 100";
+            return false;
+        }
+
+        if (LogicScore is < 0 or > 100)
+        {
+            errorMessage = "LogicScore doit être entre 0 et 100";
+            return false;
+        }
+
+        if (BiasResistance is < 0 or > 100)
+        {
+            errorMessage = "BiasResistance doit être entre 0 et 100";
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Détermine si le booker est actuellement actif
+    /// </summary>
+    public bool IsActive() => EmploymentStatus == "Active";
+
+    /// <summary>
+    /// Détermine si le booker peut être utilisé pour auto-booking
+    /// </summary>
+    public bool CanAutoBook() => IsAutoBookingEnabled && IsActive();
+
+    /// <summary>
+    /// Calcule le score de cohérence du booker (créativité + logique) / 2
+    /// </summary>
+    public int GetConsistencyScore() => (CreativityScore + LogicScore) / 2;
+
+    /// <summary>
+    /// Détermine si le booker favoriserait un certain type de worker
+    /// </summary>
+    public bool WouldFavorWorkerType(string workerType)
+    {
+        return workerType switch
+        {
+            "Underdog" => LikesUnderdog,
+            "Veteran" => LikesVeteran,
+            "FastRiser" => LikesFastRise,
+            "SlowBurn" => LikesSlowBurn,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Retourne le profil créatif du booker sous forme textuelle
+    /// </summary>
+    public string GetCreativeProfile()
+    {
+        if (CreativityScore >= 70 && LogicScore >= 70)
+            return "Genius Booker"; // Créatif ET logique
+
+        if (CreativityScore >= 70)
+            return "Creative Visionary"; // Très créatif
+
+        if (LogicScore >= 70)
+            return "Strategic Planner"; // Très logique
+
+        if (CreativityScore <= 30 && LogicScore <= 30)
+            return "Chaotic Booker"; // Peu créatif ET peu logique
+
+        return "Balanced Booker"; // Mix
+    }
+
+    /// <summary>
+    /// Détermine l'archétype créatif basé sur PreferredProductType et caractéristiques
+    /// </summary>
+    public BookerCreativeArchetype DetermineArchetype()
+    {
+        // Détermination basée sur PreferredProductType
+        return PreferredProductType switch
+        {
+            "Puroresu" => BookerCreativeArchetype.Puroresu,
+            "Entertainment" when CreativityScore >= 70 => BookerCreativeArchetype.AttitudeEra,
+            "Hardcore" => BookerCreativeArchetype.AttitudeEra,
+            "Technical" when LikesSlowBurn => BookerCreativeArchetype.PowerBooker,
+            "Balanced" when LogicScore >= 70 => BookerCreativeArchetype.PowerBooker,
+            "Balanced" when LikesFastRise => BookerCreativeArchetype.ModernIndie,
+            _ => BookerCreativeArchetype.PowerBooker // Défaut conservateur
+        };
+    }
+
+    /// <summary>
+    /// Retourne les préférences stylistiques de l'archétype créatif
+    /// </summary>
+    public (int PreferredMatchDuration, int PreferredSegmentCount, string DominantStyle) GetArchetypePreferences()
+    {
+        return CreativeArchetype switch
+        {
+            BookerCreativeArchetype.PowerBooker => (15, 6, "Traditional"),
+            BookerCreativeArchetype.Puroresu => (25, 4, "Technical"),
+            BookerCreativeArchetype.AttitudeEra => (12, 10, "Entertainment"),
+            BookerCreativeArchetype.ModernIndie => (20, 8, "Innovative"),
+            _ => (15, 6, "Traditional")
+        };
+    }
+}

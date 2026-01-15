@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Contracts"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="RingGeneral.UI.Views.Contracts.ContractEditorView"
+             x:DataType="vm:ContractEditorViewModel">
+
+  <Border Background="White" BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Padding="2">
+    <Grid RowDefinitions="Auto, *, Auto">
+      
+      <!-- HEADER -->
+      <Border Grid.Row="0" Background="#2c3e50" Padding="15">
+        <StackPanel>
+          <TextBlock Text="{Binding HeaderTitle}" Foreground="White" FontWeight="Bold" FontSize="16"/>
+          <TextBlock Text="{Binding WorkerName, StringFormat='Negotiating with {0}'}" Foreground="#bdc3c7" FontSize="12"/>
+        </StackPanel>
+      </Border>
+
+      <!-- CONTENT -->
+      <ScrollViewer Grid.Row="1">
+        <StackPanel Margin="20" Spacing="25">
+          
+          <!-- DYNAMIC SECTION 1: Positioning/Role -->
+          
+          <!-- WRESTLER PUSH -->
+          <StackPanel IsVisible="{Binding IsWrestler}" Spacing="5">
+             <TextBlock Text="CURRENT STATUS (PUSH)" FontWeight="Bold" Foreground="#7f8c8d"/>
+             <Border BorderThickness="1" BorderBrush="#bdc3c7" CornerRadius="3">
+               <ComboBox ItemsSource="{Binding AvailablePushLevels}" SelectedItem="{Binding SelectedPush}" 
+                         HorizontalAlignment="Stretch" BorderThickness="0"/>
+             </Border>
+             <TextBlock Text="Defines the worker's position on the card and booking expectations." FontSize="10" Foreground="#95a5a6"/>
+          </StackPanel>
+
+          <!-- STAFF ROLE -->
+          <StackPanel IsVisible="{Binding IsStaff}" Spacing="5">
+             <TextBlock Text="ASSIGNED ROLE" FontWeight="Bold" Foreground="#7f8c8d"/>
+             <Border BorderThickness="1" BorderBrush="#bdc3c7" CornerRadius="3">
+               <ComboBox ItemsSource="{Binding AvailableRoles}" SelectedItem="{Binding SelectedRole}" 
+                         HorizontalAlignment="Stretch" BorderThickness="0"/>
+             </Border>
+          </StackPanel>
+
+          <!-- TRAINEE WEIGHT -->
+          <StackPanel IsVisible="{Binding IsTrainee}" Spacing="5">
+             <TextBlock Text="TARGET WEIGHT CLASS" FontWeight="Bold" Foreground="#7f8c8d"/>
+             <Border BorderThickness="1" BorderBrush="#bdc3c7" CornerRadius="3">
+               <ComboBox ItemsSource="{Binding WeightClasses}" SelectedItem="{Binding TargetWeightClass}" 
+                         HorizontalAlignment="Stretch" BorderThickness="0"/>
+             </Border>
+          </StackPanel>
+
+          <!-- COMMON TERMS -->
+          <Grid ColumnDefinitions="*, 20, *">
+             <StackPanel Grid.Column="0" Spacing="5">
+                <TextBlock Text="FINANCIALS" FontWeight="Bold" Foreground="#7f8c8d"/>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                   <TextBlock Text="Salary / Stipend:" VerticalAlignment="Center" Width="100"/>
+                   <NumericUpDown Value="{Binding Salary}" Minimum="0" Increment="50" FormatString="C0"/>
+                </StackPanel>
+             </StackPanel>
+             
+             <StackPanel Grid.Column="2" Spacing="5">
+                <TextBlock Text="DURATION" FontWeight="Bold" Foreground="#7f8c8d"/>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                   <TextBlock Text="Length (Months):" VerticalAlignment="Center" Width="100"/>
+                   <NumericUpDown Value="{Binding DurationMonths}" Minimum="1" Maximum="120" Increment="6"/>
+                </StackPanel>
+             </StackPanel>
+          </Grid>
+          
+          <!-- CLAUSES -->
+          <StackPanel Spacing="10">
+             <TextBlock Text="CLAUSES &amp; CONDITIONS" FontWeight="Bold" Foreground="#7f8c8d"/>
+             <ItemsControl ItemsSource="{Binding Clauses}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" Margin="0,5"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+             </ItemsControl>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- FOOTER ACTIONS -->
+      <Border Grid.Row="2" Background="#ecf0f1" Padding="15">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+           <Button Content="Cancel" Command="{Binding CancelCommand}" Background="Transparent" Foreground="Red"/>
+           <Button Content="Save Contract" Command="{Binding SaveCommand}" Background="#27ae60" Foreground="White" FontWeight="Bold" Padding="20,10"/>
+        </StackPanel>
+      </Border>
+
+    </Grid>
+  </Border>
+</UserControl>

@@ -1,0 +1,365 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="RingGeneral.UI.Views.Trends.TrendsView"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Trends;assembly=RingGeneral.UI">
+
+  <Design.DataContext>
+    <vm:TrendsViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                Background="{StaticResource BackgroundPrimaryBrush}">
+    <StackPanel Margin="20" Spacing="20">
+
+      <!-- Header -->
+      <TextBlock Text="📈 Gestion des Tendances"
+                 FontSize="24"
+                 FontWeight="Bold"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,20"
+                 Foreground="{StaticResource TextPrimaryBrush}"/>
+
+      <!-- Refresh Button -->
+      <Button Content="🔄 Actualiser Tendances"
+              Command="{Binding RefreshCommand}"
+              HorizontalAlignment="Right"
+              Margin="0,0,0,10"
+              Background="{StaticResource BrandPrimaryBrush}"
+              Foreground="White"
+              BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="6"
+              Padding="12,8"
+              FontWeight="SemiBold"/>
+
+      <!-- Tendances Actives -->
+      <Border BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15"
+              Background="{StaticResource BackgroundSecondaryBrush}">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="🌟 Tendances Actives"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
+
+          <ItemsControl ItemsSource="{Binding ActiveTrends}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{StaticResource BrandPrimaryBrush}"
+                        BorderThickness="2"
+                        CornerRadius="6"
+                        Padding="12"
+                        Margin="0,0,0,10"
+                        Background="{StaticResource BackgroundCardDarkBrush}">
+
+                  <Grid ColumnDefinitions="*,Auto,Auto" >
+
+                    <!-- Informations de la tendance -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Name}"
+                                 FontSize="16"
+                                 FontWeight="SemiBold"
+                                 Margin="0,0,0,4"/>
+                      <TextBlock Text="{Binding Description}"
+                                 FontSize="12"
+                                 TextWrapping="Wrap"
+                                 Opacity="0.8"
+                                 Margin="0,0,0,4"/>
+                      <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{Binding Type}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource BrandPrimaryBrush}"/>
+                        <TextBlock Text="{Binding Category}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource BrandPrimaryBrush}"/>
+                        <TextBlock Text="{Binding Intensity, StringFormat={}Intensité: {0}}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource BrandPrimaryBrush}"/>
+                      </StackPanel>
+                    </StackPanel>
+
+                    <!-- Pénétration du marché -->
+                    <Border Grid.Column="1"
+                            BorderBrush="{StaticResource BorderLightBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8"
+                            Background="{StaticResource BackgroundPrimaryBrush}">
+                      <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="📊 Pénétration"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding MarketPenetration, StringFormat={}{0:F1}%}"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                      </StackPanel>
+                    </Border>
+
+                    <!-- Durée restante -->
+                    <Border Grid.Column="2"
+                            BorderBrush="{StaticResource BorderLightBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8"
+                            Background="{StaticResource BackgroundPrimaryBrush}">
+                      <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="⏱️ Durée"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding DurationWeeks, StringFormat={}{0} semaines}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                      </StackPanel>
+                    </Border>
+
+                  </Grid>
+
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="Aucune tendance active"
+                     FontSize="14"
+                     HorizontalAlignment="Center"
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     IsVisible="{Binding ActiveTrends, Converter={StaticResource IsNotNullConverter}}"/>
+
+        </StackPanel>
+      </Border>
+
+      <!-- ADN du Roster -->
+      <Border BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15"
+              Background="{StaticResource BackgroundSecondaryBrush}">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="🧬 ADN Actuel du Roster"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
+
+          <Grid ColumnDefinitions="*,*,*" >
+
+            <!-- Composition Stylistique -->
+            <Border Grid.Column="0"
+                    BorderBrush="{StaticResource BorderLightBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{StaticResource BackgroundCardBrush}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="🎨 Composition Stylistique"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                <TextBlock Text="{Binding CurrentDNA.HardcorePercentage, StringFormat={}Hardcore: {0:F1}%}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding CurrentDNA.TechnicalPercentage, StringFormat={}Technical: {0:F1}%}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding CurrentDNA.LuchaPercentage, StringFormat={}Lucha: {0:F1}%}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding CurrentDNA.EntertainmentPercentage, StringFormat={}Entertainment: {0:F1}%}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding CurrentDNA.StrongStylePercentage, StringFormat={}Strong Style: {0:F1}%}"
+                           FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Style Dominant -->
+            <Border Grid.Column="1"
+                    BorderBrush="{StaticResource BorderLightBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{StaticResource BackgroundCardBrush}">
+              <StackPanel Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="👑 Style Dominant"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding CurrentDNA.DominantStyle}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{StaticResource BrandPrimaryBrush}"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Score de Cohérence -->
+            <Border Grid.Column="2"
+                    BorderBrush="{StaticResource BorderLightBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10"
+                    Background="{StaticResource BackgroundCardBrush}">
+              <StackPanel Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="🎯 Cohérence"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding CurrentDNA.CoherenceScore, StringFormat={}{0:F1}/100}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Foreground="{StaticResource BrandPrimaryBrush}"/>
+              </StackPanel>
+            </Border>
+
+          </Grid>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Matrice de Compatibilité -->
+      <Border BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="15"
+              Background="{StaticResource BackgroundSecondaryBrush}">
+        <StackPanel Spacing="15">
+
+          <TextBlock Text="⚖️ Matrice de Compatibilité"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,10"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
+
+          <ItemsControl ItemsSource="{Binding CompatibilityMatrices}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{StaticResource BorderLightBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12"
+                        Margin="0,0,0,8"
+                        Background="{StaticResource BackgroundCardBrush}">
+
+                  <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" >
+
+                    <!-- Nom de la tendance -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding TrendId}"
+                                 FontSize="14"
+                                 FontWeight="SemiBold"
+                                 Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+
+                    <!-- Coefficient C -->
+                    <Border Grid.Column="1"
+                            BorderBrush="{StaticResource BrandPrimaryBrush}"
+                            BorderThickness="2"
+                            CornerRadius="4"
+                            Padding="8"
+                            Background="{StaticResource BackgroundCardDarkBrush}">
+                      <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Coefficient C"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding CompatibilityCoefficient, StringFormat={}{0:F2}}"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                      </StackPanel>
+                    </Border>
+
+                    <!-- Niveau -->
+                    <Border Grid.Column="2"
+                            BorderBrush="{StaticResource BorderLightBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8"
+                            Background="{StaticResource BackgroundPrimaryBrush}">
+                      <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Niveau"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding Level}"
+                                   FontSize="12"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                      </StackPanel>
+                    </Border>
+
+                    <!-- Bonus Qualité -->
+                    <Border Grid.Column="3"
+                            BorderBrush="{StaticResource BorderLightBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8"
+                            Background="{StaticResource BackgroundPrimaryBrush}">
+                      <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🎭 Bonus Qualité"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding QualityBonus, StringFormat={}+{0:F1}%}"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                      </StackPanel>
+                    </Border>
+
+                    <!-- Multiplicateur Croissance -->
+                    <Border Grid.Column="4"
+                            BorderBrush="{StaticResource BorderLightBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8"
+                            Background="{StaticResource BackgroundPrimaryBrush}">
+                      <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="📈 Multiplicateur"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding GrowthMultiplier, StringFormat={}x{0:F2}}"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                      </StackPanel>
+                    </Border>
+
+                  </Grid>
+
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="Aucune matrice de compatibilité calculée"
+                     FontSize="14"
+                     HorizontalAlignment="Center"
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     IsVisible="{Binding CompatibilityMatrices, Converter={StaticResource IsNotNullConverter}}"/>
+
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

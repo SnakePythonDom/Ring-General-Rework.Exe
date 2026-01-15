@@ -1,0 +1,34 @@
+{
+  "meta": {"langue": "fr", "pageId": "profils-universels", "titre": "Profils universels"},
+  "onglets": [
+    {"id": "vue_ensemble", "libelle": "Vue d’ensemble"},
+    {"id": "attributs", "libelle": "Attributs"},
+    {"id": "contrats", "libelle": "Contrats"},
+    {"id": "historique", "libelle": "Historique"},
+    {"id": "medical", "libelle": "Médical"},
+    {"id": "notes", "libelle": "Notes"},
+    {"id": "shortlist", "libelle": "Shortlist"}
+  ],
+  "panneauDetail": {
+    "sections": [
+      "Vue d’ensemble",
+      "Attributs",
+      "Contrats",
+      "Historique",
+      "État médical",
+      "Notes",
+      "Shortlist"
+    ]
+  },
+  "actions": [
+    {"id": "ajouter_note", "libelle": "Ajouter note"},
+    {"id": "ajouter_shortlist", "libelle": "Ajouter shortlist"},
+    {"id": "ouvrir_contrats", "libelle": "Ouvrir contrats"},
+    {"id": "comparer", "libelle": "Comparer"}
+  ],
+  "validations": [
+    {"id": "profil.selection", "message": "Sélectionnez un profil."}
+  ],
+  "etatVide": "Aucun profil sélectionné.",
+  "messagesErreur": ["Impossible de charger le profil."]
+}

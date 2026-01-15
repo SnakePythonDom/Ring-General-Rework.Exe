@@ -1,0 +1,32 @@
+{
+  "meta": {"langue": "fr", "pageId": "booking", "titre": "Booking"},
+  "onglets": [
+    {"id": "carte", "libelle": "Carte du show"},
+    {"id": "segments", "libelle": "Segments"},
+    {"id": "notes", "libelle": "Notes"}
+  ],
+  "tables": [
+    {
+      "id": "carte_show",
+      "libelle": "Carte du show",
+      "colonnes": ["Ordre", "Type", "Participants", "Durée", "Objectif", "Statut"]
+    }
+  ],
+  "filtres": ["Type de segment", "Durée", "Storyline"],
+  "panneauDetail": {
+    "sections": ["Détails segment", "Consignes", "Impact prévu"]
+  },
+  "actions": [
+    {"id": "ajouter_segment", "libelle": "Ajouter un segment"},
+    {"id": "simuler_show", "libelle": "Simuler le show"}
+  ],
+  "validations": [
+    {"id": "booking.duree", "message": "La durée totale ne correspond pas au show."}
+  ],
+  "warnings": ["Déséquilibre entre segments in-ring et divertissement."],
+  "etatVide": "Aucun segment dans la carte.",
+  "tooltips": [
+    {"id": "consignes", "libelle": "Consignes", "texte": "Affiner le style et le risque du segment."}
+  ],
+  "messagesErreur": ["Impossible de charger le booking."]
+}

@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "simulation-booking"
+  },
+  "pipeline": [
+    {"id": "seed", "libelle": "Initialiser la seed", "description": "Déterminisme par seed unique du show."},
+    {"id": "validation", "libelle": "Validation des segments", "description": "Vérifie durées, participants, cohérence."},
+    {"id": "evaluationSegment", "libelle": "Évaluation segment par segment", "description": "Calcule InRing, Entertainment, Story."},
+    {"id": "modificateurs", "libelle": "Modificateurs", "description": "Applique CrowdHeat, pacing, production."},
+    {"id": "incidents", "libelle": "Incidents", "description": "Détermine botch, blessure, incident backstage."},
+    {"id": "scores", "libelle": "Scores finaux", "description": "Calcule score final par segment et show."},
+    {"id": "recap", "libelle": "Récap show", "description": "Construit le récap FM (note, audience, finances, deltas)."},
+    {"id": "impacts", "libelle": "Impacts persistés", "description": "Applique popularité, momentum, heat, fatigue, blessures, finances."}
+  ],
+  "scores": {
+    "composantes": ["InRing", "Entertainment", "Story"],
+    "scoreFinal": "moyennePonderee",
+    "ponderationsParStyle": [
+      {"style": "SPORTIF", "InRing": 0.5, "Entertainment": 0.2, "Story": 0.3},
+      {"style": "DIVERTISSEMENT", "InRing": 0.25, "Entertainment": 0.5, "Story": 0.25},
+      {"style": "MIXTE", "InRing": 0.33, "Entertainment": 0.33, "Story": 0.34}
+    ]
+  },
+  "crowdHeat": {
+    "echelle": "0-100",
+    "facteurs": ["popularite", "momentum", "storylineHeat", "region"]
+  },
+  "pacing": {
+    "types": ["LENT", "EQUILIBRE", "RAPIDE"],
+    "impact": "Modifie la perception du public et la fatigue."
+  },
+  "productionModifiers": {
+    "facteurs": ["qualiteProduction", "regie", "tempsDeMontage", "erreursTechniques"]
+  },
+  "determinisme": {
+    "seed": {
+      "format": "showId-weekId",
+      "message": "La seed garantit des résultats reproductibles pour le même show."
+    }
+  },
+  "incidents": {
+    "types": [
+      {"id": "botch", "libelle": "Botch"},
+      {"id": "blessure", "libelle": "Blessure"},
+      {"id": "incidentBackstage", "libelle": "Incident backstage"},
+      {"id": "panneTechnique", "libelle": "Panne technique"}
+    ],
+    "regles": [
+      "Le risque de botch augmente avec l'intensité élevée.",
+      "Les blessures sont plus probables si la durabilité est faible."
+    ]
+  },
+  "recap": {
+    "sections": ["noteShow", "audience", "finances", "deltas", "segments"],
+    "deltas": ["popularite", "momentum", "storylineHeat", "fatigue", "blessures"],
+    "format": "Résumé FM complet avec breakdown par segment."
+  },
+  "messagesErreur": {
+    "validation": "Validation échouée : segments incohérents.",
+    "seed": "Seed manquante, simulation annulée."
+  }
+}

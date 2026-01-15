@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Attributs Universels -->
+  <data name="ConditionPhysique">
+    <value>État de forme général du wrestler. Affecte la stamina et la récupération entre les shows.</value>
+  </data>
+  <data name="Moral">
+    <value>Moral et motivation du wrestler. Impact sur la qualité des performances et les négociations de contrat.</value>
+  </data>
+  <data name="Popularite">
+    <value>Niveau de popularité auprès des fans. Augmente avec les bonnes performances et les storylines réussies.</value>
+  </data>
+  <data name="Fatigue">
+    <value>Niveau de fatigue accumulée. Une fatigue élevée augmente les risques de blessures et diminue les performances.</value>
+  </data>
+  <data name="Momentum">
+    <value>Élan actuel du wrestler dans la compagnie. Influencé par les victoires, les storylines et la position sur la carte.</value>
+  </data>
+
+  <!-- Attributs In-Ring -->
+  <data name="InRing">
+    <value>Compétence globale dans le ring. Moyenne des compétences techniques du wrestler.</value>
+  </data>
+  <data name="Timing">
+    <value>Capacité à synchroniser les mouvements et à travailler le rythme d'un match.</value>
+  </data>
+  <data name="Psychology">
+    <value>Compréhension de la psychologie d'un match - savoir quand accélérer, ralentir, ou créer des moments émotionnels.</value>
+  </data>
+  <data name="Selling">
+    <value>Capacité à vendre les mouvements de l'adversaire de manière crédible et dramatique.</value>
+  </data>
+  <data name="Stamina">
+    <value>Endurance en match. Détermine la durée pendant laquelle le wrestler peut maintenir un niveau de performance élevé.</value>
+  </data>
+  <data name="Safety">
+    <value>Conscience de la sécurité dans le ring. Réduit les risques de blessures pour soi-même et les partenaires.</value>
+  </data>
+  <data name="Technique">
+    <value>Maîtrise technique des manœuvres de catch. Inclut la précision et la diversité du répertoire.</value>
+  </data>
+  <data name="Brawling">
+    <value>Compétence dans le style de combat brutal et physique. Efficace pour les matchs hardcore.</value>
+  </data>
+  <data name="Aerial">
+    <value>Habileté dans les manœuvres aériennes et acrobatiques. Crée des moments spectaculaires.</value>
+  </data>
+  <data name="Power">
+    <value>Force brute et capacité à exécuter des manœuvres de puissance impressionnantes.</value>
+  </data>
+  <data name="Submission">
+    <value>Maîtrise des prises de soumission et de la lutte au sol technique.</value>
+  </data>
+
+  <!-- Attributs Entertainment -->
+  <data name="Entertainment">
+    <value>Capacité globale à divertir et captiver l'audience. Moyenne des compétences de performance.</value>
+  </data>
+  <data name="Charisma">
+    <value>Charisme naturel et présence scénique. Capacité à capter l'attention du public.</value>
+  </data>
+  <data name="Promo">
+    <value>Compétence au micro pour couper des promos convaincants et mémorables.</value>
+  </data>
+  <data name="CrowdConnection">
+    <value>Capacité à établir une connexion émotionnelle avec le public et à susciter des réactions.</value>
+  </data>
+  <data name="StarPower">
+    <value>Présence de star et magnétisme. Détermine le potentiel de devenir une attraction principale.</value>
+  </data>
+  <data name="Acting">
+    <value>Talent d'acteur pour les segments backstage et les storylines cinématographiques.</value>
+  </data>
+  <data name="Looks">
+    <value>Apparence physique et présentation. Impact sur le marketing et l'attrait visuel.</value>
+  </data>
+
+  <!-- Attributs Story -->
+  <data name="Story">
+    <value>Compétence globale en narration. Capacité à raconter des histoires crédibles dans les matchs.</value>
+  </data>
+  <data name="Storytelling">
+    <value>Capacité à construire et raconter une histoire cohérente tout au long d'un match ou d'une feud.</value>
+  </data>
+  <data name="CharacterWork">
+    <value>Développement et maintien d'un personnage cohérent et engageant.</value>
+  </data>
+  <data name="Versatility">
+    <value>Adaptabilité à différents rôles (face/heel) et styles de match.</value>
+  </data>
+  <data name="Consistency">
+    <value>Régularité des performances. Les wrestlers constants sont fiables pour toutes les situations.</value>
+  </data>
+
+  <!-- Attributs Backstage (Workers) -->
+  <data name="Respect">
+    <value>Respect gagné auprès des pairs en backstage. Influence la politique interne et les opportunités.</value>
+  </data>
+  <data name="Politicking">
+    <value>Compétence en politique backstage. Capacité à négocier pour de meilleurs spots et storylines.</value>
+  </data>
+  <data name="Professionalism">
+    <value>Professionnalisme général. Les workers professionnels sont moins susceptibles de créer des problèmes.</value>
+  </data>
+  <data name="WorkEthic">
+    <value>Éthique de travail et dévouement. Affecte la progression et l'attitude générale.</value>
+  </data>
+  <data name="Reliability">
+    <value>Fiabilité pour apparaître aux shows et respecter les engagements contractuels.</value>
+  </data>
+
+  <!-- Attributs Staff/Backstage -->
+  <data name="Credibility">
+    <value>Crédibilité auprès des wrestlers. Important pour les bookers, agents et entraîneurs.</value>
+  </data>
+  <data name="EyeForTalent">
+    <value>Capacité à identifier les talents prometteurs et leur potentiel futur.</value>
+  </data>
+  <data name="Negotiation">
+    <value>Compétence en négociation de contrats et gestion des relations avec les talents.</value>
+  </data>
+  <data name="CreativeVision">
+    <value>Vision créative pour les storylines et le développement à long terme.</value>
+  </data>
+
+  <!-- Attributs Coach -->
+  <data name="TechniqueTeaching">
+    <value>Capacité à enseigner les aspects techniques du catch (timing, safety, technique).</value>
+  </data>
+  <data name="PsychologyTeaching">
+    <value>Capacité à enseigner la psychologie du match et le storytelling in-ring.</value>
+  </data>
+  <data name="PromoTeaching">
+    <value>Capacité à coacher les promos et le travail au micro.</value>
+  </data>
+  <data name="CharacterTeaching">
+    <value>Capacité à aider les wrestlers à développer et affiner leur personnage.</value>
+  </data>
+  <data name="MotivationSkill">
+    <value>Compétence à motiver et inspirer les trainees à donner le meilleur d'eux-mêmes.</value>
+  </data>
+  <data name="Patience">
+    <value>Patience avec les trainees en apprentissage. Les coachs patients obtiennent de meilleurs résultats à long terme.</value>
+  </data>
+
+  <!-- Attributs Trainee/Youth -->
+  <data name="InRingCeiling">
+    <value>Potentiel maximum pour les compétences in-ring. Détermine jusqu'où le trainee peut progresser techniquement.</value>
+  </data>
+  <data name="CharismaCeiling">
+    <value>Potentiel maximum de charisme. Certains ont une présence naturelle, d'autres doivent la développer.</value>
+  </data>
+  <data name="Athleticism">
+    <value>Athlétisme naturel. Les trainees athlétiques progressent plus vite dans les aspects physiques.</value>
+  </data>
+  <data name="LearningSpeed">
+    <value>Vitesse d'apprentissage. Détermine la rapidité de progression dans tous les domaines.</value>
+  </data>
+  <data name="Dedication">
+    <value>Dévouement au catch. Les trainees dévoués s'entraînent plus dur et progressent plus vite.</value>
+  </data>
+  <data name="Adaptability">
+    <value>Capacité d'adaptation à différents styles et partenaires.</value>
+  </data>
+  <data name="Coachability">
+    <value>Réceptivité aux conseils et à l'entraînement. Les trainees coachables progressent plus efficacement.</value>
+  </data>
+  <data name="Confidence">
+    <value>Confiance en soi. Importante pour performer devant un public et prendre des risques créatifs.</value>
+  </data>
+
+  <!-- Attributs Spéciaux -->
+  <data name="DrawPower">
+    <value>Pouvoir d'attraction. Capacité à attirer du public et augmenter les ventes de billets.</value>
+  </data>
+  <data name="MerchandisePotential">
+    <value>Potentiel de vente de merchandise. Certains wrestlers se vendent mieux en produits dérivés.</value>
+  </data>
+  <data name="MediaApproach">
+    <value>Aisance avec les médias et capacité à représenter la compagnie publiquement.</value>
+  </data>
+  <data name="SocialMediaSkill">
+    <value>Compétence en réseaux sociaux pour construire un following et promouvoir les shows.</value>
+  </data>
+  <data name="Durability">
+    <value>Résistance aux blessures. Les wrestlers durables manquent moins de shows.</value>
+  </data>
+  <data name="RecoveryRate">
+    <value>Vitesse de récupération après les matchs et entre les shows.</value>
+  </data>
+  <data name="Longevity">
+    <value>Potentiel de longévité de carrière. Affecte combien de temps le wrestler peut performer à haut niveau.</value>
+  </data>
+  <data name="Age">
+    <value>Âge du wrestler. Impacte la progression, la récupération et le potentiel restant.</value>
+  </data>
+</root>

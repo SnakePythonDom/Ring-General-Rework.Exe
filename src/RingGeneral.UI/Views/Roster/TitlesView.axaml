@@ -1,0 +1,262 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Roster"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Roster.TitlesView"
+             x:DataType="vm:TitlesViewModel">
+
+    <Design.DataContext>
+        <vm:TitlesViewModel />
+    </Design.DataContext>
+
+    <Border Padding="20" Background="{StaticResource BackgroundPrimaryBrush}">
+        <Grid RowDefinitions="Auto,20,*">
+            
+            <!-- HEADER SECTION -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="🏆 GESTION DES TITRES" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock Text="{Binding TotalTitles, StringFormat='{}{0} Titres au Total'}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Text="•" Foreground="{StaticResource TextSubtleBrush}"/>
+                        <TextBlock Text="{Binding VacantTitles, StringFormat='{}{0} Vacants'}" FontSize="13" Foreground="{StaticResource AccentOrangeBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="8" Width="300">
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="🔍" VerticalAlignment="Center" Margin="10,0,5,0" Opacity="0.5" FontSize="12"/>
+                            <TextBox Grid.Column="1" Text="{Binding SearchText, Mode=TwoWay}" 
+                                     Watermark="Rechercher un titre..." 
+                                     Background="Transparent" BorderThickness="0" Padding="5,8" FontSize="13"/>
+                        </Grid>
+                    </Border>
+                    <Button Content="➕ CRÉER UN NOUVEAU TITRE" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="10,8" Background="{StaticResource BackgroundTertiaryBrush}" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" FontSize="12" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- MAIN CONTENT -->
+            <Grid Grid.Row="2" ColumnDefinitions="320,1,*">
+                
+                <!-- LEFT COLUMN: TITLE LIST -->
+                <Border Grid.Column="0" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,1,1,0">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="15,10" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1">
+                            <TextBlock Text="LISTE DES TITRES" FontWeight="SemiBold" FontSize="12" Opacity="0.8"/>
+                        </Border>
+                        
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Titles}" SelectedItem="{Binding SelectedTitle, Mode=TwoWay}"
+                                 Background="Transparent" BorderThickness="0" Padding="5">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,8"
+                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontWeight="Bold" FontSize="14" Margin="0,0,0,5"/>
+                                            
+                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="5" Margin="0,0,0,5">
+                                                <TextBlock Text="👤" Opacity="0.7" FontSize="12"/>
+                                                <TextBlock Text="{Binding CurrentChampion}" Foreground="{StaticResource AccentBlueBrush}" FontWeight="SemiBold" FontSize="13"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+                                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                                    <TextBlock Text="⚖️" Opacity="0.7" FontSize="11"/>
+                                                    <TextBlock Text="{Binding DisplayGender}" FontSize="11" Opacity="0.8"/>
+                                                </StackPanel>
+                                                <TextBlock Text="|" Opacity="0.3" FontSize="11"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                                    <TextBlock Text="🏆" Opacity="0.7" FontSize="11"/>
+                                                    <TextBlock Text="{Binding DisplayType}" FontSize="11" Opacity="0.8"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto">
+                                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                                    <TextBlock Text="⭐" Foreground="{StaticResource AccentYellowBrush}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Prestige}" FontSize="11" FontWeight="Bold"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3">
+                                                    <TextBlock Text="📅" Opacity="0.7" FontSize="11"/>
+                                                    <TextBlock Text="{Binding ReignDaysDisplay}" FontSize="11" Opacity="0.8"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            <ListBox.Styles>
+                                <Style Selector="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="ListBoxItem:selected Border">
+                                    <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                </Style>
+                            </ListBox.Styles>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <!-- SEPARATOR -->
+                <Rectangle Grid.Column="1" Fill="{StaticResource BorderLightBrush}" Width="1"/>
+
+                <!-- RIGHT COLUMN: DETAILS -->
+                <Grid Grid.Column="2" RowDefinitions="Auto,*" Margin="20,0,0,0">
+                    
+                    <!-- Title Header -->
+                    <Border Grid.Row="0" Padding="0,0,0,15" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1">
+                        <TextBlock Text="{Binding SelectedTitle.Name, FallbackValue='SÉLECTIONNEZ UN TITRE'}" FontSize="18" FontWeight="Bold" Opacity="0.9"/>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" Margin="0,15,0,0">
+                        <StackPanel Spacing="20" IsVisible="{Binding SelectedTitle, Converter={StaticResource IsNotNullConverter}}">
+                            
+                            <!-- ROW 1: CHAMPION & STATS -->
+                            <Grid ColumnDefinitions="*,20,*">
+                                <!-- Champion Actuel -->
+                                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="👤" FontSize="16" Opacity="0.7"/>
+                                            <TextBlock Text="CHAMPION ACTUEL" FontWeight="Bold" FontSize="12" Opacity="0.6" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SelectedTitle.CurrentChampion}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}" Margin="25,0,0,0"/>
+                                        <StackPanel Margin="25,0,0,0" Spacing="2">
+                                            <TextBlock Text="{Binding SelectedTitle.ReignDays, StringFormat='Depuis: {0} Jours'}" FontSize="13" Opacity="0.8"/>
+                                            <TextBlock Text="{Binding SelectedTitle.ReignCount, StringFormat='Défenses: {0}'}" FontSize="13" Opacity="0.8"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Prestige & Stats -->
+                                <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="⭐" Foreground="{StaticResource AccentYellowBrush}" FontSize="16"/>
+                                            <TextBlock Text="PRESTIGE &amp; STATS" FontWeight="Bold" FontSize="12" Opacity="0.6" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        
+                                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,5,0,0">
+                                            <TextBlock Text="Niveau:" FontSize="13" Opacity="0.8" VerticalAlignment="Center"/>
+                                            <ProgressBar Grid.Column="1" Value="{Binding SelectedTitle.Prestige}" Maximum="100" Margin="10,0" Height="8" Background="{StaticResource BackgroundTertiaryBrush}" Foreground="{StaticResource AccentYellowBrush}"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding SelectedTitle.Prestige, StringFormat='{}{0}/100'}" FontSize="13" FontWeight="Bold"/>
+                                        </Grid>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="Valeur:" FontSize="13" Opacity="0.8"/>
+                                            <TextBlock Text="Élite" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource AccentYellowBrush}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="Tendance:" FontSize="13" Opacity="0.8"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="↗️ Up" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold" FontSize="13" IsVisible="{Binding SelectedTitle.IsTrendUp}"/>
+                                                <TextBlock Text="↘️ Down" Foreground="{StaticResource ErrorLightBrush}" FontWeight="SemiBold" FontSize="13" IsVisible="{Binding SelectedTitle.IsTrendDown}"/>
+                                                <TextBlock Text="➡️ Stable" FontWeight="SemiBold" FontSize="13" IsVisible="{Binding SelectedTitle.IsTrendStable}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- ROW 2: BOOKER IDEAS -->
+                            <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <StackPanel Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="💡" FontSize="16" Opacity="0.7"/>
+                                        <TextBlock Text="BOOKER IDEAS (PROJECTS)" FontWeight="Bold" FontSize="12" Opacity="0.6" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding SelectedTitle.BookerIdeas}" Margin="25,0,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding StringFormat='• {0}'}" FontSize="13" Margin="0,2" Opacity="0.9"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="Aucun projet planifié pour ce titre." Margin="25,0,0,0" FontSize="13" FontStyle="Italic" Opacity="0.5" 
+                                               IsVisible="{Binding !SelectedTitle.BookerIdeas.Count}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- ROW 3: QUICK ACTIONS -->
+                            <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <StackPanel Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🛠️" FontSize="16" Opacity="0.7"/>
+                                        <TextBlock Text="ACTIONS RAPIDES" FontWeight="Bold" FontSize="12" Opacity="0.6" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="25,5,0,0">
+                                        <Button Command="{Binding VacateTitleCommand}" Padding="10,6" Background="{StaticResource BackgroundTertiaryBrush}" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="🔓" FontSize="12"/>
+                                                <TextBlock Text="RENDRE VACANT" FontSize="12" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Command="{Binding NewChampionCommand}" Padding="10,6" Background="{StaticResource BackgroundTertiaryBrush}" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="👑" FontSize="12"/>
+                                                <TextBlock Text="NOUVEAU CHAMPION" FontSize="12" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Command="{Binding DesignBeltCommand}" Padding="10,6" Background="{StaticResource BackgroundTertiaryBrush}" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="🎨" FontSize="12"/>
+                                                <TextBlock Text="DESIGN CEINTURE" FontSize="12" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- ROW 4: HISTORY -->
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="📜" FontSize="16" Opacity="0.7"/>
+                                    <TextBlock Text="HISTORIQUE DES RÈGNES" FontWeight="Bold" FontSize="12" Opacity="0.6" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                    <ItemsControl ItemsSource="{Binding TitleHistory}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1" Padding="15,10">
+                                                    <Grid ColumnDefinitions="*,*,*">
+                                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                                            <TextBlock Text="{Binding StartWeek, StringFormat='{}{0}.'}" Opacity="0.5" Width="20" FontSize="13"/>
+                                                            <TextBlock Text="{Binding Champion}" FontWeight="SemiBold" FontSize="13"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1" Text="{Binding ReignDays, StringFormat='{}{0} Jours'}" HorizontalAlignment="Center" Opacity="0.8" FontSize="13"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding DefenseCount, StringFormat='{}{0} Défenses'}" HorizontalAlignment="Right" Opacity="0.8" FontSize="13"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                    
+                    <!-- EMPTY STATE -->
+                    <Border Grid.Row="1" IsVisible="{Binding SelectedTitle, Converter={StaticResource IsNotNullConverter}, ConverterParameter=Invert}" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <StackPanel Spacing="10" Opacity="0.3">
+                            <TextBlock Text="🏆" FontSize="64" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Sélectionnez un titre pour voir les détails" FontSize="16" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

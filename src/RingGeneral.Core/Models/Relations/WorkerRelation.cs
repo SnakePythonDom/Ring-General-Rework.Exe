@@ -1,0 +1,224 @@
+namespace RingGeneral.Core.Models.Relations
+{
+    /// <summary>
+    /// Type of relationship between two wrestlers
+    /// </summary>
+    public enum RelationType
+    {
+        /// <summary>
+        /// 🤝 Friendship - Professional respect and camaraderie
+        /// </summary>
+        Amitie,
+
+        /// <summary>
+        /// ❤ Romantic Relationship - Love interest storyline
+        /// </summary>
+        Couple,
+
+        /// <summary>
+        /// 👊 Brotherhood - Deep bond, tag team partnership
+        /// </summary>
+        Fraternite,
+
+        /// <summary>
+        /// ⚔ Rivalry - Ongoing feud or competition
+        /// </summary>
+        Rivalite,
+
+        /// <summary>
+        /// 🎓 Mentor/Protege - Teacher and student bond
+        /// </summary>
+        Protege,
+
+        /// <summary>
+        /// 😠 Hatred - Deep personal animosity
+        /// </summary>
+        Haine
+    }
+
+    /// <summary>
+    /// Represents a relationship between two wrestlers.
+    /// Can be kayfabe (storyline) or backstage (real-life chemistry).
+    /// </summary>
+    public class WorkerRelation
+    {
+        /// <summary>
+        /// Unique identifier
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// First worker in the relationship (lower ID)
+        /// </summary>
+        public string WorkerId1 { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Second worker in the relationship (higher ID)
+        /// </summary>
+        public string WorkerId2 { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Type of relationship (Friendship, Romance, Brotherhood, Rivalry)
+        /// </summary>
+        public RelationType RelationType { get; set; }
+
+        /// <summary>
+        /// Strength of the relationship (0-100)
+        /// - 0-39: Weak
+        /// - 40-69: Medium
+        /// - 70-89: Strong
+        /// - 90-100: Very Strong
+        /// </summary>
+        public int RelationStrength { get; set; } = 50;
+
+        /// <summary>
+        /// Optional notes about the relationship
+        /// </summary>
+        public string? Notes { get; set; }
+
+        /// <summary>
+        /// Is this relationship public (kayfabe visible)?
+        /// True = Visible in storylines
+        /// False = Backstage chemistry only
+        /// </summary>
+        public bool IsPublic { get; set; } = true;
+
+        /// <summary>
+        /// When the relationship was created
+        /// </summary>
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        // ====================================================================
+        // NEPOTISM TRACKING (Phase 2)
+        // ====================================================================
+
+        /// <summary>
+        /// Is this relationship hidden from public view?
+        /// Hidden relationships can still influence decisions (népotisme backstage)
+        /// </summary>
+        public bool IsHidden { get; set; } = false;
+
+        /// <summary>
+        /// Bias strength - how much this relationship influences decisions (0-100)
+        /// - 0-39: Low bias
+        /// - 40-69: Moderate bias
+        /// - 70-100: Strong bias (obvious favoritism/nepotism)
+        /// </summary>
+        public int BiasStrength { get; set; } = 0;
+
+        /// <summary>
+        /// Event that created this relation (e.g., "FamilyTie", "MentorshipStart")
+        /// </summary>
+        public string? OriginEvent { get; set; }
+
+        /// <summary>
+        /// Description of the last observable impact
+        /// e.g., "Protected from firing", "Pushed despite low morale"
+        /// </summary>
+        public string? LastImpact { get; set; }
+
+        // ====================================================================
+        // NAVIGATION PROPERTIES
+        // ====================================================================
+
+        /// <summary>
+        /// First worker
+        /// </summary>
+        public Worker? Worker1 { get; set; }
+
+        /// <summary>
+        /// Second worker
+        /// </summary>
+        public Worker? Worker2 { get; set; }
+
+        // ====================================================================
+        // HELPER PROPERTIES
+        // ====================================================================
+
+        /// <summary>
+        /// Get icon emoji for this relation type
+        /// </summary>
+        public string RelationTypeIcon => RelationType switch
+        {
+            RelationType.Amitie => "🤝",
+            RelationType.Couple => "❤",
+            RelationType.Fraternite => "👊",
+            RelationType.Rivalite => "⚔",
+            RelationType.Protege => "🎓",
+            RelationType.Haine => "😠",
+            _ => "?"
+        };
+
+        /// <summary>
+        /// Get strength text description
+        /// </summary>
+        public string RelationStrengthText => RelationStrength switch
+        {
+            >= 90 => "Très Fort",
+            >= 70 => "Fort",
+            >= 40 => "Moyen",
+            _ => "Faible"
+        };
+
+        /// <summary>
+        /// Is this a strong relationship? (>= 70)
+        /// </summary>
+        public bool IsStrongRelation => RelationStrength >= 70;
+
+        /// <summary>
+        /// Is this a medium relationship? (40-69)
+        /// </summary>
+        public bool IsMediumRelation => RelationStrength >= 40 && RelationStrength < 70;
+
+        /// <summary>
+        /// Does this relation have a strong bias? (>= 70)
+        /// Strong bias = obvious favoritism/nepotism
+        /// </summary>
+        public bool HasStrongBias => BiasStrength >= 70;
+
+        /// <summary>
+        /// Does this relation have a moderate bias? (40-69)
+        /// </summary>
+        public bool HasModerateBias => BiasStrength >= 40 && BiasStrength < 70;
+
+        /// <summary>
+        /// Is this relation likely to influence decisions?
+        /// </summary>
+        public bool InfluencesDecisions => BiasStrength >= 40;
+
+        // ====================================================================
+        // HELPER METHODS
+        // ====================================================================
+
+        /// <summary>
+        /// Check if this relation involves a specific worker
+        /// </summary>
+        public bool InvolvesWorker(string workerId)
+        {
+            return WorkerId1 == workerId || WorkerId2 == workerId;
+        }
+
+        /// <summary>
+        /// Get the other worker ID in this relation
+        /// </summary>
+        public string GetOtherWorkerId(string workerId)
+        {
+            if (workerId == WorkerId1) return WorkerId2;
+            if (workerId == WorkerId2) return WorkerId1;
+            throw new ArgumentException("Worker ID not part of this relation");
+        }
+
+        /// <summary>
+        /// Validate the relation
+        /// </summary>
+        public bool Validate()
+        {
+            return !string.IsNullOrEmpty(WorkerId1) &&
+                   !string.IsNullOrEmpty(WorkerId2) &&
+                   WorkerId1 != WorkerId2 &&
+                   // String comparison for ordering check if needed, or remove ordering constraint
+                   // WorkerId1 < WorkerId2 && 
+                   RelationStrength >= 0 && RelationStrength <= 100;
+        }
+    }
+}

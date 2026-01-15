@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Recruitment"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+             x:Class="RingGeneral.UI.Views.Recruitment.RecruitmentDialogView"
+             x:DataType="vm:RecruitmentDialogViewModel">
+
+  <Border Background="{StaticResource PanelBackgroundBrush}" 
+          BorderBrush="{StaticResource AccentGoldBrush}" 
+          BorderThickness="1" 
+          CornerRadius="8"
+          BoxShadow="0 10 30 0 #A0000000">
+    <Grid RowDefinitions="Auto, *, Auto" Margin="30">
+      
+      <!-- Header -->
+      <StackPanel Spacing="5" Margin="0,0,0,20">
+        <TextBlock Text="NÉGOCIATION DE CONTRAT" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentGoldBrush}" HorizontalAlignment="Center"/>
+        <TextBlock Text="{Binding Agent.Name}" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+      </StackPanel>
+
+      <!-- Content -->
+      <StackPanel Grid.Row="1" Spacing="20">
+        
+        <!-- Assignment Type -->
+        <StackPanel Spacing="8">
+          <TextBlock Text="AFFECTATION" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+          <ListBox ItemsSource="{Binding RecruitmentTypes}" 
+                   SelectedItem="{Binding SelectedRecruitmentType}"
+                   Background="Transparent">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Padding="10,5" BorderBrush="{StaticResource BorderPrimaryBrush}" BorderThickness="1" CornerRadius="4">
+                  <TextBlock Text="{Binding}" />
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+
+        <!-- Salary Offer -->
+        <StackPanel Spacing="8">
+          <TextBlock Text="OFFRE SALARIALE (HEBDOMADAIRE)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+          <Grid ColumnDefinitions="*, Auto">
+            <NumericUpDown Value="{Binding SalaryOffer}" Minimum="0" Increment="50" FormatString="C0"/>
+            <TextBlock Grid.Column="1" Text="USD" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{StaticResource TextSecondaryBrush}"/>
+          </Grid>
+        </StackPanel>
+
+        <!-- Message/Status Area -->
+        <Border Padding="15" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" MinHeight="60">
+          <TextBlock Text="{Binding Message}" 
+                     TextWrapping="Wrap" 
+                     FontStyle="Italic" 
+                     VerticalAlignment="Center" 
+                     HorizontalAlignment="Center"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
+        </Border>
+
+      </StackPanel>
+
+      <!-- Footer Buttons -->
+      <Grid Grid.Row="2" ColumnDefinitions="*, *" Spacing="15" Margin="0,20,0,0">
+        <Button Command="{Binding CancelCommand}" Content="ANNULER" Classes="Secondary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        <Button Command="{Binding ConfirmCommand}" Content="CONFIRMER" Classes="Primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" IsEnabled="{Binding !IsBusy}"/>
+      </Grid>
+
+    </Grid>
+  </Border>
+</UserControl>

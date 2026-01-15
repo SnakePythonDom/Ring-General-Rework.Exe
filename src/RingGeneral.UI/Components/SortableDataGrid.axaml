@@ -1,0 +1,205 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="RingGeneral.UI.Components.SortableDataGrid">
+
+  <UserControl.Styles>
+    <Style Selector="Border.grid-container">
+      <Setter Property="Background" Value="{StaticResource BackgroundSecondaryBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+
+    <Style Selector="Border.toolbar">
+      <Setter Property="Background" Value="{StaticResource BackgroundInputBrush}"/>
+      <Setter Property="Padding" Value="12"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+      <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <Style Selector="TextBox.search-box">
+      <Setter Property="Background" Value="{StaticResource BackgroundPrimaryBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="MinWidth" Value="250"/>
+    </Style>
+
+    <Style Selector="TextBox.search-box:focus">
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
+    </Style>
+
+    <Style Selector="Button.toolbar-button">
+      <Setter Property="Background" Value="{StaticResource BorderLightBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+      <Setter Property="Padding" Value="12,6"/>
+      <Setter Property="Margin" Value="4,0"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+
+    <Style Selector="Button.toolbar-button:pointerover">
+      <Setter Property="Background" Value="{StaticResource BorderSecondaryBrush}"/>
+    </Style>
+
+    <Style Selector="Button.toolbar-button:pressed">
+      <Setter Property="Background" Value="{StaticResource BorderDefaultBrush}"/>
+    </Style>
+
+    <Style Selector="Button.primary-button">
+      <Setter Property="Background" Value="{StaticResource AccentBlueBrush}"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style Selector="Button.primary-button:pointerover">
+      <Setter Property="Background" Value="{StaticResource AccentPrimaryHoverBrush}"/>
+    </Style>
+
+    <Style Selector="DataGrid">
+      <Setter Property="Background" Value="{StaticResource BackgroundSecondaryBrush}"/>
+      <Setter Property="RowBackground" Value="{StaticResource BackgroundSecondaryBrush}"/>
+      <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+      <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderLightBrush}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CanUserReorderColumns" Value="True"/>
+      <Setter Property="CanUserResizeColumns" Value="True"/>
+      <Setter Property="CanUserSortColumns" Value="True"/>
+      <Setter Property="IsReadOnly" Value="True"/>
+      <Setter Property="SelectionMode" Value="Extended"/>
+    </Style>
+
+    <!-- Alternating row colors via DataGridRow selector -->
+    <Style Selector="DataGrid DataGridRow:nth-child(2n)">
+      <Setter Property="Background" Value="{StaticResource BackgroundSecondaryBrush}"/>
+    </Style>
+
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="{StaticResource BackgroundInputBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+      <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    </Style>
+
+    <Style Selector="DataGridColumnHeader:pointerover">
+      <Setter Property="Background" Value="{StaticResource BorderLightBrush}"/>
+    </Style>
+
+    <Style Selector="DataGridRow">
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{StaticResource BackgroundInputBrush}"/>
+    </Style>
+
+    <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{StaticResource AccentBlueBrush}"/>
+      <Setter Property="Opacity" Value="0.3"/>
+    </Style>
+
+    <Style Selector="DataGridCell">
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <Style Selector="TextBlock.status-text">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+      <Setter Property="Margin" Value="0,0,12,0"/>
+    </Style>
+
+    <Style Selector="Border.pagination">
+      <Setter Property="Background" Value="{StaticResource BackgroundInputBrush}"/>
+      <Setter Property="Padding" Value="12"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+      <Setter Property="BorderThickness" Value="0,1,0,0"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="grid-container">
+    <DockPanel>
+      <!-- Toolbar -->
+      <Border DockPanel.Dock="Top" Classes="toolbar">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <!-- Search -->
+          <TextBox Grid.Column="0"
+                   Classes="search-box"
+                   Text="{Binding SearchText}"
+                   Watermark="🔍 Rechercher..."
+                   VerticalAlignment="Center"/>
+
+          <!-- Actions -->
+          <StackPanel Grid.Column="2"
+                      Orientation="Horizontal"
+                      Spacing="8">
+            <Button Classes="toolbar-button"
+                    Content="🔽 Filtres"
+                    Command="{Binding ToggleFiltersCommand}"
+                    IsVisible="{Binding CanFilter}"/>
+            <Button Classes="toolbar-button"
+                    Content="📊 Export CSV"
+                    Command="{Binding ExportCsvCommand}"
+                    IsVisible="{Binding CanExport}"/>
+            <Button Classes="toolbar-button primary-button"
+                    Content="{Binding PrimaryActionText}"
+                    Command="{Binding PrimaryActionCommand}"
+                    IsVisible="{Binding HasPrimaryAction}"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Filter Panel (Collapsible) -->
+      <Border DockPanel.Dock="Top"
+              Background="{StaticResource BackgroundSecondaryBrush}"
+              Padding="12"
+              BorderBrush="{StaticResource BorderLightBrush}"
+              BorderThickness="0,0,0,1"
+              IsVisible="{Binding FiltersVisible}">
+        <ContentControl Content="{Binding FilterContent}"/>
+      </Border>
+
+      <!-- Status Bar -->
+      <Border DockPanel.Dock="Bottom" Classes="pagination">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <!-- Item Count -->
+          <TextBlock Grid.Column="0"
+                     Classes="status-text"
+                     Text="{Binding StatusText}"/>
+
+          <!-- Pagination -->
+          <StackPanel Grid.Column="2"
+                      Orientation="Horizontal"
+                      Spacing="8"
+                      IsVisible="{Binding HasPagination}">
+            <Button Classes="toolbar-button"
+                    Content="◀"
+                    Command="{Binding PreviousPageCommand}"
+                    IsEnabled="{Binding CanGoPrevious}"/>
+            <TextBlock Classes="status-text"
+                       Text="{Binding PaginationText}"
+                       VerticalAlignment="Center"/>
+            <Button Classes="toolbar-button"
+                    Content="▶"
+                    Command="{Binding NextPageCommand}"
+                    IsEnabled="{Binding CanGoNext}"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- DataGrid -->
+      <DataGrid ItemsSource="{Binding Items}"
+                SelectedItem="{Binding SelectedItem}"
+                AutoGenerateColumns="False">
+        <!-- Columns will be defined in DataTemplates -->
+        <DataGrid.Columns>
+          <!-- Dynamic columns will be added via binding -->
+        </DataGrid.Columns>
+      </DataGrid>
+    </DockPanel>
+  </Border>
+</UserControl>

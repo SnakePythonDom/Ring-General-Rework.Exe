@@ -1,0 +1,374 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Youth"
+             xmlns:commonViews="using:RingGeneral.UI.Views.Common"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Youth.YouthHubView"
+             x:DataType="vm:YouthHubViewModel">
+    
+    <UserControl.Styles>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Foreground" Value="#AAA"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+        <Style Selector="TabItem:selected">
+             <Setter Property="Foreground" Value="White"/>
+             <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <!-- MASTER / LIST VIEW -->
+        <Grid RowDefinitions="Auto, *, Auto" IsVisible="{Binding IsListMode}">
+            <!-- Header with Create Button -->
+            <Border Grid.Row="0" Background="#1E1E1E" Padding="20,15" Margin="0,0,0,10" BorderBrush="#333" BorderThickness="0,0,0,1">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+                        <TextBlock Text="Centres de Développement" 
+                                   FontSize="20" 
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+                        <Border Background="#333" CornerRadius="10" Padding="10,2">
+                            <TextBlock Text="{Binding StructuresVM.Structures.Count, StringFormat='{}{0} Structures'}" Foreground="#CCC" FontSize="12"/>
+                        </Border>
+                    </StackPanel>
+                    
+                    <TextBox Grid.Column="1" 
+                             Width="250" 
+                             Watermark="Rechercher une structure..." 
+                             Text="{Binding StructuresVM.SearchFilter}"
+                             Background="#252525" 
+                             BorderBrush="#444" 
+                             Foreground="White"
+                             VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            
+            <!-- Liste des structures (Power User Table) -->
+            <DataGrid Grid.Row="1" 
+                      ItemsSource="{Binding StructuresVM.FilteredStructures}" 
+                      SelectedItem="{Binding StructuresVM.SelectedListStructure}"
+                      AutoGenerateColumns="False" 
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal" 
+                      Background="#1E1E1E" 
+                      RowBackground="#252525"
+                      BorderThickness="0"
+                      Margin="20,0">
+                
+                <DataGrid.Columns>
+                    <!-- NAME -->
+                    <DataGridTemplateColumn Header="NAME" Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Nom}" 
+                                        Command="{Binding $parent[UserControl].DataContext.StructuresVM.SelectStructureCommand}"
+                                        CommandParameter="{Binding}"
+                                        Background="Transparent" 
+                                        Foreground="#3498db" 
+                                        HorizontalContentAlignment="Left"
+                                        Padding="0"
+                                        BorderThickness="0"
+                                        FontWeight="Bold"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- TYPE -->
+                    <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="*" Foreground="#DDD"/>
+
+                    <!-- REGION -->
+                    <DataGridTextColumn Header="REGION" Binding="{Binding Region}" Width="*" Foreground="#AAA"/>
+
+                    <!-- TRAINEES -->
+                    <DataGridTextColumn Header="TRAINEES" Binding="{Binding TraineesDisplay}" Width="*" Foreground="#DDD"/>
+
+                    <!-- BUDGET -->
+                    <DataGridTextColumn Header="BUDGET/yr" Binding="{Binding BudgetDisplay}" Width="*" Foreground="#f1c40f" FontWeight="SemiBold"/>
+
+                    <!-- EQUIP -->
+                    <DataGridTextColumn Header="EQUIP" Binding="{Binding EquipementsDisplay}" Width="1.5*" Foreground="#ffcb05"/>
+
+                    <!-- COACH -->
+                    <DataGridTextColumn Header="COACH" Binding="{Binding CoachingDisplay}" Width="*" Foreground="#3498db"/>
+
+                    <!-- STATUS -->
+                    <DataGridTemplateColumn Header="STATUS" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Status}" 
+                                           Foreground="{Binding StatusColor}" 
+                                           VerticalAlignment="Center" 
+                                           FontWeight="Bold"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel Grid.Row="1" IsVisible="{Binding StructuresVM.IsEmpty}" 
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" 
+                        Margin="0,100" 
+                        Spacing="20">
+                <TextBlock Text="📭 Aucun centre de développement" FontSize="20" Foreground="Gray" HorizontalAlignment="Center"/>
+                <TextBlock Text="Créez votre première structure pour commencer à former des talents !" Foreground="#666" HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Footer with Totals -->
+            <Border Grid.Row="2" Background="#1E1E1E" Padding="20,15" Margin="0,20,0,0" BorderBrush="#333" BorderThickness="0,1,0,0">
+                <Grid ColumnDefinitions="Auto, Auto, *, Auto, Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="TOTAL BUDGET:" Foreground="#888" FontWeight="Bold" FontSize="12"/>
+                        <TextBlock Text="{Binding StructuresVM.TotalBudgetDisplay}" FontWeight="Bold" Foreground="#D4AF37" FontSize="14"/>
+                    </StackPanel>
+                    
+                    <Border Grid.Column="1" Width="1" Background="#333" Margin="20,5"/>
+                    
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="TOTAL TRAINEES:" Foreground="#888" FontWeight="Bold" FontSize="12"/>
+                        <TextBlock Text="{Binding StructuresVM.TotalTraineesCount}" FontWeight="Bold" Foreground="White" FontSize="14"/>
+                    </StackPanel>
+                    
+                     <Button Grid.Column="3" 
+                            Content="Close Youth Structure"
+                            Command="{Binding StructuresVM.CloseStructureCommand}"
+                            Background="Transparent"
+                            Foreground="#AAA"
+                            Margin="0,0,10,0"/>
+
+                    <Button Grid.Column="4"
+                            Content="{Binding StructuresVM.IsCreating, Converter={StaticResource BoolToTextConverter}, ConverterParameter='❌ Annuler|➕ Créer une Structure'}" 
+                            Command="{Binding StructuresVM.StartCreationCommand}"
+                            Background="{Binding StructuresVM.IsCreating, Converter={StaticResource BoolToColorConverter}}"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            Padding="20,10"
+                            CornerRadius="5"/>
+                </Grid>
+            </Border>
+
+
+
+            <!-- Creation Overlay -->
+             <Border Grid.Row="1" Background="#1E1E1E" BorderBrush="#444" BorderThickness="1" CornerRadius="8" Padding="25"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    IsVisible="{Binding StructuresVM.IsCreating}"
+                    BoxShadow="0 10 30 0 #000000"
+                    Width="500">
+                <ScrollViewer MaxHeight="600">
+                    <StackPanel Spacing="20">
+                        <StackPanel>
+                            <TextBlock Text="Nouveau Centre de Développement" FontSize="22" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Définissez les paramètres de votre nouvelle filiale." FontSize="12" Foreground="#888" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                        </StackPanel>
+                        
+                        <Separator Background="#333" Height="1"/>
+
+                        <StackPanel Spacing="5">
+                             <TextBlock Text="Nom de la structure" FontWeight="Bold" Foreground="#CCC"/>
+                             <TextBox Watermark="Ex: Dojo Inoki Japon..." Text="{Binding StructuresVM.NewStructureName}"/>
+                        </StackPanel>
+                        
+                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                             <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10" Spacing="5">
+                                 <TextBlock Text="Type" FontWeight="Bold" Foreground="#CCC"/>
+                                 <ComboBox ItemsSource="{Binding StructuresVM.AvailableTypes}" SelectedItem="{Binding StructuresVM.SelectedType}" HorizontalAlignment="Stretch"/>
+                             </StackPanel>
+                             
+                             <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,10" Spacing="5">
+                                  <TextBlock Text="Pays" FontWeight="Bold" Foreground="#CCC"/>
+                                  <ComboBox ItemsSource="{Binding StructuresVM.AvailableCountries}" SelectedItem="{Binding StructuresVM.SelectedCountry}" HorizontalAlignment="Stretch" PlaceholderText="Pays..."/>
+                             </StackPanel>
+
+                             <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,0" Spacing="5">
+                                 <TextBlock Text="Région" FontWeight="Bold" Foreground="#CCC"/>
+                                 <ComboBox ItemsSource="{Binding StructuresVM.AvailableRegions}" SelectedItem="{Binding StructuresVM.SelectedRegion}" HorizontalAlignment="Stretch" PlaceholderText="Sélectionner une région">
+                                     <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock>
+                                                <Run Text="{Binding RegionName}" FontWeight="Bold"/>
+                                                <Run Text="{Binding Importance, StringFormat=' ({0}%)'}" Foreground="Gray" FontSize="11"/>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                     </ComboBox.ItemTemplate>
+                                 </ComboBox>
+                             </StackPanel>
+                        </Grid>
+                        
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Philosophie &amp; Style" FontWeight="Bold" Foreground="#CCC"/>
+                            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                                <ComboBox Grid.Row="0" Grid.Column="0" Margin="0,0,5,5" ItemsSource="{Binding StructuresVM.AvailablePhilosophies}" SelectedItem="{Binding StructuresVM.SelectedPhilosophy}" HorizontalAlignment="Stretch" PlaceholderText="Philosophie"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" Margin="5,0,0,5" ItemsSource="{Binding StructuresVM.AvailableSpecializations}" SelectedItem="{Binding StructuresVM.SelectedSpecializationPreference}" HorizontalAlignment="Stretch" PlaceholderText="Spécialisation"/>
+                                <ComboBox Grid.Row="1" Grid.Column="0" Margin="0,5,5,0" ItemsSource="{Binding StructuresVM.AvailableGenderPreferences}" SelectedItem="{Binding StructuresVM.SelectedGenderPreference}" HorizontalAlignment="Stretch" PlaceholderText="Genre"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="1" Margin="5,5,0,0" Value="{Binding StructuresVM.MaxCapacity}" Minimum="10" Maximum="100" FormatString="0 'Trainees'"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Entraineur Chef (Optionnel)" FontWeight="Bold" Foreground="#CCC"/>
+                             <ComboBox ItemsSource="{Binding StructuresVM.AvailableStaff}" SelectedItem="{Binding StructuresVM.SelectedStaff}" HorizontalAlignment="Stretch">
+                                 <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Nom}" />
+                                    </DataTemplate>
+                                 </ComboBox.ItemTemplate>
+                             </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,20,0,0">
+                            <Button Content="Annuler" Command="{Binding StructuresVM.CancelCreationCommand}" Background="Transparent" Foreground="#AAA"/>
+                            <Button Content="Créer la Structure" Command="{Binding StructuresVM.ConfirmCreationCommand}" Background="#27ae60" Foreground="White" FontWeight="Bold" Padding="20,10"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- DETAIL / SUB-PAGE VIEW -->
+        <Grid RowDefinitions="Auto, *" IsVisible="{Binding IsDetailMode}">
+            <!-- Header (Breadcrumb-like) -->
+            <Border Grid.Row="0" Background="#1E1E1E" Padding="15,10" BorderBrush="#333" BorderThickness="0,0,0,1">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <Button Grid.Column="0" Content="⬅ Retour" Command="{Binding BackCommand}" Background="Transparent" Foreground="#AAA" BorderThickness="0"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding DetailVM.Structure.Nom}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Border Background="#333" CornerRadius="4" Padding="8,2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding DetailVM.Structure.Type}" FontSize="12" Foreground="#CCC"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TabControl Grid.Row="1" Margin="10">
+                 <TabItem Header="📊 Overview">
+                     <ScrollViewer>
+                         <Grid RowDefinitions="Auto, Auto, Auto" Margin="20" >
+                             
+                             <!-- VITAL STATISTICS -->
+                             <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+                                 <TextBlock Text="📊 VITAL STATISTICS" FontSize="16" FontWeight="Bold" Foreground="#888"/>
+                                 <Grid ColumnDefinitions="*, *, *">
+                                     <!-- Capacity -->
+                                     <Border Grid.Column="0" Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,10,0">
+                                         <StackPanel Spacing="5">
+                                             <TextBlock Text="CAPACITY" FontWeight="Bold" Foreground="#AAA" FontSize="12"/>
+                                             <ProgressBar Minimum="0" Maximum="{Binding DetailVM.Structure.CapaciteMax}" Value="{Binding DetailVM.Structure.TraineeCount}" Height="10" Background="#444" Foreground="#D4AF37"/>
+                                             <TextBlock Text="{Binding DetailVM.Structure.TraineesDisplay}" HorizontalAlignment="Right" FontWeight="Bold"/>
+                                             <StackPanel Orientation="Horizontal" Spacing="5">
+                                                 <TextBlock Text="Status:" Foreground="#888"/>
+                                                 <TextBlock Text="{Binding DetailVM.Structure.CapacityStatus}" FontWeight="SemiBold" Foreground="{StaticResource AccentGreenBrush}"/>
+                                             </StackPanel>
+                                         </StackPanel>
+                                     </Border>
+
+                                     <!-- Coaching Quality -->
+                                     <Border Grid.Column="1" Background="#252525" CornerRadius="5" Padding="15" Margin="0,0,10,0">
+                                         <StackPanel Spacing="5">
+                                             <TextBlock Text="COACHING QUALITY" FontWeight="Bold" Foreground="#AAA" FontSize="12"/>
+                                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding DetailVM.Structure.QualiteCoaching}" Height="10" Background="#444" Foreground="#3498db"/>
+                                             <TextBlock Text="{Binding DetailVM.Structure.CoachingDisplay}" HorizontalAlignment="Right" FontWeight="Bold"/>
+                                             <TextBlock Text="(Avg. Staff: --)" Foreground="#888" FontStyle="Italic"/>
+                                         </StackPanel>
+                                     </Border>
+
+                                     <!-- Equipment -->
+                                     <Border Grid.Column="2" Background="#252525" CornerRadius="5" Padding="15">
+                                         <StackPanel Spacing="5">
+                                             <TextBlock Text="EQUIPMENT" FontWeight="Bold" Foreground="#AAA" FontSize="12"/>
+                                             <TextBlock Text="{Binding DetailVM.Structure.EquipementsDisplay, StringFormat='Level {0}'}" FontSize="18" FontWeight="Bold"/>
+                                             <StackPanel Orientation="Horizontal" Spacing="5">
+                                                 <TextBlock Text="Upkeep:" Foreground="#888"/>
+                                                 <TextBlock Text="{Binding DetailVM.Structure.UpkeepCostDisplay}" FontWeight="SemiBold"/>
+                                             </StackPanel>
+                                             <Button Content="Améliorer" Command="{Binding DetailVM.Structure.UpgradeEquipmentCommand}" HorizontalAlignment="Right" FontSize="10" Padding="5,2"/>
+                                         </StackPanel>
+                                     </Border>
+                                 </Grid>
+                             </StackPanel>
+
+                             <!-- DEVELOPMENT FOCUS -->
+                             <StackPanel Grid.Row="1" Spacing="10" Margin="0,0,0,20">
+                                 <TextBlock Text="🧠 DEVELOPMENT FOCUS" FontSize="16" FontWeight="Bold" Foreground="#888"/>
+                                 <Border Background="#252525" CornerRadius="5" Padding="15">
+                                     <StackPanel Spacing="10">
+                                          <Grid ColumnDefinitions="Auto, *">
+                                              <TextBlock Grid.Column="0" Text="Current Philosophy:" Width="150" Foreground="#AAA" VerticalAlignment="Center"/>
+                                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                                                  <ComboBox SelectedItem="{Binding DetailVM.Structure.Philosophie}" ItemsSource="{Binding StructuresVM.AvailablePhilosophies}" Background="#333" BorderBrush="#555" Foreground="White"/>
+                                                  <TextBlock Text="{Binding DetailVM.Structure.PhilosophyBonus}" VerticalAlignment="Center" FontStyle="Italic" Foreground="#DDD"/>
+                                              </StackPanel>
+                                          </Grid>
+                                          <Grid ColumnDefinitions="Auto, *">
+                                              <TextBlock Grid.Column="0" Text="Training Intensity:" Width="150" Foreground="#AAA" VerticalAlignment="Center"/>
+                                              <ComboBox Grid.Column="1" SelectedItem="{Binding DetailVM.Structure.TrainingIntensity}" Background="#333" BorderBrush="#555" Foreground="White">
+                                                  <ComboBox.Items>
+                                                      <x:String>LOW</x:String>
+                                                      <x:String>MEDIUM</x:String>
+                                                      <x:String>HIGH</x:String>
+                                                      <x:String>EXTREME</x:String>
+                                                  </ComboBox.Items>
+                                              </ComboBox>
+                                          </Grid>
+                                          <Grid ColumnDefinitions="Auto, *">
+                                              <TextBlock Grid.Column="0" Text="Region Focus:" Width="150" Foreground="#AAA"/>
+                                              <TextBlock Grid.Column="1" Text="{Binding DetailVM.Structure.RegionFocus}" FontWeight="Bold" Foreground="White"/>
+                                          </Grid>
+                                     </StackPanel>
+                                 </Border>
+                             </StackPanel>
+
+                             <!-- RECENT ALERTS -->
+                             <StackPanel Grid.Row="2" Spacing="10">
+                                 <TextBlock Text="📢 RECENT ALERTS" FontSize="16" FontWeight="Bold" Foreground="#888"/>
+                                 <Border Background="#252525" CornerRadius="5" Padding="15">
+                                     <ItemsControl ItemsSource="{Binding DetailVM.Alerts}">
+                                         <ItemsControl.ItemTemplate>
+                                             <DataTemplate>
+                                                 <TextBlock Text="{Binding}" Margin="0,5" FontFamily="Consolas" Foreground="#CCC"/>
+                                             </DataTemplate>
+                                         </ItemsControl.ItemTemplate>
+                                     </ItemsControl>
+                                 </Border>
+                             </StackPanel>
+
+                         </Grid>
+                     </ScrollViewer>
+                 </TabItem>
+                 
+                 <TabItem Header="👨‍🏫 Staff">
+                     <ContentControl Content="{Binding DetailVM.StaffVM}" />
+                 </TabItem>
+                 
+                 <TabItem Header="🎓 Trainees">
+                     <ContentControl Content="{Binding DetailVM.TraineesVM}" />
+                 </TabItem>
+
+                 <TabItem Header="🎓 Alumni">
+                     <ContentControl Content="{Binding DetailVM.AlumniVM}" />
+                 </TabItem>
+                 
+                 <TabItem Header="💰 Financials">
+                     <ContentControl Content="{Binding DetailVM.FinancialsVM}" />
+                 </TabItem>
+            </TabControl>
+        </Grid>
+        <!-- PROFILE OVERLAY -->
+        <Border Background="#AA000000"
+                IsVisible="{Binding IsProfileOpen}"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <commonViews:WorkerProfileView DataContext="{Binding ProfileVM}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Width="900" Height="700"/>
+        </Border>
+    </Grid>
+</UserControl>

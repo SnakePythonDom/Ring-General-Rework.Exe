@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS WorkerMentalAttributes (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    WorkerId TEXT NOT NULL,
+    Ambition INTEGER NOT NULL DEFAULT 10,
+    Loyauté INTEGER NOT NULL DEFAULT 10,
+    Professionnalisme INTEGER NOT NULL DEFAULT 10,
+    Pression INTEGER NOT NULL DEFAULT 10,
+    Tempérament INTEGER NOT NULL DEFAULT 10,
+    Égoïsme INTEGER NOT NULL DEFAULT 10,
+    Détermination INTEGER NOT NULL DEFAULT 10,
+    Adaptabilité INTEGER NOT NULL DEFAULT 10,
+    Influence INTEGER NOT NULL DEFAULT 10,
+    Sportivité INTEGER NOT NULL DEFAULT 10,
+    IsRevealed INTEGER NOT NULL DEFAULT 0,
+    ScoutingLevel INTEGER NOT NULL DEFAULT 0,
+    LastUpdated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (WorkerId) REFERENCES Workers(WorkerId) ON DELETE CASCADE
+);
+
+-- Index for performance
+CREATE INDEX IF NOT EXISTS IX_WorkerMentalAttributes_WorkerId ON WorkerMentalAttributes(WorkerId);

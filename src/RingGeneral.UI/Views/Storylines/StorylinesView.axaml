@@ -1,0 +1,370 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Storylines"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Storylines.StorylinesView"
+             x:DataType="vm:StorylinesViewModel">
+
+    <Design.DataContext>
+        <vm:StorylinesViewModel />
+    </Design.DataContext>
+
+    <Border Padding="20" Background="{StaticResource BackgroundPrimaryBrush}">
+        <Grid RowDefinitions="Auto,20,*">
+            
+            <!-- HEADER SECTION -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="📖 GESTION DES STORYLINES" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock Text="{Binding TotalActive, StringFormat='{}{0} Actives'}" FontSize="13" Foreground="{StaticResource SuccessLightBrush}"/>
+                        <TextBlock Text="•" Foreground="{StaticResource TextSubtleBrush}"/>
+                        <TextBlock Text="{Binding TotalSuspended, StringFormat='{}{0} Suspendues'}" FontSize="13" Foreground="{StaticResource AccentOrangeBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="➕ CRÉER STORYLINE" Command="{Binding CreateStorylineCommand}"
+                        Padding="15,10" Background="{StaticResource BackgroundTertiaryBrush}" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" FontSize="13" FontWeight="SemiBold"/>
+            </Grid>
+
+            <!-- MAIN CONTENT WITH TABS -->
+            <Grid Grid.Row="2">
+                <TabControl Classes="StorylineTabs">
+                    <TabControl.Styles>
+                        <Style Selector="TabControl.StorylineTabs">
+                            <Setter Property="Padding" Value="0,20,0,0"/>
+                        </Style>
+                        <Style Selector="TabItem">
+                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="MinHeight" Value="40"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </TabControl.Styles>
+
+                    <!-- FIRE: ACTIVES -->
+                    <TabItem Header="🔥 ACTIVES">
+                        <Grid ColumnDefinitions="320,20,*">
+                            <!-- Left: List -->
+                            <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <Grid RowDefinitions="Auto,*">
+                                    <Border Grid.Row="0" Padding="15,10" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="LISTE DES RIVALITÉS" FontSize="12" FontWeight="SemiBold" Opacity="0.6"/>
+                                    </Border>
+                                    <ListBox Grid.Row="1" ItemsSource="{Binding ActiveStorylines}" SelectedItem="{Binding SelectedStoryline, Mode=TwoWay}"
+                                             Background="Transparent" BorderThickness="0" Padding="5">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,8"
+                                                        BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                                    <Grid RowDefinitions="Auto,Auto">
+                                                        <TextBlock Grid.Row="0" Text="{Binding Name}" FontWeight="Bold" FontSize="14" Margin="0,0,0,5"/>
+                                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+                                                            <TextBlock Text="{Binding HeatDisplay}" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="SemiBold" FontSize="12"/>
+                                                            <TextBlock Text="⚡" Foreground="{StaticResource AccentOrangeBrush}" FontSize="12"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Border>
+
+                            <!-- Right: Details -->
+                            <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <Grid RowDefinitions="Auto,20,*" IsVisible="{Binding SelectedStoryline, Converter={StaticResource IsNotNullConverter}}">
+                                    <StackPanel Grid.Row="0" Spacing="5">
+                                        <TextBlock Text="{Binding SelectedStoryline.Name, StringFormat='DÉTAILS : {0}'}" FontSize="18" FontWeight="Bold"/>
+                                        <Separator Height="1" Background="{StaticResource BorderLightBrush}"/>
+                                    </StackPanel>
+
+                                    <ScrollViewer Grid.Row="2">
+                                        <StackPanel Spacing="20">
+                                            <!-- Stats & Info -->
+                                            <Grid ColumnDefinitions="*,20,*">
+                                                <StackPanel Grid.Column="0" Spacing="10">
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                        <TextBlock Text="📈 HEAT:" FontWeight="SemiBold" Opacity="0.7" FontSize="13"/>
+                                                        <TextBlock Text="{Binding SelectedStoryline.Heat}" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="Bold" FontSize="13"/>
+                                                        <ProgressBar Value="{Binding SelectedStoryline.HeatPercent}" Maximum="100" Width="120" Height="8" Background="{StaticResource BackgroundTertiaryBrush}" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                        <TextBlock Text="Phase:" FontWeight="SemiBold" Opacity="0.7" FontSize="13"/>
+                                                        <TextBlock Text="{Binding SelectedStoryline.Phase}" FontWeight="Bold" FontSize="13"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" Spacing="10">
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                        <TextBlock Text="👔 BOOKER:" FontWeight="SemiBold" Opacity="0.7" FontSize="13"/>
+                                                        <TextBlock Text="John Smith" FontSize="13"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                        <TextBlock Text="👨‍🎨 LEAD CRÉATIF:" FontWeight="SemiBold" Opacity="0.7" FontSize="13"/>
+                                                        <TextBlock Text="{Binding SelectedStoryline.LeadCreativeName}" Foreground="{StaticResource AccentBlueBrush}" FontWeight="SemiBold" FontSize="13"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Participants -->
+                                            <StackPanel Spacing="10">
+                                                <TextBlock Text="👥 PARTICIPANTS" FontWeight="SemiBold" Opacity="0.6" FontSize="12"/>
+                                                <ItemsControl ItemsSource="{Binding Participants}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="8,4" Margin="0,0,10,5">
+                                                                <TextBlock Text="{Binding}" FontSize="13"/>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+
+                                            <!-- Creative Idea -->
+                                            <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource BrandPrimaryBrush}" BorderThickness="0,0,0,2">
+                                                <StackPanel Spacing="10">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="🧠" FontSize="18"/>
+                                                        <TextBlock Text="{Binding SelectedStoryline.LeadCreativeName, StringFormat='IDÉE DU LEAD CRÉATIF ({0}) :'}" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding SelectedStoryline.CreativeIdea, FallbackValue='Pas d\'idée créative actuellement.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Booker Idea -->
+                                            <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="0,0,0,2">
+                                                <StackPanel Spacing="10">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="🧠" FontSize="18"/>
+                                                        <TextBlock Text="IDÉE DU BOOKER (Smith) :" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding SelectedStoryline.BookerIdea, FallbackValue='Vos propres notes sur cette rivalité.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Actions -->
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+                                                <Button Content="📋 Historique" Background="{StaticResource BackgroundTertiaryBrush}" Padding="15,8" FontSize="12" FontWeight="SemiBold"/>
+                                                <Button Content="⏸️ Suspendre" Command="{Binding SuspendStorylineCommand}" Background="{StaticResource BackgroundTertiaryBrush}" Padding="15,8" FontSize="12" FontWeight="SemiBold"/>
+                                                <Button Content="🏁 Terminer" Command="{Binding CompleteStorylineCommand}" Background="{StaticResource SuccessBrush}" Foreground="White" Padding="15,8" FontSize="12" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </Grid>
+
+                                <!-- EMPTY STATE -->
+                                <StackPanel IsVisible="{Binding SelectedStoryline, Converter={StaticResource IsNotNullConverter}, ConverterParameter=Invert}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" Opacity="0.3">
+                                    <TextBlock Text="📖" FontSize="64" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Sélectionnez une rivalité pour voir les détails" FontSize="14" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- PAUSE: SUSPENDUES -->
+                    <TabItem Header="⏸️ SUSPENDUES">
+                        <Grid ColumnDefinitions="320,20,*">
+                            <!-- Left: List -->
+                            <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <Grid RowDefinitions="Auto,*">
+                                    <Border Grid.Row="0" Padding="15,10" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="LISTE DES RIVALITÉS EN PAUSE" FontSize="12" FontWeight="SemiBold" Opacity="0.6"/>
+                                    </Border>
+                                    <ListBox Grid.Row="1" ItemsSource="{Binding SuspendedStorylines}" SelectedItem="{Binding SelectedStoryline, Mode=TwoWay}"
+                                             Background="Transparent" BorderThickness="0" Padding="5">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,8">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
+                                                        <TextBlock Text="{Binding HeatDisplay, StringFormat='{}Heat: {0} (Gelé)'}" Foreground="{StaticResource TextMutedBrush}" FontSize="12"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Border>
+
+                            <!-- Right: Details -->
+                            <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <Grid RowDefinitions="Auto,20,*" IsVisible="{Binding SelectedStoryline, Converter={StaticResource IsNotNullConverter}}">
+                                    <StackPanel Grid.Row="0" Spacing="5">
+                                        <TextBlock Text="{Binding SelectedStoryline.Name, StringFormat='ANALYSE : {0}'}" FontSize="18" FontWeight="Bold"/>
+                                        <Separator Height="1" Background="{StaticResource BorderLightBrush}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="2" Spacing="20">
+                                        <StackPanel Orientation="Horizontal" Spacing="50">
+                                            <StackPanel>
+                                                <TextBlock Text="📅 DURÉE DE PAUSE :" FontSize="12" Opacity="0.6" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding SelectedStoryline.PauseWeeks, StringFormat='{}{0} Semaines'}" FontSize="16" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock Text="📉 RISQUE DE REFROIDISSEMENT :" FontSize="12" Opacity="0.6" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Faible" FontSize="16" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource BrandPrimaryBrush}" BorderThickness="0,0,0,2">
+                                            <StackPanel Spacing="10">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="🧠" FontSize="18"/>
+                                                    <TextBlock Text="{Binding SelectedStoryline.LeadCreativeName, StringFormat='NOTE DU STAFF ({0}) :'}" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding SelectedStoryline.ReasonForPause, FallbackValue='L\'élan est préservé. Une intervention au prochain show relancerait le Heat à 100%.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
+                                            </Border>
+                                        </Border>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+                                            <Button Content="▶️ Reprendre" Command="{Binding ResumeStorylineCommand}" Background="{StaticResource BrandPrimaryBrush}" Foreground="White" Padding="20,10" FontSize="13" FontWeight="Bold"/>
+                                            <Button Content="🏁 Terminer Défin." Command="{Binding CompleteStorylineCommand}" Background="{StaticResource ErrorBrush}" Foreground="White" Padding="20,10" FontSize="13" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- CHECK: TERMINÉES -->
+                    <TabItem Header="✅ TERMINÉES">
+                        <Grid ColumnDefinitions="320,20,*">
+                            <!-- Left: List -->
+                            <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <Grid RowDefinitions="Auto,*">
+                                    <Border Grid.Row="0" Padding="15,10" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="RIVALITÉS PASSÉES" FontSize="12" FontWeight="SemiBold" Opacity="0.6"/>
+                                    </Border>
+                                    <ListBox Grid.Row="1" ItemsSource="{Binding CompletedStorylines}" SelectedItem="{Binding SelectedStoryline, Mode=TwoWay}"
+                                             Background="Transparent" BorderThickness="0" Padding="5">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,8">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
+                                                        <TextBlock Text="{Binding Heat, StringFormat='{}Note Finale: {0}/100'}" Foreground="{StaticResource SuccessLightBrush}" FontSize="12"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Border>
+
+                            <!-- Right: Details -->
+                            <Border Grid.Column="2" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="20" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                <Grid RowDefinitions="Auto,20,*" IsVisible="{Binding SelectedStoryline, Converter={StaticResource IsNotNullConverter}}">
+                                    <StackPanel Grid.Row="0" Spacing="5">
+                                        <TextBlock Text="{Binding SelectedStoryline.Name, StringFormat='BILAN : {0}'}" FontSize="18" FontWeight="Bold"/>
+                                        <Separator Height="1" Background="{StaticResource BorderLightBrush}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="2" Spacing="20">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="⭐ SCORE FINAL :" FontSize="12" Opacity="0.6" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding SelectedStoryline.Heat, StringFormat='{}{0} (LÉGENDAIRE)'}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="📈 IMPACT ROSTER :" FontSize="12" Opacity="0.6" FontWeight="SemiBold"/>
+                                            <StackPanel Margin="10,0,0,0" Spacing="5">
+                                                <TextBlock Text="• Worker A : +15 Pop / +20 Momentum" FontSize="13"/>
+                                                <TextBlock Text="• Worker B : +12 Pop / -10 Momentum" FontSize="13"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="0,0,0,2">
+                                            <StackPanel Spacing="10">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="🧠" FontSize="18"/>
+                                                    <TextBlock Text="MÉMOIRE DU BOOKER GÉNÉRÉE :" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock Text="La finale de la semaine 32 restera une référence de storytelling technique." FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
+                                            </Border>
+                                        </Border>
+
+                                        <Button Content="📜 Historique Complet des Matchs" HorizontalAlignment="Right" Background="{StaticResource BackgroundTertiaryBrush}" Padding="15,10" FontSize="12" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- ART: STAFF CRÉATIF -->
+                    <TabItem Header="👨‍🎨 STAFF CRÉATIF">
+                        <Grid ColumnDefinitions="*,20,2*">
+                            <!-- Left: Team Staff -->
+                            <StackPanel Grid.Column="0" Spacing="15">
+                                <TextBlock Text="ÉQUIPE ACTUELLE" FontSize="14" FontWeight="Bold" Opacity="0.7"/>
+                                <ItemsControl ItemsSource="{Binding CreativeStaff}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,10" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                                <Grid RowDefinitions="Auto,Auto,Auto,20,Auto">
+                                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="👤" FontSize="16"/>
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Row="1" Text="{Binding Creativity, StringFormat='Créativité: {0}'}" FontSize="13" Opacity="0.8" Margin="25,2,0,0"/>
+                                                    <TextBlock Grid.Row="2" Text="{Binding Specialty, StringFormat='Spé: {0}'}" FontSize="13" Opacity="0.8" Margin="25,2,0,0"/>
+                                                    
+                                                    <Button Grid.Row="4" Command="{Binding $parent[UserControl].((vm:StorylinesViewModel)DataContext).SuggestStorylineCommand}" CommandParameter="{Binding}"
+                                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Background="{StaticResource BrandPrimaryBrush}" Foreground="White" Padding="8">
+                                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                                            <TextBlock Text="💡" FontSize="12"/>
+                                                            <TextBlock Text="Suggérer Storyline" FontSize="12" FontWeight="Bold"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Right: Recruit -->
+                            <StackPanel Grid.Column="2" Spacing="15">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="RECRUTER / DISPONIBLES" FontSize="14" FontWeight="Bold" Opacity="0.7" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Width="200" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="4" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                        <Grid ColumnDefinitions="Auto,*">
+                                            <TextBlock Text="🔍" Margin="10,0,5,0" VerticalAlignment="Center" Opacity="0.5"/>
+                                            <TextBox Grid.Column="1" Watermark="Rechercher un scripte..." Background="Transparent" BorderThickness="0" Padding="5,8" FontSize="12"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding RecruitableStaff}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,10" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <StackPanel Spacing="5">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock Text="👤" FontSize="16" Opacity="0.7"/>
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15"/>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Specialty, StringFormat='Logique: 82 • Drama: {0}'}" Margin="25,0,0,0" FontSize="13" Opacity="0.8"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" Content="Engager" Background="{StaticResource BackgroundTertiaryBrush}" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" Padding="15,8" FontSize="12" FontWeight="SemiBold"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "langue": "fr",
+    "specId": "calendar-v1",
+    "module": "calendar"
+  },
+  "vues": [
+    {"id": "liste", "libelle": "Vue liste"},
+    {"id": "mensuelle", "libelle": "Vue mensuelle"}
+  ],
+  "filtres": [
+    {"id": "type", "libelle": "Type"},
+    {"id": "statut", "libelle": "Statut"},
+    {"id": "lieu", "libelle": "Lieu"},
+    {"id": "diffusion", "libelle": "Diffusion"}
+  ],
+  "colonnes": ["Date", "Type", "Nom", "Lieu", "Diffusion", "Statut"],
+  "actions": [
+    {"id": "creer_show", "libelle": "Créer show"},
+    {"id": "exporter", "libelle": "Exporter calendrier"}
+  ],
+  "regles": [
+    "Un show créé doit ajouter une entrée au calendrier.",
+    "Les conflits de date sont bloquants.",
+    "Les changements de statut se répercutent sur l'entrée calendrier."
+  ],
+  "etatVide": "Aucun événement planifié.",
+  "messages": {
+    "erreurChargement": "Impossible de charger le calendrier.",
+    "conflit": "Conflit de date détecté dans le calendrier."
+  }
+}

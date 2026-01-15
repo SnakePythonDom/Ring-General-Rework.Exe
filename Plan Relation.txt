@@ -1,0 +1,327 @@
+Executive Summary: The "Living World" Update
+We are building a Feedback Loop System.
+
+Personality & Relations dictate → Decisions.
+
+Decisions (by Owner/Booker) create → Consequences (Crisis/Success).
+
+Consequences impact → Morale & Child Companies.
+
+Phase 1: The Human Element (Personality & Relations)
+Objective: Give the AI "feelings" so decisions aren't just random math.
+
+1.1 Personality Engine Refactor (IPersonalityEngine)
+We need to convert static traits into decision modifiers.
+
+Task: Implement PersonalityEngine.cs.
+
+Logic:
+
+CalculateAmbition(Worker w): High ambition = demands titles/pushes.
+
+CalculateLoyalty(Worker w): High loyalty = accepts lower pay/bad booking.
+
+CalculateVolatility(Worker w): High volatility = high chance of Crisis.
+
+1.2 The Social Graph (IRelationsRepository)
+Task: Optimize RelationsRepository for fast lookups (Graph Theory).
+
+Logic: instead of checking every worker against every worker, cash "Cliques" (Factions/Friends groups).
+
+Integration: Update NepotismEngine (which you uploaded) to use these cached Cliques for faster processing.
+
+Phase 2: The Decision Makers (Owner, Booker, Staff)
+Objective: Implement the "Brain" that runs the company based on Phase 1 data.
+
+2.1 The Owner's Brain (IOwnerDecisionEngine)
+The Owner acts as the "Check & Balance" for the AI.
+
+New Service: OwnerDecisionEngine.cs.
+
+Features:
+
+Budget Veto: If Spending > RiskTolerance, block staff hiring.
+
+Goal Setting: Set BrandObjective (Development vs Profit) for Child Companies.
+
+Crisis Intervention: If NepotismImpact > 80, Owner fires the Booker.
+
+2.2 The Booker's Cognitive Load (IBookerAIEngine)
+Integration: Connect BookerMemory.cs (uploaded) to the booking logic.
+
+Logic:
+
+Pre-booking check: Does Booker have "Trauma" associated with this Match Type? (e.g., Someone died in a Cage Match 6 months ago -> Don't book Cage Matches).
+
+Bias Check: Call NepotismEngine.EvaluatePushDecision().
+
+2.3 Staff Agency
+Staff are not just stat sticks.
+
+Feature: Staff refuse assignments if StaffCompatibility is low (e.g., A "Scientific" Coach won't work in a "Hardcore" Child Company).
+
+Phase 3: The Network (Child Companies & Expansion)
+Objective: Create the "Ecosystem" where resources flow between entities.
+
+3.1 The Subsidiary Flow
+Logic:
+
+Upstream: Talent "Call-ups" (Child -> Parent). Needs logic: IsReadyForTV().
+
+Downstream: "Excursions" (Parent -> Child). Needs logic: SendToDevelop(Worker w, Focus area).
+
+Financial: Implement the SubsidizeChildren() method discussed previously.
+
+3.2 Staff Matrix Management (StaffSharingEngine)
+Task: Complete the StaffSharingService to handle the 80/20 split logic.
+
+Conflict Handling: If a staff member is booked for Parent PPV and Child TV on the same night, apply Owner.Priority to decide where they go.
+
+Phase 4: The Fallout (Morale & Crisis)
+Objective: The consequences of actions.
+
+4.1 Dynamic Morale (IMoraleEngine)
+Logic: Morale is no longer a simple slider. It's a calculated derivative.
+
+Morale = (RecentBooking + FinancialHealth + LockerRoomLeaders) - (ToxicWorkers + UnfairDecisions).
+
+Trigger: If Morale < 30, trigger CrisisEvent (Walkout).
+
+4.2 Crisis Management System (ICrisisEngine)
+New Workflow:
+
+Event happens (e.g., Star arrested).
+
+CrisisEngine calculates Severity based on Owner.RiskTolerance.
+
+UI: Player gets a "Decision Ticket":
+
+Option A: Fire him (Morale +, Star Power -).
+
+Option B: Cover it up (Cost $, Risk of leak).
+
+Option C: Do nothing (Owner Anger +).
+
+
+Partie 2  :
+Voici le Plan de Développement (Dev Plan) détaillé pour l'implémentation du système de recrutement différencié (Filiales vs Rivaux) avec le "Soft Geo-Locking".
+
+En tant que Lead Dev, j'ai découpé ce chantier en 4 Sprints Logiques pour garantir que chaque brique fonctionne avant de passer à la suivante.
+
+📂 Titre du Chantier : "AI Recruitment Overhaul & Geo-Strategy"
+Objectif : Rendre le recrutement de l'IA logique et contextuel. Une filiale de développement au Canada ne doit pas se comporter comme une Major aux USA.
+
+📅 Phase 1 : Le Moteur d'Évaluation (The Scoring Engine)
+C'est le "Cerveau". Il ne prend pas de décision, il donne juste des notes.
+
+Tâches Techniques :
+
+Créer le Service RecruitmentScoringService (Interface: IRecruitmentScoringService).
+
+Ce service doit être stateless (pur calcul).
+
+Implémenter CalculateGeographicFit(Worker, Company) :
+
+Logique : Récupérer la Region de la compagnie et celle du Worker.
+
+Règle : Si Company.Size < Regional ET Distance > 0, appliquer un malus exponentiel (-500 pts).
+
+Exception : Si Company.Objective == InternationalExpansion, ignorer le malus.
+
+Implémenter CalculateStrategicFit(Worker, Company) :
+
+Pour Child Company : Si Objective == Development, score basé sur Potential + Age < 26.
+
+Pour Rival : Score basé sur Popularity + StarQuality.
+
+Intégration du Népotisme :
+
+Injecter INepotismEngine. Ajouter un bonus au score si le Worker est ami avec le Booker.
+
+Livrable : Une méthode qui, pour une liste de 100 catcheurs, retourne les 3 meilleurs candidats pour Stampede Wrestling (Tier 3, Canada) différemment de WWE (Tier 1, Global).
+
+📅 Phase 2 : Le Contrôle Financier & Hiérarchique (The Gatekeeper)
+C'est le "Garde-Barrière". Il empêche l'IA de faire des bêtises.
+
+Tâches Techniques :
+
+Étendre OwnerDecisionEngine :
+
+Ajouter ValidateHiring(Worker, Company).
+
+Doit vérifier si (Salaire_Prévu * 12) + Dépenses_Actuelles < Budget_Annuel.
+
+Créer le Workflow d'Approbation (Parent/Enfant) :
+
+Dans ContractService, ajouter un état ContractStatus.PendingParentApproval.
+
+Si Company.IsChild et !Company.HasFullAutonomy : L'offre ne part pas au catcheur. Elle est stockée en attente de validation du joueur.
+
+Livrable : L'IA ne peut plus mettre une compagnie en faillite par le recrutement. Les filiales non-autonomes ne signent rien sans votre clic.
+
+📅 Phase 3 : L'Orchestrateur de Recrutement (The Loop)
+C'est le "Rythme". Quand l'IA travaille-t-elle ?
+
+Tâches Techniques :
+
+Mise à jour de BookerAIEngine :
+
+Ajouter une méthode ProcessWeeklyRecruitment().
+
+Optimisation : Ne pas scanner tous les chômeurs chaque semaine. Scanner seulement :
+
+Les workers locaux (Region match).
+
+Les workers récemment libérés (News).
+
+Les workers recommandés par le ScoutingService.
+
+Logique de "Besoin" (IdentifyNeeds) :
+
+L'IA ne doit recruter que si : RosterSize < MinSize OU MainEventCount < 4.
+
+Sinon, elle garde son argent.
+
+Livrable : Le jeu tourne semaine après semaine, et on voit les rosters des IA évoluer logiquement sans intervention du joueur.
+
+📅 Phase 4 : Interface Utilisateur (UI & Feedback)
+Rendre le système visible au joueur.
+
+Tâches Techniques :
+
+Nouvelle Page : "Approval Queue" (Inbox) :
+
+Afficher les demandes des Child Companies.
+
+Afficher la carte du worker + son coût + le commentaire du Booker (ex: "Il est parfait pour notre division Hardcore !").
+
+Boutons : [APPROVE] / [REJECT].
+
+News Feed :
+
+Générer des news spécifiques : "Stampede Wrestling se concentre sur les talents locaux en signant [Nom]." vs "AEW choque le monde en signant la star internationale [Nom]."
+
+Partie 3
+
+📋 Feature Implementation Plan: Player Staff Recruitment Module
+Feature Owner: Lead Developer Target Module: RingGeneral.Core & RingGeneral.UI Objective: Enable the Player (Owner) to scout, negotiate with, and recruit support staff (Road Agents, Doctors, Trainers, Referees) from the free agent pool.
+
+🏗️ Phase 1: The "Free Agent Market" Logic (Backend)
+Goal: Efficiently query and filter available staff members who do not currently belong to a company.
+
+1.1 Extend StaffRepository
+File: src/RingGeneral.Data/Repositories/StaffRepository.cs
+
+Task: Implement a GetFreeAgents() method.
+
+Logic: Query StaffMember table where CompanyId is NULL.
+
+Filters: Must allow filtering by StaffRole (e.g., show only Doctors).
+
+1.2 Create StaffSearchService
+File: src/RingGeneral.Core/Services/StaffSearchService.cs (New File)
+
+Responsibility: Logic layer between UI and Data.
+
+Methods:
+
+Search(StaffRole? role, int maxWage, string sortBy)
+
+GetRecommendedStaff(Company company): Returns staff that matches the company's size/prestige.
+
+1.3 Update StaffProposalService
+File: src/RingGeneral.Core/Services/StaffProposalService.cs
+
+Task: Ensure the GenerateContractOffer method handles Human Player offers differently than AI offers (Players set the wage manually; AI calculates it).
+
+🤝 Phase 2: The Negotiation Engine (Core Logic)
+Goal: The math that decides if a staff member accepts the player's money.
+
+2.1 Refactor ContractNegotiationService
+File: src/RingGeneral.Core/Contracts/ContractNegotiationService.cs
+
+Task: Add specific logic for StaffMember (currently likely optimized for Worker).
+
+Logic to Implement:
+
+Financial Priority: Compare offer vs. StaffMember.FinancialPriority.
+
+Prestige Check: Does the staff want to join a small company? (Check Owner.Prestige vs Staff.Reputation).
+
+Role Match: A RoadAgent will refuse a Referee contract (unless Desperate).
+
+2.2 Response Models
+File: src/RingGeneral.Core/Models/Contracts/NegotiationResult.cs
+
+Task: Ensure the response includes a clear reason for rejection (e.g., "Your offer is insulting," "I don't want to relocate").
+
+🖥️ Phase 3: UI Implementation (Frontend)
+Goal: Allow the player to visualize the market and propose terms.
+
+3.1 Staff Market View (StaffManagementView)
+File: src/RingGeneral.UI/ViewModels/StaffManagementViewModel.cs
+
+Action: Add a tab or button "Recruit New Staff".
+
+Components:
+
+SortableDataGrid to list available staff.
+
+Filters dropdown (Role, Wage Request).
+
+"Negotiate" button (triggers Phase 3.2).
+
+3.2 Negotiation Dialog (ContractNegotiationView)
+File: src/RingGeneral.UI/ViewModels/Contracts/ContractNegotiationViewModel.cs
+
+Task: Adapt the existing Worker negotiation screen for Staff.
+
+Fields Required:
+
+Monthly Salary: (Input Field)
+
+Duration: (1 Year, 2 Years, etc.)
+
+Role: (Fixed based on Staff expertise).
+
+Signing Bonus: (Optional).
+
+3.3 Feedback Loop
+Task: When the player clicks "Submit Offer":
+
+Call ContractNegotiationService.EvaluateOffer().
+
+If Accepted: Show Success Modal -> Add to Roster -> Deduct Budget.
+
+If Rejected: Show "Counter-Offer" or "Walk Away" message.
+
+⚙️ Phase 4: Integration & Consequences
+Goal: Make the new hire functional within the game world.
+
+4.1 Financial Impact
+File: src/RingGeneral.Core/Services/DailyFinanceService.cs
+
+Task: Ensure the new staff salary is added to the ProjectedExpenses for the next month.
+
+4.2 Onboarding Logic
+File: src/RingGeneral.Core/Services/Staff/StaffService.cs
+
+Task: HireStaff(StaffMember staff, Company company)
+
+Set staff.CompanyId = company.Id.
+
+Set staff.ContractStatus = Active.
+
+Trigger "News Item": "[Company] announces the hiring of [Name] as new [Role]."
+
+✅ Acceptance Criteria (Definition of Done)
+Search: I can find "Dr. James Andrews" in the Free Agent list under "Medical".
+
+Negotiation: If I offer him $500/month, he rejects it (insulting). If I offer $15,000/month, he accepts.
+
+Persistence: Once hired, he appears in my "My Staff" tab and is no longer in the "Free Agents" list.
+
+Usage: I can assign him to a show immediately after hiring.
+
+📝 Dev Note for Implementation
+Start by modifying StaffManagementViewModel to load data from StaffRepository.GetFreeAgents(). This gives you immediate visual feedback before you code the complex negotiation logic.

@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Youth"
+             xmlns:contracts="using:RingGeneral.UI.Views.Contracts"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RingGeneral.UI.Views.Youth.YouthTraineeManagementView"
+             x:DataType="vm:YouthTraineeManagementViewModel">
+
+    <Grid>
+        <!-- Main Content -->
+        <Grid RowDefinitions="Auto, *">
+            <!-- Actions & Filters -->
+            <Border Grid.Row="0" Background="#f8f9fa" Padding="15,10" BorderBrush="#ecf0f1" BorderThickness="0,0,0,1">
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Bulk Actions:" VerticalAlignment="Center" Foreground="#7f8c8d" FontWeight="Bold"/>
+                        <Button Content="Promote Selected" Command="{Binding PromoteSelectedCommand}" Background="#27ae60" Foreground="White"/>
+                        <Button Content="Cut Selected" Command="{Binding CutSelectedCommand}" Background="#c0392b" Foreground="White"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Trainee Table -->
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Trainees}" AutoGenerateColumns="False" IsReadOnly="False"
+                      GridLinesVisibility="Horizontal" Background="#2c3e50" RowBackground="#34495e" Foreground="White"
+                      HeadersVisibility="Column" BorderThickness="0" BorderBrush="#555"
+                      CanUserResizeColumns="True">
+                <DataGrid.Columns>
+                    <!-- Select Checkbox -->
+                    <DataGridCheckBoxColumn Binding="{Binding IsSelected}" Header="Select" Width="50"/>
+
+                    <DataGridTemplateColumn Header="Name" Width="*" SortMemberPath="Name">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Name}" 
+                                        Command="{Binding ViewProfileCommand}"
+                                        Background="Transparent" 
+                                        Foreground="#3498db" 
+                                        HorizontalContentAlignment="Left"
+                                        Padding="0"
+                                        BorderThickness="0"
+                                        FontWeight="Bold"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- New Columns -->
+                    <DataGridTextColumn Header="Age" Binding="{Binding AgeDisplay}" Width="50" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Style" Binding="{Binding StyleDisplay}" Width="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="OVR" Binding="{Binding OvrDisplay}" Width="50" IsReadOnly="True" FontWeight="Bold"/>
+                    <DataGridTextColumn Header="POT" Binding="{Binding PotentialDisplay}" Width="50" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Morale" Binding="{Binding MoraleDisplay}" Width="80" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Time In Dev" Binding="{Binding TimeInDevDisplay}" Width="100" IsReadOnly="True"/>
+
+                    <DataGridTextColumn Header="Status" Binding="{Binding Statut}" Width="100" IsReadOnly="True"/>
+
+                    <!-- Actions -->
+                    <DataGridTemplateColumn Header="Action" Width="180">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                                    <Button Content="Promote" Command="{Binding PromoteCommand}" Background="#2ecc71" Foreground="White" FontSize="10" Padding="5,2"/>
+                                    <Button Content="Release" Command="{Binding ReleaseCommand}" Background="#e74c3c" Foreground="White" FontSize="10" Padding="5,2"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        
+        <!-- Contract Editor Overlay -->
+        <Border IsVisible="{Binding CurrentContractEditor, Converter={x:Static ObjectConverters.IsNotNull}}" Background="#99000000">
+             <contracts:ContractEditorView DataContext="{Binding CurrentContractEditor}" Width="800" Height="600" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+   </Grid>
+</UserControl>

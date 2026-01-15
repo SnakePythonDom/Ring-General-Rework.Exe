@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Settings"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Settings.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <Design.DataContext>
+        <vm:SettingsViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25" MaxWidth="900" HorizontalAlignment="Center">
+            <!-- En-tête -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="⚙️ PARAMÈTRES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Configurez vos préférences de jeu" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+            </StackPanel>
+
+            <!-- SECTION: Sauvegarde -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="💾 SAUVEGARDE" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
+
+                    <!-- Auto-sauvegarde -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Sauvegarde automatique" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="Sauvegarder automatiquement la progression" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoSave}" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Intervalle de sauvegarde -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Intervalle de sauvegarde" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="Fréquence de sauvegarde automatique (en minutes)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <NumericUpDown Grid.Column="1"
+                                     Value="{Binding AutoSaveInterval}"
+                                     Minimum="1"
+                                     Maximum="60"
+                                     Width="100"
+                                     Background="{StaticResource BackgroundTertiaryBrush}"
+                                     BorderBrush="{StaticResource BorderMediumBrush}"
+                                     Foreground="{StaticResource TextPrimaryBrush}"
+                                     VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- SECTION: Notifications -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="🔔 NOTIFICATIONS" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
+
+                    <!-- Afficher notifications -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Afficher les notifications" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="Recevoir des alertes pour les événements importants" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowNotifications}" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Confirmer actions -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Confirmer les actions" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="Demander confirmation pour les actions importantes" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding ConfirmActions}" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- SECTION: Audio -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="🔊 AUDIO" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
+
+                    <!-- Activer le son -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Activer le son" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="Activer les effets sonores et la musique" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding EnableSound}" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Volume sonore -->
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="Volume sonore" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Grid.Column="1" Text="{Binding SoundVolume, StringFormat={}{0}%}" FontSize="14" Foreground="{StaticResource AccentBlueBrush}" FontWeight="Bold"/>
+                        </Grid>
+                        <Slider Value="{Binding SoundVolume}"
+                              Minimum="0"
+                              Maximum="100"
+                              IsEnabled="{Binding EnableSound}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- SECTION: Interface -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="🎨 INTERFACE" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
+
+                    <!-- Langue -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Langue" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="Langue de l'interface" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1"
+                                SelectedItem="{Binding Language}"
+                                Background="{StaticResource BackgroundTertiaryBrush}"
+                                BorderBrush="{StaticResource BorderMediumBrush}"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                MinWidth="150"
+                                VerticalAlignment="Center">
+                            <ComboBoxItem Content="Français"/>
+                            <ComboBoxItem Content="English"/>
+                            <ComboBoxItem Content="Español"/>
+                            <ComboBoxItem Content="Deutsch"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <!-- Thème -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Thème" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="Apparence de l'interface" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1"
+                                SelectedItem="{Binding Theme}"
+                                Background="{StaticResource BackgroundTertiaryBrush}"
+                                BorderBrush="{StaticResource BorderMediumBrush}"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                MinWidth="150"
+                                VerticalAlignment="Center">
+                            <ComboBoxItem Content="Sombre"/>
+                            <ComboBoxItem Content="Clair"/>
+                            <ComboBoxItem Content="Automatique"/>
+                        </ComboBox>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- SECTION: À propos -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="8">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="ℹ️ À PROPOS" FontSize="16" Foreground="{StaticResource TextSubtleBrush}" FontWeight="Bold"/>
+
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,15,10"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="1.0.0 Beta" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Build:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,15,10"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="2024.01.08" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Base de données:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,15,10"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="ring_general.db" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Framework:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,15,0"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="Avalonia UI 11.0" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Boutons d'action -->
+            <Grid ColumnDefinitions="*,*">
+                <Button Grid.Column="0"
+                      Content="💾 Sauvegarder"
+                      Command="{Binding SaveSettingsCommand}"
+                      Padding="0,12"
+                      Background="{StaticResource AccentGreenBrush}"
+                      Foreground="White"
+                      CornerRadius="6"
+                      FontWeight="Bold"
+                      FontSize="14"
+                      Margin="0,0,7,0"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center"/>
+
+                <Button Grid.Column="1"
+                      Content="🔄 Réinitialiser"
+                      Command="{Binding ResetDefaultsCommand}"
+                      Padding="0,12"
+                      Background="{StaticResource AccentRedBrush}"
+                      Foreground="White"
+                      CornerRadius="6"
+                      FontWeight="Bold"
+                      FontSize="14"
+                      Margin="8,0,0,0"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center"/>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

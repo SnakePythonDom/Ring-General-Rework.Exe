@@ -1,0 +1,67 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Youth"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RingGeneral.UI.Views.Youth.YouthFinancialsView"
+             x:DataType="vm:YouthFinancialsViewModel">
+
+  <Grid RowDefinitions="Auto, *, Auto" Margin="20">
+
+    <!-- Budget Summary -->
+    <Border Grid.Row="0" Background="#2c3e50" CornerRadius="5" Padding="20" Margin="0,0,0,20">
+      <StackPanel>
+        <Grid ColumnDefinitions="*, *">
+          <StackPanel>
+            <TextBlock Text="ANNUAL BUDGET" Foreground="#bdc3c7" FontSize="12"/>
+            <TextBlock Text="{Binding AnnualBudgetDisplay}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+            <TextBlock Text="REMAINING" Foreground="#bdc3c7" FontSize="12" HorizontalAlignment="Right"/>
+            <TextBlock Text="{Binding RemainingBudgetDisplay}" Foreground="#2ecc71" FontSize="20" FontWeight="Bold" HorizontalAlignment="Right"/>
+          </StackPanel>
+        </Grid>
+        
+        <Grid Margin="0,15,0,5">
+          <ProgressBar Minimum="0" Maximum="1" Value="{Binding BudgetUsagePercent}" Height="20" Background="#34495e" Foreground="#e74c3c"/>
+          <TextBlock Text="{Binding BudgetUsagePercentDisplay}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="10"/>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- Expense Breakdown -->
+    <DockPanel Grid.Row="1">
+      <TextBlock DockPanel.Dock="Top" Text="EXPENSE BREAKDOWN (YTD)" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" Foreground="#2c3e50"/>
+      
+      <DataGrid ItemsSource="{Binding Expenses}" AutoGenerateColumns="False" IsReadOnly="True"
+                GridLinesVisibility="Horizontal" Background="#2c3e50" RowBackground="#34495e" Foreground="White" BorderThickness="0">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
+          <DataGridTextColumn Header="Cost" Binding="{Binding Cost}" Width="150"/>
+          
+          <DataGridTemplateColumn Header="% of Budget" Width="200">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <Grid Margin="5,0">
+                   <ProgressBar Minimum="0" Maximum="1" Value="{Binding PercentValue}" Height="10" VerticalAlignment="Center" Background="#ecf0f1" Foreground="#3498db"/>
+                   <TextBlock Text="{Binding PercentDisplay}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" FontSize="10" Foreground="White"/>
+                </Grid>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </DockPanel>
+
+    <!-- Loans / Subsidies -->
+    <Border Grid.Row="2" Background="#ecf0f1" CornerRadius="5" Padding="15" Margin="0,20,0,0">
+      <StackPanel>
+        <TextBlock Text="PARENT COMPANY LOANS / SUBSIDIES" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" Foreground="#7f8c8d"/>
+        <TextBlock Text="Received this year: + 50,000 € (Injection Capital)" Foreground="#34495e" Margin="0,2"/>
+        <Button Content="Request More Funds" Command="{Binding InjectFundsCommand}" Margin="0,10,0,0" HorizontalAlignment="Right" Background="#27ae60" Foreground="White"/>
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</UserControl>

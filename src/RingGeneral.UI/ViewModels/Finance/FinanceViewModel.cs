@@ -1,0 +1,1009 @@
+using System.Collections.ObjectModel;
+using Microsoft.Data.Sqlite;
+using System.Reactive;
+using System.Reactive.Linq;
+using ReactiveUI;
+using RingGeneral.Data.Repositories;
+using RingGeneral.Core.Interfaces;
+using RingGeneral.Core.Services;
+using RingGeneral.Core.Models;
+using RingGeneral.UI.Views.Finance;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
+
+namespace RingGeneral.UI.ViewModels.Finance;
+
+/// <summary>
+/// ViewModel pour le système financier.
+/// Enrichi dans Phase 6.3 avec TV deals, audience et reach.
+/// </summary>
+public sealed class FinanceViewModel : ViewModelBase
+{
+    private readonly GameRepository? _repository;
+    private readonly IDebtManagementService? _debtService;
+    private readonly IRevenueProjectionService? _revenueProjectionService;
+    private readonly IBudgetAllocationService? _budgetService;
+    private readonly ITvDealNegotiationService? _negotiationService;
+    private decimal _currentBalance = 10_000_000m;
+    private decimal _weeklyRevenue;
+    private decimal _weeklyExpenses;
+    private int _currentWeek = 1;
+    private decimal _totalDebt = 0m;
+    private decimal _monthlyDebtPayments = 0m;
+    private string _financialAlert = string.Empty;
+
+    public FinanceViewModel(
+        GameRepository? repository = null,
+        IDebtManagementService? debtService = null,
+        IRevenueProjectionService? revenueProjectionService = null,
+        IBudgetAllocationService? budgetService = null,
+        ITvDealNegotiationService? negotiationService = null)
+    {
+        _repository = repository;
+        _debtService = debtService;
+        _revenueProjectionService = revenueProjectionService;
+        _budgetService = budgetService;
+        _negotiationService = negotiationService;
+
+        Transactions = new ObservableCollection<TransactionItemViewModel>();
+
+        // Phase 6.3 - Nouvelles collections
+        TvDeals = new ObservableCollection<TvDealViewModel>();
+        ReachMap = new ObservableCollection<ReachMapItemViewModel>();
+        BroadcastConstraints = new ObservableCollection<string>();
+        AudienceHistory = new ObservableCollection<AudienceHistoryItemViewModel>();
+        
+        // Phase 2.2 - Dettes actives
+        ActiveDebts = new ObservableCollection<CompanyDebtViewModel>();
+
+        // Phase 6.3 - Commandes
+        LoadTvDealsCommand = ReactiveCommand.Create(LoadTvDeals);
+        LoadAudienceHistoryCommand = ReactiveCommand.Create<string>(LoadAudienceHistory);
+        CalculateReachCommand = ReactiveCommand.Create(CalculateReach);
+        OpenTvDealNegotiationCommand = ReactiveCommand.Create(OpenTvDealNegotiation);
+
+            LoadFinanceData();
+            LoadDebtData();
+            LoadRevenueProjection();
+            CheckFinancialAlerts();
+    }
+
+    #region Collections
+
+    public ObservableCollection<TransactionItemViewModel> Transactions { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Deals TV actifs
+    /// </summary>
+    public ObservableCollection<TvDealViewModel> TvDeals { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Carte de reach (régions/markets)
+    /// </summary>
+    public ObservableCollection<ReachMapItemViewModel> ReachMap { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Contraintes de diffusion
+    /// </summary>
+    public ObservableCollection<string> BroadcastConstraints { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Historique d'audience
+    /// </summary>
+    public ObservableCollection<AudienceHistoryItemViewModel> AudienceHistory { get; }
+
+    /// <summary>
+    /// Phase 2.2 - Dettes actives de la compagnie
+    /// </summary>
+    public ObservableCollection<CompanyDebtViewModel> ActiveDebts { get; }
+
+    #endregion
+
+    #region Properties
+
+    public decimal CurrentBalance
+    {
+        get => _currentBalance;
+        set => this.RaiseAndSetIfChanged(ref _currentBalance, value);
+    }
+
+    public string CurrentBalanceFormatted => $"${CurrentBalance:N0}";
+
+    public decimal WeeklyRevenue
+    {
+        get => _weeklyRevenue;
+        set => this.RaiseAndSetIfChanged(ref _weeklyRevenue, value);
+    }
+
+    public string WeeklyRevenueFormatted => $"+${WeeklyRevenue:N0}";
+
+    public decimal WeeklyExpenses
+    {
+        get => _weeklyExpenses;
+        set => this.RaiseAndSetIfChanged(ref _weeklyExpenses, value);
+    }
+
+    public string WeeklyExpensesFormatted => $"-${WeeklyExpenses:N0}";
+
+    public decimal NetIncome => WeeklyRevenue - WeeklyExpenses;
+
+    public string NetIncomeFormatted => $"{(NetIncome >= 0 ? "+" : "")}{NetIncome:N0}";
+
+    /// <summary>
+    /// Phase 2.2 - Total des dettes actives
+    /// </summary>
+    public decimal TotalDebt
+    {
+        get => _totalDebt;
+        set => this.RaiseAndSetIfChanged(ref _totalDebt, value);
+    }
+
+    public string TotalDebtFormatted => $"${TotalDebt:N0}";
+
+    /// <summary>
+    /// Phase 2.2 - Paiements mensuels de dette
+    /// </summary>
+    public decimal MonthlyDebtPayments
+    {
+        get => _monthlyDebtPayments;
+        set => this.RaiseAndSetIfChanged(ref _monthlyDebtPayments, value);
+    }
+
+    public string MonthlyDebtPaymentsFormatted => $"-${MonthlyDebtPayments:N0}/mois";
+
+    public int CurrentWeek
+    {
+        get => _currentWeek;
+        set => this.RaiseAndSetIfChanged(ref _currentWeek, value);
+    }
+
+    public int TotalTvDeals => TvDeals.Count;
+    public decimal TotalReach => ReachMap.Sum(r => r.Population);
+
+    /// <summary>
+    /// Phase 2.2 - Alerte financière (trésorerie faible, dette élevée, etc.)
+    /// </summary>
+    public string FinancialAlert
+    {
+        get => _financialAlert;
+        set => this.RaiseAndSetIfChanged(ref _financialAlert, value);
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Indique si une alerte financière est active
+    /// </summary>
+    public bool HasFinancialAlert => !string.IsNullOrWhiteSpace(FinancialAlert);
+
+    /// <summary>
+    /// Phase 2.2 - Données pour graphique de projection de trésorerie (12 mois)
+    /// </summary>
+    public ISeries[] CashFlowSeries { get; private set; } = Array.Empty<ISeries>();
+
+    /// <summary>
+    /// Phase 2.2 - Données pour graphique revenus/dépenses
+    /// </summary>
+    public ISeries[] RevenueExpenseSeries { get; private set; } = Array.Empty<ISeries>();
+
+    /// <summary>
+    /// Phase 2.2 - Labels pour les axes X (mois)
+    /// </summary>
+    public string[] MonthLabels { get; private set; } = Array.Empty<string>();
+
+    #endregion
+
+    #region Commands
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour charger les deals TV
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> LoadTvDealsCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour charger l'historique d'audience
+    /// </summary>
+    public ReactiveCommand<string, Unit> LoadAudienceHistoryCommand { get; }
+
+    /// <summary>
+    /// Phase 6.3 - Commande pour calculer le reach
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> CalculateReachCommand { get; }
+
+    /// <summary>
+    /// Phase 2.1 - Commande pour ouvrir la négociation TV Deal
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> OpenTvDealNegotiationCommand { get; }
+
+    #endregion
+
+    #region Public Methods - Phase 6.3
+
+    /// <summary>
+    /// Phase 6.3 - Charge les deals TV actifs
+    /// </summary>
+    public void LoadTvDeals()
+    {
+        TvDeals.Clear();
+        BroadcastConstraints.Clear();
+
+        if (_repository == null)
+        {
+            LoadPlaceholderTvDeals();
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT DealId, Network, WeeklyPayment, MinShows, MaxShows, StartWeek, EndWeek
+                FROM TvDeals
+                WHERE IsActive = 1
+                ORDER BY WeeklyPayment DESC";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                TvDeals.Add(new TvDealViewModel
+                {
+                    DealId = reader.GetString(0),
+                    Network = reader.GetString(1),
+                    WeeklyPayment = reader.GetDecimal(2),
+                    MinShows = reader.GetInt32(3),
+                    MaxShows = reader.GetInt32(4),
+                    StartWeek = reader.GetInt32(5),
+                    EndWeek = reader.IsDBNull(6) ? (int?)null : reader.GetInt32(6)
+                });
+            }
+
+            this.RaisePropertyChanged(nameof(TotalTvDeals));
+
+            Logger.Info($"{TvDeals.Count} TV deals actifs chargés");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement TV deals : {ex.Message}");
+            LoadPlaceholderTvDeals();
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Charge l'historique d'audience pour un show
+    /// </summary>
+    public void LoadAudienceHistory(string showId)
+    {
+        AudienceHistory.Clear();
+
+        if (_repository == null || string.IsNullOrWhiteSpace(showId))
+        {
+            LoadPlaceholderAudienceHistory();
+            return;
+        }
+
+        try
+        {
+            using var connection = (SqliteConnection)_repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Week, Rating, Viewers, SharePercent
+                FROM ShowAudienceHistory
+                WHERE ShowId = @showId
+                ORDER BY Week DESC
+                LIMIT 12";
+
+            cmd.Parameters.AddWithValue("@showId", showId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                AudienceHistory.Add(new AudienceHistoryItemViewModel
+                {
+                    Week = reader.GetInt32(0),
+                    Rating = reader.GetDouble(1),
+                    Viewers = reader.GetInt32(2),
+                    SharePercent = reader.GetDouble(3)
+                });
+            }
+
+            Logger.Info($"{AudienceHistory.Count} entrées d'audience chargées pour {showId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement audience history : {ex.Message}");
+            LoadPlaceholderAudienceHistory();
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Calcule le reach potentiel
+    /// </summary>
+    public void CalculateReach()
+    {
+        ReachMap.Clear();
+
+        if (_repository == null)
+        {
+            LoadPlaceholderReach();
+            return;
+        }
+
+        try
+        {
+            using var connection = _repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Region, Population, Penetration
+                FROM MarketReach
+                ORDER BY Population DESC";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                ReachMap.Add(new ReachMapItemViewModel
+                {
+                    Region = reader.GetString(0),
+                    Population = reader.GetDecimal(1),
+                    Penetration = reader.GetDouble(2)
+                });
+            }
+
+            this.RaisePropertyChanged(nameof(TotalReach));
+
+            Logger.Info($"Reach calculé : {ReachMap.Count} régions, {TotalReach:N0} pop totale");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur calcul reach : {ex.Message}");
+            LoadPlaceholderReach();
+        }
+    }
+
+    /// <summary>
+    /// Phase 2.1 - Ouvre la fenêtre de négociation TV Deal
+    /// </summary>
+    private void OpenTvDealNegotiation()
+    {
+        try
+        {
+            // Récupérer l'ID de la compagnie depuis le repository
+            string? companyId = null;
+            if (_repository != null)
+            {
+                using var connection = _repository.CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT CompanyId FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                var result = cmd.ExecuteScalar();
+                companyId = result?.ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(companyId))
+            {
+                Logger.Error("Impossible de trouver la compagnie du joueur");
+                return;
+            }
+
+            if (_negotiationService == null)
+            {
+                 Logger.Warning("Service de négociation non disponible");
+                 return;
+            }
+
+            // Créer le ViewModel et la fenêtre
+            // Note: On injecte le service déjà résolu
+            var negotiationViewModel = new TvDealNegotiationViewModel(_negotiationService, companyId);
+            var window = new Views.Finance.TvDealNegotiationView
+            {
+                DataContext = negotiationViewModel
+            };
+            window.Show();
+            
+            Logger.Info($"Ouverture de la négociation TV Deal pour compagnie {companyId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur ouverture négociation TV Deal: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Phase 2.2 - Charge les données de dette
+    /// </summary>
+    private void LoadDebtData()
+    {
+        if (_debtService == null || _repository == null)
+            return;
+
+        try
+        {
+            string? companyId = null;
+            using var connection = _repository.CreateConnection();
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT CompanyId FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    companyId = reader.GetString(0);
+                }
+            }
+            if (string.IsNullOrWhiteSpace(companyId))
+                return;
+
+            var debts = _debtService.GetActiveDebts(companyId);
+            ActiveDebts.Clear();
+            
+            foreach (var debt in debts)
+            {
+                ActiveDebts.Add(new CompanyDebtViewModel(debt, _debtService));
+            }
+
+            TotalDebt = debts.Sum(d => d.RemainingBalance);
+            MonthlyDebtPayments = _debtService.CalculateTotalMonthlyDebtPayments(companyId);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur chargement dette: {ex.Message}");
+        }
+    }
+
+    private void LoadFinanceData()
+    {
+        if (_repository == null)
+        {
+            LoadPlaceholderData();
+            return;
+        }
+
+        try
+        {
+            using var connection = (SqliteConnection)_repository.CreateConnection();
+
+            // Charger le trésor actuel et la semaine courante
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT Treasury, CurrentWeek
+                    FROM Companies
+                    WHERE IsPlayerControlled = 1
+                    LIMIT 1";
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    CurrentBalance = reader.GetDecimal(0);
+                    CurrentWeek = reader.GetInt32(1);
+                }
+            }
+
+            // Charger les revenus et dépenses de la semaine courante
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT Revenues, Expenses
+                    FROM CompanyBalanceSnapshots
+                    WHERE Week = @week
+                    ORDER BY CreatedAt DESC
+                    LIMIT 1";
+
+                cmd.Parameters.AddWithValue("@week", CurrentWeek);
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    WeeklyRevenue = reader.GetDecimal(0);
+                    WeeklyExpenses = reader.GetDecimal(1);
+                }
+            }
+
+            // Charger l'historique des transactions (20 dernières)
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT Category, Amount, Description, Week
+                    FROM FinanceTransactions
+                    ORDER BY Week DESC, FinanceTransactionId DESC
+                    LIMIT 20";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Transactions.Add(new TransactionItemViewModel
+                    {
+                        Category = reader.GetString(0),
+                        Amount = reader.GetDecimal(1),
+                        Description = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+                        Week = reader.GetInt32(3)
+                    });
+                }
+            }
+
+            Logger.Info($"Balance: ${CurrentBalance:N0}, Revenus: ${WeeklyRevenue:N0}, Dépenses: ${WeeklyExpenses:N0}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[FinanceViewModel] Erreur: {ex.Message}");
+            LoadPlaceholderData();
+        }
+    }
+
+    private void LoadPlaceholderData()
+    {
+        CurrentBalance = 10_000_000m;
+        WeeklyRevenue = 500_000m;
+        WeeklyExpenses = 350_000m;
+
+        Transactions.Add(new TransactionItemViewModel
+        {
+            Category = "Ticket Sales",
+            Amount = 250_000m,
+            Description = "Monday Night Raw - Week 1",
+            Week = 1
+        });
+        Transactions.Add(new TransactionItemViewModel
+        {
+            Category = "TV Deal",
+            Amount = 150_000m,
+            Description = "USA Network Payment",
+            Week = 1
+        });
+        Transactions.Add(new TransactionItemViewModel
+        {
+            Category = "Merchandise",
+            Amount = 100_000m,
+            Description = "Arena Sales",
+            Week = 1
+        });
+        Transactions.Add(new TransactionItemViewModel
+        {
+            Category = "Salaries",
+            Amount = -200_000m,
+            Description = "Weekly Payroll",
+            Week = 1
+        });
+        Transactions.Add(new TransactionItemViewModel
+        {
+            Category = "Production",
+            Amount = -80_000m,
+            Description = "Show Production Costs",
+            Week = 1
+        });
+        Transactions.Add(new TransactionItemViewModel
+        {
+            Category = "Arena Rental",
+            Amount = -70_000m,
+            Description = "Madison Square Garden",
+            Week = 1
+        });
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Charge placeholder TV deals
+    /// </summary>
+    private void LoadPlaceholderTvDeals()
+    {
+        TvDeals.Add(new TvDealViewModel
+        {
+            DealId = "TV001",
+            Network = "USA Network",
+            WeeklyPayment = 150_000m,
+            MinShows = 1,
+            MaxShows = 2,
+            StartWeek = 1,
+            EndWeek = null
+        });
+
+        BroadcastConstraints.Add("Minimum 1 show par semaine");
+        BroadcastConstraints.Add("Primetime slot requis (19h-22h)");
+        BroadcastConstraints.Add("Rating minimum: PG-13");
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Charge placeholder audience history
+    /// </summary>
+    private void LoadPlaceholderAudienceHistory()
+    {
+        AudienceHistory.Add(new AudienceHistoryItemViewModel
+        {
+            Week = 4,
+            Rating = 2.5,
+            Viewers = 3_500_000,
+            SharePercent = 18.5
+        });
+        AudienceHistory.Add(new AudienceHistoryItemViewModel
+        {
+            Week = 3,
+            Rating = 2.3,
+            Viewers = 3_200_000,
+            SharePercent = 17.8
+        });
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Charge placeholder reach
+    /// </summary>
+    private void LoadPlaceholderReach()
+    {
+        ReachMap.Add(new ReachMapItemViewModel
+        {
+            Region = "Northeast",
+            Population = 55_000_000m,
+            Penetration = 0.65
+        });
+        ReachMap.Add(new ReachMapItemViewModel
+        {
+            Region = "South",
+            Population = 125_000_000m,
+            Penetration = 0.45
+        });
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Charge les projections de revenus et génère les données de graphiques
+    /// </summary>
+    private void LoadRevenueProjection()
+    {
+        if (_revenueProjectionService == null || _repository == null)
+        {
+            LoadPlaceholderProjection();
+            return;
+        }
+
+        try
+        {
+            // Récupérer l'ID de la compagnie du joueur
+            string? companyId = null;
+            using var connection = _repository.CreateConnection();
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT CompanyId FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    companyId = reader.GetString(0);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(companyId))
+            {
+                LoadPlaceholderProjection();
+                return;
+            }
+
+            // Calculer la projection sur 12 mois
+            var currentMonth = (CurrentWeek / 4) + 1; // Approximation: 4 semaines = 1 mois
+            var projection = _revenueProjectionService.ProjectRevenue(companyId, currentMonth);
+
+            // Générer les données pour le graphique de trésorerie projetée
+            var cashFlowData = new List<decimal>();
+            var revenueData = new List<decimal>();
+            var expenseData = new List<decimal>();
+            var labels = new List<string>();
+
+            decimal runningBalance = CurrentBalance;
+
+            foreach (var monthlyRevenue in projection.MonthlyRevenues)
+            {
+                // Estimation des dépenses mensuelles (basée sur dépenses hebdomadaires * 4)
+                var monthlyExpenses = WeeklyExpenses * 4m + MonthlyDebtPayments;
+                var netCashFlow = monthlyRevenue.TotalRevenue - monthlyExpenses;
+                runningBalance += netCashFlow;
+
+                cashFlowData.Add(runningBalance);
+                revenueData.Add(monthlyRevenue.TotalRevenue);
+                expenseData.Add(monthlyExpenses);
+                labels.Add($"M{monthlyRevenue.Month}");
+            }
+
+            // Créer les séries pour le graphique de trésorerie
+            CashFlowSeries = new ISeries[]
+            {
+                new LineSeries<decimal>
+                {
+                    Values = cashFlowData,
+                    Name = "Trésorerie Projetée",
+                    Stroke = new SolidColorPaint(SKColors.Cyan, 3),
+                    Fill = null,
+                    GeometryStroke = new SolidColorPaint(SKColors.Cyan, 3),
+                    GeometryFill = new SolidColorPaint(SKColors.Cyan)
+                }
+            };
+
+            // Créer les séries pour le graphique revenus/dépenses
+            RevenueExpenseSeries = new ISeries[]
+            {
+                new ColumnSeries<decimal>
+                {
+                    Values = revenueData,
+                    Name = "Revenus",
+                    Fill = new SolidColorPaint(SKColors.Green)
+                },
+                new ColumnSeries<decimal>
+                {
+                    Values = expenseData,
+                    Name = "Dépenses",
+                    Fill = new SolidColorPaint(SKColors.Red)
+                }
+            };
+
+            MonthLabels = labels.ToArray();
+
+            this.RaisePropertyChanged(nameof(CashFlowSeries));
+            this.RaisePropertyChanged(nameof(RevenueExpenseSeries));
+            this.RaisePropertyChanged(nameof(MonthLabels));
+        }
+        catch (Exception)
+        {
+            // Logger.Error($"Erreur chargement projection revenus : {ex.Message}");
+            LoadPlaceholderProjection();
+        }
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Charge des données placeholder pour les graphiques
+    /// </summary>
+    private void LoadPlaceholderProjection()
+    {
+        var placeholderCashFlow = new List<decimal>();
+        var placeholderRevenue = new List<decimal>();
+        var placeholderExpense = new List<decimal>();
+        var labels = new List<string>();
+
+        decimal balance = CurrentBalance;
+        for (int i = 1; i <= 12; i++)
+        {
+            var revenue = 500_000m + (i * 10_000m);
+            var expense = 400_000m + (i * 5_000m);
+            balance += (revenue - expense);
+
+            placeholderCashFlow.Add(balance);
+            placeholderRevenue.Add(revenue);
+            placeholderExpense.Add(expense);
+            labels.Add($"M{i}");
+        }
+
+        CashFlowSeries = new ISeries[]
+        {
+            new LineSeries<decimal>
+            {
+                Values = placeholderCashFlow,
+                Name = "Trésorerie Projetée",
+                Stroke = new SolidColorPaint(SKColors.Cyan, 3),
+                Fill = null
+            }
+        };
+
+        RevenueExpenseSeries = new ISeries[]
+        {
+            new ColumnSeries<decimal>
+            {
+                Values = placeholderRevenue,
+                Name = "Revenus",
+                Fill = new SolidColorPaint(SKColors.Green)
+            },
+            new ColumnSeries<decimal>
+            {
+                Values = placeholderExpense,
+                Name = "Dépenses",
+                Fill = new SolidColorPaint(SKColors.Red)
+            }
+        };
+
+        MonthLabels = labels.ToArray();
+    }
+
+    /// <summary>
+    /// Phase 2.2 - Vérifie les alertes financières (trésorerie faible, dette élevée)
+    /// </summary>
+    private void CheckFinancialAlerts()
+    {
+        var alerts = new List<string>();
+
+        // Alerte si trésorerie < 100k
+        if (CurrentBalance < 100_000m)
+        {
+            alerts.Add($"⚠️ Trésorerie critique : ${CurrentBalance:N0}");
+        }
+
+        // Alerte si dette > 50% de la trésorerie
+        if (TotalDebt > 0 && TotalDebt > CurrentBalance * 0.5m)
+        {
+            alerts.Add($"⚠️ Dette élevée : ${TotalDebt:N0} ({TotalDebt / CurrentBalance * 100m:F1}% de la trésorerie)");
+        }
+
+        // Vérifier la projection de trésorerie (si < 100k dans 3 mois)
+        if (CashFlowSeries.Length > 0 && CashFlowSeries[0] is LineSeries<decimal> lineSeries)
+        {
+            var values = lineSeries.Values?.ToArray() ?? Array.Empty<decimal>();
+            if (values.Length >= 3 && values[2] < 100_000m)
+            {
+                alerts.Add($"⚠️ Trésorerie projetée faible dans 3 mois : ${values[2]:N0}");
+            }
+        }
+
+        // Vérifier si dépenses > revenus
+        if (WeeklyExpenses > WeeklyRevenue)
+        {
+            alerts.Add($"⚠️ Dépenses hebdomadaires supérieures aux revenus (déficit : ${WeeklyExpenses - WeeklyRevenue:N0})");
+        }
+
+        FinancialAlert = alerts.Count > 0 ? string.Join(" | ", alerts) : string.Empty;
+        this.RaisePropertyChanged(nameof(HasFinancialAlert));
+    }
+
+    #endregion
+}
+
+public sealed class TransactionItemViewModel : ViewModelBase
+{
+    private string _category = string.Empty;
+    private decimal _amount;
+    private string _description = string.Empty;
+    private int _week;
+
+    public string Category
+    {
+        get => _category;
+        set => this.RaiseAndSetIfChanged(ref _category, value);
+    }
+
+    public decimal Amount
+    {
+        get => _amount;
+        set => this.RaiseAndSetIfChanged(ref _amount, value);
+    }
+
+    public string Description
+    {
+        get => _description;
+        set => this.RaiseAndSetIfChanged(ref _description, value);
+    }
+
+    public int Week
+    {
+        get => _week;
+        set => this.RaiseAndSetIfChanged(ref _week, value);
+    }
+
+    public string AmountFormatted => $"{(Amount >= 0 ? "+" : "")}{Amount:N0}";
+    public string AmountColor => Amount >= 0 ? "#10b981" : "#ef4444";
+    public string WeekDisplay => $"Week {Week}";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un TV deal
+/// </summary>
+public sealed class TvDealViewModel : ViewModelBase
+{
+    private string _dealId = string.Empty;
+    private string _network = string.Empty;
+    private decimal _weeklyPayment;
+    private int _minShows;
+    private int _maxShows;
+    private int _startWeek;
+    private int? _endWeek;
+
+    public string DealId
+    {
+        get => _dealId;
+        set => this.RaiseAndSetIfChanged(ref _dealId, value);
+    }
+
+    public string Network
+    {
+        get => _network;
+        set => this.RaiseAndSetIfChanged(ref _network, value);
+    }
+
+    public decimal WeeklyPayment
+    {
+        get => _weeklyPayment;
+        set => this.RaiseAndSetIfChanged(ref _weeklyPayment, value);
+    }
+
+    public int MinShows
+    {
+        get => _minShows;
+        set => this.RaiseAndSetIfChanged(ref _minShows, value);
+    }
+
+    public int MaxShows
+    {
+        get => _maxShows;
+        set => this.RaiseAndSetIfChanged(ref _maxShows, value);
+    }
+
+    public int StartWeek
+    {
+        get => _startWeek;
+        set => this.RaiseAndSetIfChanged(ref _startWeek, value);
+    }
+
+    public int? EndWeek
+    {
+        get => _endWeek;
+        set => this.RaiseAndSetIfChanged(ref _endWeek, value);
+    }
+
+    public string PaymentDisplay => $"${WeeklyPayment:N0}/semaine";
+    public string DurationDisplay => EndWeek.HasValue ? $"S{StartWeek}-S{EndWeek}" : $"S{StartWeek}+";
+    public string ShowsDisplay => $"{MinShows}-{MaxShows} shows/semaine";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un item de reach map
+/// </summary>
+public sealed class ReachMapItemViewModel : ViewModelBase
+{
+    private string _region = string.Empty;
+    private decimal _population;
+    private double _penetration;
+
+    public string Region
+    {
+        get => _region;
+        set => this.RaiseAndSetIfChanged(ref _region, value);
+    }
+
+    public decimal Population
+    {
+        get => _population;
+        set => this.RaiseAndSetIfChanged(ref _population, value);
+    }
+
+    public double Penetration
+    {
+        get => _penetration;
+        set => this.RaiseAndSetIfChanged(ref _penetration, value);
+    }
+
+    public string PopulationDisplay => $"{Population:N0}";
+    public string PenetrationDisplay => $"{Penetration:P0}";
+    public decimal EffectiveReach => Population * (decimal)Penetration;
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un item d'historique d'audience
+/// </summary>
+public sealed class AudienceHistoryItemViewModel : ViewModelBase
+{
+    private int _week;
+    private double _rating;
+    private int _viewers;
+    private double _sharePercent;
+
+    public int Week
+    {
+        get => _week;
+        set => this.RaiseAndSetIfChanged(ref _week, value);
+    }
+
+    public double Rating
+    {
+        get => _rating;
+        set => this.RaiseAndSetIfChanged(ref _rating, value);
+    }
+
+    public int Viewers
+    {
+        get => _viewers;
+        set => this.RaiseAndSetIfChanged(ref _viewers, value);
+    }
+
+    public double SharePercent
+    {
+        get => _sharePercent;
+        set => this.RaiseAndSetIfChanged(ref _sharePercent, value);
+    }
+
+    public string WeekDisplay => $"Week {Week}";
+    public string RatingDisplay => $"{Rating:F1}";
+    public string ViewersDisplay => $"{Viewers:N0}";
+    public string ShareDisplay => $"{SharePercent:F1}%";
+}

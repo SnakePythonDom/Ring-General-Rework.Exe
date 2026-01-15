@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Medical"
+
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Medical.MedicalView"
+             xmlns:local="using:RingGeneral.UI.Views.Medical"
+             x:DataType="vm:MedicalViewModel">
+
+    <Design.DataContext>
+        <vm:MedicalViewModel />
+    </Design.DataContext>
+
+    <Grid Background="{StaticResource BackgroundPrimaryBrush}" RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <TextBlock Text="CENTRE MÉDICAL"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" VerticalAlignment="Bottom">
+                <RadioButton Classes="med-tab" GroupName="MedTabs" Content="EFFECTIF FIT" IsChecked="{Binding IsActiveTabSelected}"/>
+                <RadioButton Classes="med-tab" GroupName="MedTabs" Content="INFIRMERIE" IsChecked="{Binding IsInjuredTabSelected}"/>
+                <RadioButton Classes="med-tab" GroupName="MedTabs" Content="HISTORIQUE" IsChecked="{Binding IsHistoryTabSelected}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Contenu selon l'onglet sélectionné -->
+        <Grid Grid.Row="1">
+            <!-- Onglet Effectif Fit -->
+            <Border IsVisible="{Binding IsActiveTabSelected}" Classes="card">
+                <DataGrid ItemsSource="{Binding Workers}"
+                          AutoGenerateColumns="False"
+                          HeadersVisibility="Column"
+                          Background="{StaticResource BackgroundSecondaryBrush}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Worker"
+                                            Binding="{Binding Name}"
+                                            Width="*"/>
+
+                        <DataGridTemplateColumn Header="Condition Phys." Width="160">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ProgressBar Classes="condition-bar"
+                                                 Minimum="0"
+                                                 Maximum="100"
+                                                 Value="{Binding ConditionPercent}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Fatigue"
+                                            Binding="{Binding FatiguePercent, StringFormat='{}{0}%'}"
+                                            Width="100"/>
+
+                        <DataGridTemplateColumn Header="Statut" Width="140">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding StatusBackground}" CornerRadius="4" Padding="6,2">
+                                        <TextBlock Text="{Binding StatusLabel}"
+                                                   FontSize="10"
+                                                   FontWeight="Bold"
+                                                   Foreground="{Binding StatusForeground}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Action" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Détails"
+                                            Background="{StaticResource BackgroundSecondaryBrush}"
+                                            Foreground="{StaticResource TextMutedBrush}"
+                                            FontSize="10"
+                                            FontWeight="Bold"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Onglet Infirmerie - Intégration d'InjuriesView -->
+            <Border IsVisible="{Binding IsInjuredTabSelected}">
+                <local:InjuriesView DataContext="{Binding InjuriesViewModel}"/>
+            </Border>
+
+            <!-- Onglet Historique -->
+            <Border IsVisible="{Binding IsHistoryTabSelected}" Classes="card">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+                    <TextBlock Text="📜"
+                               FontSize="48"
+                               HorizontalAlignment="Center"
+                               Foreground="{StaticResource BorderLightBrush}"/>
+                    <TextBlock Text="Historique des blessures"
+                               FontSize="14"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="À venir..."
+                               FontSize="12"
+                               Foreground="{StaticResource TextDisabledBrush}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Company"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="RingGeneral.UI.Views.Company.ChildCompanyDetailView"
+             x:DataType="vm:ChildCompanyDetailViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="0,0,0,10" Padding="20" Background="{DynamicResource SurfaceBackgroundBrush}" CornerRadius="8">
+            <StackPanel>
+                <Button Command="{Binding BackCommand}" Content="← Retour" Margin="0,0,0,10"/>
+                <TextBlock Text="{Binding Company.Name}" FontSize="24" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
+                    <TextBlock Text="{Binding Company.Acronym}" FontWeight="SemiBold" Opacity="0.7"/>
+                    <TextBlock Text="•"/>
+                     <!-- We assume RegionId for now as Region object might not be hydrated or we need a converter. 
+                          The VM just has Company object. Let's just show RegionID or similar simple property -->
+                    <TextBlock Text="{Binding Company.RegionId}" Opacity="0.7"/>
+                </StackPanel>
+                <TextBlock Text="{Binding Company.Objective, StringFormat='Objective: {0}'}" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <TabControl Grid.Row="1">
+            
+            <!-- Roster Tab -->
+            <TabItem Header="Roster">
+                <DataGrid ItemsSource="{Binding Roster}" AutoGenerateColumns="False" CanUserResizeColumns="True" IsReadOnly="True" Margin="0,10,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                        <!-- WorkerBackstageProfile has WorkerId and Name. That is it. -->
+                        <DataGridTextColumn Header="Worker ID" Binding="{Binding WorkerId}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- Staff Tab -->
+            <TabItem Header="Staff">
+                <DataGrid ItemsSource="{Binding Staff}" AutoGenerateColumns="False" CanUserResizeColumns="True" IsReadOnly="True" Margin="0,10,0,0">
+                     <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="Auto"/>
+                        <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="Auto"/>
+                        <DataGridTextColumn Header="Skill" Binding="{Binding SkillScore}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+        </TabControl>
+        
+        <!-- Loading Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsLoading}">
+            <TextBlock Text="Loading..." HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="20"/>
+        </Grid>
+    </Grid>
+</UserControl>

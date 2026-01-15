@@ -1,0 +1,300 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Booking"
+             xmlns:views="using:RingGeneral.UI.Views.Booking"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="RingGeneral.UI.Views.Booking.BookingView"
+             x:DataType="vm:ShowBookingViewModel"
+             Background="{StaticResource BackgroundPrimaryBrush}">
+             
+    <!-- ... -->
+    
+
+
+    <Design.DataContext>
+        <vm:BookingViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ==================== CONTENT HEADER ==================== -->
+        <Border Grid.Row="0" Background="{StaticResource BackgroundTertiaryBrush}" Padding="25,18" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="BOOKING • SHOWS ACTIFS" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="Monday Night Raw" FontSize="20" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,8,0,0">
+                        <!-- Validation Status -->
+                        <Border Background="{StaticResource SuccessDarkBrush}" Padding="8,4" CornerRadius="4" IsVisible="{Binding IsBookingValid}">
+                            <TextBlock Text="✅ Valide" FontSize="11" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                        </Border>
+                        <Border Background="{StaticResource WarningDarkBrush}" Padding="8,4" CornerRadius="4" IsVisible="{Binding ValidationWarnings, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock FontSize="11" Foreground="{StaticResource WarningBrush}" FontWeight="SemiBold">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="⚠️ {0} warnings">
+                                        <Binding Path="ValidationIssues.Count"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Border>
+                        <TextBlock Text="{Binding DurationSummary}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="• {0} segments">
+                                    <Binding Path="Segments.Count"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Phase 1.2 - Dropdown niveau de contrôle -->
+                    <ComboBox ItemsSource="{Binding ControlLevels}"
+                              SelectedItem="{Binding ControlLevel}" 
+                              Width="200"
+                              Padding="12,8"
+                              Background="{StaticResource BackgroundInputBrush}"
+                              Foreground="White"
+                              BorderBrush="{StaticResource BorderLightBrush}"
+                              CornerRadius="6">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontSize="12"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="{Binding ControlLevelDescription}" 
+                               FontSize="11" 
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               MaxWidth="250"
+                               TextWrapping="Wrap"/>
+                    <Button Content="🤖 Laisser le Booker préparer le show"
+                            Padding="15,10"
+                            Background="{StaticResource AccentGreenBrush}"
+                            Foreground="White"
+                            CornerRadius="6"
+                            FontWeight="SemiBold"
+                            Command="{Binding AutoBookCommand}"
+                            IsEnabled="{Binding CanAutoBook}"
+                            IsVisible="{Binding CanAutoBook}"
+                            ToolTip.Tip="Le Booker IA génère automatiquement un booking basé sur ses préférences et ses mémoires"/>
+                    <Button Content="+ Nouveau segment"
+                            Padding="15,10"
+                            Background="{StaticResource AccentBlueBrush}"
+                            Foreground="White"
+                            CornerRadius="6"
+                            FontWeight="SemiBold"
+                            Command="{Binding AddSegmentCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ==================== SEGMENTS TABLE ==================== -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="25,20" Spacing="12">
+                <!-- Table Header -->
+                <Grid Height="35" Background="{StaticResource BackgroundTertiaryBrush}" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="80"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="#" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="12,0"/>
+                    <TextBlock Grid.Column="1" Text="TYPE" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="PARTICIPANTS" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="DURÉE" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="INTENSITÉ" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="5" Text="STORYLINE" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="6" Text="NOTE" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Grid>
+
+                <!-- Segments List (ItemsControl) -->
+                <!-- Segments List (ListBox for selection) -->
+                <ListBox ItemsSource="{Binding Segments}" SelectedItem="{Binding SelectedSegment}" Background="Transparent" Margin="0,-8,0,0">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Template">
+                                <ControlTemplate>
+                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      Padding="{TemplateBinding Padding}"
+                                                      Margin="{TemplateBinding Margin}"/>
+                                </ControlTemplate>
+                            </Setter>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <!-- Segment Row -->
+                            <Border Padding="0" CornerRadius="8" Margin="0,0,0,8" Classes.MainEvent="{Binding EstMainEvent}">
+                                <Border.Styles>
+                                    <!-- Style normal -->
+                                    <Style Selector="Border">
+                                        <Setter Property="Background" Value="{StaticResource BackgroundInputBrush}"/>
+                                    </Style>
+                                    <!-- Style Main Event -->
+                                    <Style Selector="Border.MainEvent">
+                                        <Setter Property="Background" Value="{StaticResource AccentBlueBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
+                                        <Setter Property="BorderThickness" Value="2"/>
+                                    </Style>
+                                    <!-- Style hover -->
+                                    <Style Selector="Border:pointerover">
+                                        <Setter Property="Background" Value="{StaticResource BackgroundHoverBrush}"/>
+                                    </Style>
+                                    <!-- Style selected (via parent ListBoxItem) -->
+                                    <Style Selector="ListBoxItem:selected Border">
+                                        <Setter Property="Background" Value="{StaticResource BackgroundHoverBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource AccentOrangeBrush}"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                    </Style>
+                                </Border.Styles>
+
+                                <Grid Height="60">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Numéro + Badge Main Event -->
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="12,0">
+                                        <TextBlock Text="⭐" FontSize="12" HorizontalAlignment="Center" IsVisible="{Binding EstMainEvent}"/>
+                                    </StackPanel>
+
+                                    <!-- Type -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Libelle}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding TypeSegment}" FontSize="10" Foreground="{StaticResource TextDisabledBrush}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Participants -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding ParticipantsResume}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock FontSize="10" Foreground="{StaticResource TextDisabledBrush}" Margin="0,2,0,0">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} participants">
+                                                    <Binding Path="Participants.Count"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <!-- Durée -->
+                                    <TextBlock Grid.Column="3" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} min">
+                                                <Binding Path="DureeMinutes"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+
+                                    <!-- Intensité -->
+                                    <Border Grid.Column="4" Background="{StaticResource WarningDarkBrush}" Padding="8,4" CornerRadius="4" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            IsVisible="{Binding Intensite, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <TextBlock FontSize="12" Foreground="{StaticResource WarningBrush}" FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0}%">
+                                                    <Binding Path="Intensite"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Border>
+
+                                    <!-- Storyline -->
+                                    <TextBlock Grid.Column="5" Text="{Binding StorylineNom}" FontSize="12" Foreground="{StaticResource AccentBlueBrush}" VerticalAlignment="Center"/>
+
+                                    <!-- Note estimée -->
+                                    <Border Grid.Column="6" Background="{StaticResource BackgroundSecondaryBrush}" Width="50" Height="50" CornerRadius="25" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                         <TextBlock Text="{Binding PredictedRating}" FontSize="18" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                                    IsVisible="{Binding PredictedRating, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                         <TextBlock Text="--" FontSize="18" Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    IsVisible="{Binding PredictedRating, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                     </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Add Segment Placeholder -->
+                <Button Command="{Binding AddSegmentCommand}" Background="Transparent" BorderThickness="0" Padding="0">
+                    <Border Background="Transparent" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="2" Height="60" CornerRadius="8" Opacity="0.6">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+                            <TextBlock Text="➕" FontSize="20" Foreground="{StaticResource TextDisabledBrush}"/>
+                            <TextBlock Text="Ajouter un segment" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ==================== BOTTOM ACTION BAR ==================== -->
+        <Border Grid.Row="2" Background="{StaticResource BackgroundTertiaryBrush}" Padding="25,15" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,1,0,0">
+            <Grid>
+                <StackPanel Orientation="Horizontal" Spacing="25">
+                    <StackPanel>
+                        <TextBlock Text="DURÉE TOTALE" FontSize="10" Foreground="{StaticResource TextDisabledBrush}"/>
+                        <TextBlock Text="{Binding DurationSummary}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" Margin="0,4,0,0"/>
+                        <ProgressBar Value="{Binding TotalDuration}" Maximum="{Binding ShowDuration}" Height="4" Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource AccentBlueBrush}" Margin="0,6,0,0" Width="120"/>
+                    </StackPanel>
+                    <Border Width="1" Background="{StaticResource BorderLightBrush}"/>
+                    <StackPanel>
+                        <TextBlock Text="NOTE MOYENNE" FontSize="10" Foreground="{StaticResource TextDisabledBrush}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                            <TextBlock Text="⭐⭐⭐⭐" FontSize="14" Foreground="{StaticResource WarningBrush}"/>
+                            <TextBlock Text="{Binding PredictedNoteShow, StringFormat='{}{0}/100'}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Width="1" Background="{StaticResource BorderLightBrush}"/>
+                    <StackPanel>
+                        <TextBlock Text="AUDIENCE ESTIMÉE" FontSize="10" Foreground="{StaticResource TextDisabledBrush}"/>
+                        <TextBlock Text="{Binding PredictedAudience, StringFormat='{}{0:N0} spectateurs'}" FontSize="14" Foreground="{StaticResource AccentGreenBrush}" FontWeight="Bold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+                <Button Content="▶️ SIMULER LE SHOW" 
+                        Padding="30,12" 
+                        Background="{StaticResource AccentGreenBrush}" 
+                        Foreground="White" 
+                        CornerRadius="8" 
+                        FontWeight="Bold" 
+                        FontSize="14" 
+                        HorizontalAlignment="Right"
+                        Command="{Binding SimulateShowCommand}"
+                        IsEnabled="{Binding CanSimulate}"/>
+            </Grid>
+        </Border>
+        <!-- Worker Selection Overlay -->
+        <Grid Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsWorkerSelectionVisible}">
+            <ContentControl Content="{Binding WorkerSelectionContent}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="500">
+                <ContentControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type vm:WorkerSelectionViewModel}">
+                       <views:WorkerSelectionView />
+                    </DataTemplate>
+                </ContentControl.DataTemplates>
+            </ContentControl>
+        </Grid>
+    </Grid>
+</UserControl>

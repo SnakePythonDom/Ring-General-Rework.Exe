@@ -1,0 +1,169 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:RingGeneral.UI.ViewModels.Contracts"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="700"
+        x:Class="RingGeneral.UI.Views.Contracts.ContractNegotiationView"
+        x:DataType="vm:ContractNegotiationViewModel"
+        Title="Contract Negotiation"
+        Width="600" Height="700"
+        Background="{StaticResource BackgroundSecondaryBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Theme="{StaticResource TitleStyle}"
+                   Text="📝 Contract Negotiation" 
+                   Margin="0,0,0,20"/>
+
+        <!-- Phase 3.1 - Template Selection -->
+        <Border Grid.Row="1" 
+                Background="{StaticResource BorderMediumBrush}" 
+                CornerRadius="8" 
+                Padding="15" 
+                Margin="0,0,0,15">
+            <StackPanel Spacing="10">
+                <TextBlock Text="📋 Utiliser un Template" 
+                           FontSize="14" 
+                           FontWeight="SemiBold" 
+                           Foreground="{StaticResource TextSecondaryBrush}" 
+                           Margin="0,0,0,8"/>
+                
+                <ComboBox ItemsSource="{Binding ContractTemplates}"
+                          SelectedItem="{Binding SelectedTemplate}"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" 
+                                           FontWeight="SemiBold" 
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{Binding Description}" 
+                                           FontSize="11" 
+                                           Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Button Content="Appliquer Template"
+                        Command="{Binding ApplyTemplateCommand}"
+                        HorizontalAlignment="Stretch"
+                        Theme="{StaticResource PrimaryButton}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Contract Terms -->
+        <TextBlock Grid.Row="2" 
+                   Text="Contract Terms" 
+                   FontSize="16" 
+                   FontWeight="SemiBold" 
+                   Foreground="{StaticResource TextSecondaryBrush}" 
+                   Margin="0,10,0,15"/>
+
+        <!-- Monthly Wage -->
+        <Grid Grid.Row="3" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" 
+                       Text="Salaire Mensuel ($):" 
+                       Foreground="{StaticResource TextMutedBrush}" 
+                       VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" 
+                     Text="{Binding MonthlyWage, StringFormat='{}{0:N0}'}"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
+                     Padding="8"/>
+        </Grid>
+
+        <!-- Appearance Fee -->
+        <Grid Grid.Row="4" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" 
+                       Text="Frais d'Apparition ($):" 
+                       Foreground="{StaticResource TextMutedBrush}" 
+                       VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" 
+                     Text="{Binding AppearanceFee, StringFormat='{}{0:N0}'}"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
+                     Padding="8"/>
+        </Grid>
+
+        <!-- Duration -->
+        <Grid Grid.Row="5" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" 
+                       Text="Durée (mois):" 
+                       Foreground="{StaticResource TextMutedBrush}" 
+                       VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" 
+                     Text="{Binding DurationMonths}"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
+                     Padding="8"/>
+        </Grid>
+
+        <!-- Options -->
+        <StackPanel Grid.Row="6" Spacing="{StaticResource SpacingSmall}" Margin="0,0,0,12">
+            <CheckBox Content="Contrat Exclusif"
+                      IsChecked="{Binding IsExclusive}"
+                      Foreground="{StaticResource TextSecondaryBrush}"/>
+            <CheckBox Content="Option de Renouvellement Automatique"
+                      IsChecked="{Binding HasRenewalOption}"
+                      Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+
+        <!-- Status Message -->
+        <TextBlock Grid.Row="7" 
+                   Text="{Binding StatusMessage}" 
+                   Foreground="{StaticResource WarningBrush}" 
+                   Margin="0,0,0,12"
+                   TextWrapping="Wrap"/>
+
+        <!-- Spacer -->
+        <Border Grid.Row="8"/>
+
+        <!-- Buttons -->
+        <Grid Grid.Row="9" ColumnDefinitions="*,10,*">
+            <Button Grid.Column="0"
+                    Theme="{StaticResource SecondaryButton}"
+                    Content="Annuler"
+                    Command="{Binding CancelCommand}"
+                    HorizontalAlignment="Stretch"/>
+            
+            <Button Grid.Column="2"
+                    Theme="{StaticResource SuccessButton}"
+                    Content="Créer l'Offre"
+                    Command="{Binding CreateOfferCommand}"
+                    HorizontalAlignment="Stretch"/>
+        </Grid>
+
+    </Grid>
+
+</Window>

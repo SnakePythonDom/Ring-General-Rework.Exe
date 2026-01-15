@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Shared"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Shared.ProfileView"
+             x:DataType="vm:ProfileViewModel">
+
+    <Design.DataContext>
+        <vm:ProfileViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*">
+        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="24" CornerRadius="8">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Width="96" Height="96" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="8">
+                    <TextBlock Text="🧍" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock Text="{Binding DisplayName}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding Role}" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock Text="{Binding Gimmick}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Text="{Binding Status}" FontSize="12" Foreground="{StaticResource SuccessLightBrush}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding Nationality}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{Binding Age}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{Binding Height}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{Binding Weight}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="PROFIL">
+                <StackPanel Spacing="16" Margin="0,10,0,0">
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                            <TextBlock Text="Nationalité" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Nationality}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Grid.Row="1" Text="Âge" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Age}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Grid.Row="2" Text="Taille" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Height}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Grid.Row="3" Text="Poids" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Weight}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="ATTRIBUTS">
+                <ScrollViewer>
+                    <StackPanel Spacing="16" Margin="0,10,0,0">
+                        <ItemsControl ItemsSource="{Binding AttributeGroups}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,0,12">
+                                        <StackPanel Spacing="12">
+                                            <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
+                                            <ItemsControl ItemsSource="{Binding Attributes}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Spacing="4">
+                                                            <Grid ColumnDefinitions="*,Auto">
+                                                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                                            </Grid>
+                                                            <Border Height="6" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="3">
+                                                                <Border Width="{Binding PercentageWidth}" Background="{Binding Color}" CornerRadius="3" HorizontalAlignment="Left"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="HISTORIQUE">
+                <StackPanel Spacing="16" Margin="0,10,0,0">
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Matches récents" FontSize="12" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
+                            <ItemsControl ItemsSource="{Binding RecentMatches}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding .}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Storylines" FontSize="12" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
+                            <ItemsControl ItemsSource="{Binding RecentStorylines}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding .}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Titres détenus" FontSize="12" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"/>
+                            <ItemsControl ItemsSource="{Binding TitleHistory}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding .}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="CONTRAT">
+                <StackPanel Spacing="16" Margin="0,10,0,0">
+                    <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+                                <TextBlock Text="Salaire" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Salary}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Grid.Row="1" Text="Début" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ContractStart}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Grid.Row="2" Text="Fin" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ContractEnd}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </Grid>
+                            <TextBlock Text="{Binding ContractClauses}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Button Content="Renégocier" IsEnabled="{Binding CanRenegotiate}" Background="{StaticResource AccentBlueBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                                <Button Content="Libérer" IsEnabled="{Binding CanRelease}" Background="{StaticResource AccentRedBrush}" Foreground="White" CornerRadius="6" Padding="12,6"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

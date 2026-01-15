@@ -1,0 +1,161 @@
+Vue Principale : 🔥 STORYLINES ACTIVES
+L'onglet principal inclut désormais le Staff Créatif assigné et les Idées du Booker (suggestions de l'IA).
+
+Plaintext
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📖 GESTION DES STORYLINES                               [➕ Créer Storyline] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ [🔥 ACTIVES] [⏸️ SUSPENDUES] [✅ TERMINÉES] [👨‍🎨 STAFF CRÉATIF]            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ ┌──────────────────────┐ │ ┌────────────────────────────────────────────┐ │
+│ │ LISTE DES RIVALITÉS  │ │ │ DÉTAILS : Rivalité Cena / Punk             │ │
+│ │                      │ │ │ ────────────────────────────────────────── │ │
+│ │ ┌──────────────────┐│ │ │ 📈 HEAT: 85 [██████████░░]   Phase: CLIMAX │ │
+│ │ │ Cena vs Punk     ││ │ │ 👔 BOOKER : John Smith                      │ │
+│ │ │ Heat: 85 ⚡      ││ │ │ 👨‍🎨 LEAD CRÉATIF: Paul Heyman (Exp: 95)     │ │
+│ │ └──────────────────┘│ │ │                                            │ │
+│ │                      │ │ │ 👥 PARTICIPANTS                             │ │
+│ │ ┌──────────────────┐│ │ │ • [Face] John Cena   • [Heel] CM Punk      │ │
+│ │ │ Bloodline Drama  ││ │ │                                            │ │
+│ │ │ Heat: 70 ⚡      ││ │ │ 🧠 IDÉE DU LEAD CRÉATIF (Heyman) :          │ │
+│ │ └──────────────────┘│ │ │ "Punk devrait trahir son allié au prochain  │ │
+│ │                      │ │ │  PPV pour maximiser le Heat de la phase."  │ │
+│ │                      │ │ │                                            │ │
+│ │ ...                  │ │ │ 🧠 IDÉE DU BOOKER (Smith) :                │ │
+│ │                      │ │ │ "Assurez-vous que Cena garde son Momentum   │ │
+│ │                      │ │ │  malgré la défaite prévue."                │ │
+│ │                      │ │ │                                            │ │
+│ └──────────────────────┘ │ └────────────────────────────────────────────┘ │
+│                               [📋 Historique] [⏸️ Suspendre] [🏁 Terminer] │
+└─────────────────────────────────────────────────────────────────────────────┘
+Bouton [🏁 Terminer] : Déclenche la vue de bilan (gain de popularité final, déblocage de mémoires pour le booker).
+
+1.1 Vue : ➕ CRÉER STORYLINE
+Cette vue s'affiche en overlay ou via une navigation dédiée.
+
+Plaintext
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🆕 CRÉATION DE STORYLINE                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. INFOS DE BASE                                                            │
+│ Titre : [_________________________]   Type : [▼ Rivalité Standard ]         │
+│                                                                             │
+│ 2. SÉLECTION DES PARTICIPANTS (Max 4)                                       │
+│ [🔍 Chercher...]          SÉLECTIONNÉS :                                    │
+│ • [Avatar] John Cena [X]  • [Avatar] CM Punk [X]                            │
+│                                                                             │
+│ 3. ASSIGNATION STAFF CRÉATIF                                                │
+│ Scénariste : [▼ Paul Heyman (Bonus Créativité +15)]                         │
+│                                                                             │
+│ 4. PRÉVISION D'INTENSITÉ                                                    │
+│ Heat de départ estimé : 45 ⚡                                               │
+│                                                                             │
+│ [❌ Annuler]                                           [✅ Lancer la Feud] │
+└─────────────────────────────────────────────────────────────────────────────┘
+2. 👨‍🎨 STAFF CRÉATIF (avec Suggestions)
+Le bouton [💡 Suggérer] est maintenant rattaché à chaque membre de votre équipe actuelle.
+
+Plaintext
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📖 GESTION DES STORYLINES                               [➕ Créer Storyline] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🔥 ACTIVES ⏸️ SUSPENDUES ✅ TERMINÉES [👨‍🎨 STAFF CRÉATIF]                                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ÉQUIPE ACTUELLE                     RECRUTER / DISPONIBLES                  │
+│ ┌────────────────────────┐ │ ┌────────────────────────────────────────────┐ │
+│ │ 👤 Paul Heyman         │ │ │ [🔍 Rechercher un scripte...]                │ │
+│ │  Créativité: 95        │ │ │                                            │ │
+│ │  Spé: Main Event       │ │ │ 👤 Eric Bischoff   [Engager]               │ │
+│ │  [💡 Suggérer Storyline]│ │ │    Logique: 82 • Drama: 90                 │ │
+│ │                        │ │ │                                            │ │
+│ │ 👤 Bruce Prichard      │ │ │ 👤 Dutch Mantell   [Engager]               │ │
+│ │  Créativité: 78        │ │ │    Logique: 88 • Tradition: 95             │ │
+│ │  [💡 Suggérer Storyline]│ │ │                                            │ │
+│ └────────────────────────┘ │ └────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+2.1. Mockup : 💡 SUGGESTIONS DU STAFF (Overlay)
+Lorsqu'on clique sur [💡 Suggérer Storyline], une fenêtre contextuelle affiche des idées basées sur l'expertise du membre choisi.
+
+Plaintext
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🧠 IDÉES DE PAUL HEYMAN                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Basé sur le Roster actuel et les rivalités passées :                        │
+│                                                                             │
+│ 1. ⚔️ RIVALITÉ : "The Last Stand"                                            │
+│    Cible: John Cena vs CM Punk                                              │
+│    Heat Prédit: 75 ⚡                                                        │
+│    Note: "Leur alchimie technique garantit un succès immédiat."             │
+│    [✅ Créer cette Storyline]                                               │
+│                                                                             │
+│ 2. 🎭 TRAHISON : "The Bloodline Fall"                                       │
+│    Cible: Roman Reigns vs Solo Sikoa                                        │
+│    Heat Prédit: 82 ⚡                                                        │
+│    Note: "L'aspect dramatique correspond à ma spécialité Main Event."       │
+│    [✅ Créer cette Storyline]                                               │
+│                                                                             │
+│ [❌ Fermer]                                                                  │
+└─────────────────────────────────────────────────────────────────────────────
+└─────────────────────────────────────────────────────────────────────────────┘
+3. Onglet : ⏸️ SUSPENDUES (Mise en pause stratégique)
+Cet onglet ne se contente plus de lister les noms ; il explique le "Pourquoi" et le "Comment reprendre", avec l'avis du staff.
+
+Plaintext
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📖 GESTION DES STORYLINES                               [➕ Créer Storyline] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🔥 ACTIVES [ ⏸️ SUSPENDUES ] ✅ TERMINÉES 👨‍🎨 STAFF CRÉATIF                                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ LISTE DES RIVALITÉS EN PAUSE          DÉTAILS & ANALYSE DE REPRISE          │
+│ ┌────────────────────────┐ │ ┌────────────────────────────────────────────┐ │
+│ │ ⏸️ Cody vs Reigns      │ │ │ ANALYSE : Cody Rhodes vs Roman Reigns      │ │
+│ │  Heat: 92 ⚡ (Gelé)    │ │ │ ────────────────────────────────────────── │ │
+│ │  Pause: Semaine 40     │ │ │ 📅 DURÉE DE PAUSE : 3 Semaines              │ │
+│ │                        │ │ │ 📉 RISQUE DE REFROIDISSEMENT : Faible      │ │
+│ │ ⏸️ Wyatt Sicks         │ │ │                                            │ │
+│ │  Heat: 55 ⚡ (Gelé)    │ │ │ 🧠 NOTE DU STAFF (Paul Heyman) :           │ │
+│ │  Pause: Semaine 42     │ │ │ "L'élan est préservé. Une intervention au  │ │
+│ │                        │ │ │  prochain show relancerait le Heat à 100%."│ │
+│ │ ...                    │ │ │                                            │ │
+│ └────────────────────────┘ │ └────────────────────────────────────────────┘ │
+│                                         [▶️ Reprendre] [🏁 Terminer Défin.] │
+└─────────────────────────────────────────────────────────────────────────────┘
+Fonctionnalité des boutons :
+
+[▶️ Reprendre] : (Layer 3) Réactive la storyline dans la table Storylines, recalcule le Heat de départ (avec un léger malus selon la durée de pause) et la déplace vers l'onglet 🔥 ACTIVES.
+
+[🏁 Terminer Défin.] : Ferme la rivalité prématurément sans show final. Les gains de popularité sont réduits de 50%.
+
+4. Onglet : ✅ TERMINÉES (Bilan & Héritage)
+Cet onglet devient le journal de bord de vos succès passés. Il génère les Mémoires du Booker, essentielles pour la cohérence à long terme.
+
+Plaintext
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📖 GESTION DES STORYLINES                               [➕ Créer Storyline] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🔥 ACTIVES ⏸️ SUSPENDUES [✅ TERMINÉES ] 👨‍🎨 STAFF CRÉATIF                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ RIVALITÉS PASSÉES                    BILAN & IMPACT (LEGACY)                │
+│ ┌────────────────────────┐ │ ┌────────────────────────────────────────────┐ │
+│ │ ✅ Cena vs Punk        │ │ │ BILAN : Rivalité Cena / Punk               │ │
+│ │  Fin: date	           │ │ │ ────────────────────────────────────────── │ │
+│ │  Note Finale: 95/100   │ │ │ ⭐ SCORE FINAL : 95 (LÉGENDAIRE)           │ │
+│ │                        │ │ │ 📈 IMPACT ROSTER :                         │ │
+│ │ ✅ Usos Split          │ │ │    • John Cena : +15 Pop / +20 Momentum    │ │
+│ │  Fin: date	           │ │ │    • CM Punk   : +12 Pop / -10 Momentum    │ │
+│ │  Note Finale: 82/100   │ │ │                                            │ │
+│ │                        │ │ │ 🧠 MÉMOIRE DU BOOKER GÉNÉRÉE :             │ │
+│ │ ...                    │ │ │ "Le pipebomb de la semaine 32 restera une  │ │
+│ │                        │ │ │  référence de storytelling technique."      │ │
+│ └────────────────────────┘ │ └────────────────────────────────────────────┘ │
+│                                         [📜 Historique Complet des Matchs] │
+└─────────────────────────────────────────────────────────────────────────────┘
+[📜 Historique Complet] : Ouvre une liste de tous les segments (matchs et promos) ayant composé cette storyline avec leurs notes individuelles.
+
+Mémoires du Booker (Automatique) : Lors de la finalisation, le Layer 3 écrit une entrée dans la table BookerMemories. Cette mémoire influencera les futures interactions entre ces deux workers (ex: bonus d'alchimie s'ils se recroisent).

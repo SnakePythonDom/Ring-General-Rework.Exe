@@ -1,0 +1,103 @@
+Executive Summary: The "Living World" Update
+We are building a Feedback Loop System.
+
+Personality & Relations dictate → Decisions.
+
+Decisions (by Owner/Booker) create → Consequences (Crisis/Success).
+
+Consequences impact → Morale & Child Companies.
+
+Phase 1: The Human Element (Personality & Relations)
+Objective: Give the AI "feelings" so decisions aren't just random math.
+
+1.1 Personality Engine Refactor (IPersonalityEngine)
+We need to convert static traits into decision modifiers.
+
+Task: Implement PersonalityEngine.cs.
+
+Logic:
+
+CalculateAmbition(Worker w): High ambition = demands titles/pushes.
+
+CalculateLoyalty(Worker w): High loyalty = accepts lower pay/bad booking.
+
+CalculateVolatility(Worker w): High volatility = high chance of Crisis.
+
+1.2 The Social Graph (IRelationsRepository)
+Task: Optimize RelationsRepository for fast lookups (Graph Theory).
+
+Logic: instead of checking every worker against every worker, cash "Cliques" (Factions/Friends groups).
+
+Integration: Update NepotismEngine (which you uploaded) to use these cached Cliques for faster processing.
+
+Phase 2: The Decision Makers (Owner, Booker, Staff)
+Objective: Implement the "Brain" that runs the company based on Phase 1 data.
+
+2.1 The Owner's Brain (IOwnerDecisionEngine)
+The Owner acts as the "Check & Balance" for the AI.
+
+New Service: OwnerDecisionEngine.cs.
+
+Features:
+
+Budget Veto: If Spending > RiskTolerance, block staff hiring.
+
+Goal Setting: Set BrandObjective (Development vs Profit) for Child Companies.
+
+Crisis Intervention: If NepotismImpact > 80, Owner fires the Booker.
+
+2.2 The Booker's Cognitive Load (IBookerAIEngine)
+Integration: Connect BookerMemory.cs (uploaded) to the booking logic.
+
+Logic:
+
+Pre-booking check: Does Booker have "Trauma" associated with this Match Type? (e.g., Someone died in a Cage Match 6 months ago -> Don't book Cage Matches).
+
+Bias Check: Call NepotismEngine.EvaluatePushDecision().
+
+2.3 Staff Agency
+Staff are not just stat sticks.
+
+Feature: Staff refuse assignments if StaffCompatibility is low (e.g., A "Scientific" Coach won't work in a "Hardcore" Child Company).
+
+Phase 3: The Network (Child Companies & Expansion)
+Objective: Create the "Ecosystem" where resources flow between entities.
+
+3.1 The Subsidiary Flow
+Logic:
+
+Upstream: Talent "Call-ups" (Child -> Parent). Needs logic: IsReadyForTV().
+
+Downstream: "Excursions" (Parent -> Child). Needs logic: SendToDevelop(Worker w, Focus area).
+
+Financial: Implement the SubsidizeChildren() method discussed previously.
+
+3.2 Staff Matrix Management (StaffSharingEngine)
+Task: Complete the StaffSharingService to handle the 80/20 split logic.
+
+Conflict Handling: If a staff member is booked for Parent PPV and Child TV on the same night, apply Owner.Priority to decide where they go.
+
+Phase 4: The Fallout (Morale & Crisis)
+Objective: The consequences of actions.
+
+4.1 Dynamic Morale (IMoraleEngine)
+Logic: Morale is no longer a simple slider. It's a calculated derivative.
+
+Morale = (RecentBooking + FinancialHealth + LockerRoomLeaders) - (ToxicWorkers + UnfairDecisions).
+
+Trigger: If Morale < 30, trigger CrisisEvent (Walkout).
+
+4.2 Crisis Management System (ICrisisEngine)
+New Workflow:
+
+Event happens (e.g., Star arrested).
+
+CrisisEngine calculates Severity based on Owner.RiskTolerance.
+
+UI: Player gets a "Decision Ticket":
+
+Option A: Fire him (Morale +, Star Power -).
+
+Option B: Cover it up (Cost $, Risk of leak).
+
+Option C: Do nothing (Owner Anger +).

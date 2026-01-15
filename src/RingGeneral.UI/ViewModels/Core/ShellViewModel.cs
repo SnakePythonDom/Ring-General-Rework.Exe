@@ -1,0 +1,665 @@
+using System.Collections.ObjectModel;
+using System.Reactive;
+using ReactiveUI;
+using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.Services.Messaging;
+using RingGeneral.UI.ViewModels.Shared.Navigation;
+using RingGeneral.UI.ViewModels.Booking;
+using RingGeneral.UI.ViewModels.Dashboard;
+using RingGeneral.UI.ViewModels.Roster;
+using RingGeneral.UI.ViewModels.Trends;
+using RingGeneral.UI.ViewModels.Company;
+using RingGeneral.UI.ViewModels.Storylines;
+using RingGeneral.UI.ViewModels.Youth;
+using RingGeneral.UI.ViewModels.Finance;
+using RingGeneral.UI.ViewModels.Calendar;
+using RingGeneral.UI.ViewModels.OwnerBooker;
+using RingGeneral.UI.ViewModels.Crisis;
+using RingGeneral.UI.ViewModels.Inbox;
+using RingGeneral.UI.ViewModels.Settings;
+using RingGeneral.UI.ViewModels.Medical;
+using RingGeneral.UI.ViewModels.CompanyHub;
+using RingGeneral.UI.ViewModels.Recruitment;
+using RingGeneral.UI.ViewModels; // provide access to GameSessionViewModel
+using RingGeneral.Data.Repositories;
+
+namespace RingGeneral.UI.ViewModels.Core;
+
+/// <summary>
+/// ViewModel principal du Shell (Prototype D - Dual-pane FM26 style)
+/// Gère la navigation arborescente et le contenu dynamique
+/// </summary>
+public sealed class ShellViewModel : ViewModelBase
+{
+    private readonly INavigationService _navigationService;
+    private readonly GameRepository? _repository;
+    private NavigationItemViewModel? _selectedNavigationItem;
+    private NavigationItemViewModel? _workersNavigationItem;
+    private ViewModelBase? _currentContentViewModel;
+    private ViewModelBase? _currentContextViewModel;
+    private bool _isInGameMode = false;
+
+    private readonly IRecruitmentService _recruitmentService;
+    private readonly IEventAggregator _eventAggregator;
+
+    public ShellViewModel(INavigationService navigationService, IEventAggregator eventAggregator, IRecruitmentService recruitmentService, GameRepository? repository = null)
+    {
+        _navigationService = navigationService;
+        _eventAggregator = eventAggregator;
+        _recruitmentService = recruitmentService;
+        _repository = repository;
+
+        // Ensure game session exists as early as possible so bindings (commands) are available
+        GameSession = new GameSessionViewModel();
+
+        // Construction de l'arbre de navigation
+        NavigationItems = BuildNavigationTree();
+
+        // Charger le nombre de workers dynamiquement
+        _ = LoadWorkersCountAsync();
+
+        // Observer les changements de ViewModel
+        _navigationService.CurrentViewModelObservable
+            .Subscribe(vm =>
+            {
+                Logger.Info($"CurrentViewModel changé: {vm?.GetType().Name ?? "null"}");
+                CurrentContentViewModel = vm;
+
+                // Initialization contextuelle des ViewModels
+                if (vm is ChildCompaniesViewModel childCompaniesVm && !string.IsNullOrEmpty(GameSession.CurrentCompanyId))
+                {
+                    // Charger les filiales pour la compagnie courante
+                    _ = childCompaniesVm.LoadChildCompaniesAsync(GameSession.CurrentCompanyId);
+                }
+
+                // Mettre à jour le context panel selon le contenu
+                UpdateContextPanel(vm);
+            });
+
+        // =========================================================
+        // SUBSCRIPTIONS TO EVENT AGGREGATOR
+        // =========================================================
+        // We need to listen to segment selection to show segment details in the context panel
+        // This connects the BookingViewModel selection to the Shell's ContextPanel
+        _eventAggregator.GetEvent<SegmentSelectedEvent>()
+            .Subscribe(evt =>
+            {
+                if (evt?.Segment != null)
+                {
+                    // Update context panel with the selected segment
+                    CurrentContextViewModel = evt.Segment;
+                }
+            });
+
+        _eventAggregator.GetEvent<RecruitAgentEvent>()
+            .Subscribe(evt =>
+            {
+                if (evt?.Agent != null)
+                {
+                    // Open recruitment dialog in context panel
+                    var dialogVm = new RecruitmentDialogViewModel(evt.Agent, _recruitmentService, _eventAggregator);
+                    CurrentContextViewModel = dialogVm;
+                }
+            });
+
+        // Commandes
+        NavigateCommand = ReactiveCommand.Create<NavigationItemViewModel>(NavigateToItem);
+        GlobalSearchCommand = ReactiveCommand.Create(OpenGlobalSearch);
+        InboxCommand = ReactiveCommand.Create(OpenInbox);
+        HelpCommand = ReactiveCommand.Create(OpenHelp);
+        SettingsCommand = ReactiveCommand.Create(OpenSettings);
+
+        // Commandes de navigation rapide pour la top bar
+        NavigateToDashboardCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<DashboardViewModel>());
+        NavigateToBookingCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<BookingViewModel>());
+        NavigateToCompanyCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<ViewModels.CompanyHub.CompanyHubViewModel>());
+        NavigateToLibraryCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<LibraryViewModel>());
+        NavigateToReportsCommand = ReactiveCommand.Create(OpenReports);
+        NavigateToSettingsCommand = ReactiveCommand.Create(OpenSettings);
+        NavigateToCalendarCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<CalendarViewModel>());
+        NavigateToYouthHubCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<YouthHubViewModel>());
+
+        // Synchroniser le CurrentViewModel du NavigationService s'il existe déjà
+        if (_navigationService.CurrentViewModel != null)
+        {
+            Logger.Info($"ViewModel initial depuis NavigationService: {_navigationService.CurrentViewModel.GetType().Name}");
+            CurrentContentViewModel = _navigationService.CurrentViewModel;
+        }
+        else
+        {
+            // Sélectionner l'accueil par défaut seulement si pas de ViewModel initial
+            var homeItem = NavigationItems.FirstOrDefault();
+            if (homeItem != null)
+            {
+                Logger.Info($"Navigation vers l'accueil par défaut");
+                NavigateToItem(homeItem);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Items de navigation (TreeView)
+    /// </summary>
+    public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
+
+    /// <summary>
+    /// Item de navigation sélectionné
+    /// </summary>
+    public NavigationItemViewModel? SelectedNavigationItem
+    {
+        get => _selectedNavigationItem;
+        set
+        {
+            if (_selectedNavigationItem == value)
+            {
+                return;
+            }
+
+            NavigationItemViewModel? navigationItemViewModel = this.RaiseAndSetIfChanged(ref _selectedNavigationItem, value);
+            if (value != null)
+            {
+                NavigateToItem(value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// ViewModel du contenu central (zone principale)
+    /// </summary>
+    public ViewModelBase? CurrentContentViewModel
+    {
+        get => _currentContentViewModel;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _currentContentViewModel, value);
+            // Mettre à jour IsInGameMode en fonction du ViewModel actuel
+            IsInGameMode = value != null && value is not Start.StartViewModel && value is not Start.CompanySelectorViewModel && value is not Start.CreateCompanyViewModel;
+            // Mettre à jour CurrentViewTitle quand le ViewModel change
+            this.RaisePropertyChanged(nameof(CurrentViewTitle));
+        }
+    }
+
+    /// <summary>
+    /// Indique si l'application est en mode jeu (vs mode menu de démarrage)
+    /// Utilisé pour cacher/montrer les éléments du Shell
+    /// </summary>
+    public bool IsInGameMode
+    {
+        get => _isInGameMode;
+        private set => this.RaiseAndSetIfChanged(ref _isInGameMode, value);
+    }
+
+    /// <summary>
+    /// ViewModel du panneau de contexte (droite)
+    /// </summary>
+    public ViewModelBase? CurrentContextViewModel
+    {
+        get => _currentContextViewModel;
+        private set => this.RaiseAndSetIfChanged(ref _currentContextViewModel, value);
+    }
+
+    /// <summary>
+    /// Titre de la vue actuelle affiché dans la top bar
+    /// </summary>
+    public string CurrentViewTitle
+    {
+        get
+        {
+            return CurrentContentViewModel switch
+            {
+                DashboardViewModel => "TABLEAU DE BORD",
+                BookingViewModel => "BOOKING",
+                LibraryViewModel => "BIBLIOTHÈQUE",
+                ShowHistoryPageViewModel => "HISTORIQUE SHOWS",
+                BookingSettingsViewModel => "PARAMÈTRES BOOKING",
+                RosterViewModel => "ROSTER",
+                ViewModels.Roster.WorkerDetailViewModel => "DÉTAILS WORKER",
+                TitlesViewModel => "TITRES",
+                ViewModels.Roster.StructuralDashboardViewModel => "ANALYSE STRUCTURELLE",
+                MedicalViewModel => "MÉDICAL",
+                ViewModels.CompanyHub.CompanyHubViewModel => "COMPANY HUB",
+                ViewModels.Trends.TrendsViewModel => "TENDANCES",
+                ViewModels.Company.NicheManagementViewModel => "GESTION NICHE",
+                ViewModels.Company.ChildCompaniesViewModel => "FILIALES",
+                ViewModels.Company.ChildCompanyBookingViewModel => "BOOKING FILIALES",
+                StorylinesViewModel => "STORYLINES",
+                YouthViewModel or YouthHubViewModel => "YOUTH",
+                FinanceViewModel => "FINANCE",
+                OwnerBookerViewModel => "OWNER & BOOKER",
+                CrisisViewModel => "CRISES",
+                CalendarViewModel => "CALENDRIER",
+                InboxViewModel => "INBOX",
+                SettingsViewModel => "PARAMÈTRES",
+                FreeAgentsViewModel => "MARCHÉ DES AGENTS LIBRES",
+                Start.StartViewModel => "MENU PRINCIPAL",
+                Start.CompanySelectorViewModel => "SÉLECTION COMPAGNIE",
+                Start.CreateCompanyViewModel => "CRÉER COMPAGNIE",
+                null => "",
+                _ => CurrentContentViewModel?.GetType().Name.Replace("ViewModel", "") ?? ""
+            };
+        }
+    }
+
+    /// <summary>
+    /// Informations contextuelles (Topbar)
+    /// </summary>
+    public string CurrentShowName => "Monday Night Raw";
+    public int CurrentWeek => 24;
+    public int TotalWeeks => 52;
+    public string CurrentBudget => "$2.4M";
+
+    /// <summary>
+    /// Badges de notifications
+    /// </summary>
+    public int InboxCount
+    {
+        get => _inboxCount;
+        set => this.RaiseAndSetIfChanged(ref _inboxCount, value);
+    }
+    private int _inboxCount = 3;
+
+    // Commandes
+    public ReactiveCommand<NavigationItemViewModel, Unit> NavigateCommand { get; }
+    public ReactiveCommand<Unit, Unit> GlobalSearchCommand { get; }
+    public ReactiveCommand<Unit, Unit> InboxCommand { get; }
+    public ReactiveCommand<Unit, Unit> HelpCommand { get; }
+    public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
+
+    // Commandes de navigation rapide pour la top bar
+    public ReactiveCommand<Unit, Unit> NavigateToDashboardCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToBookingCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToCompanyCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToLibraryCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToReportsCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToCalendarCommand { get; }
+    public ReactiveCommand<Unit, Unit> NavigateToYouthHubCommand { get; }
+
+    private ObservableCollection<NavigationItemViewModel> BuildNavigationTree()
+    {
+        var root = new ObservableCollection<NavigationItemViewModel>();
+
+        // 🏠 Accueil / Dashboard
+        var home = new NavigationItemViewModel(
+            "home",
+            "ACCUEIL",
+            "🏠",
+            typeof(DashboardViewModel)
+        );
+        root.Add(home);
+
+        // 📋 BOOKING
+        var booking = new NavigationItemViewModel(
+            "booking",
+            "BOOKING",
+            "📋"
+        );
+        booking.IsExpanded = true; // Expanded par défaut
+        booking.Children.Add(new NavigationItemViewModel(
+            "booking.shows",
+            "Shows actifs",
+            "  📺",
+            typeof(BookingViewModel),
+            booking
+        ));
+        booking.Children.Add(new NavigationItemViewModel(
+            "booking.library",
+            "Bibliothèque",
+            "  📚",
+            typeof(LibraryViewModel),
+            booking
+        ));
+        booking.Children.Add(new NavigationItemViewModel(
+            "booking.history",
+            "Historique",
+            "  📊",
+            typeof(ShowHistoryPageViewModel),
+            booking
+        ));
+        booking.Children.Add(new NavigationItemViewModel(
+            "booking.settings",
+            "Paramètres",
+            "  ⚙️",
+            typeof(BookingSettingsViewModel),
+            booking
+        ));
+        root.Add(booking);
+
+        // 👤 ROSTER
+        var roster = new NavigationItemViewModel(
+            "roster",
+            "ROSTER",
+            "👤"
+        );
+        _workersNavigationItem = new NavigationItemViewModel(
+            "roster.workers",
+            "Workers",
+            "  🤼",
+            typeof(RosterViewModel),
+            roster
+        );
+        roster.Children.Add(_workersNavigationItem);
+        roster.Children.Add(new NavigationItemViewModel(
+            "roster.titles",
+            "Titres",
+            "  🏆",
+            typeof(TitlesViewModel),
+            roster
+        )
+        { Badge = "(5)" });
+        roster.Children.Add(new NavigationItemViewModel(
+            "roster.analysis",
+            "Analyse Structurelle",
+            "  📊",
+            typeof(ViewModels.Roster.StructuralDashboardViewModel),
+            roster
+        ));
+        roster.Children.Add(new NavigationItemViewModel(
+            "roster.freeagents",
+            "Agents Libres",
+            "  💸",
+            typeof(FreeAgentsViewModel),
+            roster
+        ));
+        root.Add(roster);
+
+        // 🏥 MEDICAL (inclut maintenant Injuries)
+        var medical = new NavigationItemViewModel(
+            "medical",
+            "MÉDICAL",
+            "🏥",
+            typeof(MedicalViewModel)
+        );
+        root.Add(medical);
+
+        // 🏢 COMPANY HUB
+        var companyHub = new NavigationItemViewModel(
+            "companyhub",
+            "COMPANY HUB",
+            "🏢",
+            typeof(CompanyHubViewModel)
+        );
+        root.Add(companyHub);
+
+        // 📈 ANALYSIS (Analyse Structurelle & Stratégies de Niche)
+        var analysis = new NavigationItemViewModel(
+            "analysis",
+            "ANALYSE",
+            "📈"
+        );
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.trends",
+            "Tendances",
+            "  📈",
+            typeof(ViewModels.Trends.TrendsViewModel),
+            analysis
+        ));
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.niche",
+            "Gestion Niche",
+            "  🎯",
+            typeof(ViewModels.Company.NicheManagementViewModel),
+            analysis
+        ));
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.childcompanies",
+            "Filiales",
+            "  🏢",
+            typeof(ViewModels.Company.ChildCompaniesViewModel),
+            analysis
+        ));
+        analysis.Children.Add(new NavigationItemViewModel(
+            "analysis.childbooking",
+            "Contrôle Booking Filiales",
+            "  🎛️",
+            typeof(ViewModels.Company.ChildCompanyBookingViewModel),
+            analysis
+        ));
+        root.Add(analysis);
+
+        // 📖 STORYLINES
+        var storylines = new NavigationItemViewModel(
+            "storylines",
+            "STORYLINES",
+            "📖",
+            typeof(StorylinesViewModel)
+        );
+        root.Add(storylines);
+
+        // 🎓 YOUTH
+        var youth = new NavigationItemViewModel(
+            "youth",
+            "YOUTH",
+            "🎓",
+            typeof(YouthHubViewModel)
+        );
+        root.Add(youth);
+
+        // 💼 FINANCE
+        var finance = new NavigationItemViewModel(
+            "finance",
+            "FINANCE",
+            "💼",
+            typeof(FinanceViewModel)
+        );
+        root.Add(finance);
+
+        // 👔 OWNER & BOOKER
+        var ownerBooker = new NavigationItemViewModel(
+            "ownerbooker",
+            "OWNER & BOOKER",
+            "👔",
+            typeof(OwnerBookerViewModel)
+        );
+        root.Add(ownerBooker);
+
+        // 🔥 CRISES
+        var crises = new NavigationItemViewModel(
+            "crises",
+            "CRISES",
+            "🔥",
+            typeof(CrisisViewModel)
+        );
+        root.Add(crises);
+
+        // 📆 CALENDRIER
+        var calendar = new NavigationItemViewModel(
+            "calendar",
+            "CALENDRIER",
+            "📆",
+            typeof(CalendarViewModel)
+        );
+        root.Add(calendar);
+
+        return root;
+    }
+
+    private void NavigateToItem(NavigationItemViewModel item)
+    {
+        Logger.Info($"ShellViewModel: NavigateToItem appelé pour: ID={item.Id}, Label={item.Label}, TargetType={item.TargetViewModelType?.FullName ?? "null"}");
+
+        if (item.TargetViewModelType == null)
+        {
+            // Si pas de ViewModel cible, c'est juste une catégorie
+            // Toggle expand
+            item.IsExpanded = !item.IsExpanded;
+            Logger.Info($"ShellViewModel: Item {item.Id} est une catégorie, IsExpanded={item.IsExpanded}");
+            return;
+        }
+
+        // Désélectionner tous les autres items
+        DeselectAllItems(NavigationItems);
+
+        // Sélectionner cet item
+        item.IsSelected = true;
+        _selectedNavigationItem = item;
+
+        // Naviguer via le service
+        Logger.Info($"ShellViewModel: Navigation vers {item.TargetViewModelType.FullName} depuis l'item {item.Id}");
+        NavigateToViewModelType(item.TargetViewModelType);
+    }
+
+    private void DeselectAllItems(ObservableCollection<NavigationItemViewModel> items)
+    {
+        foreach (var item in items)
+        {
+            if (item.IsSelected)
+            {
+                item.IsSelected = false;
+                Logger.Debug($"ShellViewModel: Désélection de l'item {item.Id}");
+            }
+            if (item.HasChildren)
+            {
+                DeselectAllItems(item.Children);
+            }
+        }
+    }
+
+    private void NavigateToViewModelType(Type viewModelType)
+    {
+        try
+        {
+            Logger.Info($"ShellViewModel: Tentative de navigation vers {viewModelType.FullName} (nom court: {viewModelType.Name})");
+
+            // Navigation vers un ViewModel spécifique via reflection
+            var navigateMethod = typeof(INavigationService)
+                .GetMethod(nameof(INavigationService.NavigateTo),
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance,
+                    null,
+                    System.Reflection.CallingConventions.HasThis,
+                    Type.EmptyTypes,
+                    null)
+                ?.MakeGenericMethod(viewModelType);
+
+            if (navigateMethod == null)
+            {
+                Logger.Error($"ShellViewModel: Méthode NavigateTo non trouvée pour {viewModelType.Name}");
+                return;
+            }
+
+            navigateMethod.Invoke(_navigationService, null);
+            Logger.Info($"ShellViewModel: Navigation vers {viewModelType.FullName} effectuée avec succès");
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = ex is System.Reflection.TargetInvocationException && ex.InnerException != null
+                ? $"ShellViewModel: Erreur lors de la navigation vers {viewModelType.FullName} (Inner): {ex.InnerException.Message}"
+                : $"ShellViewModel: Erreur lors de la navigation vers {viewModelType.FullName}: {ex.Message}";
+
+            Logger.Error(errorMessage, ex);
+        }
+    }
+
+    private void UpdateContextPanel(ViewModelBase? contentViewModel)
+    {
+        // Mettre à jour le panneau de contexte selon le contenu affiché
+        // Le context panel affiche des informations contextuelles selon la vue active
+
+        if (contentViewModel is BookingViewModel)
+        {
+            // Afficher le panel de validation pour le booking
+            CurrentContextViewModel = null; // TODO: Créer ValidationPanelViewModel
+            Logger.Debug("ShellViewModel: Context panel set to null for BookingViewModel (TODO: ValidationPanelViewModel)");
+        }
+        else if (contentViewModel is RosterViewModel or WorkerDetailViewModel)
+        {
+            // Afficher les stats du worker sélectionné
+            CurrentContextViewModel = null; // TODO: Créer WorkerStatsPanelViewModel
+            Logger.Debug("ShellViewModel: Context panel set to null for Roster/WorkerDetailViewModel (TODO: WorkerStatsPanelViewModel)");
+        }
+        else if (contentViewModel is MedicalViewModel)
+        {
+            // MedicalViewModel gère maintenant Injuries en interne
+            CurrentContextViewModel = null;
+            Logger.Debug("ShellViewModel: Context panel set to null for MedicalViewModel");
+        }
+        else if (contentViewModel is StorylinesViewModel)
+        {
+            // Afficher les détails de la storyline sélectionnée
+            CurrentContextViewModel = null; // TODO: Créer StorylineDetailsPanelViewModel
+            Logger.Debug("ShellViewModel: Context panel set to null for StorylinesViewModel (TODO: StorylineDetailsPanelViewModel)");
+        }
+        else
+        {
+            // Pas de context panel pour les autres vues
+            CurrentContextViewModel = null;
+            Logger.Debug($"ShellViewModel: Context panel set to null for {contentViewModel?.GetType().Name ?? "null"} (no specific context panel)");
+        }
+    }
+
+    private void OpenGlobalSearch()
+    {
+        // Ouvrir le panneau de recherche globale
+        // TODO: Créer GlobalSearchViewModel et l'afficher en overlay ou modal
+        System.Diagnostics.Debug.WriteLine("Opening global search...");
+        Logger.Info("ShellViewModel: Global search opened (TODO)");
+    }
+
+    private void OpenInbox()
+    {
+        // Ouvrir l'inbox des notifications
+        _navigationService.NavigateTo<InboxViewModel>();
+        Logger.Info("ShellViewModel: Navigation vers InboxViewModel");
+    }
+
+    private void OpenHelp()
+    {
+        // Ouvrir le panneau d'aide
+        // TODO: Créer HelpViewModel ou ouvrir documentation externe
+        System.Diagnostics.Debug.WriteLine("Opening help...");
+        Logger.Info("ShellViewModel: Help opened (TODO)");
+    }
+
+    private void OpenSettings()
+    {
+        // Ouvrir les paramètres globaux de l'application
+        _navigationService.NavigateTo<SettingsViewModel>();
+        Logger.Info("ShellViewModel: Navigation vers SettingsViewModel");
+    }
+
+    private void OpenReports()
+    {
+        // Ouvrir les rapports (pour l'instant, rediriger vers Finance)
+        // TODO: Créer ReportsViewModel si nécessaire
+        _navigationService.NavigateTo<FinanceViewModel>();
+        Logger.Info("ShellViewModel: Navigation vers FinanceViewModel (rapports)");
+    }
+
+    /// <summary>
+    /// Charge le nombre de workers depuis la base de données et met à jour le badge
+    /// </summary>
+    private async System.Threading.Tasks.Task LoadWorkersCountAsync()
+    {
+        if (_repository == null || _workersNavigationItem == null)
+        {
+            Logger.Warning("ShellViewModel: _repository ou _workersNavigationItem est null, impossible de charger le nombre de workers.");
+            return;
+        }
+
+        try
+        {
+            var count = await System.Threading.Tasks.Task.Run(() =>
+            {
+                using var connection = _repository.CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT COUNT(*) FROM Workers";
+                var result = cmd.ExecuteScalar();
+                return result != null ? Convert.ToInt32(result) : 0;
+            });
+
+            // Mettre à jour le badge sur le thread UI
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (_workersNavigationItem != null)
+                {
+                    _workersNavigationItem.Badge = $"({count})";
+                    Logger.Info($"Badge Workers mis à jour: ({count})");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur lors du chargement du nombre de workers: {ex.Message}", ex);
+        }
+    }
+}

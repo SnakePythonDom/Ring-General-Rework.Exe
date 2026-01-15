@@ -1,0 +1,439 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Common"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="RingGeneral.UI.Views.Common.WorkerProfileView"
+             FontFamily="Consolas">
+
+    <Border Background="#1E1E1E" BorderBrush="#888" BorderThickness="1" CornerRadius="0" Padding="15">
+        <Grid RowDefinitions="Auto, Auto, *">
+            
+            <!-- 1. HEADER (ASCII / Avatar Style) -->
+            <Border Grid.Row="0" Margin="0,0,0,10" Padding="15" BorderBrush="#AAA" BorderThickness="1,1,1,1" Background="#111" CornerRadius="0">
+                <Grid ColumnDefinitions="Auto, *">
+                    <!-- Avatar Placeholder -->
+                    <Border Grid.Column="0" Width="100" Height="80" BorderBrush="#666" BorderThickness="1" Margin="0,0,20,0" Background="#000">
+                        <Grid>
+                             <TextBlock Text="[ AVATAR ]" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,5,0,0" Foreground="#AAA" FontSize="10"/>
+                             <TextBlock Text="(^_^)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#AAA" FontSize="20" FontWeight="Bold"/>
+                             <TextBlock Text="&lt;[ ]&gt;" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,15" Foreground="#AAA" FontSize="12"/>
+                             <TextBlock Text="/ \" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,5" Foreground="#AAA" FontSize="12"/>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Info -->
+                    <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding FullName}" FontSize="20" FontWeight="Bold" Foreground="White" FontFamily="Consolas"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                             <TextBlock Text="Wrestler • " Foreground="#CCC" FontSize="14"/>
+                             <TextBlock Text="{Binding Nickname}" Foreground="#CCC" FontSize="14" FontStyle="Italic"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
+                             <TextBlock Text="{Binding AlignmentDisplay, StringFormat='[ {0} ]'}" Foreground="#EEE" FontWeight="Bold"/>
+                             <TextBlock Text="{Binding ContractVM.PushLevelDisplay, StringFormat='[ {0} ]'}" Foreground="#EEE" FontWeight="Bold"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Personality Section -->
+            <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                 <StackPanel Orientation="Horizontal" Spacing="5">
+                     <TextBlock Text="PERSONNALITÉ :" Foreground="#DDD" FontWeight="Bold"/>
+                     <TextBlock Text="🧩" FontSize="14"/>
+                     <TextBlock Text="{Binding PersonalityTrait, StringFormat='[{0}]'}" Foreground="#2ecc71" FontWeight="Bold"/>
+                 </StackPanel>
+                 <TextBlock Text="{Binding PersonalityDescription, StringFormat='Description : {0}'}" Foreground="#AAA" FontSize="12" Margin="0,2,0,0"/>
+                 <TextBlock Text="{Binding PersonalityBulleted}" Foreground="#888" FontSize="12" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <!-- 2. TABS & CONTENT -->
+            <Grid Grid.Row="2" RowDefinitions="Auto, Auto, *">
+                 <!-- Global Eval (From MOCKUP: placed below tabs or above? Mockup has tabs then Eval then Content. Wait. 
+                      Mockup:
+                      [Tabs]
+                      [EVALUATION GLOBALE: 85]
+                      [Content]
+                 -->
+                 
+                 <!-- Tabs Header Area -->
+                 <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}" Background="Transparent">
+                    <TabControl.Styles>
+                        <Style Selector="TabItem">
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="FontFamily" Value="Consolas"/>
+                            <Setter Property="Foreground" Value="#888"/>
+                            <Setter Property="Margin" Value="0,0,5,0"/>
+                            <Setter Property="Padding" Value="10,5"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                        </Style>
+                        <Style Selector="TabItem:selected">
+                             <Setter Property="Foreground" Value="#3498db"/>
+                             <Setter Property="FontWeight" Value="Bold"/>
+                             <Setter Property="BorderBrush" Value="#3498db"/>
+                             <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                        </Style>
+                    </TabControl.Styles>
+
+                    <!-- ATTRIBUTE TAB -->
+                    <TabItem Header="[📊 ATTRIBUTE]">
+                        <ScrollViewer Padding="0,15,0,0">
+                             <StackPanel Spacing="15">
+                                 <!-- Evaluation Globale (Moved here per tab content in mockup?)
+                                      Actually mockup shows Eval separate. Let's put Eval under tabs for all?
+                                      No, Mockup shows:
+                                      [Tabs]
+                                      [ EValuation Globale ]
+                                      [ In-Ring ]
+                                 -->
+                                 
+                                 <Border BorderBrush="#666" BorderThickness="1" Padding="10">
+                                     <DockPanel>
+                                         <TextBlock Text="ÉVALUATION GLOBALE: 85" FontWeight="Bold" Foreground="#DDD"/>
+                                         <!-- Actions in Evaluation bar? Mockup shows [Modif] [Sauv] [Annul] sometimes -->
+                                     </DockPanel>
+                                 </Border>
+
+                                 <!-- IN-RING -->
+                                 <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                     <StackPanel Spacing="10">
+                                         <DockPanel>
+                                             <TextBlock Text="🥊 IN-RING ATTRIBUTES" FontWeight="Bold" Foreground="#DDD"/>
+                                             <TextBlock Text="{Binding AttributesVM.InRingAvg, StringFormat='(Moyenne: {0})'}" Foreground="#AAA" DockPanel.Dock="Right"/>
+                                         </DockPanel>
+                                         <Separator Background="#444"/>
+                                         
+                                         <Grid ColumnDefinitions="120, 40, *, 120, 40" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Striking" Foreground="#AAA"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AttributesVM.Striking}" Foreground="White" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="0" Grid.Column="3" Text="Grappling" Foreground="#AAA"/> <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding AttributesVM.Grappling}" Foreground="White" FontWeight="Bold"/>
+                                             
+                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="High Flying" Foreground="#AAA"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AttributesVM.HighFlying}" Foreground="White" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="1" Grid.Column="3" Text="Powerhouse" Foreground="#AAA"/> <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding AttributesVM.Powerhouse}" Foreground="White" FontWeight="Bold"/>
+
+                                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Timing" Foreground="#AAA"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AttributesVM.Timing}" Foreground="White" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="2" Grid.Column="3" Text="Selling" Foreground="#AAA"/> <TextBlock Grid.Row="2" Grid.Column="4" Text="{Binding AttributesVM.Selling}" Foreground="White" FontWeight="Bold"/>
+
+                                             <TextBlock Grid.Row="3" Grid.Column="0" Text="Psychology" Foreground="#AAA"/> <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AttributesVM.Psychology}" Foreground="#f1c40f" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="3" Grid.Column="3" Text="Stamina" Foreground="#AAA"/> <TextBlock Grid.Row="3" Grid.Column="4" Text="{Binding AttributesVM.Stamina}" Foreground="White" FontWeight="Bold"/>
+
+                                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Safety" Foreground="#AAA"/> <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AttributesVM.Safety}" Foreground="#2ecc71" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="4" Grid.Column="3" Text="Hardcore/Brawl" Foreground="#AAA"/> <TextBlock Grid.Row="4" Grid.Column="4" Text="{Binding AttributesVM.HardcoreBrawl, FallbackValue='80'}" Foreground="White" FontWeight="Bold"/>
+                                         </Grid>
+                                     </StackPanel>
+                                 </Border>
+
+                                 <!-- ENTERTAINMENT -->
+                                 <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                     <StackPanel Spacing="10">
+                                         <DockPanel>
+                                             <TextBlock Text="🎤 ENTERTAINMENT ATTRIBUTES" FontWeight="Bold" Foreground="#DDD"/>
+                                             <TextBlock Text="{Binding AttributesVM.EntertainmentAvg, StringFormat='(Moyenne: {0})'}" Foreground="#AAA" DockPanel.Dock="Right"/>
+                                         </DockPanel>
+                                         <Separator Background="#444"/>
+                                         
+                                         <Grid ColumnDefinitions="120, 40, *, 120, 40" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Charisme" Foreground="#AAA"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AttributesVM.Charisma}" Foreground="#f1c40f" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="0" Grid.Column="3" Text="Mic Work" Foreground="#AAA"/> <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding AttributesVM.MicWork}" Foreground="White" FontWeight="Bold"/>
+
+                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Acting" Foreground="#AAA"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AttributesVM.Acting}" Foreground="White" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="1" Grid.Column="3" Text="Connexion Crowd" Foreground="#AAA"/> <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding AttributesVM.StarQuality}" Foreground="White" FontWeight="Bold"/>
+
+                                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Star Power" Foreground="#AAA"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AttributesVM.StarQuality}" Foreground="#9b59b6" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="2" Grid.Column="3" Text="Improvisation" Foreground="#AAA"/> <TextBlock Grid.Row="2" Grid.Column="4" Text="{Binding AttributesVM.Acting}" Foreground="White" FontWeight="Bold"/>
+                                             
+                                              <TextBlock Grid.Row="3" Grid.Column="0" Text="Entrée" Foreground="#AAA"/> <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AttributesVM.Charisma}" Foreground="White" FontWeight="Bold"/>
+                                              <TextBlock Grid.Row="3" Grid.Column="3" Text="Sex Appeal" Foreground="#AAA"/> <TextBlock Grid.Row="3" Grid.Column="4" Text="{Binding AttributesVM.SexAppeal}" Foreground="White" FontWeight="Bold"/>
+                                              
+                                              <TextBlock Grid.Row="4" Grid.Column="0" Text="Merchandising" Foreground="#AAA"/> <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AttributesVM.Charisma}" Foreground="White" FontWeight="Bold"/>
+                                              <TextBlock Grid.Row="4" Grid.Column="3" Text="Aura" Foreground="#AAA"/> <TextBlock Grid.Row="4" Grid.Column="4" Text="{Binding AttributesVM.StarQuality}" Foreground="White" FontWeight="Bold"/>
+                                         </Grid>
+                                     </StackPanel>
+                                 </Border>
+                                 
+                                 <!-- STORY -->
+                                 <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                     <StackPanel Spacing="10">
+                                         <DockPanel>
+                                             <TextBlock Text="📖 STORY ATTRIBUTES" FontWeight="Bold" Foreground="#DDD"/>
+                                             <TextBlock Text="{Binding AttributesVM.StoryAvg, StringFormat='(Moyenne: {0})'}" Foreground="#AAA" DockPanel.Dock="Right"/>
+                                         </DockPanel>
+                                         <Separator Background="#444"/>
+                                         
+                                         <Grid ColumnDefinitions="120, 40, *, 120, 40" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Prof. Perso" Foreground="#AAA"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AttributesVM.CharacterWork}" Foreground="White" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="0" Grid.Column="3" Text="Cohérence" Foreground="#AAA"/> <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding AttributesVM.Storytelling}" Foreground="White" FontWeight="Bold"/>
+                                             
+                                              <TextBlock Grid.Row="1" Grid.Column="0" Text="Perf. Heel" Foreground="#AAA"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="80" Foreground="White" FontWeight="Bold"/>
+                                              <TextBlock Grid.Row="1" Grid.Column="3" Text="Perf. Face" Foreground="#AAA"/> <TextBlock Grid.Row="1" Grid.Column="4" Text="95" Foreground="White" FontWeight="Bold"/>
+
+                                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Storytelling" Foreground="#AAA"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AttributesVM.Storytelling}" Foreground="White" FontWeight="Bold"/>
+                                             <TextBlock Grid.Row="2" Grid.Column="3" Text="Émotion" Foreground="#AAA"/> <TextBlock Grid.Row="2" Grid.Column="4" Text="85" Foreground="White" FontWeight="Bold"/>
+                                         </Grid>
+                                     </StackPanel>
+                                 </Border>
+                             </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- CONTRACT TAB -->
+                    <TabItem Header="[📄 CONTRAT ]">
+                         <Grid ColumnDefinitions="*" Margin="0,15,0,0">
+                             <StackPanel Spacing="15">
+                                 <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                     <StackPanel Spacing="15">
+                                         <TextBlock Text="📄 GESTION DU CONTRAT &amp; POSITIONNEMENT (PUSH)" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                         <Separator Background="#444"/>
+                                         
+                                         <!-- PUSH -->
+                                         <StackPanel Orientation="Horizontal" Spacing="10">
+                                             <TextBlock Text="STATUT ACTUEL (PUSH) : " Foreground="#DDD" VerticalAlignment="Center"/>
+                                             <Border BorderBrush="#555" BorderThickness="1" Background="#222" Padding="10,2">
+                                                 <TextBlock Text="{Binding ContractVM.PushLevelDisplay, StringFormat='[ {0} ▼ ]'}" Foreground="#f1c40f" FontWeight="Bold"/>
+                                             </Border>
+                                             <TextBlock Text="&lt;-- (Modifiable)" Foreground="#888" FontStyle="Italic" VerticalAlignment="Center"/>
+                                         </StackPanel>
+                                         
+                                         <Grid ColumnDefinitions="Auto, *, Auto, *" RowDefinitions="Auto,Auto" Margin="0,10,0,0">
+                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Salaire : " Foreground="#AAA"/>
+                                             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ContractVM.MonthlySalary, StringFormat='${0:N0} / mois'}" Foreground="#CCC"/>
+                                             
+                                             <TextBlock Grid.Row="0" Grid.Column="2" Text="Type : " Foreground="#AAA"/>
+                                             <TextBlock Grid.Row="0" Grid.Column="3" Text="Écrit (Exclusif)" Foreground="#CCC"/>
+                                             
+                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Durée   : " Foreground="#AAA" Margin="0,5,0,0"/>
+                                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ContractVM.ContractDuration}" Foreground="#CCC" Margin="0,5,0,0"/>
+                                             
+                                              <TextBlock Grid.Row="1" Grid.Column="2" Text="Emploi : " Foreground="#AAA" Margin="0,5,0,0"/>
+                                             <TextBlock Grid.Row="1" Grid.Column="3" Text="Temps Plein" Foreground="#CCC" Margin="0,5,0,0"/>
+                                         </Grid>
+        
+                                         <TextBlock Text="📑 CLAUSES ACTIVES :" FontWeight="Bold" Foreground="#DDD" Margin="0,10,0,5"/>
+                                         <WrapPanel>
+                                             <CheckBox Content="Contrôle Créatif" IsChecked="{Binding ContractVM.HasCreativeControl}" IsHitTestVisible="False" Foreground="#AAA" Margin="0,0,20,0"/>
+                                             <CheckBox Content="{Binding ContractVM.MerchBonusAmount, StringFormat='Bonus Merch ({0})'}" IsChecked="{Binding ContractVM.HasMerchBonus}" IsHitTestVisible="False" Foreground="#AAA" Margin="0,0,20,0"/>
+                                             <CheckBox Content="Clause de Départ" IsChecked="{Binding ContractVM.HasDepartureClause}" IsHitTestVisible="False" Foreground="#AAA" Margin="0,0,20,0"/>
+                                             <CheckBox Content="{Binding ContractVM.WinBonusAmount, StringFormat='Bonus Victoire ({0})'}" IsChecked="{Binding ContractVM.HasWinBonus}" IsHitTestVisible="False" Foreground="#AAA" Margin="0,0,20,0"/>
+                                         </WrapPanel>
+                                     </StackPanel>
+                                 </Border>
+                                 
+                                 <!-- FEEDBACK -->
+                                 <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                     <StackPanel Spacing="10">
+                                         <TextBlock Text="💡 FEEDBACK DU STAFF (CONSEILLERS)" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                         <Separator Background="#444"/>
+                                         <TextBlock Text="{Binding ContractVM.FinanceFeedback, StringFormat='&gt; Finances : &quot;{0}&quot;'}" Foreground="#AAA" TextWrapping="Wrap"/>
+                                         <TextBlock Text="{Binding ContractVM.CreativeFeedback, StringFormat='&gt; Créatif  : &quot;{0}&quot;'}" Foreground="#AAA" TextWrapping="Wrap"/>
+                                     </StackPanel>
+                                 </Border>
+                                 
+                                 <!-- ACTIONS -->
+                                 <Border BorderBrush="#666" BorderThickness="1" Padding="10" Background="#1a1a1a">
+                                     <Grid ColumnDefinitions="*, *, *">
+                                         <Button Grid.Column="0" Content="[🤝 Négocier]" Background="Transparent" Foreground="#f39c12" BorderThickness="0" HorizontalAlignment="Left" Command="{Binding NegotiateCommand}"/>
+                                         <Button Grid.Column="1" Content="[❌ Licencier]" Background="Transparent" Foreground="#e74c3c" BorderThickness="0" HorizontalAlignment="Left" Command="{Binding FireCommand}"/>
+                                         <Button Grid.Column="2" Content="[💾 Sauvegarder]" Background="Transparent" Foreground="#9b59b6" BorderThickness="0" HorizontalAlignment="Right" Command="{Binding SaveCommand}"/>
+                                     </Grid>
+                                 </Border>
+                             </StackPanel>
+                         </Grid>
+                    </TabItem>
+
+                    <!-- GIMMICK TAB -->
+                    <TabItem Header="[🎭 GIMMICK ]">
+                         <StackPanel Spacing="15" Margin="0,15,0,0">
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                 <StackPanel Spacing="15">
+                                     <TextBlock Text="🎭 IDENTITÉ &amp; PRÉSENTATION" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                     <Separator Background="#444"/>
+                                     
+                                     <Grid ColumnDefinitions="Auto, *, Auto, Auto" RowDefinitions="Auto, Auto">
+                                         <TextBlock Text="Gimmick : " Foreground="#AAA" VerticalAlignment="Center"/>
+                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                                             <TextBlock Text="{Binding GimmickVM.GimmickName, StringFormat='[ {0} ]'}" Foreground="White" FontWeight="Bold"/>
+                                             <TextBlock Text="✏️" FontSize="12"/>
+                                         </StackPanel>
+                                         
+                                         <TextBlock Grid.Column="2" Text="Style : " Foreground="#AAA" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                                         <TextBlock Grid.Column="3" Text="{Binding GimmickVM.Style}" Foreground="White"/>
+                                     </Grid>
+                                     
+                                     <TextBlock Text="PERCEPTION PUBLIC :" Foreground="#AAA" Margin="0,10,0,0"/>
+                                     <Grid ColumnDefinitions="*, 200" RowDefinitions="Auto, Auto, Auto, Auto">
+                                         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="5">
+                                             <TextBlock Text="[ HEEL |──────────|##########| FACE ]" FontFamily="Consolas" Foreground="#DDD"/>
+                                             <TextBlock Text="(95% Acclamé)" Foreground="#AAA"/>
+                                         </StackPanel>
+                                         
+                                         <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="Auto, *" Margin="0,10,0,0">
+                                            <TextBlock Grid.Column="0" Text="Style de Catch : " Foreground="#AAA" Width="120"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding GimmickVM.Style}" Foreground="White"/>
+                                         </Grid>
+                                         <Grid Grid.Row="2" Grid.Column="0" ColumnDefinitions="Auto, *">
+                                            <TextBlock Grid.Column="0" Text="Alignement     : " Foreground="#AAA" Width="120"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding GimmickVM.Alignment, StringFormat='[ {0} ]'}" Foreground="White"/>
+                                         </Grid>
+                                         <Grid Grid.Row="3" Grid.Column="0" ColumnDefinitions="Auto, *">
+                                            <TextBlock Grid.Column="0" Text="Catchphrase    : " Foreground="#AAA" Width="120"/>
+                                            <TextBlock Grid.Column="1" Text="You Can't See Me" Foreground="White" FontStyle="Italic"/>
+                                         </Grid>
+                                         
+                                         <!-- Right Side Stats -->
+                                         <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Margin="10,0,0,0">
+                                             <TextBlock Text="{Binding GimmickVM.PopularityUS, StringFormat='Popularité (US): {0}/100'}" Foreground="#AAA"/>
+                                             <TextBlock Text="Réaction Foule : 95% Acclamé" Foreground="#AAA"/>
+                                             <TextBlock Text="{Binding GimmickVM.Momentum, StringFormat='Momentum       : {0}'}" Foreground="#AAA"/>
+                                         </StackPanel>
+                                     </Grid>
+                                 </StackPanel>
+                             </Border>
+                             
+                             <!-- Gimmick Actions -->
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="10" Background="#1a1a1a">
+                                 <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                                      <Button Content="[🎨 Changer Tenue]" Command="{Binding GimmickVM.ChangeOutfitCommand}" Background="Transparent" Foreground="#DDD" BorderThickness="0"/>
+                                      <Button Content="[🎶 Changer Thème]" Command="{Binding GimmickVM.ChangeThemeCommand}" Background="Transparent" Foreground="#DDD" BorderThickness="0"/>
+                                      <Button Content="[✏️ Modifier Gimmick]" Command="{Binding GimmickVM.EditGimmickCommand}" Background="Transparent" Foreground="#f39c12" BorderThickness="0"/>
+                                 </StackPanel>
+                             </Border>
+                         </StackPanel>
+                    </TabItem>
+
+                    <!-- RELATIONS TAB -->
+                    <TabItem Header="[👥 RELATIONS ]">
+                        <StackPanel Spacing="15" Margin="0,15,0,0">
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                 <StackPanel Spacing="15">
+                                     <TextBlock Text="👥 RÉSEAU ET BACKSTAGE" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                     <Separator Background="#444"/>
+                                     
+                                     <Grid ColumnDefinitions="*, 10, *" RowDefinitions="Auto, Auto, Auto, Auto">
+                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding RelationsVM.CloseAlliesDisplay, StringFormat='Alliés Proches  : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding RelationsVM.MentorsDisplay, StringFormat='Mentor de       : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding RelationsVM.InfluenceVestiaire, StringFormat='Influence Vest. : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Amitié Legend.  : None" Foreground="#CCC"/>
+
+                                         <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding RelationsVM.RivalsDisplay, StringFormat='Rivaux Actuels : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="1" Grid.Column="2" Text="Alchimie Tag   : Unknown" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding RelationsVM.RespectStaff, StringFormat='Respect Staff  : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="3" Grid.Column="2" Text="Conflit Ouvert : None" Foreground="#CCC"/>
+                                     </Grid>
+                                 </StackPanel>
+                             </Border>
+
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                 <StackPanel Spacing="15">
+                                     <TextBlock Text="🏷️ GROUPES &amp; ÉQUIPES" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                     <Separator Background="#444"/>
+                                     
+                                     <StackPanel Spacing="5">
+                                         <TextBlock Text="🤜 TAG TEAM : [ The Power Trip ] avec Randy Orton" Foreground="#CCC"/>
+                                         <TextBlock Text="   Alchimie : Excellente (Bonus Match +10%)" Foreground="#888" FontSize="12"/>
+                                     </StackPanel>
+                                     
+                                     <StackPanel Spacing="5">
+                                         <TextBlock Text="🚩 FACTION  : [ N-W-O ] (Membre Honoraire)" Foreground="#CCC"/>
+                                          <TextBlock Text="   Rôle     : Mentor Stratégique" Foreground="#888" FontSize="12"/>
+                                     </StackPanel>
+                                 </StackPanel>
+                             </Border>
+                             
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="10" Background="#1a1a1a">
+                                 <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                                      <Button Content="[💬 Parler]" Command="{Binding RelationsVM.TalkCommand}" Background="Transparent" Foreground="#DDD" BorderThickness="0"/>
+                                      <Button Content="[🤝 Former Alliance]" Command="{Binding RelationsVM.AllianceCommand}" Background="Transparent" Foreground="#f1c40f" BorderThickness="0"/>
+                                      <Button Content="[⚔️ Déclarer Rival]" Command="{Binding RelationsVM.RivalCommand}" Background="Transparent" Foreground="#e74c3c" BorderThickness="0"/>
+                                 </StackPanel>
+                             </Border>
+                        </StackPanel>
+                    </TabItem>
+
+                    <!-- HISTO TAB -->
+                    <TabItem Header="[📜 HISTO]">
+                        <StackPanel Spacing="15" Margin="0,15,0,0">
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                 <StackPanel Spacing="15">
+                                     <TextBlock Text="📜 PALMARÈS ET STATISTIQUES" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                     <Separator Background="#444"/>
+                                     
+                                     <Grid ColumnDefinitions="*, 10, *" RowDefinitions="Auto, Auto, Auto, Auto">
+                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding HistoryVM.WorldTitleCount, StringFormat='Titres Mondiaux : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding HistoryVM.SecondaryTitleCount, StringFormat='US Title Regnes : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Royal Rumble    : -" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Dernier Match   : -" Foreground="#CCC"/>
+
+                                         <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding HistoryVM.WinLossRecord, StringFormat='Victoires/Déf. : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding HistoryVM.MainEventCount, StringFormat='Main Event PPV : {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding HistoryVM.FiveStarMatches, StringFormat='Match 5 Étoiles: {0}'}" Foreground="#CCC"/>
+                                         <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding HistoryVM.AverageRating, StringFormat='Note Moy. Match: {0}'}" Foreground="#CCC"/>
+                                     </Grid>
+                                 </StackPanel>
+                             </Border>
+                             
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                 <StackPanel Spacing="15">
+                                     <TextBlock Text="📅 CHRONOLOGIE DES FÉDÉRATIONS" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                     <Separator Background="#444"/>
+                                     
+                                     <ItemsControl ItemsSource="{Binding HistoryVM.Chronology}">
+                                         <ItemsControl.ItemTemplate>
+                                             <DataTemplate>
+                                                 <TextBlock Text="{Binding}" Foreground="#AAA" FontFamily="Consolas"/>
+                                             </DataTemplate>
+                                         </ItemsControl.ItemTemplate>
+                                     </ItemsControl>
+                                 </StackPanel>
+                             </Border>
+                             
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="10" Background="#1a1a1a">
+                                 <Grid ColumnDefinitions="*, *, *">
+                                      <Button Grid.Column="0" Content="[🏆 Voir Trophées]" Background="Transparent" Foreground="#f39c12" BorderThickness="0" HorizontalAlignment="Left"/>
+                                      <Button Grid.Column="1" Content="[📊 Stats Détail]" Background="Transparent" Foreground="#3498db" BorderThickness="0" HorizontalAlignment="Center"/>
+                                      <Button Grid.Column="2" Content="[↩️ Retour]" Background="Transparent" Foreground="#DDD" BorderThickness="0" HorizontalAlignment="Right" Command="{Binding CloseCommand}"/>
+                                 </Grid>
+                             </Border>
+                        </StackPanel>
+                    </TabItem>
+
+                    <!-- NOTES TAB -->
+                    <TabItem Header="[📝 NOTE]">
+                        <StackPanel Spacing="15" Margin="0,15,0,0">
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                 <StackPanel Spacing="15">
+                                     <TextBlock Text="💡 PROPOSITIONS DU STAFF CRÉATIF (BOOKER SYSTEM)" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                     <Separator Background="#444"/>
+                                     <TextBlock Text="&gt; Suggestion Gimmick : &quot;The Hollywood Legend&quot; (Passage en Heel ?)" Foreground="#AAA"/>
+                                     <TextBlock Text="&gt; Angle : Miller par une intervention surprise au prochain Show." Foreground="#AAA"/>
+                                 </StackPanel>
+                             </Border>
+                             
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="15" Background="#1a1a1a">
+                                 <StackPanel Spacing="15">
+                                     <TextBlock Text="📝 MES NOTES DE BOOKING" FontWeight="Bold" Foreground="#DDD" FontSize="16"/>
+                                     <Separator Background="#444"/>
+                                     <TextBox Text="{Binding NotesVM.UserNotes}" Height="100" AcceptsReturn="True" Background="#222" Foreground="#AAA" BorderThickness="0"/>
+                                 </StackPanel>
+                             </Border>
+                             
+                             <Border BorderBrush="#666" BorderThickness="1" Padding="10" Background="#1a1a1a">
+                                 <Grid ColumnDefinitions="*, *">
+                                      <Button Grid.Column="0" Content="[🗑️ Effacer]" Command="{Binding NotesVM.ClearNotesCommand}" Background="Transparent" Foreground="#e74c3c" BorderThickness="0" HorizontalAlignment="Left"/>
+                                      <Button Grid.Column="1" Content="[💾 Sauvegarder]" Command="{Binding NotesVM.SaveNotesCommand}" Background="Transparent" Foreground="#9b59b6" BorderThickness="0" HorizontalAlignment="Right"/>
+                                 </Grid>
+                             </Border>
+                        </StackPanel>
+                    </TabItem>
+
+                 </TabControl>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,283 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Start"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="RingGeneral.UI.Views.Start.CreateCompanyView"
+             x:DataType="vm:CreateCompanyViewModel">
+
+  <Grid Background="{StaticResource BackgroundPrimaryBrush}">
+    <!-- Background gradient -->
+    <Border>
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+          <GradientStop Color="{StaticResource BackgroundTertiary}" Offset="0.0"/>
+          <GradientStop Color="{StaticResource BackgroundSecondary}" Offset="0.5"/>
+          <GradientStop Color="{StaticResource BackgroundTertiary}" Offset="1.0"/>
+        </LinearGradientBrush>
+      </Border.Background>
+    </Border>
+
+    <!-- Main content -->
+    <DockPanel Margin="0" LastChildFill="True">
+      <!-- Title -->
+      <TextBlock Text="CRÉER UNE COMPAGNIE"
+                 FontSize="48"
+                 FontWeight="Bold"
+                 Foreground="{StaticResource TextPrimaryBrush}"
+                 HorizontalAlignment="Center"
+                 Margin="0,40,0,20"
+                 DockPanel.Dock="Top"/>
+
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+        <StackPanel HorizontalAlignment="Center" MaxWidth="600" Spacing="20" Margin="0,0,0,20">
+
+          <!-- Back button -->
+          <Button Content="← Retour"
+                  Classes="secondary"
+                  Padding="15,8"
+                  FontSize="16"
+                  HorizontalAlignment="Left"
+                  Command="{Binding CancelCommand}"/>
+
+          <!-- Form -->
+          <Border Background="{StaticResource BackgroundSecondaryBrush}"
+                  CornerRadius="8"
+                  Padding="40"
+                  BoxShadow="{StaticResource CardShadow}">
+            <StackPanel Spacing="25">
+
+          <!-- Company Name -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Nom de la compagnie *"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBox Text="{Binding CompanyName}"
+                     Watermark="Entrez le nom de votre compagnie..."
+                     FontSize="18"
+                     Padding="12"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
+                     BorderThickness="1"
+                     CaretBrush="{StaticResource TextPrimaryBrush}"
+                     SelectionBrush="{StaticResource AccentBlueBrush}">
+              <TextBox.Styles>
+                <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
+                  <Setter Property="BorderThickness" Value="2"/>
+                </Style>
+                <Style Selector="TextBox:focus">
+                  <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                </Style>
+                <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+                  <Setter Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}"/>
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                </Style>
+              </TextBox.Styles>
+            </TextBox>
+          </StackPanel>
+
+          <!-- Country -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Pays *"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <ComboBox ItemsSource="{Binding AvailableCountries}"
+                      SelectedItem="{Binding SelectedCountry}"
+                      FontSize="18"
+                      Padding="12"
+                      Background="{StaticResource BackgroundTertiaryBrush}"
+                      Foreground="{StaticResource TextPrimaryBrush}"
+                      BorderBrush="{StaticResource BorderMediumBrush}"
+                      BorderThickness="1"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.Styles>
+                <Style Selector="ComboBox:focus /template/ Border#PART_Background">
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
+                </Style>
+                <Style Selector="ComboBox:pointerover /template/ Border#PART_Background">
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}"/>
+                </Style>
+              </ComboBox.Styles>
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextPrimaryBrush}" Padding="5"/>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+
+          <!-- Catch Style -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Style de Catch *"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <ComboBox ItemsSource="{Binding AvailableCatchStyles}"
+                      SelectedItem="{Binding SelectedCatchStyle}"
+                      FontSize="18"
+                      Padding="12"
+                      Background="{StaticResource BackgroundTertiaryBrush}"
+                      Foreground="{StaticResource TextPrimaryBrush}"
+                      BorderBrush="{StaticResource BorderMediumBrush}"
+                      BorderThickness="1"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.Styles>
+                <Style Selector="ComboBox:focus /template/ Border#PART_Background">
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
+                </Style>
+                <Style Selector="ComboBox:pointerover /template/ Border#PART_Background">
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}"/>
+                </Style>
+              </ComboBox.Styles>
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <Border Padding="5">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <TextBlock Text="{Binding IconName}" FontSize="20" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                      <TextBlock Text="{Binding Name}" FontSize="16" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding SelectedCatchStyle.Description}"
+                       FontSize="13"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       FontStyle="Italic"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding SelectedCatchStyle, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+          </StackPanel>
+
+          <!-- Founded Year -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Année de fondation"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBox Text="{Binding FoundedYear}"
+                     Watermark="2024"
+                     FontSize="18"
+                     Padding="12"
+                     Background="{StaticResource BackgroundTertiaryBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource BorderMediumBrush}"
+                     BorderThickness="1"
+                     CaretBrush="{StaticResource TextPrimaryBrush}">
+              <TextBox.Styles>
+                <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+                  <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
+                  <Setter Property="BorderThickness" Value="2"/>
+                </Style>
+                <Style Selector="TextBox:focus">
+                  <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                </Style>
+              </TextBox.Styles>
+            </TextBox>
+            <TextBlock Text="L'année de lancement de votre compagnie (1950-2100)"
+                       FontSize="13"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       FontStyle="Italic"/>
+          </StackPanel>
+
+          <!-- Starting Prestige -->
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}">
+              <Run Text="Prestige de départ: "/>
+              <Run Text="{Binding StartingPrestige}" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+              <Run Text=" / 100"/>
+            </TextBlock>
+            <Slider Value="{Binding StartingPrestige}"
+                    Minimum="0"
+                    Maximum="100"
+                    TickFrequency="5"
+                    IsSnapToTickEnabled="True"
+                    Foreground="{StaticResource AccentBlueBrush}"/>
+            <TextBlock Text="Le prestige détermine la réputation de votre compagnie"
+                       FontSize="13"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       FontStyle="Italic"/>
+          </StackPanel>
+
+          <!-- Starting Treasury -->
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}">
+              <Run Text="Trésorerie de départ: "/>
+              <Run Text="{Binding StartingTreasury, StringFormat='${0:N0}'}" FontWeight="Bold" Foreground="{StaticResource AccentGreenBrush}"/>
+            </TextBlock>
+            <Slider Value="{Binding StartingTreasury}"
+                    Minimum="50000"
+                    Maximum="1000000"
+                    TickFrequency="50000"
+                    IsSnapToTickEnabled="True"
+                    Foreground="{StaticResource AccentGreenBrush}"/>
+            <TextBlock Text="Votre budget de départ pour les salaires et dépenses"
+                       FontSize="13"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       FontStyle="Italic"/>
+          </StackPanel>
+
+          <!-- Error message -->
+          <Border Background="{StaticResource ErrorDarkBrush}"
+                  CornerRadius="4"
+                  Padding="12"
+                  IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="{StaticResource ErrorLightBrush}"
+                       FontSize="14"
+                       TextWrapping="Wrap"/>
+          </Border>
+
+          <!-- Action buttons -->
+          <Grid ColumnDefinitions="*,*" Margin="0,20,0,0">
+            <Button Grid.Column="0"
+                    Content="Annuler"
+                    Classes="secondary"
+                    Padding="0,15"
+                    FontSize="18"
+                    FontWeight="SemiBold"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    CornerRadius="6"
+                    Margin="0,0,10,0"
+                    Command="{Binding CancelCommand}"/>
+
+            <Button Grid.Column="1"
+                    Content="Continuer"
+                    Classes="primary"
+                    Padding="0,15"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    CornerRadius="6"
+                    Margin="10,0,0,0"
+                    Command="{Binding ContinueCommand}"/>
+          </Grid>
+
+            </StackPanel>
+          </Border>
+
+          <!-- Info text -->
+          <TextBlock Text="* Champs obligatoires"
+                     FontSize="13"
+                     Foreground="{StaticResource TextSubtleBrush}"
+                     HorizontalAlignment="Center"
+                     Margin="0,10,0,0"/>
+
+        </StackPanel>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
+</UserControl>

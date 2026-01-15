@@ -1,0 +1,870 @@
+using System.Collections.ObjectModel;
+using Microsoft.Data.Sqlite;
+using System.Reactive;
+using ReactiveUI;
+using RingGeneral.Data.Repositories;
+using RingGeneral.Data.Database;
+using RingGeneral.Core.Models;
+using RingGeneral.Core.Interfaces;
+using System.Linq;
+
+namespace RingGeneral.UI.ViewModels.Youth;
+
+/// <summary>
+/// ViewModel pour le système youth development.
+/// Enrichi dans Phase 6.3 avec structures, programmes, staff et génération.
+/// </summary>
+public sealed class YouthViewModel : ViewModelBase
+{
+    private readonly GameRepository _repository;
+    private readonly YouthRepository _youthRepository;
+    private readonly RingGeneral.Application.Facades.YouthFacade _youthFacade;
+    private ShowContext? _context;
+
+    private decimal _budget;
+    private int _totalTrainees;
+    private string? _coachName;
+    private YouthGenerationOptionViewModel? _generationSelection;
+    private YouthStructureViewModel? _structureSelection;
+    private int _budgetNouveau;
+    private string? _coachWorkerId;
+    private string? _coachRole;
+    private string? _actionMessage;
+
+    public YouthViewModel(
+        GameRepository repository,
+        YouthRepository youthRepository,
+        IWorkerGenerationService generationService)
+    {
+        _repository = repository;
+        _youthRepository = youthRepository;
+        _youthFacade = new RingGeneral.Application.Facades.YouthFacade(youthRepository, generationService, repository);
+
+        // Collections originales
+        Trainees = new ObservableCollection<TraineeItemViewModel>();
+
+        // Phase 6.3 - Nouvelles collections
+        Structures = new ObservableCollection<YouthStructureViewModel>();
+        Programs = new ObservableCollection<YouthProgramViewModel>();
+        StaffAssignments = new ObservableCollection<YouthStaffAssignmentViewModel>();
+
+        // Options de génération
+        GenerationModes = new List<YouthGenerationOptionViewModel>
+        {
+            new YouthGenerationOptionViewModel { Mode = "Manual", Label = "Génération Manuelle", Description = "Créer trainees manuellement" },
+            new YouthGenerationOptionViewModel { Mode = "Auto", Label = "Génération Auto", Description = "Génération automatique hebdomadaire" },
+            new YouthGenerationOptionViewModel { Mode = "Scouting", Label = "Scouting", Description = "Découverte via scouting" },
+            new YouthGenerationOptionViewModel { Mode = "Tryout", Label = "Tryout", Description = "Session tryout ouverte" }
+        };
+
+        // Phase 6.3 - Commandes
+        CreateStructureCommand = ReactiveCommand.CreateFromTask(CreateStructure);
+        AssignCoachCommand = ReactiveCommand.CreateFromTask(AssignCoach);
+        UpdateBudgetCommand = ReactiveCommand.CreateFromTask<YouthStructureViewModel>(UpdateBudget);
+        GenerateTraineesCommand = ReactiveCommand.CreateFromTask(GenerateTrainees);
+
+        // Phase 4.1 - Commande pour graduer un trainee manuellement
+        GraduateTraineeCommand = ReactiveCommand.CreateFromTask<string>(GraduateTrainee);
+
+        LoadYouthData();
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Commande pour graduer un trainee manuellement
+    /// </summary>
+    public ReactiveCommand<string, Unit> GraduateTraineeCommand { get; }
+
+    #region Collections
+
+    public ObservableCollection<TraineeItemViewModel> Trainees { get; }
+    public ObservableCollection<YouthStructureViewModel> Structures { get; }
+    public ObservableCollection<YouthProgramViewModel> Programs { get; }
+    public ObservableCollection<YouthStaffAssignmentViewModel> StaffAssignments { get; }
+
+    #endregion
+
+    #region Properties
+
+    public decimal Budget
+    {
+        get => _budget;
+        set => this.RaiseAndSetIfChanged(ref _budget, value);
+    }
+
+    public string BudgetFormatted => $"${Budget:N0}";
+
+    public int TotalTrainees
+    {
+        get => _totalTrainees;
+        set => this.RaiseAndSetIfChanged(ref _totalTrainees, value);
+    }
+
+    public string? CoachName
+    {
+        get => _coachName;
+        set => this.RaiseAndSetIfChanged(ref _coachName, value);
+    }
+
+    public YouthGenerationOptionViewModel? GenerationSelection
+    {
+        get => _generationSelection;
+        set => this.RaiseAndSetIfChanged(ref _generationSelection, value);
+    }
+
+    public YouthStructureViewModel? StructureSelection
+    {
+        get => _structureSelection;
+        set => this.RaiseAndSetIfChanged(ref _structureSelection, value);
+    }
+
+    public int BudgetNouveau
+    {
+        get => _budgetNouveau;
+        set => this.RaiseAndSetIfChanged(ref _budgetNouveau, value);
+    }
+
+    public string? CoachWorkerId
+    {
+        get => _coachWorkerId;
+        set => this.RaiseAndSetIfChanged(ref _coachWorkerId, value);
+    }
+
+    public string? CoachRole
+    {
+        get => _coachRole;
+        set => this.RaiseAndSetIfChanged(ref _coachRole, value);
+    }
+
+    public string? ActionMessage
+    {
+        get => _actionMessage;
+        private set => this.RaiseAndSetIfChanged(ref _actionMessage, value);
+    }
+
+    public IReadOnlyList<YouthGenerationOptionViewModel> GenerationModes { get; }
+
+    public int TotalStructures => Structures.Count;
+    public int TotalPrograms => Programs.Count;
+
+    #endregion
+
+    #region Commands
+
+    public ReactiveCommand<Unit, Unit> CreateStructureCommand { get; }
+    public ReactiveCommand<Unit, Unit> AssignCoachCommand { get; }
+    public ReactiveCommand<YouthStructureViewModel, Unit> UpdateBudgetCommand { get; }
+    public ReactiveCommand<Unit, Unit> GenerateTraineesCommand { get; }
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Phase 6.3 - Charge le système youth depuis le contexte
+    /// </summary>
+    public void LoadYouthSystem(ShowContext context)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+
+        Structures.Clear();
+        Programs.Clear();
+        StaffAssignments.Clear();
+        Trainees.Clear();
+
+        try
+        {
+            if (_repository == null) // Renamed _repository to _repository
+            {
+                LoadPlaceholderStructures();
+                return;
+            }
+
+            using var connection = (SqliteConnection)_repository.CreateConnection(); // Cast to SqliteConnection
+
+            // Charger les structures youth
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT StructureId, Name, Budget, TraineeCount, Level
+                    FROM YouthStructures
+                    ORDER BY Name";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Structures.Add(new YouthStructureViewModel
+                    {
+                        StructureId = reader.GetString(0),
+                        Name = reader.GetString(1),
+                        Budget = reader.GetInt32(2),
+                        TraineeCount = reader.GetInt32(3),
+                        Level = reader.GetInt32(4)
+                    });
+                }
+            }
+
+            // Charger les programmes
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT ProgramId, Name, Type, Duration, Effectiveness
+                    FROM YouthPrograms
+                    WHERE IsActive = 1";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Programs.Add(new YouthProgramViewModel
+                    {
+                        ProgramId = reader.GetString(0),
+                        Name = reader.GetString(1),
+                        Type = reader.GetString(2),
+                        Duration = reader.GetInt32(3),
+                        Effectiveness = reader.GetInt32(4)
+                    });
+                }
+            }
+
+            // Charger les assignments staff
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT sa.StaffAssignmentId, w.Name, sa.Role, sa.StructureId
+                    FROM YouthStaffAssignments sa
+                    JOIN Workers w ON sa.WorkerId = w.WorkerId
+                    WHERE sa.IsActive = 1";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    StaffAssignments.Add(new YouthStaffAssignmentViewModel
+                    {
+                        AssignmentId = reader.GetString(0),
+                        CoachName = reader.GetString(1),
+                        Role = reader.GetString(2),
+                        StructureId = reader.GetString(3)
+                    });
+                }
+            }
+
+            this.RaisePropertyChanged(nameof(TotalStructures));
+            this.RaisePropertyChanged(nameof(TotalPrograms));
+
+            Logger.Info($"Système youth chargé : {Structures.Count} structures, {Programs.Count} programmes");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur lors du chargement du système youth : {ex.Message}");
+            LoadPlaceholderStructures();
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Crée une nouvelle structure youth
+    /// </summary>
+    public async Task CreateStructure()
+    {
+        if (_repository == null) // Renamed _repository to _repository
+        {
+            ActionMessage = "Repository non disponible";
+            return;
+        }
+
+        try
+        {
+            // 1. Déterminer la compagnie
+            using var conn = _repository.CreateConnection();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT CompanyId FROM Companies LIMIT 1";
+            var companyId = cmd.ExecuteScalar()?.ToString();
+
+            if (string.IsNullOrEmpty(companyId))
+            {
+                ActionMessage = "Impossible de déterminer la compagnie";
+                return;
+            }
+
+            // 2. Créer via Facade avec paramètres par défaut pour ce legacy ViewModel
+            var nom = await _youthFacade.CreateStructureAsync(
+                companyId,
+                $"Structure {Structures.Count + 1}",
+                null, // regionId
+                "DOJO", // type
+                BudgetNouveau, // budget
+                20, // capacity
+                "Balanced", // philosophy
+                "BOTH", // genderPreference
+                "NONE" // specializationPreference
+            );
+
+            // Refresh list (simplified for now, ideally re-load or add the returned Obj)
+            // UseCase returns name, but we need ID to add to list or just reload.
+            // For correct UI feedback, re-loading or constructing the Object is needed.
+            // The UseCase CreateStructure returns 'nom', but generates ID internally.
+            // To be perfectly sync, I should probably reload the list or have UseCase return the full DTO.
+            // For "Atomic Migration", I will just reload the data.
+
+            LoadYouthSystem(_context!); // contextual reload
+
+            ActionMessage = $"Structure '{nom}' créée avec succès";
+            this.RaisePropertyChanged(nameof(TotalStructures));
+
+            Logger.Info($"Structure youth créée : {nom}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur création structure : {ex.Message}");
+            ActionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Grader un trainee manuellement
+    /// </summary>
+    private async Task GraduateTrainee(string workerId)
+    {
+        if (_repository == null) // Renamed _repository to _repository
+        {
+            ActionMessage = "Repository non disponible";
+            return;
+        }
+
+        try
+        {
+            // Utiliser YouthRepository injecté pour graduer
+            var currentWeek = 1; // TODO: Récupérer depuis GameState
+            await _youthFacade.GraduateTraineeAsync(workerId, currentWeek);
+
+            // Retirer le trainee de la liste
+            var trainee = Trainees.FirstOrDefault(t => t.WorkerId == workerId);
+            if (trainee != null)
+            {
+                Trainees.Remove(trainee);
+                TotalTrainees = Trainees.Count;
+            }
+
+            ActionMessage = $"🎓 {trainee?.Name ?? workerId} a été gradué avec succès. Contrat disponible pour signature.";
+            Logger.Info($"Trainee gradué manuellement: {workerId}");
+
+            // Phase 4.1 - TODO: Créer contrat automatique via ContractNegotiationService
+            // Pour l'instant, le worker devient disponible pour contrat manuel
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur graduation trainee: {ex.Message}");
+            ActionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+
+    /// <summary>
+    /// Phase 6.3 - Assigne un coach à une structure
+    /// </summary>
+    public async Task AssignCoach()
+    {
+        if (_repository == null || string.IsNullOrWhiteSpace(CoachWorkerId) ||
+            string.IsNullOrWhiteSpace(CoachRole) || StructureSelection == null)
+        {
+            ActionMessage = "Veuillez sélectionner coach, rôle et structure";
+            return;
+        }
+
+        try
+        {
+            var currentWeek = 1; // TODO
+            await _youthFacade.AssignCoachAsync(StructureSelection.StructureId, CoachWorkerId, CoachRole, currentWeek);
+
+            // Reload needed to get the new assignment details
+            LoadYouthSystem(_context!);
+
+            ActionMessage = $"Coach assigné comme {CoachRole}";
+            Logger.Info($"Coach assigné : {CoachWorkerId} → {StructureSelection.StructureId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur assignment coach : {ex.Message}");
+            ActionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Met à jour le budget d'une structure
+    /// </summary>
+    public async Task UpdateBudget(YouthStructureViewModel? structure)
+    {
+        if (_repository == null || structure == null)
+        {
+            ActionMessage = "Veuillez sélectionner une structure";
+            return;
+        }
+
+        try
+        {
+            await _youthFacade.UpdateBudgetAsync(structure.StructureId, BudgetNouveau);
+
+            structure.Budget = BudgetNouveau;
+            ActionMessage = $"Budget de '{structure.Name}' mis à jour : ${BudgetNouveau:N0}";
+            Logger.Info($"Budget mis à jour : {structure.StructureId} → ${BudgetNouveau}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur mise à jour budget : {ex.Message}");
+            ActionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Phase 6.3 - Génère de nouveaux trainees
+    /// </summary>
+    public async Task GenerateTrainees()
+    {
+        if (GenerationSelection == null)
+        {
+            ActionMessage = "Veuillez sélectionner un mode de génération";
+            return;
+        }
+
+        try
+        {
+            var count = await _youthFacade.GenerateTraineesAsync(GenerationSelection.Mode);
+
+            // Reload to show new trainees
+            LoadYouthSystem(_context!);
+
+            ActionMessage = $"{count} trainee(s) généré(s) via {GenerationSelection.Label}";
+            Logger.Info($"{count} trainees générés via {GenerationSelection.Mode}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Erreur génération trainees : {ex.Message}");
+            ActionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private void LoadYouthData()
+    {
+        if (_repository == null) // Renamed _repository to _repository
+        {
+            LoadPlaceholderData();
+            return;
+        }
+
+        try
+        {
+            using var connection = (SqliteConnection)_repository.CreateConnection(); // Cast to SqliteConnection
+
+            // Charger le budget youth
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT YouthBudget FROM Companies WHERE IsPlayerControlled = 1 LIMIT 1";
+                var result = cmd.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    Budget = Convert.ToDecimal(result);
+                }
+            }
+
+            // Phase 4.1 - Charger les trainees avec leurs attributs
+            Trainees.Clear();
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = """
+                    SELECT t.worker_id,
+                           w.FirstName,
+                           w.LastName,
+                           w.in_ring,
+                           w.entertainment,
+                           w.story,
+                           COALESCE(t.semaine_inscription, 1) as semaine_inscription,
+                           (SELECT COUNT(*) FROM youth_trainees WHERE statut = 'EN_FORMATION') as total
+                    FROM youth_trainees t
+                    JOIN workers w ON w.worker_id = t.worker_id
+                    WHERE t.statut = 'EN_FORMATION'
+                    ORDER BY w.LastName;
+                    """;
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var workerId = reader.GetString(0);
+                    var prenom = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+                    var nom = reader.GetString(2);
+                    var nomComplet = string.IsNullOrWhiteSpace(prenom) ? nom : $"{prenom} {nom}";
+                    var inRing = reader.GetInt32(3);
+                    var entertainment = reader.GetInt32(4);
+                    var story = reader.GetInt32(5);
+                    var semaineInscription = reader.GetInt32(6);
+
+                    // Calculer progression basée sur moyenne des attributs
+                    var moyenne = (inRing + entertainment + story) / 3.0;
+                    var progress = (int)Math.Round((moyenne / 100.0) * 100);
+
+                    Trainees.Add(new TraineeItemViewModel
+                    {
+                        WorkerId = workerId,
+                        Name = nomComplet,
+                        Age = 20, // TODO: Charger depuis workers si disponible
+                        Potential = (int)moyenne,
+                        Progress = progress,
+                        InRing = inRing,
+                        Entertainment = entertainment,
+                        Story = story
+                    });
+                }
+
+                if (!reader.IsClosed)
+                {
+                    reader.Close();
+                }
+            }
+
+            TotalTrainees = Trainees.Count;
+            Logger.Info($"{TotalTrainees} trainees, Budget: ${Budget:N0}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[YouthViewModel] Erreur: {ex.Message}");
+            LoadPlaceholderData();
+        }
+    }
+
+    private void LoadPlaceholderData()
+    {
+        Trainees.Add(new TraineeItemViewModel
+        {
+            Name = "John Morrison Jr.",
+            Age = 19,
+            Potential = 75,
+            Progress = 45
+        });
+        Trainees.Add(new TraineeItemViewModel
+        {
+            Name = "Sarah Phoenix",
+            Age = 21,
+            Potential = 82,
+            Progress = 68
+        });
+        Trainees.Add(new TraineeItemViewModel
+        {
+            Name = "Mike Thunder",
+            Age = 20,
+            Potential = 70,
+            Progress = 52
+        });
+    }
+
+    private void LoadPlaceholderStructures()
+    {
+        Structures.Add(new YouthStructureViewModel
+        {
+            StructureId = "YS001",
+            Name = "Performance Center",
+            Budget = 250_000,
+            TraineeCount = 12,
+            Level = 3
+        });
+
+        Programs.Add(new YouthProgramViewModel
+        {
+            ProgramId = "YP001",
+            Name = "Wrestling Fundamentals",
+            Type = "Technical",
+            Duration = 12,
+            Effectiveness = 75
+        });
+
+        StaffAssignments.Add(new YouthStaffAssignmentViewModel
+        {
+            AssignmentId = "YSA001",
+            CoachName = "William Regal",
+            Role = "Head Coach",
+            StructureId = "YS001"
+        });
+    }
+
+    private TraineeItemViewModel GenerateRandomTrainee(string mode)
+    {
+        var random = new Random();
+        var names = new[] { "Alex", "Jordan", "Taylor", "Morgan", "Casey", "Drew", "Sam", "Riley" };
+        var surnames = new[] { "Thunder", "Phoenix", "Storm", "Blaze", "Steel", "Shadow", "Knight", "Raven" };
+
+        var basePotential = mode switch
+        {
+            "Scouting" => random.Next(65, 90),
+            "Tryout" => random.Next(50, 75),
+            "Auto" => random.Next(55, 80),
+            _ => random.Next(60, 85)
+        };
+
+        return new TraineeItemViewModel
+        {
+            Name = $"{names[random.Next(names.Length)]} {surnames[random.Next(surnames.Length)]}",
+            Age = random.Next(18, 24),
+            Potential = basePotential,
+            Progress = random.Next(10, 40)
+        };
+    }
+
+    private void SaveTrainee(TraineeItemViewModel trainee)
+    {
+        if (_repository == null) return;
+
+        try
+        {
+            using var connection = (SqliteConnection)_repository.CreateConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO Youth (YouthId, Name, Age, Potential, Progress)
+                VALUES (@id, @name, @age, @potential, @progress)";
+
+            cmd.Parameters.AddWithValue("@id", $"Y-{Guid.NewGuid():N}".ToUpperInvariant());
+            cmd.Parameters.AddWithValue("@name", trainee.Name);
+            cmd.Parameters.AddWithValue("@age", trainee.Age);
+            cmd.Parameters.AddWithValue("@potential", trainee.Potential);
+            cmd.Parameters.AddWithValue("@progress", trainee.Progress);
+
+            cmd.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            Logger.Warning($"Impossible de sauvegarder trainee : {ex.Message}");
+        }
+    }
+
+    #endregion
+}
+
+public sealed class TraineeItemViewModel : ViewModelBase
+{
+    private string _workerId = string.Empty;
+    private string _name = string.Empty;
+    private int _age;
+    private int _potential;
+    private int _progress;
+    private int _inRing;
+    private int _entertainment;
+    private int _story;
+
+    /// <summary>
+    /// Phase 4.1 - WorkerId pour la graduation
+    /// </summary>
+    public string WorkerId
+    {
+        get => _workerId;
+        set => this.RaiseAndSetIfChanged(ref _workerId, value);
+    }
+
+    public string Name
+    {
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    public int Age
+    {
+        get => _age;
+        set => this.RaiseAndSetIfChanged(ref _age, value);
+    }
+
+    public int Potential
+    {
+        get => _potential;
+        set => this.RaiseAndSetIfChanged(ref _potential, value);
+    }
+
+    public int Progress
+    {
+        get => _progress;
+        set => this.RaiseAndSetIfChanged(ref _progress, value);
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Attributs InRing
+    /// </summary>
+    public int InRing
+    {
+        get => _inRing;
+        set => this.RaiseAndSetIfChanged(ref _inRing, value);
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Attributs Entertainment
+    /// </summary>
+    public int Entertainment
+    {
+        get => _entertainment;
+        set => this.RaiseAndSetIfChanged(ref _entertainment, value);
+    }
+
+    /// <summary>
+    /// Phase 4.1 - Attributs Story
+    /// </summary>
+    public int Story
+    {
+        get => _story;
+        set => this.RaiseAndSetIfChanged(ref _story, value);
+    }
+
+    public string AgeDisplay => $"{Age} ans";
+    public string ProgressDisplay => $"{Progress}%";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour une structure youth
+/// </summary>
+public sealed class YouthStructureViewModel : ViewModelBase
+{
+    private string _structureId = string.Empty;
+    private string _name = string.Empty;
+    private int _budget;
+    private int _traineeCount;
+    private int _level;
+
+    public string StructureId
+    {
+        get => _structureId;
+        set => this.RaiseAndSetIfChanged(ref _structureId, value);
+    }
+
+    public string Name
+    {
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    public int Budget
+    {
+        get => _budget;
+        set => this.RaiseAndSetIfChanged(ref _budget, value);
+    }
+
+    public int TraineeCount
+    {
+        get => _traineeCount;
+        set => this.RaiseAndSetIfChanged(ref _traineeCount, value);
+    }
+
+    public int Level
+    {
+        get => _level;
+        set => this.RaiseAndSetIfChanged(ref _level, value);
+    }
+
+    public string BudgetDisplay => $"${Budget:N0}";
+    public string TraineeCountDisplay => $"{TraineeCount} trainees";
+    public string LevelDisplay => $"Level {Level}";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un programme youth
+/// </summary>
+public sealed class YouthProgramViewModel : ViewModelBase
+{
+    private string _programId = string.Empty;
+    private string _name = string.Empty;
+    private string _type = string.Empty;
+    private int _duration;
+    private int _effectiveness;
+
+    public string ProgramId
+    {
+        get => _programId;
+        set => this.RaiseAndSetIfChanged(ref _programId, value);
+    }
+
+    public string Name
+    {
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    public string Type
+    {
+        get => _type;
+        set => this.RaiseAndSetIfChanged(ref _type, value);
+    }
+
+    public int Duration
+    {
+        get => _duration;
+        set => this.RaiseAndSetIfChanged(ref _duration, value);
+    }
+
+    public int Effectiveness
+    {
+        get => _effectiveness;
+        set => this.RaiseAndSetIfChanged(ref _effectiveness, value);
+    }
+
+    public string DurationDisplay => $"{Duration} semaines";
+    public string EffectivenessDisplay => $"{Effectiveness}%";
+}
+
+/// <summary>
+/// Phase 6.3 - ViewModel pour un assignment de coach youth
+/// </summary>
+public sealed class YouthStaffAssignmentViewModel : ViewModelBase
+{
+    private string _assignmentId = string.Empty;
+    private string _coachName = string.Empty;
+    private string _role = string.Empty;
+    private string _structureId = string.Empty;
+
+    public string AssignmentId
+    {
+        get => _assignmentId;
+        set => this.RaiseAndSetIfChanged(ref _assignmentId, value);
+    }
+
+    public string CoachName
+    {
+        get => _coachName;
+        set => this.RaiseAndSetIfChanged(ref _coachName, value);
+    }
+
+    public string Role
+    {
+        get => _role;
+        set => this.RaiseAndSetIfChanged(ref _role, value);
+    }
+
+    public string StructureId
+    {
+        get => _structureId;
+        set => this.RaiseAndSetIfChanged(ref _structureId, value);
+    }
+
+    public string Display => $"{CoachName} - {Role}";
+}
+
+/// <summary>
+/// Phase 6.3 - Option de génération de trainees
+/// </summary>
+public sealed class YouthGenerationOptionViewModel : ViewModelBase
+{
+    private string _mode = string.Empty;
+    private string _label = string.Empty;
+    private string _description = string.Empty;
+
+    public string Mode
+    {
+        get => _mode;
+        set => this.RaiseAndSetIfChanged(ref _mode, value);
+    }
+
+    public string Label
+    {
+        get => _label;
+        set => this.RaiseAndSetIfChanged(ref _label, value);
+    }
+
+    public string Description
+    {
+        get => _description;
+        set => this.RaiseAndSetIfChanged(ref _description, value);
+    }
+}

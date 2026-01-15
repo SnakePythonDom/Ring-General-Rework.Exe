@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "langue": "fr",
+    "version": "1.0",
+    "sourceDeVerite": "specs"
+  },
+  "pages": [
+    {
+      "id": "page.booking",
+      "titre": "Booking",
+      "resume": "Construisez la carte du show et validez sa cohérence.",
+      "sections": [
+        {
+          "titre": "Objectif",
+          "contenu": "Mixer matchs et segments narratifs pour un rythme fluide et une note solide."
+        },
+        {
+          "titre": "Bonnes pratiques",
+          "contenu": "Alternez intensité, faites monter les storylines et protégez vos stars." 
+        }
+      ],
+      "erreursFrequentes": [
+        "Trop de promos d'affilée.",
+        "Aucun main event fort.",
+        "Segments sans participants disponibles."
+      ]
+    },
+    {
+      "id": "page.resultats",
+      "titre": "Résultats de show",
+      "resume": "Analysez la note globale, les impacts et les points clés.",
+      "sections": [
+        {
+          "titre": "Pourquoi cette note ?",
+          "contenu": "Les facteurs majeurs sont listés avec leur impact, positif ou négatif."
+        },
+        {
+          "titre": "Conseils",
+          "contenu": "Des suggestions rapides indiquent comment améliorer le prochain show."
+        }
+      ],
+      "erreursFrequentes": [
+        "Ignorer les pénalités de rythme.",
+        "Sous-estimer la fatigue.",
+        "Laisser des storylines sans segments."
+      ]
+    },
+    {
+      "id": "page.diffusion",
+      "titre": "Diffusion",
+      "resume": "Gérez vos deals TV/streaming et la portée de vos shows.",
+      "sections": [
+        {
+          "titre": "À surveiller",
+          "contenu": "Les contraintes de durée et le reach influencent l'audience."
+        }
+      ],
+      "erreursFrequentes": [
+        "Signer un deal sans vérifier la fenêtre horaire.",
+        "Sous-évaluer l'impact sur la popularité régionale."
+      ]
+    },
+    {
+      "id": "page.reseau",
+      "titre": "Réseau",
+      "resume": "Pilotage des filiales, partenaires et territoires.",
+      "sections": [
+        {
+          "titre": "Quand l'utiliser",
+          "contenu": "Utilisez le réseau pour développer des talents et partager des shows."
+        }
+      ],
+      "erreursFrequentes": [
+        "Sur-solliciter une filiale en crise.",
+        "Négliger les objectifs communs."
+      ]
+    },
+    {
+      "id": "page.youth",
+      "titre": "Youth",
+      "resume": "Suivi des élèves et programmes de progression.",
+      "sections": [
+        {
+          "titre": "Focus",
+          "contenu": "Un programme cohérent accélère la montée de niveau."
+        }
+      ],
+      "erreursFrequentes": [
+        "Changer de programme trop souvent.",
+        "Oublier d'organiser des tryouts."
+      ]
+    },
+    {
+      "id": "page.finances",
+      "titre": "Finances",
+      "resume": "Suivez votre trésorerie et vos transactions clés.",
+      "sections": [
+        {
+          "titre": "Lecture rapide",
+          "contenu": "Priorisez la trésorerie et identifiez les postes en hausse."
+        }
+      ],
+      "erreursFrequentes": [
+        "Laisser la billetterie sans ajustement.",
+        "Accumuler les buyouts sans réserve."
+      ]
+    },
+    {
+      "id": "page.scouting",
+      "titre": "Scouting",
+      "resume": "Repérez des talents et planifiez vos recrutements.",
+      "sections": [
+        {
+          "titre": "Rythme",
+          "contenu": "Les rapports s'améliorent avec le temps et les missions ciblées."
+        }
+      ],
+      "erreursFrequentes": [
+        "Arrêter une mission trop tôt.",
+        "Négliger les régions secondaires."
+      ]
+    },
+    {
+      "id": "page.aide-codex",
+      "titre": "Aide / Codex",
+      "resume": "Retrouvez les définitions, systèmes et guides de démarrage.",
+      "sections": [
+        {
+          "titre": "Recherche",
+          "contenu": "Tapez un terme pour filtrer la liste d'articles."
+        }
+      ],
+      "erreursFrequentes": [
+        "Oublier d'ouvrir un article pour voir ses liens internes."
+      ]
+    },
+    {
+      "id": "impacts.popularite",
+      "titre": "Impacts Popularité",
+      "resume": "Pourquoi la popularité bouge et comment l'améliorer.",
+      "sections": [
+        {
+          "titre": "Pourquoi ?",
+          "contenu": "La qualité des segments, la diffusion et les victoires clés influencent la popularité."
+        },
+        {
+          "titre": "Comment améliorer",
+          "contenu": "Protégez vos stars, sécurisez de bons main events et stabilisez la diffusion."
+        }
+      ],
+      "erreursFrequentes": [
+        "Répéter des segments faibles en ouverture.",
+        "Changer de diffuseur trop souvent."
+      ]
+    },
+    {
+      "id": "impacts.finances",
+      "titre": "Impacts Finances",
+      "resume": "Synthèse des gains et pertes récents.",
+      "sections": [
+        {
+          "titre": "Pourquoi ?",
+          "contenu": "Billetterie, diffusion et dépenses de contrat dominent les variations."
+        },
+        {
+          "titre": "Comment améliorer",
+          "contenu": "Optimisez la carte pour sécuriser l'audience et surveillez les gros coûts."
+        }
+      ],
+      "erreursFrequentes": [
+        "Ne pas suivre les transactions en détail."
+      ]
+    },
+    {
+      "id": "impacts.fatigue",
+      "titre": "Impacts Fatigue / Blessures",
+      "resume": "Comprenez les variations de fatigue et les blessures.",
+      "sections": [
+        {
+          "titre": "Pourquoi ?",
+          "contenu": "La durée et l'intensité des segments augmentent la fatigue et le risque."
+        },
+        {
+          "titre": "Comment améliorer",
+          "contenu": "Alternez les participants, limitez les matchs trop longs et utilisez des pauses."
+        }
+      ],
+      "erreursFrequentes": [
+        "Faire lutter un même catcheur trop souvent."
+      ]
+    },
+    {
+      "id": "impacts.storylines",
+      "titre": "Impacts Storylines",
+      "resume": "L'effet des segments sur le heat des rivalités.",
+      "sections": [
+        {
+          "titre": "Pourquoi ?",
+          "contenu": "Les segments liés augmentent le heat, les absences le réduisent."
+        },
+        {
+          "titre": "Comment améliorer",
+          "contenu": "Planifiez des rappels réguliers et des confrontations clés."
+        }
+      ],
+      "erreursFrequentes": [
+        "Laisser une storyline sans segment pendant plusieurs semaines."
+      ]
+    },
+    {
+      "id": "impacts.titres",
+      "titre": "Impacts Titres",
+      "resume": "Les variations de prestige des titres.",
+      "sections": [
+        {
+          "titre": "Pourquoi ?",
+          "contenu": "Les défenses de qualité font monter le prestige, les défenses faibles le font baisser."
+        },
+        {
+          "titre": "Comment améliorer",
+          "contenu": "Organisez des défenses régulières avec des challengers crédibles."
+        }
+      ],
+      "erreursFrequentes": [
+        "Multiplier les changements de champion sans justification."
+      ]
+    }
+  ]
+}

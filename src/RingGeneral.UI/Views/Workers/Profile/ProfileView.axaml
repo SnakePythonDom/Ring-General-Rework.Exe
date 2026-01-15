@@ -1,0 +1,570 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Workers.Profile"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="RingGeneral.UI.Views.Workers.Profile.ProfileView"
+             x:DataType="vm:ProfileViewModel">
+
+    <Design.DataContext>
+        <vm:ProfileViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="20">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="25" CornerRadius="12" Margin="0,0,0,20">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Photo -->
+                <Border Grid.Column="0" Width="80" Height="80" CornerRadius="40" Background="{StaticResource BorderMediumBrush}" Margin="0,0,8,0">
+                    <TextBlock Text="👤" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Info -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="{StaticResource SpacingSmall}">
+                    <TextBlock Theme="{StaticResource HeadingStyle}" Text="{Binding CurrentWorker.Name}"/>
+                    <TextBlock Text="{Binding CurrentWorker.GetBioSummary}" FontSize="{StaticResource FontSizeLarge}" Foreground="{StaticResource TextMutedBrush}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
+                        <TextBlock Text="{Binding CurrentWorker.AlignmentIcon}" FontSize="{StaticResource FontSizeMedium}"/>
+                        <TextBlock Text="{Binding CurrentWorker.AlignmentDisplayName}" FontSize="{StaticResource FontSizeMedium}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding CurrentWorker.PushLevelIcon}" FontSize="{StaticResource FontSizeXLarge}"/>
+                        <TextBlock Text="{Binding CurrentWorker.PushLevelDisplayName}" FontSize="{StaticResource FontSizeMedium}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}" VerticalAlignment="Center">
+                    <Button Content="🔄 Rafraîchir" Command="{Binding RefreshCommand}" Padding="15,10" Background="{StaticResource BorderMediumBrush}" Foreground="{StaticResource TextPrimaryBrush}" CornerRadius="{StaticResource RadiusSmall}"/>
+                    <Button Theme="{StaticResource DangerButton}" Content="✖ Fermer" Command="{Binding CloseProfileCommand}" Padding="15,10"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Personality Section -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+            <!-- Personality Header -->
+            <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="8" CornerRadius="{StaticResource RadiusSmall}" Margin="0,0,0,4">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
+                        <TextBlock Text="PERSONNALITÉ :" Theme="{StaticResource TitleStyle}" VerticalAlignment="Center"/>
+                        <TextBlock Text="🧩" FontSize="{StaticResource FontSizeMedium}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding PersonalityTab.ProfileDisplayName}" Theme="{StaticResource TitleStyle}" Foreground="{StaticResource AccentBlueBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="Rapport de l'Agent ▾" FontSize="{StaticResource FontSizeSmall}" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Description Box -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="12" CornerRadius="{StaticResource RadiusSmall}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding PersonalityTab.ProfileDescription}" FontSize="{StaticResource FontSizeSmall}" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,12,0" Opacity="0.9"/>
+                    <StackPanel Grid.Column="1" Spacing="{StaticResource SpacingXSmall}">
+                        <TextBlock Text="• Excellent mentor (Dojo)" FontSize="{StaticResource FontSizeSmall}" Foreground="{StaticResource AccentGreenBrush}"/>
+                        <TextBlock Text="• Très fiable en PPV" FontSize="{StaticResource FontSizeSmall}" Foreground="{StaticResource AccentGreenBrush}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <!-- Tabs Content -->
+        <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}">
+            <!-- Tab 1: Attributs -->
+            <TabItem Header="📊 ATTRIBUTS">
+                <ScrollViewer>
+                    <StackPanel Margin="{StaticResource SpacingMedium}" Spacing="{StaticResource SpacingLarge}">
+                        <!-- Overall Rating Card -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="12" CornerRadius="{StaticResource RadiusSmall}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="ÉVALUATION GLOBALE" FontSize="{StaticResource FontSizeMedium}" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding AttributesTab.OverallAverage}" FontSize="48" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
+                                    <Button Theme="{StaticResource PrimaryButton}" Content="✏ Modifier" Command="{Binding AttributesTab.ToggleEditModeCommand}" Padding="15,10"/>
+                                    <Button Theme="{StaticResource SuccessButton}" Content="💾 Sauvegarder" Command="{Binding AttributesTab.SaveAttributesCommand}" Padding="15,10" IsEnabled="{Binding AttributesTab.IsEditMode}"/>
+                                    <Button Theme="{StaticResource DangerButton}" Content="✖ Annuler" Command="{Binding AttributesTab.CancelEditCommand}" Padding="15,10" IsEnabled="{Binding AttributesTab.IsEditMode}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- In-Ring Attributes -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="🥊 IN-RING ATTRIBUTES (Moyenne: {0})">
+                                            <Binding Path="AttributesTab.InRingAttributes.InRingAvg"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Striking" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Striking}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Grappling" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Grappling}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="High-Flying" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.HighFlying}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Powerhouse" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Powerhouse}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Timing" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Timing}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Selling" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Selling}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Psychology" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Psychology}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Stamina" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Stamina}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+                                        <TextBlock Text="Safety" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.Safety}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                                        <TextBlock Text="Hardcore/Brawl" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.InRingAttributes.HardcoreBrawl}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Entertainment Attributes -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="🎤 ENTERTAINMENT ATTRIBUTES (Moyenne: {0})">
+                                            <Binding Path="AttributesTab.EntertainmentAttributes.EntertainmentAvg"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Charisme" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.Charisma}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Mic Work" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.MicWork}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Acting" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.Acting}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Connexion Crowd" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.CrowdConnection}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Star Power" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.StarPower}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Improvisation" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.Improvisation}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Entrée" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.Entrance}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Sex Appeal" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.SexAppeal}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+                                        <TextBlock Text="Merchandising" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.MerchandiseAppeal}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                                        <TextBlock Text="Aura" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.EntertainmentAttributes.CrossoverPotential}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Story Attributes -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="📖 STORY ATTRIBUTES (Moyenne: {0})">
+                                            <Binding Path="AttributesTab.StoryAttributes.StoryAvg"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Prof. Perso" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.CharacterDepth}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Cohérence" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.Consistency}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Perf. Heel" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.HeelPerformance}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Perf. Face" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.BabyfacePerformance}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Storytelling" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.StorytellingLongTerm}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Émotion" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.EmotionalRange}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Adaptabilité" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.Adaptability}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Alchimie" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.RivalryChemistry}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+                                        <TextBlock Text="Vision Créative" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.CreativeInput}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                                        <TextBlock Text="Nuances (Moral)" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding AttributesTab.StoryAttributes.MoralAlignment}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 2: Contrats -->
+            <TabItem Header="📄 CONTRATS">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="CONTRATS" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        
+                        <!-- Current Contract -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Contrat actuel:" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <StackPanel IsVisible="{Binding ContractsTab.HasActiveContract}">
+                                    <TextBlock Text="{Binding ContractsTab.CurrentContract.WeeklySalary, StringFormat='• Salaire: {0:C0}'}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding ContractsTab.CurrentContract.StartDateFormatted, StringFormat='• Début: {0}'}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding ContractsTab.CurrentContract.EndDateFormatted, StringFormat='• Fin: {0}'}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <Border Margin="0,10,0,0" Background="{Binding ContractsTab.CurrentContract.StatusColor}" Padding="8,4" HorizontalAlignment="Left" CornerRadius="4">
+                                         <TextBlock Text="{Binding ContractsTab.CurrentContract.ContractTypeDisplayName}" Foreground="White" FontWeight="Bold"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Aucun contrat actif." IsVisible="{Binding !ContractsTab.HasActiveContract}" Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                         <!-- History -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Historique des contrats:" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <ItemsControl ItemsSource="{Binding ContractsTab.ContractHistory}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="10" Margin="0,0,0,5" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4">
+                                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                                     <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding ContractTypeDisplayName}" FontWeight="Bold"/>
+                                                        <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
+                                                            <TextBlock.Text>
+                                                                <MultiBinding StringFormat="{}{0} - {1}">
+                                                                    <Binding Path="StartDateFormatted"/>
+                                                                    <Binding Path="EndDateFormatted"/>
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                     </StackPanel>
+                                                     <TextBlock Grid.Column="1" Text="{Binding WeeklySalary, StringFormat='{}{0:C0}'}" VerticalAlignment="Center" Margin="10,0"/>
+                                                     <TextBlock Grid.Column="2" Text="{Binding StatusDisplayName}" Foreground="{Binding StatusColor}" VerticalAlignment="Center" FontWeight="Bold"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 3: Gimmick -->
+            <TabItem Header="🎭 GIMMICK">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="GIMMICK &amp; PUSH" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Gimmick: The Champ" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Alignment: Face" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Push Level: Main Event" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Specializations: [Liste des spécialisations]" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 4: Relations -->
+            <TabItem Header="👥 RELATIONS">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="RELATIONS &amp; FACTIONS" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="Relations:" FontWeight="Bold"/>
+                                <TextBlock Text="• CM Punk: Rivalité (-50)" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="• Randy Orton: Allié (+30)" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Separator Background="{StaticResource BorderLightBrush}" Height="1"/>
+                                <TextBlock Text="Factions:" FontWeight="Bold"/>
+                                <TextBlock Text="• [Nom Faction] - Membre" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 5: Historique -->
+            <TabItem Header="📜 HISTORIQUE">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="HISTORIQUE" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Match Stats:" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding HistoryTab.TotalMatches, StringFormat='Total: {0}'}" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="{Binding HistoryTab.TotalWins, StringFormat='Wins: {0}'}" FontSize="14" Foreground="{StaticResource AccentGreenBrush}"/>
+                                <TextBlock Text="{Binding HistoryTab.TotalLosses, StringFormat='Losses: {0}'}" FontSize="14" Foreground="{StaticResource AccentRedBrush}"/>
+                                <TextBlock Text="{Binding HistoryTab.WinPercentage, StringFormat='Win %: {0:F1}%'}" FontSize="14" Foreground="{StaticResource AccentBlueBrush}"/>
+                                <Separator Background="{StaticResource BorderLightBrush}" Height="1" Margin="0,10"/>
+                                <TextBlock Text="Matches récents:" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="• John Cena vs CM Punk - WrestleMania" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="• John Cena vs Randy Orton - Raw" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 6: Notes -->
+            <TabItem Header="📝 NOTES">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="20">
+                        <TextBlock Text="NOTES DU BOOKER" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBox Text="{Binding NotesTab.NewNoteText}" Watermark="Nouvelle note..." MinHeight="100" TextWrapping="Wrap" AcceptsReturn="True"/>
+                                <Button Content="➕ Ajouter Note" Command="{Binding NotesTab.AddNoteCommand}" Padding="10,6" Background="{StaticResource AccentGreenBrush}" HorizontalAlignment="Left"/>
+                                
+                                <Separator Background="{StaticResource BorderLightBrush}" Height="1" Margin="0,5"/>
+                                
+                                <TextBlock Text="Notes existantes:" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <ItemsControl ItemsSource="{Binding NotesTab.Notes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="10" Margin="0,0,0,5" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4">
+                                                <StackPanel>
+                                                   <TextBlock Text="{Binding CreatedDate, StringFormat='• Note du {0:dd/MM/yyyy}:'}" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+                                                   <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 7: Personnalité -->
+            <TabItem Header="🎭 PERSONNALITÉ">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="25">
+                        <!-- Personality Profile Card -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <TextBlock Grid.Column="0" Text="🎭" FontSize="48" Margin="0,0,20,0" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="PROFIL DE PERSONNALITÉ" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding PersonalityTab.ProfileDisplayName}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    <TextBlock Text="{Binding PersonalityTab.ProfileDescription}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding PersonalityTab.QuickAssessment}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}" Margin="0,5,0,0"/>
+                                </StackPanel>
+                                <Button Grid.Column="2" Content="🔄 Recalculer" Command="{Binding PersonalityTab.RecalculateProfileCommand}" Padding="10,6" Background="{StaticResource BrandPrimaryBrush}" Foreground="White" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Agent Report - 4 Pillars -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" IsVisible="{Binding PersonalityTab.IsScoutingCompleted}">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="📊 RAPPORT D'AGENT" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                                <!-- Professionnalisme Pillar -->
+                                <StackPanel Spacing="5">
+                                    <Grid ColumnDefinitions="150,*,60">
+                                        <TextBlock Grid.Column="0" Text="Professionnalisme" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <ProgressBar Grid.Column="1" Value="{Binding PersonalityTab.AgentReport.ProfessionnalismeScore}" Maximum="20" Height="20" Margin="10,0"/>
+                                        <TextBlock Grid.Column="2" FontSize="13" Foreground="{StaticResource AccentBlueBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0:F1}/20">
+                                                    <Binding Path="PersonalityTab.AgentReport.ProfessionnalismeScore"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Pression Pillar -->
+                                <StackPanel Spacing="5">
+                                    <Grid ColumnDefinitions="150,*,60">
+                                        <TextBlock Grid.Column="0" Text="Gestion Pression" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <ProgressBar Grid.Column="1" Value="{Binding PersonalityTab.AgentReport.PressionScore}" Maximum="20" Height="20" Margin="10,0"/>
+                                        <TextBlock Grid.Column="2" FontSize="13" Foreground="{StaticResource AccentGreenBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0:F1}/20">
+                                                    <Binding Path="PersonalityTab.AgentReport.PressionScore"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Égoïsme Pillar -->
+                                <StackPanel Spacing="5">
+                                    <Grid ColumnDefinitions="150,*,60">
+                                        <TextBlock Grid.Column="0" Text="Niveau d'Égo" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <ProgressBar Grid.Column="1" Value="{Binding PersonalityTab.AgentReport.ÉgoïsmeScore}" Maximum="20" Height="20" Margin="10,0"/>
+                                        <TextBlock Grid.Column="2" FontSize="13" Foreground="{StaticResource AccentRedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0:F1}/20">
+                                                    <Binding Path="PersonalityTab.AgentReport.ÉgoïsmeScore"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Influence Pillar -->
+                                <StackPanel Spacing="5">
+                                    <Grid ColumnDefinitions="150,*,60">
+                                        <TextBlock Grid.Column="0" Text="Influence Backstage" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <ProgressBar Grid.Column="1" Value="{Binding PersonalityTab.AgentReport.InfluenceScore}" Maximum="20" Height="20" Margin="10,0"/>
+                                        <TextBlock Grid.Column="2" FontSize="13" Foreground="{StaticResource BrandSecondaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0:F1}/20">
+                                                    <Binding Path="PersonalityTab.AgentReport.InfluenceScore"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Report Text -->
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="15" CornerRadius="4" Margin="0,10,0,0">
+                                    <TextBlock Text="{Binding PersonalityTab.AgentReport.ReportText}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="22"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Mental Attributes Detailed (Full Scouting) -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" IsVisible="{Binding PersonalityTab.ShowDetailedAttributes}">
+                            <StackPanel Spacing="15">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="🔍 ATTRIBUTS MENTAUX DÉTAILLÉS" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding PersonalityTab.ScoutingLevelText}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <!-- Row 0 -->
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Ambition" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Ambition}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Loyauté" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Loyauté}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+
+                                    <!-- Row 1 -->
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Professionnalisme" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Professionnalisme}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Pression" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Pression}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+
+                                    <!-- Row 2 -->
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Tempérament" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Tempérament}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Égoïsme" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Égoïsme}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+
+                                    <!-- Row 3 -->
+                                    <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,0,10,10">
+                                        <TextBlock Text="Détermination" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Détermination}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Spacing="5" Margin="10,0,0,10">
+                                        <TextBlock Text="Adaptabilité" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Adaptabilité}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+
+                                    <!-- Row 4 -->
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+                                        <TextBlock Text="Influence" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Influence}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                                        <TextBlock Text="Sportivité" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding PersonalityTab.MentalAttributes.Sportivité}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Scouting Not Completed Warning -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" IsVisible="{Binding PersonalityTab.IsScoutingNotCompleted}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="⚠️ SCOUTING NON COMPLÉTÉ" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                <TextBlock Text="Les attributs mentaux ne sont pas encore révélés. Lancez une mission de scouting pour obtenir le rapport complet." FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+                                    <Button Content="🔍 Scouting Basique" Command="{Binding PersonalityTab.RevealBasicScoutingCommand}" Padding="12,8" Background="{StaticResource AccentBlueBrush}"/>
+                                    <Button Content="🔍🔍 Scouting Complet" Command="{Binding PersonalityTab.RevealFullScoutingCommand}" Padding="12,8" Background="{StaticResource BrandPrimaryBrush}" Foreground="White"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Youth"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RingGeneral.UI.Views.Youth.YouthStaffManagementView"
+             x:DataType="vm:YouthStaffManagementViewModel">
+
+  <ScrollViewer>
+    <StackPanel Spacing="20" Margin="20">
+      
+      <!-- Actions -->
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Content="+ Hire New Staff" Command="{Binding HireStaffCommand}" Background="#27ae60" Foreground="White" FontWeight="Bold"/>
+        <Button Content="Auto-Assign Roles" Command="{Binding AutoAssignCommand}" Background="#34495e" Foreground="White"/>
+      </StackPanel>
+
+      <!-- HEAD COACH -->
+      <StackPanel Spacing="10">
+        <TextBlock Text="HEAD COACH" FontSize="14" FontWeight="Bold" Foreground="#7f8c8d"/>
+        
+        <Border Background="#ecf0f1" CornerRadius="5" Padding="15" IsVisible="{Binding HeadCoach, Converter={x:Static ObjectConverters.IsNotNull}}">
+           <Grid ColumnDefinitions="Auto, *, Auto">
+             <StackPanel Grid.Column="0" Spacing="5">
+               <StackPanel Orientation="Horizontal" Spacing="10">
+                 <TextBlock Text="👤" FontSize="20"/>
+                 <Button Content="{Binding HeadCoach.Name}" 
+                         Command="{Binding HeadCoach.ViewProfileCommand}"
+                         Background="Transparent" 
+                         Foreground="#3498db" 
+                         FontSize="18" 
+                         Padding="0" 
+                         BorderThickness="0" 
+                         FontWeight="Bold"/>
+                 <TextBlock Text="(45yo)" FontSize="14" Foreground="#7f8c8d" VerticalAlignment="Center"/>
+               </StackPanel>
+               <TextBlock Text="{Binding HeadCoach.WageDisplay, StringFormat='Wage: {0}/mo'}" Foreground="#e74c3c" FontWeight="SemiBold"/>
+             </StackPanel>
+             
+             <StackPanel Grid.Column="1" Margin="20,0" Spacing="5" VerticalAlignment="Center">
+               <Grid ColumnDefinitions="Auto, Auto, Auto, Auto" RowDefinitions="Auto">
+                 <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                   <TextBlock Text="Speciality" FontSize="10" Foreground="#95a5a6"/>
+                   <TextBlock Text="{Binding HeadCoach.Speciality}" FontWeight="Bold"/>
+                 </StackPanel>
+                 <StackPanel Grid.Column="1" Margin="0,0,20,0">
+                   <TextBlock Text="Teaching" FontSize="10" Foreground="#95a5a6"/>
+                   <TextBlock Text="{Binding HeadCoach.Teaching}" FontWeight="Bold"/>
+                 </StackPanel>
+                 <StackPanel Grid.Column="2" Margin="0,0,20,0">
+                   <TextBlock Text="Motivation" FontSize="10" Foreground="#95a5a6"/>
+                   <TextBlock Text="{Binding HeadCoach.Motivation}" FontWeight="Bold"/>
+                 </StackPanel>
+                 <StackPanel Grid.Column="3">
+                   <TextBlock Text="Admin" FontSize="10" Foreground="#95a5a6"/>
+                   <TextBlock Text="{Binding HeadCoach.Admin}" FontWeight="Bold"/>
+                 </StackPanel>
+               </Grid>
+             </StackPanel>
+             
+             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+               <Button Content="Replace" Background="#f39c12" Foreground="White" FontSize="10"/>
+               <Button Content="Fire" Background="#c0392b" Foreground="White" FontSize="10"/>
+             </StackPanel>
+           </Grid>
+        </Border>
+        
+        <Border Background="#ecf0f1" CornerRadius="5" Padding="15" IsVisible="{Binding HeadCoach, Converter={x:Static ObjectConverters.IsNull}}">
+           <TextBlock Text="No Head Coach assigned." Foreground="#7f8c8d" FontStyle="Italic" HorizontalAlignment="Center"/>
+        </Border>
+      </StackPanel>
+
+      <!-- SUPPORT STAFF -->
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="SUPPORT STAFF" FontSize="14" FontWeight="Bold" Foreground="#7f8c8d" Margin="0,0,0,10"/>
+        
+        <DataGrid ItemsSource="{Binding SupportStaff}" AutoGenerateColumns="False" IsReadOnly="True"
+                  GridLinesVisibility="Horizontal" Background="#2c3e50" RowBackground="#34495e" Foreground="White"
+                  HeadersVisibility="Column" BorderThickness="0" BorderBrush="#555">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="Name" Width="*">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding Name}" 
+                                Command="{Binding ViewProfileCommand}"
+                                Background="Transparent" 
+                                Foreground="#3498db" 
+                                HorizontalAlignment="Left"
+                                Padding="0" 
+                                BorderThickness="0" 
+                                FontWeight="Bold"/>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="150"/>
+            <DataGridTextColumn Header="Skill (Avg)" Binding="{Binding SkillGrade}" Width="100"/>
+            <DataGridTextColumn Header="Wage/mo" Binding="{Binding WageDisplay}" Width="100"/>
+            <DataGridTemplateColumn Header="Action" Width="150">
+               <DataGridTemplateColumn.CellTemplate>
+                 <DataTemplate>
+                   <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                       <Button Content="View" Command="{Binding ViewProfileCommand}" Background="#3498db" Foreground="White" FontSize="10" Padding="5,2"/>
+                       <Button Content="Manage" Background="#bdc3c7" Foreground="Black" FontSize="10" Padding="5,2"/>
+                   </StackPanel>
+                 </DataTemplate>
+               </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </DockPanel>
+      
+      <Grid>
+         <TextBlock Text="TOTAL PAYROLL: 11,500 € / month" FontWeight="Bold" HorizontalAlignment="Left" Foreground="#2c3e50"/>
+         <TextBlock Text="Recruit Staff :" FontWeight="Bold" HorizontalAlignment="Right" Foreground="#2c3e50"/>
+      </Grid>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

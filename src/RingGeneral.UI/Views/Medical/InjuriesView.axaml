@@ -1,0 +1,141 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Medical"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Medical.InjuriesView"
+             x:DataType="vm:InjuriesViewModel">
+
+    <Design.DataContext>
+        <vm:InjuriesViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25">
+            <!-- En-tête -->
+            <StackPanel Spacing="{StaticResource SpacingSmall}">
+                <TextBlock Theme="{StaticResource HeadingStyle}" Text="🏥 BLESSURES"/>
+                <TextBlock Text="Gestion des blessures et récupération" FontSize="{StaticResource FontSizeLarge}" Foreground="{StaticResource TextSecondaryBrush}"/>
+            </StackPanel>
+
+            <!-- Statistiques -->
+            <Grid ColumnDefinitions="*,*,*">
+                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🤕 TOTAL" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TotalInjuries}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                        <TextBlock Text="Blessures actives" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="{StaticResource ErrorDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="⚠️ CRITIQUES" FontSize="12" Foreground="{StaticResource ErrorLightBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding CriticalInjuries}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentRedBrush}"/>
+                        <TextBlock Text="Nécessitent attention" FontSize="11" Foreground="{StaticResource ErrorLightBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="{StaticResource SuccessDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,0,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="✅ EN RÉTABLISSEMENT" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding RecoveringWorkers}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                        <TextBlock Text="Retour imminent" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Barre de recherche -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="{StaticResource SpacingLarge}" CornerRadius="{StaticResource RadiusLarge}">
+                <TextBox Theme="{StaticResource DefaultTextBox}" 
+                         Watermark="🔍 Rechercher un worker..."
+                         Text="{Binding FilterText}"/>
+            </Border>
+
+            <!-- Liste des blessures -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="📋 LISTE DES BLESSURES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" 
+                                Content="+ Ajouter blessure" 
+                                Command="{Binding AddInjuryCommand}"
+                                Theme="{StaticResource PrimaryButton}"/>
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding Injuries}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16" Margin="0,0,0,8" CornerRadius="6">
+                                    <Grid ColumnDefinitions="2*,*,*,*,Auto">
+                                        <!-- Worker -->
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="{Binding WorkerName}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding InjuryType}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Sévérité -->
+                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="Sévérité" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <TextBlock Text="{Binding SeverityDisplay}" FontSize="12" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+
+                                        <!-- Durée restante -->
+                                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="Semaines restantes" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <TextBlock Text="{Binding WeeksRemaining}" FontSize="14" Foreground="{StaticResource AccentBlueBrush}" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <!-- Progression -->
+                                        <StackPanel Grid.Column="3" Spacing="6" VerticalAlignment="Center">
+                                            <TextBlock Text="Récupération" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <ProgressBar Value="{Binding RecoveryProgress}"
+                                                       Minimum="0"
+                                                       Maximum="100"
+                                                       Height="8"
+                                                       CornerRadius="4"
+                                                       Foreground="{StaticResource AccentGreenBrush}"/>
+                                            <TextBlock Text="{Binding RecoveryProgress, StringFormat={}{0}%}"
+                                                     FontSize="11"
+                                                     Foreground="{StaticResource TextMutedBrush}"
+                                                     HorizontalAlignment="Center"/>
+                                        </StackPanel>
+
+                                        <!-- Actions -->
+                                        <!-- Actions -->
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="8" Margin="10,0,0,0">
+                                             <Button Content="Guérir"
+                                                    Command="{Binding $parent[UserControl].((vm:InjuriesViewModel)DataContext).MarkAsHealedCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    IsVisible="{Binding IsActive}"
+                                                    Theme="{StaticResource SuccessButton}"
+                                                    Padding="8,4"
+                                                    FontSize="{StaticResource FontSizeSmall}"/>
+                                            
+                                             <Button Content="Détails"
+                                                    Command="{Binding $parent[UserControl].((vm:InjuriesViewModel)DataContext).ViewWorkerDetailsCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Theme="{StaticResource PrimaryButton}"
+                                                    Padding="8,4"
+                                                    FontSize="{StaticResource FontSizeSmall}"/>
+
+                                            <Button Content="🗑️"
+                                                    Command="{Binding $parent[UserControl].((vm:InjuriesViewModel)DataContext).DeleteInjuryCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Padding="4"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

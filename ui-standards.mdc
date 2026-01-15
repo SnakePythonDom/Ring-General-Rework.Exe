@@ -1,0 +1,76 @@
+# UI Standards - Ring General
+
+## 🎯 Standards UI pour Ring General
+
+### ReactiveUI Obligatoire
+- **TOUJOURS** hériter de `ViewModelBase` (qui hérite de `ReactiveObject`)
+- **TOUJOURS** utiliser `RaiseAndSetIfChanged(ref _field, value)` pour les propriétés
+- **TOUJOURS** utiliser `ReactiveCommand.Create()` ou `ReactiveCommand.CreateFromTask()` pour les commandes
+
+### Data Binding Exclusif
+- **JAMAIS** de logique métier dans les Views (AXAML)
+- **JAMAIS** d'événements dans le code-behind
+- **UNIQUEMENT** `InitializeComponent()` dans le code-behind
+- Toutes les interactions passent par les commandes du ViewModel
+
+### Injection de Dépendances
+- **TOUJOURS** injecter les dépendances via le constructeur
+- **JAMAIS** d'instanciation manuelle (`new Service()`) dans les ViewModels
+- Utiliser le conteneur DI configuré dans `App.axaml.cs`
+
+### Collections Observables
+- Utiliser `ObservableCollection<T>` pour les listes dynamiques
+- Les collections sont automatiquement mises à jour dans l'UI via INotifyCollectionChanged
+
+### ViewModelBase
+```csharp
+public abstract class ViewModelBase : ReactiveObject
+{
+    protected ILoggingService Logger { get; }
+
+    protected ViewModelBase()
+    {
+        Logger = ApplicationServices.Logger;
+    }
+}
+```
+
+### Exemple Propriété Correcte
+```csharp
+private string _nom = string.Empty;
+public string Nom
+{
+    get => _nom;
+    set => this.RaiseAndSetIfChanged(ref _nom, value);
+}
+```
+
+### Exemple Commande Correcte
+```csharp
+public ReactiveCommand<Unit, Unit> SauvegarderCommand { get; }
+
+public MyViewModel(IService service)
+{
+    SauvegarderCommand = ReactiveCommand.CreateFromTask(SauvegarderAsync);
+}
+
+private async Task SauvegarderAsync()
+{
+    // Logique métier
+}
+```
+
+### Navigation
+- Utiliser `INavigationService` pour la navigation
+- **JAMAIS** de références directes aux Views dans les ViewModels
+
+### Logging
+- Logger disponible automatiquement via `ViewModelBase.Logger`
+- Utiliser pour debug et erreurs : `Logger.Info("message")`, `Logger.Error("message", exception)`
+
+## ❌ INTERDIT
+- Code métier dans Views
+- Événements dans code-behind
+- Instanciation manuelle de services
+- Références aux Views dans ViewModels
+- Logique de validation dans Views

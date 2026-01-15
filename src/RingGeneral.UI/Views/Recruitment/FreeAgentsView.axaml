@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Recruitment"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="RingGeneral.UI.Views.Recruitment.FreeAgentsView"
+             x:DataType="vm:FreeAgentsViewModel">
+
+  <Grid RowDefinitions="Auto, *">
+    <!-- Header & Filters -->
+    <Border Padding="20" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource BorderPrimaryBrush}" BorderThickness="0,0,0,1">
+      <StackPanel Spacing="15">
+        <Grid ColumnDefinitions="*, Auto">
+          <TextBlock Text="LE MARCHÉ DES AGENTS LIBRES" FontSize="24" FontWeight="Bold" Foreground="{StaticResource AccentGoldBrush}"/>
+          <Button Grid.Column="1" Command="{Binding RefreshCommand}" Classes="Secondary" Content="Actualiser"/>
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Spacing="20">
+          <!-- Search -->
+          <StackPanel Spacing="5" Width="250">
+            <TextBlock Text="Rechercher" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <TextBox Text="{Binding SearchText}" Watermark="Nom, ville..."/>
+          </StackPanel>
+
+          <!-- Type Filters -->
+          <StackPanel Spacing="5">
+            <TextBlock Text="Catégories" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <CheckBox IsChecked="{Binding ShowWrestlers}" Content="Lutteurs"/>
+              <CheckBox IsChecked="{Binding ShowStaff}" Content="Staff"/>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Region -->
+          <StackPanel Spacing="5" Width="150">
+            <TextBlock Text="Région" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}" HorizontalAlignment="Stretch"/>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Content -->
+    <Grid Grid.Row="1" ColumnDefinitions="*, 350">
+      <!-- Agent List -->
+      <ListBox ItemsSource="{Binding FreeAgents}"
+               SelectedItem="{Binding SelectedAgent}"
+               Background="Transparent"
+               BorderThickness="0">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <Border Padding="15" Margin="5" Background="{StaticResource PanelBackgroundBrush}" CornerRadius="4">
+              <Grid ColumnDefinitions="Auto, *, Auto">
+                <Ellipse Width="40" Height="40" Fill="{StaticResource AccentDarkBrush}" VerticalAlignment="Center"/>
+                
+                <StackPanel Grid.Column="1" Margin="15,0" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding RoleDisplay}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="5" VerticalAlignment="Center" HorizontalAlignment="Right">
+                  <TextBlock Text="{Binding Popularity, StringFormat='Pop: {0}%'}" FontSize="12" HorizontalAlignment="Right"/>
+                  <TextBlock Text="{Binding PrimarySkill, StringFormat='Skill: {0}/100'}" FontSize="12" HorizontalAlignment="Right"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <!-- Details & Actions -->
+      <Border Grid.Column="1" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource BorderPrimaryBrush}" BorderThickness="1,0,0,0">
+        <ScrollViewer>
+          <StackPanel Margin="20" Spacing="20" IsVisible="{Binding SelectedAgent, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Text="{Binding SelectedAgent.Name}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+            
+            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" Margin="0,10">
+              <StackPanel Margin="5">
+                <TextBlock Text="ÂGE" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding SelectedAgent.Age}" FontSize="14"/>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Margin="5">
+                <TextBlock Text="TYPE" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding SelectedAgent.Type}" FontSize="14"/>
+              </StackPanel>
+              <StackPanel Grid.Row="1" Margin="5">
+                <TextBlock Text="POPULARITÉ" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding SelectedAgent.Popularity, StringFormat='{0}%'}" FontSize="14"/>
+              </StackPanel>
+              <StackPanel Grid.Row="1" Grid.Column="1" Margin="5">
+                <TextBlock Text="SKILL" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding SelectedAgent.PrimarySkill, StringFormat='{0}/100'}" FontSize="14"/>
+              </StackPanel>
+            </Grid>
+
+            <Separator Background="{StaticResource BorderPrimaryBrush}"/>
+
+            <StackPanel Spacing="10">
+              <Button Command="{Binding RecruitCommand}" CommandParameter="{Binding SelectedAgent}" Content="RECRUTER" Classes="Primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="40"/>
+              
+              <TextBlock IsVisible="{Binding SelectedAgent.Age, Converter={StaticResource IntGreaterThanConverter}, ConverterParameter=45}"
+                         Text="Vétéran : Option de reconversion disponible"
+                         FontSize="12" Foreground="{StaticResource AccentGoldBrush}" HorizontalAlignment="Center"/>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

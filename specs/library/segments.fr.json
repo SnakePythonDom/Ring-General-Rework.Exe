@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "bibliotheque-segments"
+  },
+  "templates": [
+    {
+      "id": "tpl-open-promo",
+      "nom": "Ouverture promo",
+      "description": "Un segment de promo pour ouvrir le show.",
+      "segments": [
+        {
+          "typeSegment": "promo",
+          "duree": 6,
+          "mainEvent": false
+        }
+      ]
+    },
+    {
+      "id": "tpl-angle-backstage",
+      "nom": "Angle backstage",
+      "description": "Segment en coulisses.",
+      "segments": [
+        {
+          "typeSegment": "angle_backstage",
+          "duree": 4,
+          "mainEvent": false
+        }
+      ]
+    },
+    {
+      "id": "tpl-match-simple",
+      "nom": "Match simple",
+      "description": "Un match 1 contre 1 standard.",
+      "segments": [
+        {
+          "typeSegment": "match",
+          "matchTypeId": "singles",
+          "duree": 10,
+          "mainEvent": false
+        }
+      ]
+    },
+    {
+      "id": "tpl-main-event",
+      "nom": "Main event classique",
+      "description": "Le match le plus important de la soirée.",
+      "segments": [
+        {
+          "typeSegment": "match",
+          "matchTypeId": "singles",
+          "duree": 18,
+          "mainEvent": true
+        }
+      ]
+    }
+  ],
+  "etatVide": "Aucun template de segment disponible."
+}

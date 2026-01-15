@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "langue": "fr",
+    "version": "1.0",
+    "sourceDeVerite": "specs"
+  },
+  "etapes": [
+    {
+      "id": "s1-prep",
+      "titre": "Préparer la première carte",
+      "contenu": "Ajoutez 4 à 6 segments, dont un main event fort.",
+      "objectif": "Carte équilibrée"
+    },
+    {
+      "id": "s1-storylines",
+      "titre": "Lancer 2 storylines",
+      "contenu": "Liez-les à des segments clés pour créer du heat.",
+      "objectif": "Storylines actives"
+    },
+    {
+      "id": "s1-diffusion",
+      "titre": "Vérifier la diffusion",
+      "contenu": "Assurez-vous que le runtime du show respecte le deal actuel.",
+      "objectif": "Diffusion alignée"
+    },
+    {
+      "id": "s1-simuler",
+      "titre": "Simuler et lire les résultats",
+      "contenu": "Analysez la note et ouvrez les pages Impacts pour comprendre les deltas.",
+      "objectif": "Diagnostic initial"
+    },
+    {
+      "id": "s1-finances",
+      "titre": "Contrôler la trésorerie",
+      "contenu": "Notez les entrées/sorties majeures après le show.",
+      "objectif": "Finances stables"
+    }
+  ]
+}

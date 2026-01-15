@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Youth"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RingGeneral.UI.Views.Youth.YouthAlumniView"
+             x:DataType="vm:YouthAlumniViewModel">
+
+  <Grid RowDefinitions="Auto, *, Auto" Margin="20">
+
+    <!-- Header / Stats -->
+    <Border Grid.Row="0" Background="#2c3e50" CornerRadius="5" Padding="15" Margin="0,0,0,20">
+      <Grid ColumnDefinitions="*, *, *">
+        <StackPanel Grid.Column="0">
+          <TextBlock Text="Avg. Training Time" Foreground="#bdc3c7" FontSize="12"/>
+          <TextBlock Text="{Binding AvgTrainingTime}" Foreground="White" FontSize="18" FontWeight="Bold"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1">
+          <TextBlock Text="Success Rate" Foreground="#bdc3c7" FontSize="12"/>
+          <TextBlock Text="{Binding SuccessRate}" Foreground="White" FontSize="18" FontWeight="Bold"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Text="Best Style Produced" Foreground="#bdc3c7" FontSize="12"/>
+          <TextBlock Text="{Binding BestStyle}" Foreground="#f1c40f" FontSize="18" FontWeight="Bold"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Alumni List -->
+    <DockPanel Grid.Row="1">
+      <TextBlock DockPanel.Dock="Top" Text="🎓 GRADUATED STARS (Alumni)" FontSize="16" FontWeight="Bold" Margin="0,0,0,10" Foreground="#2c3e50"/>
+      
+      <DataGrid ItemsSource="{Binding Alumni}" AutoGenerateColumns="False" IsReadOnly="True"
+                GridLinesVisibility="Horizontal" Background="#2c3e50" RowBackground="#34495e" Foreground="White"
+                HeadersVisibility="Column" BorderThickness="0" BorderBrush="#555">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+          <DataGridTextColumn Header="Graduated" Binding="{Binding GraduationDate}" Width="150"/>
+          <DataGridTextColumn Header="Style Archetype" Binding="{Binding StyleArchetype}" Width="150"/>
+          <DataGridTextColumn Header="Rating @ Grad" Binding="{Binding RatingAtGrad}" Width="120"/>
+          <DataGridTextColumn Header="Current" Binding="{Binding CurrentRating}" Width="100"/>
+        </DataGrid.Columns>
+      </DataGrid>
+    </DockPanel>
+
+    <!-- Recent Events (Static/Mock for now) -->
+    <Border Grid.Row="2" Background="#ecf0f1" CornerRadius="5" Padding="15" Margin="0,20,0,0">
+      <StackPanel>
+        <TextBlock Text="📜 RECENT EVENTS" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" Foreground="#7f8c8d"/>
+        <TextBlock Text="[2025-01-10] Upgrade completed: Gym Mats (Lvl 1 -> Lvl 2)" Foreground="#34495e" Margin="0,2"/>
+        <TextBlock Text="[2024-12-01] Guest Seminar held by 'Veteran Coach' (+2 Skill all)" Foreground="#34495e" Margin="0,2"/>
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</UserControl>

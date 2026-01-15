@@ -1,0 +1,31 @@
+{
+  "meta": {"langue": "fr", "pageId": "reseau", "titre": "Réseau"},
+  "onglets": [
+    {"id": "vue_globale", "libelle": "Vue globale"},
+    {"id": "echanges", "libelle": "Échanges"}
+  ],
+  "tables": [
+    {
+      "id": "liste_entreprises",
+      "libelle": "Entreprises du réseau",
+      "colonnes": ["Nom", "Relation", "Contrôle", "Région", "Statut"]
+    }
+  ],
+  "filtres": ["Relation", "Contrôle", "Région"],
+  "panneauDetail": {
+    "sections": ["Profil", "Objectifs imposés", "Échanges en cours"]
+  },
+  "actions": [
+    {"id": "creer_echange", "libelle": "Créer un échange"},
+    {"id": "modifier_objectifs", "libelle": "Modifier les objectifs"}
+  ],
+  "validations": [
+    {"id": "reseau.entreprise", "message": "Sélectionnez une entreprise."}
+  ],
+  "warnings": ["Conflit d'objectifs imposés avec une filiale."],
+  "etatVide": "Aucune entreprise dans le réseau.",
+  "tooltips": [
+    {"id": "controle", "libelle": "Niveau de contrôle", "texte": "Total, délégué ou hybride."}
+  ],
+  "messagesErreur": ["Impossible de charger le réseau."]
+}

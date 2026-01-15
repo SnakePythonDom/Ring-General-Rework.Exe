@@ -1,0 +1,30 @@
+{
+  "meta": {"langue": "fr", "pageId": "types-de-match", "titre": "Types de match"},
+  "onglets": [
+    {"id": "standards", "libelle": "Standards"},
+    {"id": "stipulations", "libelle": "Stipulations"}
+  ],
+  "tables": [
+    {
+      "id": "liste_types_match",
+      "libelle": "Types de match",
+      "colonnes": ["Nom", "Règles", "Durée cible", "Risque", "Statut"]
+    }
+  ],
+  "filtres": ["Risque", "Statut"],
+  "panneauDetail": {
+    "sections": ["Règles", "Interdictions", "Bonus/malus"]
+  },
+  "actions": [
+    {"id": "creer_type", "libelle": "Créer un type"}
+  ],
+  "validations": [
+    {"id": "type.nom", "message": "Le nom du type de match est requis."}
+  ],
+  "warnings": ["Un type de match est désactivé mais utilisé dans la carte."],
+  "etatVide": "Aucun type de match défini.",
+  "tooltips": [
+    {"id": "risque", "libelle": "Risque", "texte": "Impact sur la probabilité d'incidents."}
+  ],
+  "messagesErreur": ["Impossible de charger les types de match."]
+}

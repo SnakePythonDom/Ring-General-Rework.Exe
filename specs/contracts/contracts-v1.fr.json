@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "langue": "fr",
+    "modele": "contrats-v1"
+  },
+  "typesContrat": [
+    {"id": "exclusif", "libelle": "Exclusif", "description": "Le talent ne peut pas travailler ailleurs."},
+    {"id": "non_exclusif", "libelle": "Non exclusif", "description": "Le talent peut accepter d'autres dates."},
+    {"id": "appearance", "libelle": "Appearance", "description": "Contrat court avec paiement à l'apparition."},
+    {"id": "staff", "libelle": "Staff", "description": "Contrat pour un rôle d'encadrement."}
+  ],
+  "clauses": [
+    {"id": "duree", "libelle": "Durée (semaines)", "type": "int", "min": 1, "max": 260},
+    {"id": "salaire", "libelle": "Salaire hebdo", "type": "decimal", "min": 0},
+    {"id": "bonus_show", "libelle": "Bonus par show", "type": "decimal", "min": 0},
+    {"id": "buyout", "libelle": "Buyout", "type": "decimal", "min": 0},
+    {"id": "non_compete", "libelle": "Non-compete (semaines)", "type": "int", "min": 0, "max": 52},
+    {"id": "renouvellement_auto", "libelle": "Renouvellement auto", "type": "bool"}
+  ],
+  "reglesNegotiation": {
+    "delaiExpirationSemaines": 2,
+    "maxContreOffres": 3,
+    "toleranceSalairePourcent": 15,
+    "toleranceDureeSemaines": 8,
+    "seuilMoraleRefus": 25,
+    "messages": {
+      "offreRecue": "Une nouvelle offre a été reçue.",
+      "offreExpiree": "Une offre a expiré.",
+      "offreAcceptee": "Une offre a été acceptée.",
+      "offreRefusee": "Une offre a été refusée."
+    }
+  },
+  "etatVide": {
+    "libelle": "Aucune négociation en cours.",
+    "messageErreur": "Impossible de charger les contrats."
+  }
+}

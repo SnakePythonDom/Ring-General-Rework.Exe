@@ -1,0 +1,31 @@
+{
+  "meta": {"langue": "fr", "pageId": "import-export", "titre": "Import/Export"},
+  "onglets": [
+    {"id": "import", "libelle": "Import"},
+    {"id": "export", "libelle": "Export"}
+  ],
+  "tables": [
+    {
+      "id": "historique",
+      "libelle": "Historique",
+      "colonnes": ["Date", "Type", "Fichier", "Statut", "Message"]
+    }
+  ],
+  "filtres": ["Type", "Statut"],
+  "panneauDetail": {
+    "sections": ["Fichier", "Validation", "Résultats"]
+  },
+  "actions": [
+    {"id": "lancer_import", "libelle": "Lancer l'import"},
+    {"id": "lancer_export", "libelle": "Lancer l'export"}
+  ],
+  "validations": [
+    {"id": "import.fichier", "message": "Veuillez sélectionner un fichier."}
+  ],
+  "warnings": ["Les imports remplacent les données existantes."],
+  "etatVide": "Aucun historique d'import/export.",
+  "tooltips": [
+    {"id": "statut", "libelle": "Statut", "texte": "Résultat de l'opération."}
+  ],
+  "messagesErreur": ["Impossible de charger l'historique."]
+}

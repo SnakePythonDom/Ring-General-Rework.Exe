@@ -1,0 +1,305 @@
+Plaintext
+1 Main view 
++------------------------------------------------------------------------------------------------+
+|  DEVELOPMENT NETWORK                               [+ CREATE COMPANY] Search: [...............] |
++------------------------------------------------------------------------------------------------+
+| NAME                 | TIER | REGION | ROSTER | BOOKER          | BUDGET/mo | AUTONOMY | STATUS |
++----------------------+------+--------+--------+-----------------+-----------+----------+--------+
+| 🟡 NXT               |  1   | USA_FL | 45 OK  | Shawn Michaels  |  500 k$   | HIGH     | ACTIVE |
+| 🔴 NXT Europe        |  2   | UK_LDN | 10 LOW | (Vacant) ⚠️     |  150 k$   | LOW      | PAUSED |
+| ⚪ EVOLVE            |  3   | USA_NY | 24 OK  | Gabe Sapolsky   |   50 k$   | MEDIUM   | ACTIVE |
+| ⚫ GCW               |  3   | USA_NJ | 30 OK  | Brett Lauderd.  |   40 k$   | FULL     | ACTIVE |
++----------------------+------+--------+--------+-----------------+-----------+----------+--------+
+| Total Monthly Cost: $ 740,000                                                                  |
++------------------------------------------------------------------------------------------------+
+2 Tab 1: OVERVIEW (Dashboard)
+Focus on Health, Development Focus, and Key Issues.
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  [ OVERVIEW ]   Strategy   Roster   Staff   Financials                      |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  📊 COMPANY HEALTH: 🟡 NXT                                                  |
+|  +-----------------------+   +-----------------------+   +----------------+ |
+|  |  ROSTER HEALTH        |   |  STAFF QUALITY        |   |  SHOW QUALITY  | |
+|  |  [|||||||||...] 45/50 |   |  [||||||||....] 80/100|   |  Avg Rating: B | |
+|  |  Status: EXCELLENT    |   |  Booker: S. Michaels  |   |  TV Deal: YES  | |
+|  +-----------------------+   +-----------------------+   +----------------+ |
+|                                                                             |
+🏢 OWNER VISION (Stratégie & Moyens)                     [ ⚙️ CONFIGURE ]  |
+|  +------------------------------------------------------------------------+ |
+|  |  MANDATE TYPE:        [ GROWTH ] (Focus: Expansion Rapide)             | |
+|  |  RISK TOLERANCE:      [||||||||.......] 60% (Aggressive)               | |
+|  |  FINANCIAL PRIORITY:  [||||...........] 30% (Spend money to make money)| |
+|  |                                                                        | |
+|  |  Talent Focus:        [ Developing Future Stars ]                      | |
+|  |  Show Frequency:      [ Weekly TV + Quarterly PPVs ]                   | |
+|  +------------------------------------------------------------------------+ |
+|                                                                             |
+|  🎬 BOOKER PSYCHOLOGY (Shawn Michaels)                 [ 🧠 MEMORY LOG ]  |
+|  +------------------------------------------------------------------------+ |
+|  |  CREATIVITY:   [||||||||||..] 85  |  LOGIC: [||||||......] 60          | |
+|  |  BIAS RESIST:  [||||........] 40  |  STYLE: [ Sports Entertainment ]   | |
+|  |                                                                        | |
+|  |  CURRENT BIASES (Ce qu'il aime booker en ce moment):                   | |
+|  |  [❤️ LOVES]  The "Underdog" Archetype (Pushing: Johnny Gargano)        | |
+|  |  [💔 HATES]  "Lazy" Workers (Burying: Top Dolla)                       | |
+|  |  [🔥 OBSESSION] Revenge Arc regarding "Betrayal Event" (Cole vs O'Reilly)|
+|  +------------------------------------------------------------------------+ |
+2.1 Fenêtre de Configuration (Le Levier Stratégique)
+C'est ici que tu modifies les paramètres de l'OWNER. Tu ne changes pas le Booker ici (ça se fait dans l'onglet Staff), tu changes la mission que tu lui donnes.
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  CONFIGURE CHILD COMPANY: NXT                                    [X] CANCEL |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  1. VISION STRATÉGIQUE (Owner Type)                                         |
+|  -------------------------------------------------------------------------  |
+|  ( ) BALANCED     (Stabilité avant tout)                                    |
+|  (●) GROWTH       (Expansion aggressive, tolère les pertes court-terme)     |
+|  ( ) PRESTIGE     (Qualité des matchs > Storylines, haut budget talent)     |
+|  ( ) PROFIT       (Couper les coûts, rosters réduits, cheap shows)          |
+|                                                                             |
+|  2. PARAMÈTRES D'EXÉCUTION                                                  |
+|  -------------------------------------------------------------------------  |
+|  RISK TOLERANCE (0-100):                                                    |
+|  [|||||||||||||||...........] 60                                            |
+|  (Impacte: Matchs dangereux, Signatures controversées, Stipulations)        |
+|                                                                             |
+|  TALENT DEVELOPMENT FOCUS (0-100):                                          |
+|  [||||||||||||||||||||......] 80                                            |
+|  (0 = Utiliser des Veterans / 100 = Full Youth Focus)                       |
+|                                                                             |
+|  3. SHOW FREQUENCY                                                          |
+|  -------------------------------------------------------------------------  |
+|  [ Weekly TV Show v ]                                                       |
+|                                                                             |
+|  -------------------------------------------------------------------------  |
+|  [ APPLY STRATEGY ]                                                         |
++-----------------------------------------------------------------------------+
+2.2 La Vue "Booker Memory" (Détail Clic)
+Si on clique sur [ 🧠 MEMORY LOG ] dans l'onglet Overview, on voit ce qui motive les décisions de l'IA (le "Système de Mémoire" que tu as décrit).
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  BOOKER MEMORY LOG: Shawn Michaels                               [X] CLOSE  |
++-----------------------------------------------------------------------------+
+|  🧠 SHORT TERM RECALL (Dernières semaines)                                  |
+|  -------------------------------------------------------------------------  |
+|  • [EVENT] Match Exceptionnel (5★) - Dragunov vs Gunther                    |
+|    > Impact: +80 | Recall: 100% (Fresh)                                     |
+|    > Decision: Booker Rematch au prochain PPV (Main Event)                  |
+|                                                                             |
+|  • [EVENT] Promo Botched - Parker Boudreaux                                 |
+|    > Impact: -40 | Recall: 90%                                              |
+|    > Decision: Retirer du TV Show pour 2 semaines (Depush)                  |
+|                                                                             |
+|  🕰️ LONG TERM MEMORY (Narrative Arcs)                                      |
+|  -------------------------------------------------------------------------  |
+|  • [EVENT] Betrayal - Roderick Strong trahit Adam Cole                      |
+|    > Impact: +95 | Recall: 60% (Fading but present)                         |
+|    > Decision: Garder les deux séparés jusqu'à "NXT Stand & Deliver"        |
+|                                                                             |
+|  • [EVENT] Injury - Cora Jade blessée par accident (Ladder Match)           |
+|    > Impact: -50 | Recall: 30%                                              |
+|    > Decision: Ban Ladder Matches pour la division féminine (Risk Avoidance)|
+|                                                                             |
++-----------------------------------------------------------------------------+
+3.1 Sub-Tab 1: OWNER (Vision & Stratégie)
+Ici, on définit le "QUOI" et les objectifs financiers.
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  Overview   [ STRATEGY ]   Roster   Staff   Financials                      |
++-----------------------------------------------------------------------------+
+|  [ OWNER STRATEGY ]   [ BOOKER CREATIVE ]   [ EVENTS SCHEDULE ]             |
+| --------------------------------------------------------------------------- |
+|                                                                             |
+|  🏢 OWNER VISION: TRIPLE H                                                  |
+|  +------------------------------------------------------------------------+ |
+|  |  PRIMARY GOAL:        [ Develop Top Stars v] (Focus on Attribute Gain) | |
+|  |  FINANCIAL MANDATE:   [ Feed Main Roster v] (Send 2 workers / year)    | |
+|  |  RISK TOLERANCE:      [||||||||.......] 60% (Calculated Risks)         | |
+|  +------------------------------------------------------------------------+ |
+|                                                                             |
+|  🎯 PERFORMANCE TARGETS (Next 12 Months)                                    |
+|  -------------------------------------------------------------------------  |
+|  ( ) FINANCIAL:  Maintain wages under $500k/month                           |
+|  ( ) POPULARITY: Grow "NXT" brand to [International] in [Europe]            |
+|  ( ) PRODUCTION: Upgrade TV Production to [ HD Quality ]                    |
+|                                                                             |
+|                 |
+|                                                                             |
++-----------------------------------------------------------------------------+
+3.2 Sub-Tab 2: BOOKER (Philosophie & Créatif)
+Ici, on définit le "COMMENT" et les règles du ring.
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  Overview   [ STRATEGY ]   Roster   Staff   Financials                      |
++-----------------------------------------------------------------------------+
+|  [ OWNER STRATEGY ]   [ BOOKER CREATIVE ]   [ EVENTS SCHEDULE ]             |
+| --------------------------------------------------------------------------- |
+|                                                                             |
+|  🎬 BOOKER PHILOSOPHY: SHAWN MICHAELS                                       |
+|  +------------------------------------------------------------------------+ |
+|  |  CREATIVE STYLE:      [ Sports Entertainment v]                        | |
+|  |  MATCH FOCUS:         [ Technical ] & [ High Flying ] (HBK Pref.)      | |
+|  |  STORYTELLING:        [ Slow Burn v] (Long term arcs)                  | |
+|  +------------------------------------------------------------------------+ |
+|                                                                             |
+|  🔒 CREATIVE CONSTRAINTS (The "House Rules")                                |
+|  -------------------------------------------------------------------------  |
+|  [ ] "Pass the Torch": Veterans (>35yo) must lose to Rookies (<25yo)        |
+|  [ ] "Fight Forever":  Main Events must be > 20 mins                        |
+|  [ ] "Clean Finishes": DQ/Countouts allowed only once per show              |
+|  [ ] "Safety First":   Banned Moves: [ Piledrivers ], [ Chair Headshots ]   |
+|                                                                             |
+|  🧠 BOOKER BIASES (Active)                                                  |
+|  [❤️ LOVES] Archetype: Underdog   [💔 HATES] Trait: Lazy Workers            |
+|                                                                             |
++-----------------------------------------------------------------------------+
+3.3 Sub-Tab 3: SCHEDULE (Calendrier & Logistique)
+La vue purement logistique pour gérer les dates.
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  Overview   [ STRATEGY ]   Roster   Staff   Financials                      |
++-----------------------------------------------------------------------------+
+|  [ OWNER STRATEGY ]   [ BOOKER CREATIVE ]   [ EVENTS SCHEDULE ]             |
+| --------------------------------------------------------------------------- |
+|                                                                             |
+|  ACTIVE SCHEDULE (2026)                                  [ GENERATE NEW ]   |
+|  Mode: Weekly TV Loop (Tuesday Nights)                                      |
+|  -------------------------------------------------------------------------  |
+|  DATE         | EVENT NAME         | TYPE       | VENUE           | TIX     |
+|  -------------+--------------------+------------+-----------------+-------  |
+|  Oct Wk 4, Tu | NXT on USA         | TV Show    | Capitol Center  | 100%    |
+|  Nov Wk 1, Tu | NXT on USA         | TV Show    | Capitol Center  |  95%    |
+|  Nov Wk 2, Tu | NXT on USA         | TV Show    | Capitol Center  |  80%    |
+|  Nov Wk 2, Sa | NXT TAKEOVER       | PPV        | Shark Tank      |  85%    |
+|  Nov Wk 3, Tu | NXT on USA         | TV Show    | Capitol Center  |  --     |
+|  Nov Wk 4, Tu | NXT on USA         | TV Show    | Capitol Center  |  --     |
+|  Dec Wk 1, Tu | NXT on USA         | TV Show    | Capitol Center  |  --     |
+|                                                                             |
+|  -------------------------------------------------------------------------  |
+|  [ Add Single Event ]   [ Edit Selected ]   [ Clear Future Schedule ]       |
++-----------------------------------------------------------------------------+
+3.3.1 Sub sub  tabs Generate new 
++-----------------------------------------------------------------------------+
+|  GENERATE YEARLY SCHEDULE (Child Company)                        [X] CANCEL |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  STEP 1: SELECT TEMPLATE MODEL                                              |
+|  -------------------------------------------------------------------------  |
+|  ( ) TELEVISION MODEL (The "NXT" approach)                                  |
+|      • 1 Weekly TV Show (52 shows/year)                                     |
+|      • 4 Major Premium Live Events (Quarterly)                              |
+|      • Best for: High Tier Child Companies (Tier 1)                         |
+|                                                                             |
+|  ( ) SUPER INDY MODEL (The "Evolve" approach)                               |
+|      • 1 Major Event per Month (12 shows/year)                              |
+|      • Focus on Match Quality over Storylines                               |
+|      • Best for: Mid Tier / Workrate focus                                  |
+|                                                                             |
+|  ( ) DEVELOPMENTAL LOOP (The "House Show" approach)                         |
+|      • 2 Minor Events per Month (24 shows/year)                             |
+|      • Small Venues (Gyms/Clubs)                                            |
+|      • Best for: Training mechanics / Low Budget                            |
+|                                                                             |
+|  STEP 2: CONFIGURATION                                                      |
+|  -------------------------------------------------------------------------  |
+|  Base Name:       [ NXT ] (e.g. "NXT TV", "NXT Event")                      |
+|  Preferred Day:   [ Tuesday v ]                                             |
+|  Home Venue:      [ Capitol Wrestling Center (FL) v ]                       |
+|  Recurring PPVs:  [ Use Historical Names (Heatwave, Deadline...) ]          |
+|                                                                             |
+|  -------------------------------------------------------------------------  |
+|  [ CONFIRM & GENERATE SCHEDULE ]                                            |
++-----------------------------------------------------------------------------+
+4.Tab 3: ROSTER (Talent Pool)
+
++-----------------------------------------------------------------------------+
+|  Overview   Strategy   [ ROSTER ]   Staff   Financials                      |
++-----------------------------------------------------------------------------+
+|  Search: [...............]   Filter: [Ready for Call-up v]                  |
+|                                                                             |
+|  ACTIVE ROSTER (45 / 50)                                                    |
+|  -------------------------------------------------------------------------  |
+|  NAME             | AGE | STYLE       | OVR  | POP  | MORALE | ACTION       |
+|  -----------------+-----+-------------+------+------+--------+------------  |
+|  Bron Breakker    | 24  | Powerhouse  | 82   | B-   | :-)    | [CALL UP]    |
+|  Carmelo Hayes    | 26  | High Flyer  | 79   | C+   | :-)    | [CALL UP]    |
+|  Tony D'Angelo    | 28  | Brawler     | 70   | D    | :-|    | [View]       |
+|  Dolph Ziggler    | 42  | Technical   | 85   | B    | :-)    | [RECALL]     |
+|  (Veteran Mentor) |     |             |      |      |        |              |
+|                                                                             |
+|  -------------------------------------------------------------------------  |
+|  [ Loaned TALENT DOWN TO NXT ] [ RELEASE TALENT ][ Negotiate Roster Contracts ]                          |
++-----------------------------------------------------------------------------+
+5.Tab 4: STAFF & MANAGEMENT (The PRD Core)
+This is where the complex Staff Sharing logic lives.
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  Overview   Strategy   Roster   [ STAFF ]   Financials                      |
++-----------------------------------------------------------------------------+
+|  [+ Assign Main Roster Staff]    [+ Hire Local Staff]                       |
+|                                                                             |
+|  KEY MANAGEMENT (The "Brain")                                               |
+|  +------------------------------------------------------------------------+ |
+|  | 👔 SUB-OWNER / GM: TRIPLE H                  Wage: N/A (Parent Exec)   | |
+|  | Business: 95 | Negotiation: 88 | Admin: 92                             | |
+|  | Mandate: "Aggressive Expansion"              [Replace / Appoint New]   | |
+|  +------------------------------------------------------------------------+ |
+|  | 🎬 HEAD BOOKER: SHAWN MICHAELS               Wage: $15,000/mo (Shared) | |
+|  | Creativity: 95 | Motivating: 90 | Diplomacy: 85                        | |
+|  | Status: SHARED (80% NXT / 20% Main Roster)   [Change Assignment]       | |
+|  +------------------------------------------------------------------------+ |
+|                                                                             |
+|  DEVELOPMENT TEAM                                                           |
+|  -------------------------------------------------------------------------  |
+|  ROLE             | NAME           | SKILL | TYPE       | COST/mo | IMPACT  |
+|  -----------------+----------------+-------+------------+---------+-------  |
+|  Head Trainer     | Matt Bloom     | 85    | DEDICATED  | $ 5k    | High    |
+|  Promo Coach      | Paul Heyman    | 99    | GUEST (1wk)| $ 0     | Extreme |
+|  Physio           | Medical Team A | 70    | SHARED 50% | $ 2k    | Med     |
+|  Scout (Indies)   | William Regal  | 90    | DEDICATED  | $ 8k    | High    |
+|  Character Coach  | (Vacant)       | --    | --         | --      | None    |
+|                                                                             |
+|  -------------------------------------------------------------------------  |
+|    [ Negotiate Staff Contracts ]                  |
++-----------------------------------------------------------------------------+
+6. Tab 5: FINANCIALS (P&L)
+Focused on the cost of running a separate brand.
+
+Plaintext
+
++-----------------------------------------------------------------------------+
+|  Overview   Strategy   Roster   Staff   [ FINANCIALS ]                      |
++-----------------------------------------------------------------------------+
+|  MONTHLY BUDGET: $ 500,000                                                  |
+|  ACTUAL SPEND:   $ 485,000                                                  |
+|  [|||||||||||||||||||||||||||||||||||||||||||||.....] 97% Used              |
+|                                                                             |
+|  PROFIT & LOSS (This Month)                                                 |
+|  -------------------------------------------------------------------------  |
+|  REVENUE                               EXPENSES                             |
+|  Ticket Sales:     $ 150,000           Talent Wages:       $ 250,000        |
+|  Merch Sales:      $  50,000           Staff Wages:        $  50,000        |
+|  TV Rights (Local):$  20,000           Production:         $ 100,000        |
+|                                        Marketing:          $  85,000        |
+|  -------------------------------------------------------------------------  |
+|  NET LOSS:       - $ 265,000 (Subsidized by Main Company)                   |
+|                                                                             |
+|  [ Adjust Budget Allocation ]   [ Request Financial Audit ]                 |
++-----------------------------------------------------------------------------+

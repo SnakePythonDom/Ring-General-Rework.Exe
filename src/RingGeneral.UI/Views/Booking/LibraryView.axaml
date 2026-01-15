@@ -1,0 +1,191 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RingGeneral.UI.ViewModels.Booking"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Booking.LibraryView"
+             x:DataType="vm:LibraryViewModel">
+
+    <Design.DataContext>
+        <vm:LibraryViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="30" Spacing="25">
+            <!-- En-tête -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="📚 BIBLIOTHÈQUE DE TEMPLATES" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Gérez vos templates réutilisables pour le booking" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+            </StackPanel>
+
+            <!-- Statistiques -->
+            <Grid ColumnDefinitions="*,*,*">
+                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="📋 TEMPLATES" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TemplateCount}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                        <TextBlock Text="Disponibles" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="{StaticResource SuccessDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🤼 MATCHES" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="3" FontSize="32" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                        <TextBlock Text="Templates" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="{StaticResource WarningDarkBrush}" Padding="20" CornerRadius="8" Margin="6,0,0,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🎤 PROMOS" FontSize="12" Foreground="{StaticResource WarningLightBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="2" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                        <TextBlock Text="Templates" FontSize="11" Foreground="{StaticResource WarningLightBrush}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Barre de recherche et filtres -->
+            <Grid ColumnDefinitions="*,Auto">
+                <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8" Margin="0,0,8,0">
+                    <TextBox Watermark="🔍 Rechercher un template..."
+                             Text="{Binding SearchText}"
+                             Background="{StaticResource BackgroundTertiaryBrush}"
+                             BorderBrush="{StaticResource BorderMediumBrush}"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             Padding="12,10"
+                             CornerRadius="6"/>
+                </Border>
+
+                <ComboBox Grid.Column="1"
+                        ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"
+                        Background="{StaticResource BackgroundSecondaryBrush}"
+                        BorderBrush="{StaticResource BorderMediumBrush}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Padding="15,10"
+                        MinWidth="150"/>
+            </Grid>
+
+            <!-- Actions rapides -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="⚡ ACTIONS RAPIDES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0"
+                              Content="➕ Nouveau Template"
+                              Command="{Binding CreateTemplateCommand}"
+                              Padding="12,10"
+                              Background="{StaticResource AccentBlueBrush}"
+                              Foreground="White"
+                              CornerRadius="6"
+                              FontWeight="Bold"
+                              Margin="0,0,5,0"
+                              HorizontalAlignment="Stretch"
+                              HorizontalContentAlignment="Center"/>
+                        <Button Grid.Column="1"
+                              Content="🔄 Actualiser"
+                              Command="{Binding RefreshCommand}"
+                              Padding="12,10"
+                              Background="{StaticResource BrandSecondaryBrush}"
+                              Foreground="White"
+                              CornerRadius="6"
+                              FontWeight="Bold"
+                              Margin="5,0,0,0"
+                              HorizontalAlignment="Stretch"
+                              HorizontalContentAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Liste des templates -->
+            <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="📋 TEMPLATES DISPONIBLES" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+
+                    <ItemsControl ItemsSource="{Binding Templates}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="16" Margin="0,0,0,8" CornerRadius="6">
+                                    <Grid ColumnDefinitions="2*,*,*,*,Auto">
+                                        <!-- Nom et type -->
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Nom}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold"/>
+                                                <Border Background="{StaticResource AccentBlueBrush}"
+                                                      Padding="6,2"
+                                                      CornerRadius="4"
+                                                      IsVisible="{Binding EstMainEvent}">
+                                                    <TextBlock Text="MAIN EVENT"
+                                                             FontSize="9"
+                                                             Foreground="White"
+                                                             FontWeight="Bold"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding TypeSegmentLibelle}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Durée -->
+                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="Durée" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="{Binding DureeMinutes}" FontSize="14" Foreground="{StaticResource AccentBlueBrush}" FontWeight="Bold"/>
+                                                <TextBlock Text="min" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Bottom"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- Intensité -->
+                                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="Intensité" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <TextBlock Text="{Binding Intensite}" FontSize="14" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <!-- Match Type (si applicable) -->
+                                        <StackPanel Grid.Column="3" Spacing="4" VerticalAlignment="Center" IsVisible="{Binding MatchTypeNom, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Type de match" FontSize="10" Foreground="{StaticResource TextSubtleBrush}"/>
+                                            <TextBlock Text="{Binding MatchTypeNom}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Actions -->
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <Button Content="✏️"
+                                                  Command="{Binding $parent[UserControl].DataContext.EditTemplateCommand}"
+                                                  CommandParameter="{Binding}"
+                                                  Padding="8,6"
+                                                  Background="{StaticResource AccentBlueBrush}"
+                                                  Foreground="White"
+                                                  CornerRadius="4"
+                                                  FontSize="14"
+                                                  ToolTip.Tip="Éditer"/>
+                                            <Button Content="📋"
+                                                  Command="{Binding $parent[UserControl].DataContext.DuplicateTemplateCommand}"
+                                                  CommandParameter="{Binding}"
+                                                  Padding="8,6"
+                                                  Background="{StaticResource BrandSecondaryBrush}"
+                                                  Foreground="White"
+                                                  CornerRadius="4"
+                                                  FontSize="14"
+                                                  ToolTip.Tip="Dupliquer"/>
+                                            <Button Content="🗑️"
+                                                  Command="{Binding $parent[UserControl].DataContext.DeleteTemplateCommand}"
+                                                  CommandParameter="{Binding}"
+                                                  Padding="8,6"
+                                                  Background="{StaticResource AccentRedBrush}"
+                                                  Foreground="White"
+                                                  CornerRadius="4"
+                                                  FontSize="14"
+                                                  ToolTip.Tip="Supprimer"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

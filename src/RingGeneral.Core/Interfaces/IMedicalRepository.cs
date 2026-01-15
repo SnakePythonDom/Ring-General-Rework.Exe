@@ -1,0 +1,18 @@
+using RingGeneral.Core.Models;
+
+namespace RingGeneral.Core.Interfaces;
+
+public interface IMedicalRepository
+{
+    int AjouterBlessure(InjuryRecord injury);
+    InjuryRecord? ChargerBlessure(int injuryId);
+    List<InjuryRecord> ChargerToutesBlessures();
+    void MettreAJourBlessure(InjuryRecord injury);
+    void SupprimerBlessure(int injuryId);
+    int AjouterPlan(RecoveryPlan plan);
+    RecoveryPlan? ChargerPlanPourBlessure(int injuryId);
+    void MettreAJourPlanStatut(int injuryId, string statut, int? completedWeek);
+    void AjouterNote(MedicalNote note);
+    void MettreAJourStatutBlessureWorker(string workerId, string statut);
+    string? ChargerStatutBlessureWorker(string workerId);
+}

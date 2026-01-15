@@ -1,0 +1,121 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Youth;assembly=RingGeneral.UI"
+             xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Youth.YouthView"
+             x:DataType="vm:YouthViewModel">
+
+    <Design.DataContext>
+        <vm:YouthViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="30" RowDefinitions="Auto,20,Auto,20,*">
+
+        <!-- En-tête -->
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="🎓 YOUTH DEVELOPMENT" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock FontSize="14" Foreground="{StaticResource TextSecondaryBrush}">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0} trainees au total">
+                        <Binding Path="TotalTrainees"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Stats Youth -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
+            <Border Grid.Column="0" Background="{StaticResource SuccessDarkBrush}" Padding="20" CornerRadius="8" Margin="0,0,8,0">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="💰 BUDGET" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding BudgetFormatted}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="{StaticResource BrandPrimaryBrush}" Padding="20" CornerRadius="8" Margin="8,0,8,0">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="👥 TRAINEES" FontSize="12" Foreground="{StaticResource BrandPrimaryBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TotalTrainees}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrandPrimaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Background="{StaticResource WarningDarkBrush}" Padding="20" CornerRadius="8" Margin="8,0,0,0">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="👨‍🏫 COACH" FontSize="12" Foreground="{StaticResource WarningBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding CoachName, FallbackValue=Non assigné}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource WarningBrush}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Liste des trainees -->
+        <Border Grid.Row="4" Background="{StaticResource BackgroundSecondaryBrush}" CornerRadius="8" Padding="0">
+            <controls:DataGrid ItemsSource="{Binding Trainees}"
+                              AutoGenerateColumns="False"
+                              CanUserSortColumns="True"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              IsReadOnly="True"
+                              Background="{StaticResource BackgroundSecondaryBrush}"
+                              BorderThickness="0">
+
+                <controls:DataGrid.Columns>
+                    <controls:DataGridTextColumn Header="NOM" Binding="{Binding Name}" Width="200"/>
+                    <controls:DataGridTextColumn Header="IN-RING" Binding="{Binding InRing}" Width="80"/>
+                    <controls:DataGridTextColumn Header="ENTERTAINMENT" Binding="{Binding Entertainment}" Width="100"/>
+                    <controls:DataGridTextColumn Header="STORY" Binding="{Binding Story}" Width="80"/>
+                    <controls:DataGridTextColumn Header="PROGRESSION" Binding="{Binding ProgressDisplay}" Width="120"/>
+                    <!-- Phase 4.1 - Bouton Graduer -->
+                    <controls:DataGridTemplateColumn Header="ACTIONS" Width="Auto">
+                        <controls:DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="🎓 Graduer"
+                                        Padding="8,4"
+                                        Background="{StaticResource AccentGreenBrush}"
+                                        Foreground="White"
+                                        CornerRadius="4"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Command="{Binding $parent[DataGrid].DataContext.GraduateTraineeCommand}"
+                                        CommandParameter="{Binding WorkerId}"/>
+                            </DataTemplate>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                </controls:DataGrid.Columns>
+
+                <controls:DataGrid.Styles>
+                    <Style Selector="DataGridRow">
+                        <Setter Property="MinHeight" Value="35"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                    </Style>
+                    <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+                        <Setter Property="Fill" Value="{StaticResource BackgroundHoverBrush}"/>
+                    </Style>
+                    <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+                        <Setter Property="Fill" Value="{StaticResource BorderMediumBrush}"/>
+                    </Style>
+                    <Style Selector="DataGridColumnHeader">
+                        <Setter Property="Background" Value="{StaticResource BorderMediumBrush}"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="Padding" Value="12,8"/>
+                        <Setter Property="MinHeight" Value="40"/>
+                    </Style>
+                    <Style Selector="DataGridCell">
+                        <Setter Property="Padding" Value="12,8"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+                    <Style Selector="DataGridCell TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                    </Style>
+                </controls:DataGrid.Styles>
+
+            </controls:DataGrid>
+        </Border>
+
+    </Grid>
+
+</UserControl>
