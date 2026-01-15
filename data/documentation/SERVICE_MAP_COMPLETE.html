@@ -1,398 +1,1203 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ring General - Service Map Complete</title>
+    <title>Ring General - Service Map Complete (Updated 2026-01-15)</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            line-height: 1.6; 
-            color: #333; 
-            max-width: 1200px; 
-            margin: 0 auto; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
             background: #fff;
         }
-        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 10px; margin: 30px 0 20px; }
-        h2 { color: #16213e; border-bottom: 2px solid #e94560; padding-bottom: 8px; margin: 25px 0 15px; }
-        h3 { color: #0f3460; margin: 20px 0 10px; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #4a90d9; color: white; }
-        tr:nth-child(even) { background: #f9f9f9; }
-        tr:hover { background: #f1f1f1; }
-        .complete { color: #27ae60; font-weight: bold; }
-        .partial { color: #f39c12; font-weight: bold; }
-        .pending { color: #e74c3c; font-weight: bold; }
-        .box { background: #f8f9fa; border-left: 4px solid #4a90d9; padding: 15px; margin: 15px 0; }
-        .warning-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }
-        .success-box { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 15px 0; }
-        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Consolas', monospace; }
-        pre { background: #1a1a2e; color: #fff; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 15px 0; }
-        pre code { background: transparent; color: #fff; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; }
-        .stat-card h4 { font-size: 28px; margin-bottom: 5px; }
-        .stat-card p { opacity: 0.9; }
-        .flow-box { background: #e8f4f8; border: 2px solid #17a2b8; border-radius: 8px; padding: 20px; margin: 15px 0; }
-        .flow-box h4 { color: #17a2b8; margin-bottom: 10px; }
-        .mode-card { display: inline-block; width: 23%; vertical-align: top; margin: 1%; padding: 15px; border-radius: 10px; text-align: center; }
-        .mode-spectator { background: #e3f2fd; border: 2px solid #2196f3; }
-        .mode-producer { background: #fce4ec; border: 2px solid #e91e63; }
-        .mode-cobooker { background: #fff8e1; border: 2px solid #ff9800; }
-        .mode-dictator { background: #ffebee; border: 2px solid #f44336; }
-        @media print {
-            body { padding: 10px; }
-            .page-break { page-break-before: always; }
-            h1 { page-break-after: avoid; }
-            table { page-break-inside: avoid; }
+
+        h1 {
+            color: #1a1a2e;
+            border-bottom: 3px solid #4a90d9;
+            padding-bottom: 10px;
+            margin: 30px 0 20px;
         }
-        .header { text-align: center; padding: 40px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; border-radius: 10px; margin-bottom: 30px; }
-        .header h1 { color: white; border: none; margin: 0; }
-        .header p { opacity: 0.8; margin-top: 10px; }
+
+        h2 {
+            color: #16213e;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 8px;
+            margin: 25px 0 15px;
+        }
+
+        h3 {
+            color: #0f3460;
+            margin: 20px 0 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #4a90d9;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .complete {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .partial {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .pending {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .new {
+            background: #d4edda;
+        }
+
+        .box {
+            background: #f8f9fa;
+            border-left: 4px solid #4a90d9;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .new-box {
+            background: #cce5ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+
+        pre {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 12px;
+        }
+
+        .flow-box {
+            background: #e8f4f8;
+            border: 2px solid #17a2b8;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .flow-box h4 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+
+        .mode-card {
+            display: inline-block;
+            width: 23%;
+            vertical-align: top;
+            margin: 1%;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .mode-spectator {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+        }
+
+        .mode-producer {
+            background: #fce4ec;
+            border: 2px solid #e91e63;
+        }
+
+        .mode-cobooker {
+            background: #fff8e1;
+            border: 2px solid #ff9800;
+        }
+
+        .mode-dictator {
+            background: #ffebee;
+            border: 2px solid #f44336;
+        }
+
+        @media print {
+            body {
+                padding: 10px;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            border: none;
+            margin: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .badge-new {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-updated {
+            background: #007bff;
+            color: white;
+        }
+
+        .migration-list {
+            columns: 2;
+            column-gap: 20px;
+        }
+
+        .migration-list li {
+            break-inside: avoid;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="header">
-    <h1>🗺️ CARTE COMPLETE DES SERVICES</h1>
-    <h2 style="color: #4a90d9; border: none;">RING GENERAL</h2>
-    <p>Date: 2026-01-15 | Total Interfaces: 64 | Version: Documentation Exhaustive</p>
-</div>
-
-<div class="stats-grid">
-    <div class="stat-card">
-        <h4>64</h4>
-        <p>Interfaces Totales</p>
+    <div class="header">
+        <h1>CARTE COMPLETE DES SERVICES</h1>
+        <h2 style="color: #4a90d9; border: none;">RING GENERAL</h2>
+        <p>Version: 2026-01-15 21:51 | Total Interfaces: <strong>69</strong> | Services: <strong>58</strong></p>
+        <p style="color: #ffc107;">Mise a jour avec nouvelles interfaces et migrations</p>
     </div>
-    <div class="stat-card">
-        <h4>14</h4>
-        <p>Categories</p>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4>69</h4>
+            <p>Interfaces</p>
+        </div>
+        <div class="stat-card">
+            <h4>58</h4>
+            <p>Services</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <h4>+5</h4>
+            <p>Nouvelles Interfaces</p>
+        </div>
+        <div class="stat-card">
+            <h4>42</h4>
+            <p>Migrations SQL</p>
+        </div>
+        <div class="stat-card">
+            <h4>~90%</h4>
+            <p>Implementation</p>
+        </div>
     </div>
-    <div class="stat-card">
-        <h4>85%</h4>
-        <p>Implementation Complete</p>
+
+    <div class="new-box">
+        <h3>Nouveautes depuis derniere mise a jour</h3>
+        <ul>
+            <li><strong>5 nouvelles interfaces:</strong> IAlumniRepository, IGimmickRepository, IGimmickService,
+                IMoraleEngine, IWorkerRepository</li>
+            <li><strong>Migration 019:</strong> World Data - 150+ pays, 300+ regions avec WrestlingImportance</li>
+            <li><strong>Migration 026:</strong> Systeme Gimmick complet (4849 bytes)</li>
+            <li><strong>Services majeurs:</strong> GimmickService (16746 bytes), StaffSharingEngine (24492 bytes)</li>
+        </ul>
     </div>
-    <div class="stat-card">
-        <h4>4</h4>
-        <p>Flux Automatiques</p>
+
+    <h1>1. INTERFACES PAR CATEGORIE (69 total)</h1>
+
+    <h2>1.1 ORCHESTRATION (3 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>ITimeOrchestratorService</code></td>
+            <td>Gestion temps quotidien</td>
+            <td>638 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IShowDayOrchestrator</code></td>
+            <td>Orchestration show day</td>
+            <td>2135 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IDailyServices</code></td>
+            <td>Services quotidiens automatiques</td>
+            <td>1626 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.2 SIMULATION & SHOW (4 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>ISimulationService</code></td>
+            <td>Engine simulation shows</td>
+            <td>937 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IShowRepository</code></td>
+            <td>DB shows</td>
+            <td>393 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IImpactApplier</code></td>
+            <td>Application impacts post-show</td>
+            <td>174 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IRatingModel</code></td>
+            <td>Calcul ratings segments</td>
+            <td>182 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.3 RECRUTEMENT (4 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IRecruitmentService</code></td>
+            <td>Service recrutement principal</td>
+            <td>1452 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IRecruitmentScoringService</code></td>
+            <td>Scoring Geo+Strategic Fit</td>
+            <td>713 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IFreeAgentRepository</code></td>
+            <td>DB free agents</td>
+            <td>927 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IScoutingRepository</code></td>
+            <td>Scouting & rapports</td>
+            <td>678 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.4 FINANCE (5 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IBudgetAllocationService</code></td>
+            <td>Allocation budget departements</td>
+            <td>595 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IRevenueProjectionService</code></td>
+            <td>Projections revenus 12 mois</td>
+            <td>374 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IDebtManagementService</code></td>
+            <td>Gestion dettes</td>
+            <td>616 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ITvDealNegotiationService</code></td>
+            <td>Negociation TV deals</td>
+            <td>990 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ITvDealRepository</code></td>
+            <td>DB TV deals</td>
+            <td>352 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.5 STAFF MANAGEMENT (5 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IStaffRepository</code></td>
+            <td>DB staff membres</td>
+            <td>4413 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IStaffSharingService</code></td>
+            <td>Partage staff parent-child</td>
+            <td>714 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IChildCompanyStaffService</code></td>
+            <td>Gestion staff child companies</td>
+            <td>5818 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IChildCompanyStaffRepository</code></td>
+            <td>DB assignations staff</td>
+            <td>3174 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IStaffCompatibilityRepository</code></td>
+            <td>Compatibilite staff-structure</td>
+            <td>1832 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.6 CONTROLE BOOKING (3 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IBookingControlService</code></td>
+            <td>Niveaux controle joueur (4 modes)</td>
+            <td>945 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IBookerAIEngine</code></td>
+            <td>AI auto-booking</td>
+            <td>2175 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IBookerRepository</code></td>
+            <td>DB bookers + memories</td>
+            <td>1415 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.7 AI & DECISIONS (5 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IOwnerDecisionEngine</code></td>
+            <td>Decisions strategiques owner</td>
+            <td>5908 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IOwnerRepository</code></td>
+            <td>DB owners</td>
+            <td>747 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IPersonalityEngine</code></td>
+            <td>Engine personnalite</td>
+            <td>823 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ICrisisEngine</code></td>
+            <td>Pipeline crises</td>
+            <td>1018 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ICommunicationEngine</code></td>
+            <td>Communication (4 types)</td>
+            <td>3301 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.8 WORKER MANAGEMENT (6 interfaces) <span class="badge badge-updated">UPDATED</span></h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IWorkerAttributesRepository</code></td>
+            <td>DB attributs workers</td>
+            <td>1910 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IWorkerGenerationService</code></td>
+            <td>Generation workers hebdo</td>
+            <td>438 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IMedicalRepository</code></td>
+            <td>DB blessures/medical</td>
+            <td>717 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IRelationsRepository</code></td>
+            <td>DB relations workers</td>
+            <td>5043 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IContractRepository</code></td>
+            <td>DB contrats</td>
+            <td>1175 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr class="new">
+            <td><code>IWorkerRepository</code> <span class="badge badge-new">NEW</span></td>
+            <td>DB workers principal</td>
+            <td>432 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.9 GIMMICK SYSTEM (2 interfaces) <span class="badge badge-new">NEW</span></h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr class="new">
+            <td><code>IGimmickRepository</code> <span class="badge badge-new">NEW</span></td>
+            <td>DB gimmicks et personas</td>
+            <td>3741 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr class="new">
+            <td><code>IGimmickService</code> <span class="badge badge-new">NEW</span></td>
+            <td>Service gestion gimmicks</td>
+            <td>5218 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.10 MORALE & ALUMNI (3 interfaces) <span class="badge badge-updated">UPDATED</span></h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IMoraleRepository</code></td>
+            <td>DB morale workers</td>
+            <td>996 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr class="new">
+            <td><code>IMoraleEngine</code> <span class="badge badge-new">NEW</span></td>
+            <td>Engine calcul morale</td>
+            <td>887 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr class="new">
+            <td><code>IAlumniRepository</code> <span class="badge badge-new">NEW</span></td>
+            <td>DB anciens lutteurs</td>
+            <td>1063 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.11 COMPANY & CHILD COMPANIES (5 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>ICompanyRepository</code></td>
+            <td>DB companies</td>
+            <td>345 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IChildCompanyRepository</code></td>
+            <td>DB child companies</td>
+            <td>1452 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IChildCompanyExtendedRepository</code></td>
+            <td>Donnees etendues child</td>
+            <td>1033 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IChildCompanyBookingRepository</code></td>
+            <td>Booking child companies</td>
+            <td>1179 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IYouthRepository</code></td>
+            <td>DB structures jeunes</td>
+            <td>1795 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.12 SUPPORT SYSTEMS (6 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IRumorRepository</code></td>
+            <td>DB rumeurs</td>
+            <td>761 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ITrendRepository</code></td>
+            <td>DB tendances</td>
+            <td>1544 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IEraRepository</code></td>
+            <td>DB eres compagnie</td>
+            <td>1960 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>INepotismRepository</code></td>
+            <td>DB nepotisme</td>
+            <td>733 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>INicheFederationRepository</code></td>
+            <td>DB niches federations</td>
+            <td>986 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IPersonalityRepository</code></td>
+            <td>DB personnalites</td>
+            <td>2261 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.13 DATA & STORAGE (5 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>IGameRepository</code></td>
+            <td>Facade repository principale</td>
+            <td>3780 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ISettingsRepository</code></td>
+            <td>DB parametres jeu</td>
+            <td>629 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>INotesRepository</code></td>
+            <td>DB notes joueur</td>
+            <td>5691 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IBackstageRepository</code></td>
+            <td>DB incidents backstage</td>
+            <td>788 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ICrisisRepository</code></td>
+            <td>DB crises</td>
+            <td>2208 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.14 TITLES & CONTENDERS (5 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>ITitleRepository</code></td>
+            <td>DB titres championnat</td>
+            <td>659 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ITitleService</code></td>
+            <td>Service gestion titres</td>
+            <td>686 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IContenderRepository</code></td>
+            <td>DB contenders</td>
+            <td>341 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IContenderRankingRepository</code></td>
+            <td>DB rankings</td>
+            <td>298 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IBrandRepository</code></td>
+            <td>DB brands</td>
+            <td>2223 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <h2>1.15 SYSTEMES SPECIAUX (9 interfaces)</h2>
+    <table>
+        <tr>
+            <th>Interface</th>
+            <th>Role</th>
+            <th>Taille</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td><code>ICatchStyleRepository</code></td>
+            <td>DB styles de catch</td>
+            <td>964 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IRegionRepository</code></td>
+            <td>DB regions</td>
+            <td>292 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IShowSchedulerStore</code></td>
+            <td>Calendrier shows</td>
+            <td>755 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IDNATransitionRepository</code></td>
+            <td>Transitions DNA roster</td>
+            <td>899 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IRosterAnalysisRepository</code></td>
+            <td>Analyse composition roster</td>
+            <td>1353 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IEventGeneratorService</code></td>
+            <td>Generateur evenements</td>
+            <td>623 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>ILoggingService</code></td>
+            <td>Service logging</td>
+            <td>979 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+        <tr>
+            <td><code>IRandomProvider</code></td>
+            <td>Provider aleatoire</td>
+            <td>187 bytes</td>
+            <td class="complete">Complete</td>
+        </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h1>2. SERVICES IMPLEMENTES (58 total)</h1>
+
+    <div class="box">
+        <h3>Top 10 Services par taille (complexite)</h3>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Service</th>
+                <th>Taille</th>
+                <th>Role</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td><code>ChildCompanyStaffService</code></td>
+                <td>24777 bytes</td>
+                <td>Gestion complete staff child companies</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td><code>StaffSharingEngine</code></td>
+                <td>24492 bytes</td>
+                <td>Engine partage staff</td>
+            </tr>
+            <tr class="new">
+                <td>3</td>
+                <td><code>GimmickService</code> <span class="badge badge-new">NEW</span></td>
+                <td>16746 bytes</td>
+                <td>Gestion gimmicks et personas</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td><code>OwnerDecisionEngineExtensions</code></td>
+                <td>15951 bytes</td>
+                <td>Extensions decisions owner</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td><code>StaffCompatibilityCalculator</code></td>
+                <td>15005 bytes</td>
+                <td>Calcul compatibilite staff</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td><code>OwnerDecisionEngine</code></td>
+                <td>15092 bytes</td>
+                <td>Moteur decisions owner</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td><code>ShowDayOrchestrator</code></td>
+                <td>14924 bytes</td>
+                <td>Orchestration show day</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td><code>TvDealNegotiationService</code></td>
+                <td>14123 bytes</td>
+                <td>Negociation TV deals</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td><code>AgentReportGeneratorService</code></td>
+                <td>13527 bytes</td>
+                <td>Generation rapports agents</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td><code>PersonalityDetectorService</code></td>
+                <td>13234 bytes</td>
+                <td>Detection personnalite</td>
+            </tr>
+        </table>
     </div>
-</div>
 
-<h1>1. CATEGORISATION DES 64 INTERFACES</h1>
+    <h1>3. MIGRATIONS SQL (42 fichiers)</h1>
 
-<h2>🎮 1.1 ORCHESTRATION (3 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>ITimeOrchestratorService</code></td><td>Gestion temps quotidien</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IShowDayOrchestrator</code></td><td>Orchestration show day</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IDailyServices</code></td><td>Services quotidiens automatiques</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>🎬 1.2 SIMULATION & SHOW (4 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>ISimulationService</code></td><td>Engine simulation shows</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IShowRepository</code></td><td>Persistence shows</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IImpactApplier</code></td><td>Application impacts post-show</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IRatingModel</code></td><td>Calcul ratings segments</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>👥 1.3 RECRUTEMENT (4 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IRecruitmentService</code></td><td>Service recrutement principal</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IRecruitmentScoringService</code></td><td>Scoring Geo+Strategic Fit</td><td class="partial">⚠️ Interface creee</td></tr>
-    <tr><td><code>IFreeAgentRepository</code></td><td>DB free agents</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IScoutingRepository</code></td><td>Scouting & rapports</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>💰 1.4 FINANCE (5 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IBudgetAllocationService</code></td><td>Allocation budget departements</td><td class="partial">⚠️ Interface creee</td></tr>
-    <tr><td><code>IRevenueProjectionService</code></td><td>Projections revenus 12 mois</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IDebtManagementService</code></td><td>Gestion dettes</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>ITvDealNegotiationService</code></td><td>Negociation TV deals</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>ITvDealRepository</code></td><td>DB TV deals</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>🧑‍💼 1.5 STAFF MANAGEMENT (5 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IStaffRepository</code></td><td>DB staff membres</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IStaffSharingService</code></td><td>Partage staff parent-child</td><td class="partial">⚠️ Interface creee</td></tr>
-    <tr><td><code>IChildCompanyStaffService</code></td><td>Gestion staff child (137 lignes!)</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IChildCompanyStaffRepository</code></td><td>DB assignations staff</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IStaffCompatibilityRepository</code></td><td>Compatibilite staff-structure</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>🎮 1.6 CONTROLE BOOKING (3 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IBookingControlService</code></td><td>Niveaux controle joueur (4 modes)</td><td class="partial">⚠️ Interface creee</td></tr>
-    <tr><td><code>IBookerAIEngine</code></td><td>AI auto-booking</td><td class="complete">✅ Complete (1404 lignes)</td></tr>
-    <tr><td><code>IBookerRepository</code></td><td>DB bookers + memories</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<div class="page-break"></div>
-
-<h2>🤖 1.7 AI & DECISIONS (5 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IOwnerDecisionEngine</code></td><td>Decisions strategiques owner</td><td class="complete">✅ Complete (373 lignes)</td></tr>
-    <tr><td><code>IOwnerRepository</code></td><td>DB owners</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IPersonalityEngine</code></td><td>Engine personnalite</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>ICrisisEngine</code></td><td>Pipeline crises (5 etapes)</td><td class="pending">🔴 Definie Phase 5</td></tr>
-    <tr><td><code>ICommunicationEngine</code></td><td>Communication (4 types)</td><td class="pending">🔴 Definie Phase 5</td></tr>
-</table>
-
-<h2>💪 1.8 WORKER MANAGEMENT (5 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IWorkerAttributesRepository</code></td><td>DB attributs workers</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IWorkerGenerationService</code></td><td>Generation workers hebdo</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IMedicalRepository</code></td><td>DB blessures/medical</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IRelationsRepository</code></td><td>DB relations workers</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IContractRepository</code></td><td>DB contrats</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>🏢 1.9 COMPANY & CHILD COMPANIES (5 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>ICompanyRepository</code></td><td>DB companies</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IChildCompanyRepository</code></td><td>DB child companies</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IChildCompanyExtendedRepository</code></td><td>Donnees etendues child</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IChildCompanyBookingRepository</code></td><td>Booking child companies</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IYouthRepository</code></td><td>DB structures jeunes</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>🎭 1.10 SUPPORT SYSTEMS (6 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IMoraleRepository</code></td><td>DB morale workers</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IRumorRepository</code></td><td>DB rumeurs</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>ITrendRepository</code></td><td>DB tendances</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IEraRepository</code></td><td>DB eres compagnie</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>INepotismRepository</code></td><td>DB nepotisme</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>INicheFederationRepository</code></td><td>DB niches federations</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>🗄️ 1.11 DATA & STORAGE (4 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IGameRepository</code></td><td>Facade repository principale</td><td class="complete">✅ Complete (1146 lignes)</td></tr>
-    <tr><td><code>ISettingsRepository</code></td><td>DB parametres jeu</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>INotesRepository</code></td><td>DB notes joueur</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IBackstageRepository</code></td><td>DB incidents backstage</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>🏆 1.12 TITLES & CONTENDERS (4 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>ITitleRepository</code></td><td>DB titres championnat</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>ITitleService</code></td><td>Service gestion titres</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IContenderRepository</code></td><td>DB contenders (challengers)</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IContenderRankingRepository</code></td><td>DB rankings contenders</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<h2>⚡ 1.13 SYSTEMES SPECIAUX (9 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>IBrandRepository</code></td><td>DB brands</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>ICatchStyleRepository</code></td><td>DB styles de catch</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IRegionRepository</code></td><td>DB regions</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IShowSchedulerStore</code></td><td>Calendrier shows</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IDNATransitionRepository</code></td><td>Transitions DNA roster</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IRosterAnalysisRepository</code></td><td>Analyse composition roster</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IEventGeneratorService</code></td><td>Generateur evenements</td><td class="partial">⚠️ Interface creee</td></tr>
-    <tr><td><code>IPersonalityRepository</code></td><td>DB personnalites</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>ICrisisRepository</code></td><td>DB crises</td><td class="pending">🔴 Definie Phase 5</td></tr>
-</table>
-
-<h2>🔧 1.14 INFRASTRUCTURE (2 interfaces)</h2>
-<table>
-    <tr><th>Interface</th><th>Role</th><th>Implementation</th></tr>
-    <tr><td><code>ILoggingService</code></td><td>Service logging</td><td class="complete">✅ Complete</td></tr>
-    <tr><td><code>IRandomProvider</code></td><td>Provider aleatoire (tests)</td><td class="complete">✅ Complete</td></tr>
-</table>
-
-<div class="page-break"></div>
-
-<h1>2. FLUX INVISIBLES (AUTOMATIQUES)</h1>
-
-<div class="flow-box">
-    <h4>💰 FLUX 1: Budget Mensuel Automatique</h4>
-    <p><strong>Declencheur:</strong> 1er du mois</p>
-    <p><strong>Workflow:</strong></p>
-    <ol>
-        <li>TimeOrchestratorService detecte debut de mois</li>
-        <li>RevenueProjectionService calcule projections 12 mois</li>
-        <li>BudgetAllocationService repartit par departement (Training 25%, Creative 20%, Salaries 40%, Infrastructure 10%, Marketing 5%)</li>
-        <li>OwnerDecisionEngine valide selon RiskTolerance</li>
-        <li>Sauvegarde en base ou notification de rejet</li>
-    </ol>
-</div>
-
-<div class="flow-box">
-    <h4>👥 FLUX 2: Allocation Staff Hebdomadaire</h4>
-    <p><strong>Declencheur:</strong> Dimanche minuit</p>
-    <p><strong>Workflow:</strong></p>
-    <ol>
-        <li>TimeOrchestratorService detecte fin de semaine</li>
-        <li>StaffSharingService recupere tous les staff et child companies</li>
-        <li>StaffCompatibilityCalculator calcule scores de compatibilite</li>
-        <li>ChildCompanyStaffService assigne staff selon priorites</li>
-        <li>Mise a jour des plannings hebdomadaires</li>
-    </ol>
-</div>
-
-<div class="flow-box">
-    <h4>⚠️ FLUX 3: Detection Conflits Quotidienne</h4>
-    <p><strong>Declencheur:</strong> Chaque jour a 06h00</p>
-    <p><strong>Workflow:</strong></p>
-    <ol>
-        <li>Verifier allocation totale par staff (detecter > 100%)</li>
-        <li>Verifier chevauchements horaires (double-booking)</li>
-        <li>Verifier disponibilite pour shows a venir</li>
-        <li>Creer notifications Owner si conflits detectes</li>
-        <li>Suggerer solutions automatiques</li>
-    </ol>
-</div>
-
-<div class="flow-box">
-    <h4>🎯 FLUX 4: Recalcul Scores Recrutement</h4>
-    <p><strong>Declencheur:</strong> Apres chaque show</p>
-    <p><strong>Workflow:</strong></p>
-    <ol>
-        <li>RosterAnalysisRepository recalcule DNA du roster</li>
-        <li>FreeAgentRepository recupere tous les free agents</li>
-        <li>Pour chaque agent: GeoFit (region) + StrategicFit (DNA)</li>
-        <li>Score final = (Geo × 0.3) + (Strategic × 0.7)</li>
-        <li>Tri des agents par pertinence</li>
-    </ol>
-</div>
-
-<div class="page-break"></div>
-
-<h1>3. CONTROL LAYERS (4 Modes de Controle)</h1>
-
-<div style="text-align: center; margin: 30px 0;">
-    <div class="mode-card mode-spectator">
-        <h3>👁️ SPECTATOR</h3>
-        <p><strong>0%</strong> Controle</p>
-        <p>Joueur observe</p>
-        <p>AI fait TOUT</p>
+    <div class="new-box">
+        <h3>Migrations recentes (019-026)</h3>
+        <table>
+            <tr>
+                <th>Migration</th>
+                <th>Taille</th>
+                <th>Contenu</th>
+            </tr>
+            <tr class="new">
+                <td>019_Populate_World_Data.sql</td>
+                <td>46742 bytes</td>
+                <td>150+ pays, 300+ regions avec WrestlingImportance</td>
+            </tr>
+            <tr>
+                <td>020_Update_World_Schema.sql</td>
+                <td>227 bytes</td>
+                <td>Schema update</td>
+            </tr>
+            <tr>
+                <td>021_CreateMentalAttributes.sql</td>
+                <td>940 bytes</td>
+                <td>Attributs mentaux workers</td>
+            </tr>
+            <tr>
+                <td>022_AdvancedTvContracts.sql</td>
+                <td>998 bytes</td>
+                <td>Contrats TV avances</td>
+            </tr>
+            <tr>
+                <td>022_RefactorRelations.sql</td>
+                <td>719 bytes</td>
+                <td>Refactoring relations</td>
+            </tr>
+            <tr>
+                <td>023_OwnerGoals.sql</td>
+                <td>871 bytes</td>
+                <td>Objectifs owners</td>
+            </tr>
+            <tr>
+                <td>024_NepotismColumns.sql</td>
+                <td>620 bytes</td>
+                <td>Colonnes nepotisme</td>
+            </tr>
+            <tr>
+                <td>025_AlumniSupport.sql</td>
+                <td>427 bytes</td>
+                <td>Support alumni</td>
+            </tr>
+            <tr class="new">
+                <td>026_gimmick_system.sql</td>
+                <td>4849 bytes</td>
+                <td>Systeme gimmick complet</td>
+            </tr>
+            <tr class="new">
+                <td>seed_gimmicks.sql</td>
+                <td>303565 bytes</td>
+                <td>Data gimmicks (303KB!)</td>
+            </tr>
+        </table>
     </div>
-    <div class="mode-card mode-producer">
-        <h3>📋 PRODUCER</h3>
-        <p><strong>30%</strong> Controle</p>
-        <p>Droit de veto</p>
-        <p>Approuver/Rejeter</p>
+
+    <h1>4. WORLD DATA (Migration 019)</h1>
+
+    <div class="box">
+        <h3>Donnees geographiques pour Geo-Fit</h3>
+        <p>La migration 019 contient les donnees suivantes:</p>
+        <table>
+            <tr>
+                <th>Continent</th>
+                <th>Pays</th>
+                <th>Top Regions</th>
+            </tr>
+            <tr>
+                <td>North America</td>
+                <td>USA, Canada, Mexico, Puerto Rico + Caraïbes</td>
+                <td>USA_NY (100), USA_CA (95), USA_FL (95), MEX_CMX (100)</td>
+            </tr>
+            <tr>
+                <td>Asia</td>
+                <td>Japan, Korea, China, India, Saudi Arabia + 40+</td>
+                <td>JPN_TO (100), JPN_OS (90), KOR_SE (40), ARE_DU (55)</td>
+            </tr>
+            <tr>
+                <td>Europe</td>
+                <td>UK, Germany, France, Spain, Italy + 40+</td>
+                <td>GBR_LDN (100), DEU_NW (95), FRA_IDF (95)</td>
+            </tr>
+            <tr>
+                <td>South America</td>
+                <td>Chile, Brazil, Argentina, Peru + 9</td>
+                <td>CHL_RM (55), BRA_SP (50), ARG_BA (45)</td>
+            </tr>
+            <tr>
+                <td>Africa</td>
+                <td>South Africa, Nigeria, Egypt + 50+</td>
+                <td>ZAF_GT (65), NGA_LA (40), SEN_DA (35)</td>
+            </tr>
+            <tr>
+                <td>Oceania</td>
+                <td>Australia, New Zealand, Samoa, Tonga + 10</td>
+                <td>AUS_NSW (70), WSM_AP (75), FJI_SU (45)</td>
+            </tr>
+        </table>
     </div>
-    <div class="mode-card mode-cobooker">
-        <h3>✏️ CO-BOOKER</h3>
-        <p><strong>70%</strong> Controle</p>
-        <p>Collaboration</p>
-        <p>Editer segments</p>
+
+    <div class="page-break"></div>
+
+    <h1>5. CONTROL LAYERS (4 Modes)</h1>
+
+    <div style="text-align: center; margin: 20px 0;">
+        <div class="mode-card mode-spectator">
+            <h3>SPECTATOR</h3>
+            <p><strong>0%</strong></p>
+            <p>Observe</p>
+        </div>
+        <div class="mode-card mode-producer">
+            <h3>PRODUCER</h3>
+            <p><strong>30%</strong></p>
+            <p>Approve/Reject</p>
+        </div>
+        <div class="mode-card mode-cobooker">
+            <h3>CO-BOOKER</h3>
+            <p><strong>70%</strong></p>
+            <p>Edit</p>
+        </div>
+        <div class="mode-card mode-dictator">
+            <h3>DICTATOR</h3>
+            <p><strong>100%</strong></p>
+            <p>Create</p>
+        </div>
     </div>
-    <div class="mode-card mode-dictator">
-        <h3>👑 DICTATOR</h3>
-        <p><strong>100%</strong> Controle</p>
-        <p>Controle total</p>
-        <p>Creer de zero</p>
+
+    <h1>6. STATISTIQUES GLOBALES</h1>
+
+    <table>
+        <tr>
+            <th>Categorie</th>
+            <th>Interfaces</th>
+            <th>Services</th>
+            <th>Implementation</th>
+        </tr>
+        <tr>
+            <td>Orchestration</td>
+            <td>3</td>
+            <td>3</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Simulation & Show</td>
+            <td>4</td>
+            <td>3</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Recrutement</td>
+            <td>4</td>
+            <td>2</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Finance</td>
+            <td>5</td>
+            <td>4</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Staff Management</td>
+            <td>5</td>
+            <td>5</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Controle Booking</td>
+            <td>3</td>
+            <td>3</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>AI & Decisions</td>
+            <td>5</td>
+            <td>5</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Worker Management</td>
+            <td>6</td>
+            <td>2</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Gimmick System <span class="badge badge-new">NEW</span></td>
+            <td>2</td>
+            <td>1</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Morale & Alumni <span class="badge badge-new">NEW</span></td>
+            <td>3</td>
+            <td>2</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Company & Child</td>
+            <td>5</td>
+            <td>3</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Support Systems</td>
+            <td>6</td>
+            <td>5</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Data & Storage</td>
+            <td>5</td>
+            <td>-</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Titles & Contenders</td>
+            <td>5</td>
+            <td>2</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr>
+            <td>Systemes Speciaux</td>
+            <td>8</td>
+            <td>8</td>
+            <td class="complete">100%</td>
+        </tr>
+        <tr style="font-weight: bold; background: #d4edda;">
+            <td>TOTAL</td>
+            <td>69</td>
+            <td>58</td>
+            <td>~90%</td>
+        </tr>
+    </table>
+
+    <div class="success-box">
+        <h3>RESUME FINAL</h3>
+        <ul>
+            <li><strong>69 interfaces</strong> (+ 5 nouvelles)</li>
+            <li><strong>58 services</strong> implementes</li>
+            <li><strong>42 migrations SQL</strong> (+ 8 nouvelles)</li>
+            <li><strong>World Data:</strong> 150+ pays, 300+ regions</li>
+            <li><strong>Gimmick System:</strong> Complet avec 303KB de seed data</li>
+            <li><strong>Implementation:</strong> ~90% complete</li>
+        </ul>
     </div>
-</div>
 
-<h2>Comparaison des Modes</h2>
-<table>
-    <tr>
-        <th>Feature</th>
-        <th>Spectator 👁️</th>
-        <th>Producer 📋</th>
-        <th>Co-Booker ✏️</th>
-        <th>Dictator 👑</th>
-    </tr>
-    <tr><td>AI genere card</td><td>✅ Auto</td><td>✅ Proposition</td><td>✅ Base</td><td>⚠️ Suggestions</td></tr>
-    <tr><td>Approuver/Rejeter</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Editer segments</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Creer segments</td><td>❌</td><td>❌</td><td>⚠️ 1-2 max</td><td>✅ Illimite</td></tr>
-    <tr><td>Controle resultats</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Temps requis</td><td>0 min</td><td>2 min</td><td>10 min</td><td>30+ min</td></tr>
-    <tr><td>Difficulte</td><td>😊 Facile</td><td>😊 Facile</td><td>😐 Moyen</td><td>😰 Expert</td></tr>
-    <tr><td>Pour qui?</td><td>Nouveaux</td><td>Casuals</td><td>Reguliers</td><td>Hardcore</td></tr>
-</table>
-
-<h2>Interface IBookingControlService</h2>
-<pre><code>public interface IBookingControlService
-{
-    void SetControlLevel(string companyId, BookingControlLevel level);
-    BookingControlLevel GetControlLevel(string companyId);
-    BookingResult ProcessProposal(string companyId, 
-        List&lt;SegmentDefinition&gt; aiProposal, PlayerAction playerAction);
-    bool ValidatePlayerEdits(BookingControlLevel level,
-        List&lt;SegmentDefinition&gt; original, List&lt;SegmentDefinition&gt; edited);
-}
-
-public enum BookingControlLevel
-{
-    Spectator = 0,    // 0% controle
-    Producer = 30,    // 30% controle (approval)
-    CoBooker = 70,    // 70% controle (edition)
-    Dictator = 100    // 100% controle (creation)
-}</code></pre>
-
-<div class="page-break"></div>
-
-<h1>4. STATISTIQUES GLOBALES</h1>
-
-<table>
-    <tr><th>Categorie</th><th>Nombre</th><th>%</th><th>Implementation</th></tr>
-    <tr><td>Orchestration</td><td>3</td><td>4.7%</td><td class="complete">✅ 100%</td></tr>
-    <tr><td>Simulation & Show</td><td>4</td><td>6.3%</td><td class="complete">✅ 100%</td></tr>
-    <tr><td>Recrutement</td><td>4</td><td>6.3%</td><td class="partial">⚠️ 75%</td></tr>
-    <tr><td>Finance</td><td>5</td><td>7.8%</td><td class="partial">⚠️ 80%</td></tr>
-    <tr><td>Staff Management</td><td>5</td><td>7.8%</td><td class="partial">⚠️ 80%</td></tr>
-    <tr><td>Controle Booking</td><td>3</td><td>4.7%</td><td class="partial">⚠️ 67%</td></tr>
-    <tr><td>AI & Decisions</td><td>5</td><td>7.8%</td><td class="partial">⚠️ 60%</td></tr>
-    <tr><td>Worker Management</td><td>5</td><td>7.8%</td><td class="complete">✅ 100%</td></tr>
-    <tr><td>Company & Child</td><td>5</td><td>7.8%</td><td class="complete">✅ 100%</td></tr>
-    <tr><td>Support Systems</td><td>6</td><td>9.4%</td><td class="complete">✅ 100%</td></tr>
-    <tr><td>Data & Storage</td><td>4</td><td>6.3%</td><td class="complete">✅ 100%</td></tr>
-    <tr><td>Titles & Contenders</td><td>4</td><td>6.3%</td><td class="complete">✅ 100%</td></tr>
-    <tr><td>Systemes Speciaux</td><td>9</td><td>14.1%</td><td class="partial">⚠️ 78%</td></tr>
-    <tr><td>Infrastructure</td><td>2</td><td>3.1%</td><td class="complete">✅ 100%</td></tr>
-    <tr style="font-weight: bold; background: #e8f4f8;"><td>TOTAL</td><td>64</td><td>100%</td><td>~85%</td></tr>
-</table>
-
-<div class="success-box">
-    <h3>✅ RESUME FINAL</h3>
-    <ul>
-        <li><strong>64 interfaces</strong> cataloguees et categorisees</li>
-        <li><strong>85% d'implementation</strong> complete</li>
-        <li><strong>4 flux automatiques</strong> documentes</li>
-        <li><strong>4 modes de controle</strong> joueur</li>
-    </ul>
-</div>
-
-<div class="warning-box">
-    <h3>🚀 PROCHAINES ETAPES</h3>
-    <ol>
-        <li>Implementer IBookingControlService</li>
-        <li>Completer IRecruitmentScoringService</li>
-        <li>Finaliser IBudgetAllocationService</li>
-        <li>Completer IStaffSharingService</li>
-        <li>Phase 5: Crisis & Communication</li>
-    </ol>
-</div>
-
-<div style="text-align: center; margin-top: 50px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-    <p><strong>Ring General - Service Map Complete</strong></p>
-    <p>Date: 2026-01-15 | Version: 1.0</p>
-    <p style="opacity: 0.7;">Pour imprimer en PDF: Ctrl+P → Destination: Enregistrer en PDF</p>
-</div>
+    <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <p><strong>Ring General - Service Map Complete</strong></p>
+        <p>Date: 2026-01-15 21:51 | Version: 2.0</p>
+        <p style="opacity: 0.7;">Pour imprimer en PDF: Ctrl+P → Enregistrer en PDF</p>
+    </div>
 
 </body>
+
 </html>
