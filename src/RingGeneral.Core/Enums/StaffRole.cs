@@ -136,7 +136,13 @@ public enum StaffRole
     /// Strength Coach - Coach de force et conditionnement
     /// Impacte: Physique, endurance, prévention blessures
     /// </summary>
-    StrengthCoach
+    StrengthCoach,
+
+    /// <summary>
+    /// Ringside Manager - Accompagne les workers au bord du ring
+    /// Impacte: Bonus de mic skill/story, distracts opponent, moral support
+    /// </summary>
+    RingsideManager
 }
 
 /// <summary>

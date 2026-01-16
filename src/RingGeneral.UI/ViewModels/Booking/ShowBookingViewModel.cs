@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using ReactiveUI;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
@@ -26,6 +28,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
     private readonly IBookerAIEngine? _bookerAIEngine;
     private readonly IBookingControlService? _bookingControlService;
     private readonly SettingsRepository? _settingsRepository;
+    private readonly IStaffRepository? _staffRepository;
     private readonly IEventAggregator _eventAggregator;
     private readonly BookingPredictorService _predictor;
     private ShowContext? _context;
@@ -41,7 +44,8 @@ public sealed class ShowBookingViewModel : ViewModelBase
         IBookerAIEngine? bookerAIEngine = null,
         IBookingControlService? bookingControlService = null,
         SettingsRepository? settingsRepository = null,
-        IEventAggregator? eventAggregator = null)
+        IEventAggregator? eventAggregator = null,
+        IStaffRepository? staffRepository = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
@@ -52,6 +56,8 @@ public sealed class ShowBookingViewModel : ViewModelBase
         _bookingControlService = bookingControlService;
         _settingsRepository = settingsRepository;
         _eventAggregator = eventAggregator ?? new EventAggregator();
+        _staffRepository = staffRepository; // Optional for now to avoid breaking tests immediately, but should be required
+
 
         // Phase 1.2 - Charger le niveau de contrôle depuis GameState
         LoadBookingControlLevel();
@@ -67,7 +73,11 @@ public sealed class ShowBookingViewModel : ViewModelBase
         Tips = new ObservableCollection<string>();
         BookingGuidelines = new ObservableCollection<string>();
         WorkersAvailable = new ObservableCollection<ParticipantViewModel>();
+        AvailableReferees = new ObservableCollection<StaffMember>();
+        AvailableRoadAgents = new ObservableCollection<StaffMember>();
+        AvailableCommentators = new ObservableCollection<StaffMember>();
 
+        // Event Subscription
         // Event Subscription
         _eventAggregator.GetEvent<RequestWorkerSelectionEvent>()
              .Subscribe(OnWorkerSelectionRequested);
@@ -124,6 +134,9 @@ public sealed class ShowBookingViewModel : ViewModelBase
     public ObservableCollection<string> Tips { get; }
     public ObservableCollection<string> BookingGuidelines { get; }
     public ObservableCollection<ParticipantViewModel> WorkersAvailable { get; }
+    public ObservableCollection<StaffMember> AvailableReferees { get; }
+    public ObservableCollection<StaffMember> AvailableRoadAgents { get; }
+    public ObservableCollection<StaffMember> AvailableCommentators { get; }
 
     /// <summary>
     /// Phase 1.2 - Niveaux de contrôle disponibles
@@ -185,9 +198,10 @@ public sealed class ShowBookingViewModel : ViewModelBase
     public int TotalDuration => Segments.Sum(s => s.DureeMinutes);
     public int ShowDuration { get; private set; }
     public string DurationSummary => $"{TotalDuration} / {ShowDuration} min";
+    public bool IsOverrun => TotalDuration > ShowDuration; // Used for UI feedback
     public int SegmentCount => Segments.Count;
     public bool HasSegments => Segments.Any();
-    public bool CanSimulate => HasSegments && string.IsNullOrWhiteSpace(ValidationErrors);
+    public bool CanSimulate => HasSegments && string.IsNullOrWhiteSpace(ValidationErrors) && !IsOverrun;
 
     /// <summary>
     /// Phase 1.2 - Niveau de contrôle du booking
@@ -214,11 +228,11 @@ public sealed class ShowBookingViewModel : ViewModelBase
     /// </summary>
     public string ControlLevelDescription => ControlLevel switch
     {
-        BookingControlLevel.Spectator => "👁️ IA contrôle 100% des décisions",
-        BookingControlLevel.Producer => "🎬 IA propose, vous validez",
-        BookingControlLevel.CoBooker => "🤝 Vous gérez titres majeurs, IA développe midcard",
-        BookingControlLevel.Dictator => "👑 Contrôle total, pas d'intervention IA",
-        _ => "Niveau non défini"
+        BookingControlLevel.Spectator => "👁️ AI controls 100% of decisions",
+        BookingControlLevel.Producer => "🎬 AI proposes, you validate",
+        BookingControlLevel.CoBooker => "🤝 You manage major titles, AI develops midcard",
+        BookingControlLevel.Dictator => "👑 Total control, no AI intervention",
+        _ => "Undefined level"
     };
 
     /// <summary>
@@ -269,8 +283,28 @@ public sealed class ShowBookingViewModel : ViewModelBase
         Segments.Clear();
         foreach (var segment in context.Segments)
         {
-            Segments.Add(new SegmentViewModel(segment, _catalog, _eventAggregator));
+            var vm = new SegmentViewModel(
+                segment,
+                _catalog,
+                _eventAggregator,
+                AvailableReferees,
+                AvailableRoadAgents,
+                AvailableCommentators);
+            // Check if storyline is active
+            if (!string.IsNullOrEmpty(vm.StorylineId) && _context.Storylines != null)
+            {
+                var storyline = _context.Storylines.FirstOrDefault(s => s.StorylineId == vm.StorylineId);
+                if (storyline != null && storyline.Status == Core.Models.StorylineStatus.Active)
+                {
+                    vm.IsStorylineActive = true;
+                }
+            }
+            SubscribeToSegmentChanges(vm);
+            Segments.Add(vm);
         }
+
+        // Ensure Main Event status is correct
+        UpdateMainEventStatus();
 
         WorkersAvailable.Clear();
         if (context.Workers != null)
@@ -281,7 +315,10 @@ public sealed class ShowBookingViewModel : ViewModelBase
             }
         }
 
+
+
         LoadTemplates();
+        LoadStaff();
         ValidateBooking();
 
         Logger.Info($"Booking chargé : {Segments.Count} segments, durée totale {TotalDuration} min");
@@ -313,15 +350,25 @@ public sealed class ShowBookingViewModel : ViewModelBase
             0,
             null,
             null,
+            true,
             new Dictionary<string, string>());
 
         _repository.AjouterSegment(_showId, newSegment, Segments.Count + 1);
-        Segments.Add(new SegmentViewModel(newSegment, _catalog, _eventAggregator));
+        var newVm = new SegmentViewModel(
+            newSegment,
+            _catalog,
+            _eventAggregator,
+            AvailableReferees,
+            AvailableRoadAgents,
+            AvailableCommentators);
+        SubscribeToSegmentChanges(newVm);
+        Segments.Add(newVm);
 
         SelectedSegment = Segments.Last();
         ValidateBooking();
 
         NotifyDurationChanged();
+        UpdateMainEventStatus();
 
         Logger.Debug($"Segment ajouté : {newSegment.SegmentId}");
     }
@@ -347,6 +394,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
         ValidateBooking();
 
         NotifyDurationChanged();
+        UpdateMainEventStatus();
 
         Logger.Debug($"Segment supprimé : {segment.SegmentId}");
     }
@@ -363,6 +411,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
         Segments.Move(index, index - 1);
         SaveSegmentOrder();
+        UpdateMainEventStatus();
 
         Logger.Debug($"Segment déplacé vers le haut : {segment.SegmentId}");
     }
@@ -379,6 +428,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
 
         Segments.Move(index, index + 1);
         SaveSegmentOrder();
+        UpdateMainEventStatus();
 
         Logger.Debug($"Segment déplacé vers le bas : {segment.SegmentId}");
     }
@@ -404,13 +454,23 @@ public sealed class ShowBookingViewModel : ViewModelBase
             segment.Intensite,
             segment.VainqueurId,
             segment.PerdantId,
+            true,
             new Dictionary<string, string>(segment.ConstruireSettings()));
 
         var index = Segments.IndexOf(segment);
         _repository.AjouterSegment(_showId, duplicated, index + 2);
-        Segments.Insert(index + 1, new SegmentViewModel(duplicated, _catalog, _eventAggregator));
+        var cloneVm = new SegmentViewModel(
+            duplicated,
+            _catalog,
+            _eventAggregator,
+            AvailableReferees,
+            AvailableRoadAgents,
+            AvailableCommentators);
+        SubscribeToSegmentChanges(cloneVm);
+        Segments.Insert(index + 1, cloneVm);
 
         NotifyDurationChanged();
+        UpdateMainEventStatus();
 
         Logger.Debug($"Segment dupliqué : {segment.SegmentId} → {duplicated.SegmentId}");
     }
@@ -598,6 +658,7 @@ public sealed class ShowBookingViewModel : ViewModelBase
                     s.Intensite,
                     s.VainqueurId,
                     s.PerdantId,
+                    true,
                     s.ConstruireSettings()
                 ))
                 .ToList();
@@ -631,11 +692,32 @@ public sealed class ShowBookingViewModel : ViewModelBase
             // Ajouter les segments générés à la liste
             foreach (var segment in generatedSegments)
             {
-                _repository.AjouterSegment(_showId, segment, Segments.Count + 1);
-                Segments.Add(new SegmentViewModel(segment, _catalog, _eventAggregator));
+                // Ensure IsAiGenerated is true for visual feedback
+                var aiSegment = segment with { IsAiGenerated = true };
+                _repository.AjouterSegment(_showId, aiSegment, Segments.Count + 1);
+
+                // Create VM and populate Active Storyline manually if needed (though it's fresh)
+                var vm = new SegmentViewModel(
+                    aiSegment,
+                    _catalog,
+                    _eventAggregator,
+                    AvailableReferees,
+                    AvailableRoadAgents,
+                    AvailableCommentators);
+                if (!string.IsNullOrEmpty(vm.StorylineId) && _context.Storylines != null)
+                {
+                    var storyline = _context.Storylines.FirstOrDefault(s => s.StorylineId == vm.StorylineId);
+                    if (storyline != null && storyline.Status == Core.Models.StorylineStatus.Active)
+                    {
+                        vm.IsStorylineActive = true;
+                    }
+                }
+                SubscribeToSegmentChanges(vm);
+                Segments.Add(vm);
             }
 
             // Valider le booking
+            UpdateMainEventStatus();
             ValidateBooking();
 
             // Rafraîchir les propriétés
@@ -786,6 +868,37 @@ public sealed class ShowBookingViewModel : ViewModelBase
         MatchTypes.Add(new MatchTypeViewModel("Cage", "Cage Match", "Match en cage", true, 7));
     }
 
+    private void SubscribeToSegmentChanges(SegmentViewModel vm)
+    {
+        vm.PropertyChanged += (sender, args) =>
+        {
+            if (args.PropertyName == nameof(SegmentViewModel.RefereeId) ||
+                args.PropertyName == nameof(SegmentViewModel.RoadAgentId) ||
+                args.PropertyName == nameof(SegmentViewModel.CommentatorId) ||
+                args.PropertyName == nameof(SegmentViewModel.VainqueurId) ||
+                args.PropertyName == nameof(SegmentViewModel.PerdantId) ||
+                args.PropertyName == nameof(SegmentViewModel.TitreId) ||
+                args.PropertyName == nameof(SegmentViewModel.StorylineId) ||
+                args.PropertyName == nameof(SegmentViewModel.Intensite) ||
+                args.PropertyName == nameof(SegmentViewModel.DureeMinutes))
+            {
+                try
+                {
+                    _repository.MettreAJourSegment(vm.ToDefinition());
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Erreur sauvegarde segment {vm.SegmentId}", ex);
+                }
+            }
+
+            if (args.PropertyName == nameof(SegmentViewModel.DureeMinutes))
+            {
+                NotifyDurationChanged();
+            }
+        };
+    }
+
     private void SaveSegmentOrder()
     {
         if (_context is null || string.IsNullOrWhiteSpace(_showId)) return;
@@ -837,4 +950,20 @@ public sealed class ShowBookingViewModel : ViewModelBase
     }
 
     #endregion
+    private void UpdateMainEventStatus()
+    {
+        if (!Segments.Any()) return;
+
+        for (int i = 0; i < Segments.Count; i++)
+        {
+            var isLast = i == Segments.Count - 1;
+            // Only update if changed to avoid loop
+            if (Segments[i].EstMainEvent != isLast)
+            {
+                Segments[i].EstMainEvent = isLast;
+                // Force UI update if needed, though property change should handle it
+                // Segments[i].RaisePropertyChanged(nameof(SegmentViewModel.EstMainEvent));
+            }
+        }
+    }
 }

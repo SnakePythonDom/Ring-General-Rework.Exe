@@ -1,8 +1,5 @@
 using RingGeneral.Core.Models;
-<<<<<<< HEAD
-=======
 using RingGeneral.Core.Models.Crisis;
->>>>>>> temp-work
 using System;
 using System.Collections.Generic;
 
@@ -22,13 +19,12 @@ public interface ICrisisEngine
 {
     IEnumerable<CrisisEvent> CheckForCrises(string companyId, IEnumerable<Worker> roster, CompanyState companyState);
     void ResolveCrisis(string companyId, CrisisEvent crisis);
-<<<<<<< HEAD
-=======
 
     // Stateful Management (Phase 5)
     bool ShouldTriggerCrisis(string companyId, int moraleScore, int activeRumorsCount);
     Task<Crisis> CreateCrisisAsync(string companyId, string triggerReason, int severity);
     Task ProgressCrisesAsync(string companyId);
+    Task<List<Crisis>> GetActiveCrisesAsync(string companyId);
     Task<List<Crisis>> GetCriticalCrisesAsync(string companyId);
->>>>>>> temp-work
+    Task<Crisis?> EscalateCrisisAsync(int crisisId);
 }

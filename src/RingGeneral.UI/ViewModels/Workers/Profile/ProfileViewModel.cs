@@ -17,6 +17,8 @@ public sealed class ProfileViewModel : ViewModelBase
     private readonly IWorkerAttributesRepository _attributesRepository;
     private readonly IRelationsRepository _relationsRepository;
     private readonly INotesRepository _notesRepository;
+    private readonly IGimmickRepository _gimmickRepository;
+    private readonly IGimmickService _gimmickService;
     private readonly PersonalityDetectorService _detectorService;
     private readonly AgentReportGeneratorService _reportService;
 
@@ -28,19 +30,23 @@ public sealed class ProfileViewModel : ViewModelBase
         IWorkerAttributesRepository attributesRepository,
         IRelationsRepository relationsRepository,
         INotesRepository notesRepository,
+        IGimmickRepository gimmickRepository,
+        IGimmickService gimmickService,
         PersonalityDetectorService detectorService,
         AgentReportGeneratorService reportService)
     {
         _attributesRepository = attributesRepository;
         _relationsRepository = relationsRepository;
         _notesRepository = notesRepository;
+        _gimmickRepository = gimmickRepository;
+        _gimmickService = gimmickService;
         _detectorService = detectorService;
         _reportService = reportService;
 
         // Initialize tab ViewModels
         AttributesTab = new AttributesTabViewModel(_attributesRepository);
         ContractsTab = new ContractsTabViewModel(_notesRepository);
-        GimmickTab = new GimmickTabViewModel(_notesRepository);
+        GimmickTab = new GimmickTabViewModel(_notesRepository, _gimmickRepository, _gimmickService);
         RelationsTab = new RelationsTabViewModel(_relationsRepository);
         HistoryTab = new HistoryTabViewModel(_notesRepository);
         NotesTab = new NotesTabViewModel(_notesRepository);

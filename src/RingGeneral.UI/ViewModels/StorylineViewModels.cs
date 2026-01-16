@@ -98,13 +98,17 @@ public sealed class StorylineListItemViewModel : ViewModelBase
     private string? _leadCreativeId;
     private string _leadCreativeName = "Aucun";
     private string _creativeIdea = string.Empty;
+    private string _bookerName = "Inconnu";
     private string _bookerIdea = string.Empty;
+    private string _bookerMemory = "Aucun souvenir marquant.";
+    private string _coolingRisk = "Faible";
     private int _pauseWeeks;
     private string? _reasonForPause;
 
     public StorylineListItemViewModel()
     {
         Participants = new ObservableCollection<StorylineParticipantViewModel>();
+        RosterImpact = new ObservableCollection<RosterImpactViewModel>();
     }
 
     public StorylineListItemViewModel(
@@ -192,11 +196,38 @@ public sealed class StorylineListItemViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _creativeIdea, value);
     }
 
+    public string BookerName
+    {
+        get => _bookerName;
+        set => this.RaiseAndSetIfChanged(ref _bookerName, value);
+    }
+
     public string BookerIdea
     {
         get => _bookerIdea;
         set => this.RaiseAndSetIfChanged(ref _bookerIdea, value);
     }
+
+    public string BookerMemory
+    {
+        get => _bookerMemory;
+        set => this.RaiseAndSetIfChanged(ref _bookerMemory, value);
+    }
+
+    public string CoolingRisk
+    {
+        get => _coolingRisk;
+        set => this.RaiseAndSetIfChanged(ref _coolingRisk, value);
+    }
+
+    public string HeatCategory => Heat switch
+    {
+        >= 90 => "(LÉGENDAIRE)",
+        >= 80 => "(EXCELLENT)",
+        >= 70 => "(TRÈS BIEN)",
+        >= 50 => "(MOYEN)",
+        _ => "(DÉCEVANT)"
+    };
 
     public int PauseWeeks
     {
@@ -211,6 +242,7 @@ public sealed class StorylineListItemViewModel : ViewModelBase
     }
 
     public ObservableCollection<StorylineParticipantViewModel> Participants { get; }
+    public ObservableCollection<RosterImpactViewModel> RosterImpact { get; }
 
     public string ParticipantsResume => string.Join(", ", Participants.Select(p => $"{p.Name} {p.Momentum:+#;-#;0}"));
 
@@ -385,4 +417,31 @@ public sealed class StorylineSuggestionViewModel : ViewModelBase
         get => _note;
         set => this.RaiseAndSetIfChanged(ref _note, value);
     }
+}
+
+public sealed class RosterImpactViewModel : ViewModelBase
+{
+    private string _workerName = string.Empty;
+    private int _popularityChange;
+    private int _momentumChange;
+
+    public string WorkerName
+    {
+        get => _workerName;
+        set => this.RaiseAndSetIfChanged(ref _workerName, value);
+    }
+
+    public int PopularityChange
+    {
+        get => _popularityChange;
+        set => this.RaiseAndSetIfChanged(ref _popularityChange, value);
+    }
+
+    public int MomentumChange
+    {
+        get => _momentumChange;
+        set => this.RaiseAndSetIfChanged(ref _momentumChange, value);
+    }
+
+    public string Display => $"• {WorkerName} : {PopularityChange:+#;-#;0} Pop / {MomentumChange:+#;-#;0} Momentum";
 }

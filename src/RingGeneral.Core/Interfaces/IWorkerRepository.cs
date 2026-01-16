@@ -10,6 +10,7 @@ public interface IWorkerRepository
     void UpdateWorker(Worker worker);
     IReadOnlyList<WorkerSnapshot> ChargerWorkers(List<string> workerIds);
     WorkerSnapshot? ChargerWorker(string workerId);
+    List<Worker> GetCompanyRoster(string companyId);
 
     // Add other common methods if needed
 }

@@ -4,11 +4,13 @@ using ReactiveUI;
 using RingGeneral.Core.Enums;
 using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models.Recruitment;
+using RingGeneral.UI.Services.Messaging;
 
 namespace RingGeneral.UI.ViewModels.Recruitment;
 
 public sealed class RecruitmentDialogViewModel : ViewModelBase
 {
+    private readonly IEventAggregator _eventAggregator;
     private readonly IRecruitmentService _recruitmentService;
     private readonly FreeAgentCandidate _agent;
     private readonly string _companyId;
@@ -21,16 +23,18 @@ public sealed class RecruitmentDialogViewModel : ViewModelBase
     public RecruitmentDialogViewModel(
         FreeAgentCandidate agent,
         string companyId,
-        IRecruitmentService recruitmentService)
+        IRecruitmentService recruitmentService,
+        IEventAggregator eventAggregator)
     {
         _agent = agent;
         _companyId = companyId;
         _recruitmentService = recruitmentService;
+        _eventAggregator = eventAggregator;
 
         _salaryOffer = agent.WeeklySalaryDemand ?? 1000;
-        
+
         RecruitmentTypes = new ObservableCollection<string> { "Main Roster", "Child Company" };
-        
+
         if (agent.Age < 25 && agent.Type == FreeAgentType.Wrestler)
         {
             RecruitmentTypes.Add("Youth Structure");

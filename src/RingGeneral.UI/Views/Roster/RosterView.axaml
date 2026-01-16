@@ -20,7 +20,7 @@
                 <TextBlock Text="🤼 ROSTER" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                 <TextBlock FontSize="14" Foreground="{StaticResource TextSecondaryBrush}">
                     <TextBlock.Text>
-                        <MultiBinding StringFormat="{}{0} workers au total">
+                        <MultiBinding StringFormat="{}{0} total workers">
                             <Binding Path="TotalWorkersInDatabase"/>
                         </MultiBinding>
                     </TextBlock.Text>
@@ -31,12 +31,12 @@
             <Grid ColumnDefinitions="*,Auto">
                 <TextBox Grid.Column="0"
                          Text="{Binding SearchText, Mode=TwoWay}"
-                         Watermark="🔍 Rechercher un worker par nom..."
+                         Watermark="🔍 Search worker by name..."
                          Background="{StaticResource BackgroundSecondaryBrush}"
                          Foreground="{StaticResource TextPrimaryBrush}"
                          Padding="12,8"
                          Margin="0,0,12,0"/>
-                <Button Grid.Column="1" Content="Filtres" Padding="15,8" Background="{StaticResource BorderMediumBrush}" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Button Grid.Column="1" Content="Filters" Padding="15,8" Background="{StaticResource BorderMediumBrush}" Foreground="{StaticResource TextPrimaryBrush}"/>
             </Grid>
         </StackPanel>
 
@@ -57,12 +57,12 @@
                               MinHeight="200">
 
                 <controls:DataGrid.Columns>
-                    <controls:DataGridTextColumn Header="NOM"
+                    <controls:DataGridTextColumn Header="NAME"
                                                 Binding="{Binding Name}"
                                                 Width="200"
                                                 SortMemberPath="Name"/>
 
-                    <controls:DataGridTextColumn Header="RÔLE"
+                    <controls:DataGridTextColumn Header="ROLE"
                                                 Binding="{Binding Role}"
                                                 Width="120"
                                                 SortMemberPath="Role"/>
@@ -107,7 +107,7 @@
                                                 Width="70"
                                                 SortMemberPath="Morale"/>
 
-                    <controls:DataGridTemplateColumn Header="STATUT"
+                    <controls:DataGridTemplateColumn Header="STATUS"
                                                      Width="100"
                                                      SortMemberPath="Status">
                         <controls:DataGridTemplateColumn.CellTemplate>
@@ -128,7 +128,7 @@
                     <controls:DataGridTemplateColumn Header="ACTIONS" Width="Auto">
                         <controls:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="📋 Voir"
+                                <Button Content="📋 View"
                                         Padding="8,4"
                                         Background="{StaticResource AccentBlueBrush}"
                                         Foreground="White"

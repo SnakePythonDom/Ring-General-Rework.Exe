@@ -6,8 +6,11 @@ using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using RingGeneral.Core.Models.Company;
 using RingGeneral.Core.Models.Staff;
-using RingGeneral.Data.Repositories; // For WorkerBackstageProfile context if needed, though usually in Core.Models
+using RingGeneral.Core.Services;
+using RingGeneral.Data.Repositories;
 using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.ViewModels.OwnerBooker;
+using RingGeneral.UI.ViewModels.Finance;
 
 namespace RingGeneral.UI.ViewModels.Company;
 
@@ -27,7 +30,13 @@ public sealed class ChildCompanyDetailViewModel : ViewModelBase, INavigableViewM
         IStaffRepository staffRepository,
         IChildCompanyExtendedRepository childCompanyRepository,
         WorkerRepository workerRepository,
-        INavigationService navigationService)
+        INavigationService navigationService,
+        OwnerRepository ownerRepository,
+        BookerRepository bookerRepository,
+        IDebtManagementService? debtService = null,
+        IRevenueProjectionService? revenueService = null,
+        IBudgetAllocationService? budgetService = null,
+        ITvDealNegotiationService? negotiationService = null)
     {
         _gameRepository = gameRepository;
         _staffRepository = staffRepository;
@@ -35,14 +44,32 @@ public sealed class ChildCompanyDetailViewModel : ViewModelBase, INavigableViewM
         _workerRepository = workerRepository;
         _navigationService = navigationService;
 
+        // Initialize child ViewModels for tab composition
+        OwnerBooker = new OwnerBookerViewModel(ownerRepository, bookerRepository);
+        Financials = new FinanceViewModel(gameRepository, debtService, revenueService, budgetService, negotiationService);
+
         Roster = new ObservableCollection<WorkerBackstageProfile>();
         Staff = new ObservableCollection<StaffMember>();
 
         BackCommand = ReactiveCommand.Create(GoBack);
+
+        // Phase 3: Initialize roster management commands
+        CallUpWorkerCommand = ReactiveCommand.CreateFromTask<int>(CallUpWorkerAsync);
+        RecallWorkerCommand = ReactiveCommand.CreateFromTask<int>(RecallWorkerAsync);
+        ReleaseWorkerCommand = ReactiveCommand.CreateFromTask<int>(ReleaseWorkerAsync);
+
+        // Phase 3: Initialize staff management commands
+        AssignMainRosterStaffCommand = ReactiveCommand.Create(OnAssignMainRosterStaff);
+        HireLocalStaffCommand = ReactiveCommand.Create(OnHireLocalStaff);
     }
+
+    // Child ViewModels for tabs
+    public OwnerBookerViewModel OwnerBooker { get; }
+    public FinanceViewModel Financials { get; }
 
     public ObservableCollection<WorkerBackstageProfile> Roster { get; }
     public ObservableCollection<StaffMember> Staff { get; }
+
 
     public ChildCompanyExtended? Company
     {
@@ -57,6 +84,15 @@ public sealed class ChildCompanyDetailViewModel : ViewModelBase, INavigableViewM
     }
 
     public ReactiveCommand<Unit, Unit> BackCommand { get; }
+
+    // Phase 3: Roster Management Commands
+    public ReactiveCommand<int, Unit> CallUpWorkerCommand { get; }
+    public ReactiveCommand<int, Unit> RecallWorkerCommand { get; }
+    public ReactiveCommand<int, Unit> ReleaseWorkerCommand { get; }
+
+    // Phase 3: Staff Management Commands
+    public ReactiveCommand<Unit, Unit> AssignMainRosterStaffCommand { get; }
+    public ReactiveCommand<Unit, Unit> HireLocalStaffCommand { get; }
 
     public async Task LoadAsync(string childCompanyId)
     {
@@ -128,5 +164,51 @@ public sealed class ChildCompanyDetailViewModel : ViewModelBase, INavigableViewM
         {
             _ = LoadAsync(childCompanyId);
         }
+    }
+
+    // ========================================================================
+    // Phase 3: Roster Management Command Implementations
+    // ========================================================================
+
+    private async Task CallUpWorkerAsync(int workerId)
+    {
+        // TODO: Implement call-up logic
+        // Transfer worker from child company to parent company
+        // Update worker's CompanyId in database
+        // Show confirmation dialog
+        await Task.CompletedTask;
+        Logger.Info($"Call-up worker {workerId} - Not yet implemented");
+    }
+
+    private async Task RecallWorkerAsync(int workerId)
+    {
+        // TODO: Implement recall logic
+        // Return loaned worker from child company back to parent
+        await Task.CompletedTask;
+        Logger.Info($"Recall worker {workerId} - Not yet implemented");
+    }
+
+    private async Task ReleaseWorkerAsync(int workerId)
+    {
+        // TODO: Implement release logic
+        // Terminate worker contract and remove from child company
+        await Task.CompletedTask;
+        Logger.Info($"Release worker {workerId} - Not yet implemented");
+    }
+
+    // ========================================================================
+    // Phase 3: Staff Management Command Implementations
+    // ========================================================================
+
+    private void OnAssignMainRosterStaff()
+    {
+        // TODO: Open dialog to share staff from main roster
+        Logger.Info("Assign main roster staff - Not yet implemented");
+    }
+
+    private void OnHireLocalStaff()
+    {
+        // TODO: Open dialog to hire dedicated local staff
+        Logger.Info("Hire local staff - Not yet implemented");
     }
 }

@@ -66,6 +66,16 @@ namespace RingGeneral.Core.Models.Attributes
         // ====================================================================
 
         /// <summary>
+        /// Agility: Speed, reflexes, and coordination.
+        /// </summary>
+        public int Agility { get; set; } = 50;
+
+        /// <summary>
+        /// Toughness: Physical resilience and pain threshold.
+        /// </summary>
+        public int Toughness { get; set; } = 50;
+
+        /// <summary>
         /// Stamina: Endurance to maintain high-quality performance for 30+ minutes.
         /// Critical for main event matches.
         /// </summary>

@@ -17,6 +17,7 @@ public sealed class TimeOrchestratorService : ITimeOrchestratorService
     private readonly IShowDayOrchestrator? _showDayOrchestrator;
     private readonly DailyShowSchedulerService? _dailyShowScheduler;
     private readonly IOwnerDecisionEngine? _ownerDecisionEngine;
+    private readonly IRelationshipEvolutionService? _relationshipEvolution;
     private readonly OwnerGoalGenerator _goalGenerator = new();
 
     public TimeOrchestratorService(
@@ -25,7 +26,8 @@ public sealed class TimeOrchestratorService : ITimeOrchestratorService
         IEventGeneratorService? eventGenerator = null,
         IShowDayOrchestrator? showDayOrchestrator = null,
         DailyShowSchedulerService? dailyShowScheduler = null,
-        IOwnerDecisionEngine? ownerDecisionEngine = null)
+        IOwnerDecisionEngine? ownerDecisionEngine = null,
+        IRelationshipEvolutionService? relationshipEvolution = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _dailyServices = dailyServices;
@@ -33,6 +35,7 @@ public sealed class TimeOrchestratorService : ITimeOrchestratorService
         _showDayOrchestrator = showDayOrchestrator;
         _dailyShowScheduler = dailyShowScheduler;
         _ownerDecisionEngine = ownerDecisionEngine;
+        _relationshipEvolution = relationshipEvolution;
     }
 
     /// <summary>
@@ -69,7 +72,16 @@ public sealed class TimeOrchestratorService : ITimeOrchestratorService
             }
         }
 
-        // 4. Planification automatique des shows pour compagnies IA
+        // 4. Evolution Sociale (chaque lundi)
+        if (currentDate.DayOfWeek == DayOfWeek.Monday && _relationshipEvolution != null)
+        {
+            // Note: Normalement on passerait par une méthode async, mais ici on est dans un flux synchrone
+            // On le lance en Task.Run ou on change l'interface si besoin.
+            // Pour l'instant on garde la cohérence avec le reste du service qui est synchrone (malheureusement)
+            Task.Run(async () => await _relationshipEvolution.ProcessWeeklyEvolutionAsync(newDay / 7, currentDate)).Wait();
+        }
+
+        // 5. Planification automatique des shows pour compagnies IA
         // Planifier pour les 8 prochaines semaines si on avance significativement
         // (ex: tous les 30 jours ou au démarrage)
         if (_dailyShowScheduler != null && (newDay % 30 == 0 || newDay == 1))

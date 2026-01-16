@@ -16,38 +16,461 @@
                 <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
                     <TextBlock Text="{Binding Company.Acronym}" FontWeight="SemiBold" Opacity="0.7"/>
                     <TextBlock Text="•"/>
-                     <!-- We assume RegionId for now as Region object might not be hydrated or we need a converter. 
-                          The VM just has Company object. Let's just show RegionID or similar simple property -->
                     <TextBlock Text="{Binding Company.RegionId}" Opacity="0.7"/>
                 </StackPanel>
                 <TextBlock Text="{Binding Company.Objective, StringFormat='Objective: {0}'}" Margin="0,5,0,0"/>
             </StackPanel>
         </Border>
 
-        <!-- Content -->
+        <!-- Content = 5 TABS -->
         <TabControl Grid.Row="1">
             
-            <!-- Roster Tab -->
-            <TabItem Header="Roster">
-                <DataGrid ItemsSource="{Binding Roster}" AutoGenerateColumns="False" CanUserResizeColumns="True" IsReadOnly="True" Margin="0,10,0,0">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                        <!-- WorkerBackstageProfile has WorkerId and Name. That is it. -->
-                        <DataGridTextColumn Header="Worker ID" Binding="{Binding WorkerId}" Width="Auto"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+            <!-- ===================================================================== -->
+            <!-- TAB 1: OVERVIEW (Dashboard) -->
+            <!-- ===================================================================== -->
+            <TabItem Header="OVERVIEW">
+                <ScrollViewer>
+                    <StackPanel Spacing="20" Margin="15">
+                        <!-- Company Health Dashboard -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="📊 COMPANY HEALTH" FontSize="18" FontWeight="Bold"/>
+                                <Grid ColumnDefinitions="*,*,*">
+                                    <!-- Roster Health -->
+                                    <Border Grid.Column="0" Padding="10" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Margin="0,0,5,0">
+                                        <StackPanel>
+                                            <TextBlock Text="ROSTER HEALTH" FontSize="12" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Roster.Count, StringFormat='{0} Workers'}" FontSize="18" FontWeight="Bold" Margin="0,5"/>
+                                            <TextBlock Text="Status: EXCELLENT" FontSize="11"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <!-- Staff Quality -->
+                                    <Border Grid.Column="1" Padding="10" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Margin="5,0">
+                                        <StackPanel>
+                                            <TextBlock Text="STAFF QUALITY" FontSize="12" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Staff.Count, StringFormat='{0} Staff'}" FontSize="18" FontWeight="Bold" Margin="0,5"/>
+                                            <TextBlock Text="{Binding OwnerBooker.BookerName, StringFormat='Booker: {0}'}" FontSize="11"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <!-- Show Quality -->
+                                    <Border Grid.Column="2" Padding="10" Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="6" Margin="5,0,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="SHOW QUALITY" FontSize="12" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Avg Rating: B" FontSize="18" FontWeight="Bold" Margin="0,5"/>
+                                            <TextBlock Text="TV Deal: YES" FontSize="11"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Owner & Booker Section (Reuse OwnerBookerView layout) -->
+                        <Grid ColumnDefinitions="*,*">
+                            <!-- Owner Card -->
+                            <Border Grid.Column="0" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="0,0,5,0">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="👔 PROPRIÉTAIRE" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding OwnerBooker.OwnerName}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    
+                                    <!-- Vision Type -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="VISION" FontSize="10" Opacity="0.7"/>
+                                        <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="8" CornerRadius="4">
+                                            <TextBlock Text="{Binding OwnerBooker.VisionType}" FontSize="12" FontWeight="SemiBold"/>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Risk Tolerance -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="TOLÉRANCE AU RISQUE" FontSize="10" Opacity="0.7"/>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <ProgressBar Grid.Column="0" Value="{Binding OwnerBooker.RiskTolerance}" Maximum="100" Height="8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding OwnerBooker.RiskTolerance}" FontWeight="Bold" Margin="8,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- Priorities -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="PRIORITÉS" FontSize="10" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding OwnerBooker.DominantPriority, StringFormat='Focus: {0}'}" FontSize="11" FontWeight="SemiBold"/>
+                                    </StackPanel>
+
+                                    <Button Content="⚙️ CONFIGURE" Padding="10,6" HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Booker Card -->
+                            <Border Grid.Column="1" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="5,0,0,0">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="📋 BOOKER" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding OwnerBooker.BookerName}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+
+                                    <!-- Auto-Booking Status -->
+                                    <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="8" CornerRadius="4">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding OwnerBooker.AutoBookingStatusIcon}" FontSize="14"/>
+                                            <TextBlock Text="{Binding OwnerBooker.AutoBookingStatusLabel}" FontSize="11" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Stats -->
+                                    <StackPanel Spacing="6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="💡 Créativité" FontSize="11"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding OwnerBooker.CreativityScore}" FontWeight="Bold"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="🧠 Logique" FontSize="11"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding OwnerBooker.LogicScore}" FontWeight="Bold"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="⚖️ Résistance aux Biais" FontSize="11"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding OwnerBooker.BiasResistance}" FontWeight="Bold"/>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- Preferences -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="PRÉFÉRENCES" FontSize="10" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding OwnerBooker.PreferredStyle}" FontSize="11" FontWeight="SemiBold"/>
+                                    </StackPanel>
+
+                                    <Button Content="🧠 MEMORY LOG" Padding="10,6" HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
-            <!-- Staff Tab -->
-            <TabItem Header="Staff">
-                <DataGrid ItemsSource="{Binding Staff}" AutoGenerateColumns="False" CanUserResizeColumns="True" IsReadOnly="True" Margin="0,10,0,0">
-                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="Auto"/>
-                        <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="Auto"/>
-                        <DataGridTextColumn Header="Skill" Binding="{Binding SkillScore}" Width="Auto"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+            <!-- ===================================================================== -->
+            <!-- TAB 2: STRATEGY (3 sub-tabs) -->
+            <!-- ===================================================================== -->
+            <TabItem Header="STRATEGY">
+                <TabControl>
+                    <!-- Owner Strategy -->
+                    <TabItem Header="Owner Strategy">
+                        <ScrollViewer>
+                            <StackPanel Spacing="15" Margin="15">
+                                <TextBlock Text="🏢 OWNER STRATEGY" FontSize="18" FontWeight="Bold"/>
+                                
+                                <!-- Primary Goal -->
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="PRIMARY GOAL" FontSize="14" FontWeight="SemiBold"/>
+                                        <ComboBox PlaceholderText="Select primary goal">
+                                            <ComboBoxItem Content="Develop Top Stars"/>
+                                            <ComboBoxItem Content="Feed Main Roster"/>
+                                            <ComboBoxItem Content="Generate Revenue"/>
+                                            <ComboBoxItem Content="Build Brand"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Risk Tolerance -->
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="RISK TOLERANCE" FontSize="14" FontWeight="SemiBold"/>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Slider Grid.Column="0" Value="{Binding OwnerBooker.RiskTolerance}" Minimum="0" Maximum="100" TickFrequency="10"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding OwnerBooker.RiskTolerance}" FontWeight="Bold" Margin="10,0,0,0"/>
+                                        </Grid>
+                                        <TextBlock Text="Higher risk = more experimental matches & signings" FontSize="11" Opacity="0.7"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Performance Targets -->
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="🎯 PERFORMANCE TARGETS" FontSize="14" FontWeight="SemiBold"/>
+                                        <CheckBox Content="Maintain wages under budget"/>
+                                        <CheckBox Content="Grow brand to International level"/>
+                                        <CheckBox Content="Upgrade TV Production quality"/>
+                                        <CheckBox Content="Send 2+ workers to main roster per year"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- Booker Creative -->
+                    <TabItem Header="Booker Creative">
+                        <ScrollViewer>
+                            <StackPanel Spacing="15" Margin="15">
+                                <TextBlock Text="🎬 BOOKER CREATIVE" FontSize="18" FontWeight="Bold"/>
+                                
+                                <!-- Creative Style -->
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="CREATIVE STYLE" FontSize="14" FontWeight="SemiBold"/>
+                                        <ComboBox SelectedItem="{Binding OwnerBooker.PreferredStyle}" PlaceholderText="Select style">
+                                            <ComboBoxItem Content="Sports Entertainment"/>
+                                            <ComboBoxItem Content="Strong Style"/>
+                                            <ComboBoxItem Content="Lucha Libre"/>
+                                            <ComboBoxItem Content="Technical Wrestling"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Creative Constraints (House Rules) -->
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="🔒 CREATIVE CONSTRAINTS (House Rules)" FontSize="14" FontWeight="SemiBold"/>
+                                        <CheckBox Content="'Pass the Torch': Veterans (>35yo) must lose to Rookies (<25yo)"/>
+                                        <CheckBox Content="'Fight Forever': Main Events must be > 20 mins"/>
+                                        <CheckBox Content="'Clean Finishes': DQ/Countouts allowed only once per show"/>
+                                        <CheckBox Content="'Safety First': Ban dangerous moves (piledrivers, chair headshots)"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Booker Biases -->
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="🧠 BOOKER BIASES (Active)" FontSize="14" FontWeight="SemiBold"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="{StaticResource BorderLightBrush}" Padding="8,4" CornerRadius="4" IsVisible="{Binding OwnerBooker.LikesUnderdog}">
+                                                <TextBlock Text="❤️ LOVES: Underdog Stories" FontSize="11"/>
+                                            </Border>
+                                            <Border Background="{StaticResource BorderLightBrush}" Padding="8,4" CornerRadius="4" IsVisible="{Binding OwnerBooker.LikesVeteran}">
+                                                <TextBlock Text="❤️ LOVES: Veterans" FontSize="11"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- Events Schedule -->
+                    <TabItem Header="Events Schedule">
+                        <ScrollViewer>
+                            <StackPanel Spacing="15" Margin="15">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                    <TextBlock Grid.Column="0" Text="📅 EVENTS SCHEDULE" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="GENERATE NEW" Padding="10,6" Margin="0,0,10,0"/>
+                                    <Button Grid.Column="2" Content="➕ Add Event" Padding="10,6" Margin="0,0,10,0"/>
+                                    <Button Grid.Column="3" Content="Clear Future" Padding="10,6"/>
+                                </Grid>
+                                
+                                <!-- Schedule Table -->
+                                <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Active Schedule (2026)" FontSize="14" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Mode: Weekly TV Loop (Tuesday Nights)" FontSize="11" Opacity="0.7"/>
+                                        
+                                        <!-- Sample Schedule Events -->
+                                        <DataGrid AutoGenerateColumns="False" IsReadOnly="True" CanUserResizeColumns="True">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Date" Width="120"/>
+                                                <DataGridTextColumn Header="Event Name" Width="*"/>
+                                                <DataGridTextColumn Header="Type" Width="100"/>
+                                                <DataGridTextColumn Header="Venue" Width="150"/>
+                                                <DataGridTextColumn Header="Tickets" Width="80"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        
+                                        <TextBlock Text="💡 No events scheduled yet. Click 'GENERATE NEW' to create a yearly schedule." 
+                                                   FontSize="12" Opacity="0.7" HorizontalAlignment="Center" Margin="0,20"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+
+            <!-- ===================================================================== -->
+            <!-- TAB 3: ROSTER (Enhanced) -->
+            <!-- ===================================================================== -->
+            <TabItem Header="ROSTER">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Header with search and filters -->
+                    <Border Grid.Row="0" Padding="15" Background="{StaticResource BackgroundSecondaryBrush}">
+                        <Grid ColumnDefinitions="*,200">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="Search:" VerticalAlignment="Center"/>
+                                <TextBox Width="200" Watermark="Worker name..."/>
+                                <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                                <ComboBox Width="150" PlaceholderText="All Workers">
+                                    <ComboBoxItem Content="All Workers"/>
+                                    <ComboBoxItem Content="Ready for Call-up"/>
+                                    <ComboBoxItem Content="Veterans"/>
+                                    <ComboBoxItem Content="On Loan"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding Roster.Count, StringFormat='  Active Roster: {0}/50'}" 
+                                       FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Roster DataGrid -->
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Roster}" AutoGenerateColumns="False" 
+                              CanUserResizeColumns="True" IsReadOnly="True" Margin="10">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Worker ID" Binding="{Binding WorkerId}" Width="Auto"/>
+                            <!-- TODO Phase 3: Add Age, Style, OVR, POP, MORALE columns when worker data model is enhanced -->
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Action Buttons -->
+                    <Border Grid.Row="2" Padding="15" Background="{StaticResource BackgroundSecondaryBrush}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="📤 Loaned Workers" Padding="10,6"/>
+                            <Button Content="➕ Call Up Selected" Padding="10,6" Background="{StaticResource AccentGreenBrush}"/>
+                            <Button Content="🔄 Recall Selected" Padding="10,6"/>
+                            <Button Content="❌ Release Worker" Padding="10,6" Background="{StaticResource ErrorBrush}"/>
+                            <Button Content="📝 Negotiate Contracts" Padding="10,6" Margin="20,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ===================================================================== -->
+            <!-- TAB 4: STAFF (Enhanced) -->
+            <!-- ===================================================================== -->
+            <TabItem Header="STAFF">
+                <ScrollViewer>
+                    <StackPanel Spacing="15" Margin="15">
+                        <!-- Header with action buttons -->
+                        <Grid ColumnDefinitions="*,Auto,Auto">
+                            <TextBlock Grid.Column="0" Text="👥 STAFF & MANAGEMENT" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="[+ Assign Main Roster Staff]" Padding="10,6" Margin="0,0,10,0"
+                                    Command="{Binding AssignMainRosterStaffCommand}"/>
+                            <Button Grid.Column="2" Content="[+ Hire Local Staff]" Padding="10,6"
+                                    Command="{Binding HireLocalStaffCommand}"/>
+                        </Grid>
+
+                        <!-- Key Management Section -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="🎯 KEY MANAGEMENT" FontSize="16" FontWeight="SemiBold"/>
+                                
+                                <Grid ColumnDefinitions="*,*">
+                                    <!-- Sub-Owner/GM Card -->
+                                    <Border Grid.Column="0" Background="{StaticResource BackgroundTertiaryBrush}" 
+                                            Padding="15" CornerRadius="6" Margin="0,0,5,0">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="👔 SUB-OWNER / GM" FontSize="13" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding OwnerBooker.OwnerName, TargetNullValue='(Vacant)'}" 
+                                                       FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
+                                                <TextBlock Text="Business:" FontSize="11"/>
+                                                <TextBlock Text="95" FontWeight="Bold"/>
+                                                <TextBlock Text="Negotiation:" FontSize="11" Margin="10,0,0,0"/>
+                                                <TextBlock Text="88" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Mandate: Aggressive Expansion" FontSize="11" Opacity="0.8"/>
+                                            <Button Content="[Replace / Appoint New]" Padding="8,4" FontSize="11" Margin="0,5,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Head Booker Card -->
+                                    <Border Grid.Column="1" Background="{StaticResource BackgroundTertiaryBrush}" 
+                                            Padding="15" CornerRadius="6" Margin="5,0,0,0">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="🎬 HEAD BOOKER" FontSize="13" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding OwnerBooker.BookerName, TargetNullValue='(Vacant)'}" 
+                                                       FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
+                                                <TextBlock Text="Creativity:" FontSize="11"/>
+                                                <TextBlock Text="{Binding OwnerBooker.CreativityScore}" FontWeight="Bold"/>
+                                                <TextBlock Text="Logic:" FontSize="11" Margin="10,0,0,0"/>
+                                                <TextBlock Text="{Binding OwnerBooker.LogicScore}" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Status: SHARED (80% NXT / 20% Main)" FontSize="11" Opacity="0.8"/>
+                                            <Button Content="[Change Assignment]" Padding="8,4" FontSize="11" Margin="0,5,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Development Team Table -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}\" Padding="15" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="🛠️ DEVELOPMENT TEAM" FontSize="16" FontWeight="SemiBold"/>
+                                <DataGrid ItemsSource="{Binding Staff}" AutoGenerateColumns="False" 
+                                          CanUserResizeColumns="True" IsReadOnly="True" Background="Transparent">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="150"/>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="120"/>
+                                        <DataGridTextColumn Header="Skill" Binding="{Binding SkillScore}" Width="80"/>
+                                        <!-- TODO Phase 3: Add TYPE, COST/mo, IMPACT columns when StaffMember model is enhanced -->
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Action Buttons -->
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="15" CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Content="📝 Negotiate Staff Contracts" Padding="10,6"/>
+                                <Button Content="🔄 Refresh Staff Data" Padding="10,6"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ===================================================================== -->
+            <!-- TAB 5: FINANCIALS (P&L) -->
+            <!-- ===================================================================== -->
+            <TabItem Header="FINANCIALS">
+                <ScrollViewer>
+                    <StackPanel Spacing="15" Margin="15">
+                        <TextBlock Text="💰 MONTHLY BUDGET" FontSize="18" FontWeight="Bold"/>
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="Monthly Budget:" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="$ 500,000" FontSize="14" FontWeight="Bold"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="Actual Spend:" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Financials.CurrentBalanceFormatted}" FontSize="14" FontWeight="Bold"/>
+                                </Grid>
+                                <ProgressBar Value="97" Maximum="100" Height="12"/>
+                                <TextBlock Text="97% Used" FontSize="12" HorizontalAlignment="Center"/>
+
+                                <!-- P&L Table -->
+                                <TextBlock Text="PROFIT & LOSS" FontSize="16" FontWeight="Bold" Margin="0,15,0,5"/>
+                                <Grid ColumnDefinitions="*,*">
+                                    <!-- Revenue -->
+                                    <StackPanel Grid.Column="0" Spacing="8">
+                                        <TextBlock Text="REVENUE" FontWeight="SemiBold" FontSize="14"/>
+                                        <TextBlock Text="{Binding Financials.WeeklyRevenueFormatted, StringFormat='Weekly: {0}'}" FontSize="12"/>
+                                        <TextBlock Text="Merch: $ 50,000" FontSize="12"/>
+                                        <TextBlock Text="TV Rights: $ 20,000" FontSize="12"/>
+                                    </StackPanel>
+
+                                    <!-- Expenses -->
+                                    <StackPanel Grid.Column="1" Spacing="8">
+                                        <TextBlock Text="EXPENSES" FontWeight="SemiBold" FontSize="14"/>
+                                        <TextBlock Text="{Binding Financials.WeeklyExpensesFormatted, StringFormat='Weekly: {0}'}" FontSize="12"/>
+                                        <TextBlock Text="Staff: $ 50,000" FontSize="12"/>
+                                        <TextBlock Text="Production: $ 100,000" FontSize="12"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Net Result -->
+                                <Border Background="{StaticResource BackgroundTertiaryBrush}" Padding="10" CornerRadius="6" Margin="0,10,0,0">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="NET LOSS:" FontWeight="Bold" FontSize="14"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Financials.NetIncomeFormatted}" FontWeight="Bold" FontSize="14"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Buttons -->
+                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+                                    <Button Content="Adjust Budget Allocation" Padding="10,6"/>
+                                    <Button Content="Request Financial Audit" Padding="10,6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
         </TabControl>

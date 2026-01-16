@@ -52,7 +52,7 @@ public sealed class FreeAgentsViewModel : ViewModelBase
         this.WhenAnyValue(x => x.SearchText, x => x.ShowWrestlers, x => x.ShowStaff, x => x.SelectedRegion)
             .Throttle(TimeSpan.FromMilliseconds(300))
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(_ => _ = LoadMarketAsync());
+            .Subscribe(async _ => await LoadMarketAsync());
     }
 
     public ObservableCollection<FreeAgentCandidate> FreeAgents { get; }

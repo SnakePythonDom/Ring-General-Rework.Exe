@@ -739,12 +739,12 @@ public sealed class NotesRepository : RepositoryBase, RingGeneral.Core.Interface
         return new TitleReign
         {
             Id = reader.GetInt32(0),
-            WorkerId = reader.GetInt32(1),
-            TitleId = reader.GetInt32(2),
+            WorkerId = reader.GetString(1),
+            TitleId = reader.GetString(2),
             WonDate = DateTime.Parse(reader.GetString(3)),
-            WonShowId = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+            WonShowId = reader.IsDBNull(4) ? null : reader.GetString(4),
             LostDate = reader.IsDBNull(5) ? null : DateTime.Parse(reader.GetString(5)),
-            LostShowId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+            LostShowId = reader.IsDBNull(6) ? null : reader.GetString(6),
             DaysHeld = reader.IsDBNull(7) ? null : reader.GetInt32(7),
             ReignNumber = reader.GetInt32(8)
         };

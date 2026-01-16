@@ -148,9 +148,12 @@ public class GimmickService : IGimmickService
             var acceptance = CheckGimmickAcceptance(worker, gimmick);
             if (!acceptance.WillAccept)
             {
-                var failedResult = GimmickAssignmentResult.Failed(acceptance.Message);
-                failedResult.MoraleChange = acceptance.MoraleImpact;
-                return failedResult;
+                return new GimmickAssignmentResult
+                {
+                    Success = false,
+                    Message = acceptance.Message,
+                    MoraleChange = acceptance.MoraleImpact
+                };
             }
         }
 

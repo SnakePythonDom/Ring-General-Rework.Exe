@@ -11,36 +11,14 @@ public class MoraleEngine : IMoraleEngine
     private const int MaxMorale = 100;
     private const int MinMorale = 0;
     private readonly IMoraleRepository _moraleRepository;
-
-<<<<<<< HEAD
-    public MoraleEngine(IMoraleRepository moraleRepository)
-    {
-        _moraleRepository = moraleRepository;
-    }
-
-    public void ApplyMoraleImpact(Worker worker, MoraleImpactType type)
-    {
-        int delta = CalculateDelta(type);
-
-        // Adjust based on personality (using Mental Attributes)
-        if (worker.MentalAttributes != null)
-        {
-            // Professionalism dampens negative impacts (Resilience)
-            if (delta < 0 && worker.MentalAttributes.Professionnalisme > 70)
-            {
-                delta = (int)(delta * 0.5);
-            }
-
-            // Ambition amplifies positive impacts but also clarifies negative ones (Entitlement)
-            if (worker.MentalAttributes.Ambition > 80)
-            {
-=======
     private readonly IWorkerRepository _workerRepository;
+    private readonly IStaffRepository _staffRepository;
 
-    public MoraleEngine(IMoraleRepository moraleRepository, IWorkerRepository workerRepository)
+    public MoraleEngine(IMoraleRepository moraleRepository, IWorkerRepository workerRepository, IStaffRepository staffRepository)
     {
         _moraleRepository = moraleRepository;
         _workerRepository = workerRepository;
+        _staffRepository = staffRepository;
     }
 
     public void ApplyMoraleImpact(string workerId, MoraleImpactType type)
@@ -87,7 +65,6 @@ public class MoraleEngine : IMoraleEngine
             // Ambition amplifies positive impacts but also clarifies negative ones (Entitlement)
             if (worker.MentalAttributes.Ambition > 80)
             {
->>>>>>> temp-work
                 if (delta > 0) delta += 2;
                 if (type == MoraleImpactType.Buried || type == MoraleImpactType.LeftOffShow) delta -= 5;
             }
@@ -96,6 +73,35 @@ public class MoraleEngine : IMoraleEngine
             if (worker.MentalAttributes.Loyauté > 85 && type == MoraleImpactType.Loss)
             {
                 delta = 0;
+            }
+        }
+
+        // Psychologist Mitigation Logic
+        if (delta < 0 && !string.IsNullOrEmpty(worker.CompanyId))
+        {
+            try
+            {
+                var staff = _staffRepository.GetStaffByRoleAsync(worker.CompanyId, "PerformancePsychologist").GetAwaiter().GetResult();
+                var bestPsych = staff.OrderByDescending(s => s.SkillScore).FirstOrDefault();
+
+                if (bestPsych != null)
+                {
+                    // Max mitigation: 25% for 100 SkillScore
+                    var mitigationPercent = Math.Clamp(bestPsych.SkillScore / 400.0, 0.0, 0.25);
+                    var mitigationAmount = (int)Math.Abs(delta * mitigationPercent);
+
+                    // Always ensure at least 1 point mitigation if skill is high enough (>50)
+                    if (mitigationAmount == 0 && bestPsych.SkillScore > 50)
+                    {
+                        mitigationAmount = 1;
+                    }
+
+                    delta += mitigationAmount; // delta is negative, so adding makes it less negative
+                }
+            }
+            catch
+            {
+                // Fallback if repository fails or async context issues
             }
         }
 

@@ -82,8 +82,13 @@ public sealed record SegmentDefinition(
     int Intensite,
     string? VainqueurId,
     string? PerdantId,
+    string? ManagerId = null,
+    string? RefereeId = null,
+    string? RoadAgentId = null,
+    string? CommentatorId = null,
     bool IsBroadcast = true,
-    IReadOnlyDictionary<string, string>? Settings = null);
+    IReadOnlyDictionary<string, string>? Settings = null,
+    bool IsAiGenerated = false);
 
 public sealed record ShowContext(
     ShowDefinition Show,
@@ -93,6 +98,8 @@ public sealed record ShowContext(
     IReadOnlyList<StorylineInfo> Storylines,
     IReadOnlyList<SegmentDefinition> Segments,
     IReadOnlyDictionary<string, int> Chimies,
+    IReadOnlyList<Relations.Faction> Factions,
+    IReadOnlyList<Staff.StaffMember> Staff,
     TvDeal? DealTv = null);
 
 public sealed record FinanceTransaction(

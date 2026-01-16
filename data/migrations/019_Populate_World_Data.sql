@@ -91,8 +91,6 @@ INSERT INTO Countries (CountryId, Code, Name, Continent, WrestlingImportance) VA
 ('TJK', 'TJK', 'Tadjikistan', 'Asia', 10),
 ('AFG', 'AFG', 'Afghanistan', 'Asia', 10);
 
-
-
 -- --- EUROPE (L'expansion moderne) ---
 INSERT INTO Countries (CountryId, Code, Name, Continent, WrestlingImportance) VALUES 
 ('GBR', 'GBR', 'Royaume-Uni', 'Europe', 85),
@@ -280,7 +278,7 @@ INSERT INTO Regions (RegionId, Name, CountryId, WrestlingImportance) VALUES
 ('USA_NM', 'New Mexico', 'USA', 50),      -- Albuquerque
 ('USA_ID', 'Idaho', 'USA', 40),           -- Boise
 ('USA_MT', 'Montana', 'USA', 30),
-('USA_WY', 'Wyoming', 'USA', 25),         -- État le moins peuplé
+('USA_WY', 'USA', 'Wyoming', 25),         -- État le moins peuplé
 ('USA_NH', 'New Hampshire', 'USA', 55),   -- Triple H est de Nashua
 ('USA_ME', 'Maine', 'USA', 45),
 ('USA_VT', 'Vermont', 'USA', 40),

@@ -41,13 +41,10 @@ public interface IBookerAIEngine
         ShowContext showContext,
         List<SegmentDefinition>? existingSegments = null,
         AutoBookingConstraints? constraints = null);
-<<<<<<< HEAD
-=======
 
     (string Worker1Id, string Worker2Id)? ProposeMainEvent(string bookerId, List<string> availableWorkers, int showImportance);
     void ApplyMemoryDecay(string bookerId);
     void ApplyMemoryDecay(string bookerId, int weeksPassed);
     int EvaluateMatchQuality(string bookerId, int matchRating, int fanReaction, string worker1Id, string worker2Id);
     void CreateMemoryFromMatch(string bookerId, string companyId, int score, string description);
->>>>>>> temp-work
 }

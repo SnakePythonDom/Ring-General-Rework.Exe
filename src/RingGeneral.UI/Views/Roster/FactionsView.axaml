@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Roster;assembly=RingGeneral.UI"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Roster.FactionsView"
+             x:DataType="vm:FactionsViewModel">
+
+    <Grid Margin="20" RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,20">
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="TEAMS &amp; FACTIONS" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Manage your tag teams, trios and factions" FontSize="14" Foreground="#888"/>
+            </StackPanel>
+            
+            <Button Grid.Column="1" 
+                    Content="➕ Create Team" 
+                    Command="{Binding AddFactionCommand}"
+                    Background="#27ae60" 
+                    Foreground="White" 
+                    Padding="15,8" 
+                    CornerRadius="4"/>
+        </Grid>
+
+        <!-- Content -->
+        <Border Grid.Row="1" Background="#1E1E1E" CornerRadius="8" Padding="10">
+            <DataGrid ItemsSource="{Binding Factions}"
+                      SelectedItem="{Binding SelectedFaction}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      Background="Transparent">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="2*"/>
+                    <DataGridTextColumn Header="TYPE" Binding="{Binding FactionType}" Width="*"/>
+                    <DataGridTextColumn Header="LEADER" Binding="{Binding LeaderName}" Width="*"/>
+                    <DataGridTextColumn Header="MEMBERS" Binding="{Binding MemberCount}" Width="Auto"/>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="*"/>
+                    
+                    <DataGridTemplateColumn Header="ACTIONS" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="👁️ Details" 
+                                        Padding="10,4" 
+                                        Background="#3498db" 
+                                        Foreground="White" 
+                                        FontSize="12"
+                                        Margin="5,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

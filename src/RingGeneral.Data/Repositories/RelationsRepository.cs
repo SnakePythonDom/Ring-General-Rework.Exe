@@ -68,6 +68,25 @@ public sealed class RelationsRepository : RepositoryBase, RingGeneral.Core.Inter
         return relations;
     }
 
+    public List<WorkerRelation> GetAllRelations()
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = @"
+            SELECT Id, WorkerId1, WorkerId2, RelationType, RelationStrength, Notes, IsPublic, CreatedDate,
+                   IsHidden, BiasStrength, OriginEvent, LastImpact
+            FROM WorkerRelations";
+
+        var relations = new List<WorkerRelation>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            relations.Add(MapRelation(reader));
+        }
+
+        return relations;
+    }
+
     private List<List<string>> DetectCliques(List<WorkerRelation> relations)
     {
         // Simple algorithm: Group workers who have a strong relation

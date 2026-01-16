@@ -32,7 +32,14 @@ public sealed class SegmentViewModel : ViewModelBase
         int intensite,
         string? vainqueurId,
         string? perdantId,
-        IReadOnlyDictionary<string, string>? settings)
+        IReadOnlyDictionary<string, string>? settings,
+        bool isAiGenerated = false,
+        string? refereeId = null,
+        string? roadAgentId = null,
+        string? commentatorId = null,
+        IEnumerable<StaffMember>? availableReferees = null,
+        IEnumerable<StaffMember>? availableRoadAgents = null,
+        IEnumerable<StaffMember>? availableCommentators = null)
     {
         SegmentId = segmentId;
         _catalog = catalog;
@@ -47,6 +54,13 @@ public sealed class SegmentViewModel : ViewModelBase
         _intensite = intensite;
         _vainqueurId = vainqueurId;
         _perdantId = perdantId;
+        _commentatorId = commentatorId;
+        _isAiGenerated = isAiGenerated;
+
+        AvailableReferees = availableReferees ?? Enumerable.Empty<StaffMember>();
+        AvailableRoadAgents = availableRoadAgents ?? Enumerable.Empty<StaffMember>();
+        AvailableCommentators = availableCommentators ?? Enumerable.Empty<StaffMember>();
+
         Participants = new ObservableCollection<ParticipantViewModel>(participants);
         Consignes = new ObservableCollection<SegmentConsigneViewModel>();
         RechargerConsignes(settings);
@@ -59,7 +73,13 @@ public sealed class SegmentViewModel : ViewModelBase
     /// Constructeur à partir d'une SegmentDefinition.
     /// Utilisé pour charger les segments depuis le contexte du show.
     /// </summary>
-    public SegmentViewModel(SegmentDefinition segment, SegmentTypeCatalog catalog, IEventAggregator eventAggregator)
+    public SegmentViewModel(
+        SegmentDefinition segment,
+        SegmentTypeCatalog catalog,
+        IEventAggregator eventAggregator,
+        IEnumerable<StaffMember>? availableReferees = null,
+        IEnumerable<StaffMember>? availableRoadAgents = null,
+        IEnumerable<StaffMember>? availableCommentators = null)
         : this(
             segment.SegmentId,
             segment.TypeSegment,
@@ -73,7 +93,14 @@ public sealed class SegmentViewModel : ViewModelBase
             segment.Intensite,
             segment.VainqueurId,
             segment.PerdantId,
-            segment.Settings)
+            segment.Settings,
+            segment.IsAiGenerated,
+            segment.RefereeId,
+            segment.RoadAgentId,
+            segment.CommentatorId,
+            availableReferees,
+            availableRoadAgents,
+            availableCommentators)
     {
     }
 
@@ -148,6 +175,11 @@ public sealed class SegmentViewModel : ViewModelBase
     public ObservableCollection<ParticipantViewModel> Participants { get; }
     public ObservableCollection<SegmentConsigneViewModel> Consignes { get; }
 
+    // Available Staff Collections (passed from parent)
+    public IEnumerable<StaffMember> AvailableReferees { get; }
+    public IEnumerable<StaffMember> AvailableRoadAgents { get; }
+    public IEnumerable<StaffMember> AvailableCommentators { get; }
+
     public string? StorylineId
     {
         get => _storylineId;
@@ -190,6 +222,15 @@ public sealed class SegmentViewModel : ViewModelBase
     }
     private string? _perdantId;
 
+    public string? RefereeId { get => _refereeId; set => this.RaiseAndSetIfChanged(ref _refereeId, value); }
+    private string? _refereeId;
+
+    public string? RoadAgentId { get => _roadAgentId; set => this.RaiseAndSetIfChanged(ref _roadAgentId, value); }
+    private string? _roadAgentId;
+
+    public string? CommentatorId { get => _commentatorId; set => this.RaiseAndSetIfChanged(ref _commentatorId, value); }
+    private string? _commentatorId;
+
     /// <summary>
     /// Snapshots des participants pour le calcul de prédiction
     /// </summary>
@@ -215,10 +256,46 @@ public sealed class SegmentViewModel : ViewModelBase
         }
     }
 
+    public bool IsAiGenerated
+    {
+        get => _isAiGenerated;
+        set => this.RaiseAndSetIfChanged(ref _isAiGenerated, value);
+    }
+    private bool _isAiGenerated;
+
+    public bool IsStorylineActive
+    {
+        get => _isStorylineActive;
+        set => this.RaiseAndSetIfChanged(ref _isStorylineActive, value);
+    }
+    private bool _isStorylineActive;
+
     public IReadOnlyDictionary<string, string> ConstruireSettings()
     {
         return Consignes
             .Where(consigne => !string.IsNullOrWhiteSpace(consigne.Selection))
             .ToDictionary(consigne => consigne.Id, consigne => consigne.Selection!, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public SegmentDefinition ToDefinition()
+    {
+        return new SegmentDefinition(
+            SegmentId,
+            TypeSegment,
+            Participants.Select(p => p.WorkerId).ToList(),
+            DureeMinutes,
+            EstMainEvent,
+            StorylineId,
+            TitreId,
+            Intensite,
+            VainqueurId,
+            PerdantId,
+            null, // ManagerId
+            RefereeId,
+            RoadAgentId,
+            CommentatorId,
+            true, // IsBroadcast
+            ConstruireSettings(),
+            IsAiGenerated);
     }
 }

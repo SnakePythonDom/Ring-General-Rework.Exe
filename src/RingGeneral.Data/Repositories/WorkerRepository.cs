@@ -178,15 +178,11 @@ public sealed class WorkerRepository : RepositoryBase, IWorkerRepository
                 reader.GetInt32(8),
                 reader.GetString(9),
                 reader.GetInt32(10),
-<<<<<<< HEAD
-                reader.IsDBNull(11) ? null : reader.GetString(11)));
-=======
                 reader.IsDBNull(11) ? null : reader.GetString(11),
                 reader.IsDBNull(12) ? null : DateTime.Parse(reader.GetString(12)),
                 reader.IsDBNull(13) ? null : reader.GetString(13),
                 !reader.IsDBNull(14) && reader.GetInt32(14) == 1,
                 reader.IsDBNull(15) ? 0 : reader.GetInt32(15)));
->>>>>>> temp-work
         }
         return workers;
     }
@@ -235,11 +231,7 @@ public sealed class WorkerRepository : RepositoryBase, IWorkerRepository
         using var connexion = OpenConnection();
         using var command = connexion.CreateCommand();
         command.CommandText = """
-<<<<<<< HEAD
-            SELECT WorkerId, Name, RingName, Nationality, Gender, BirthDate, RoleTv, InjuryStatus, Morale
-=======
             SELECT WorkerId, Name, RingName, Nationality, Gender, BirthDate, RoleTv, InjuryStatus, Morale, Popularity, DepartureDate, DepartureReason, IsHallOfFame, LegacyScore
->>>>>>> temp-work
             FROM Workers
             WHERE WorkerId = $id;
             """;
@@ -252,6 +244,27 @@ public sealed class WorkerRepository : RepositoryBase, IWorkerRepository
         }
 
         return null;
+    }
+
+    public List<Worker> GetCompanyRoster(string companyId)
+    {
+        using var connexion = OpenConnection();
+        using var command = connexion.CreateCommand();
+        command.CommandText = """
+            SELECT WorkerId, Name, RingName, Nationality, Gender, BirthDate, RoleTv, InjuryStatus, Morale, Popularity, DepartureDate, DepartureReason, IsHallOfFame, LegacyScore
+            FROM Workers
+            WHERE CompanyId = $companyId;
+            """;
+        command.Parameters.AddWithValue("$companyId", companyId);
+
+        var roster = new List<Worker>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            string workerId = reader.GetString(0);
+            roster.Add(MapWorkerFromReader(reader, connexion, workerId));
+        }
+        return roster;
     }
 
     private Worker MapWorkerFromReader(SqliteDataReader reader, SqliteConnection connexion, string workerId)
@@ -313,14 +326,6 @@ public sealed class WorkerRepository : RepositoryBase, IWorkerRepository
             else if (role.Contains("Job", StringComparison.OrdinalIgnoreCase)) worker.PushLevel = PushLevel.Jobber;
         }
 
-<<<<<<< HEAD
-        // ===================================
-        // NEW PROPERTIES (Phase 5) - Manually mapped for now or need query update
-        // The above query `ChargerWorker` or `GetWorker` only selects specific columns.
-        // We need to update the queries in `ChargerWorker` and `GetWorker` to fetch these new columns!
-        // ===================================
-
-=======
         // Popularity (Index 9)
         if (!reader.IsDBNull(9))
         {
@@ -355,7 +360,6 @@ public sealed class WorkerRepository : RepositoryBase, IWorkerRepository
             worker.LegacyScore = reader.GetInt32(13);
         }
 
->>>>>>> temp-work
         // Fallback or ID-dependent loading
         // Note: Attribute/Contract loaders currently take 'int workerId'. 
         // We need to check if they can handle string or if we need to update them too.

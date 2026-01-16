@@ -240,7 +240,11 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     public int StartingPrestige
     {
         get => _startingPrestige;
-        set => this.RaiseAndSetIfChanged(ref _startingPrestige, Math.Clamp(value, 0, 100));
+        set
+        {
+            if (IsZeroToHero && value != 0) return; // Lock to 0
+            this.RaiseAndSetIfChanged(ref _startingPrestige, Math.Clamp(value, 0, 100));
+        }
     }
 
     /// <summary>
@@ -249,7 +253,11 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     public double StartingTreasury
     {
         get => _startingTreasury;
-        set => this.RaiseAndSetIfChanged(ref _startingTreasury, Math.Max(0, value));
+        set
+        {
+            if (IsZeroToHero && value != 50000.0) return; // Lock to 50k
+            this.RaiseAndSetIfChanged(ref _startingTreasury, Math.Max(0, value));
+        }
     }
 
     /// <summary>
@@ -260,6 +268,35 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         get => _foundedYear;
         set => this.RaiseAndSetIfChanged(ref _foundedYear, value);
     }
+
+    /// <summary>
+    /// Mode Zero to Hero (Tabula Rasa)
+    /// </summary>
+    public bool IsZeroToHero
+    {
+        get => _isZeroToHero;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isZeroToHero, value);
+            if (value)
+            {
+                // Force limits for Zero to Hero
+                StartingTreasury = 50000.0; // Fixed budget
+                StartingPrestige = 0;       // No prestige
+            }
+            else
+            {
+                // Reset to defaults
+                StartingTreasury = _baseStartingTreasury;
+                StartingPrestige = _baseStartingPrestige;
+                ApplyStyleModifiers(SelectedCatchStyle);
+            }
+        }
+    }
+    private bool _isZeroToHero;
+
+    // Computed property for UI binding
+    public bool IsStandardMode => !IsZeroToHero;
 
     /// <summary>
     /// Message d'erreur en cas de validation échouée
@@ -317,6 +354,8 @@ public sealed class CreateCompanyViewModel : ViewModelBase
     {
         var prestigeMultiplier = 1.0;
         var treasuryMultiplier = 1.0;
+
+        if (IsZeroToHero) return; // Ignore style modifiers in Zero to Hero mode
 
         if (style?.Name == "Hardcore")
         {
@@ -455,13 +494,14 @@ public sealed class CreateCompanyViewModel : ViewModelBase
         // Créer la nouvelle sauvegarde
         using var insertCmd = connection.CreateCommand();
         insertCmd.CommandText = @"
-            INSERT INTO SaveGames (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive)
-            VALUES (@saveName, @companyId, @week, @date, 1)";
+            INSERT INTO SaveGames (SaveName, PlayerCompanyId, CurrentWeek, CurrentDate, IsActive, GameMode)
+            VALUES (@saveName, @companyId, @week, @date, 1, @gameMode)";
 
         insertCmd.Parameters.AddWithValue("@saveName", $"{CompanyName} - {DateTime.Now:yyyy-MM-dd HH:mm}");
         insertCmd.Parameters.AddWithValue("@companyId", companyId);
         insertCmd.Parameters.AddWithValue("@week", 1);
         insertCmd.Parameters.AddWithValue("@date", $"{FoundedYear}-01-01");
+        insertCmd.Parameters.AddWithValue("@gameMode", IsZeroToHero ? "ZeroToHero" : "Standard");
 
         insertCmd.ExecuteNonQuery();
 

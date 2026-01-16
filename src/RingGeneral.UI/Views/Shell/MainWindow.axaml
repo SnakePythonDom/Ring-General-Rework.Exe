@@ -165,7 +165,7 @@
 
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="45"/>   <!-- Top Menu Bar -->
+			<RowDefinition Height="65"/>   <!-- Top Menu Bar (Increased for FM Style) -->
 			<RowDefinition Height="*"/>    <!-- Content Area -->
 			<RowDefinition Height="28"/>   <!-- Status Bar -->
 		</Grid.RowDefinitions>
@@ -199,15 +199,30 @@
 				<!-- Center: Current View Title -->
 				<TextBlock Grid.Column="1" Text="{Binding CurrentViewTitle}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 
-				<!-- Right: Menu Buttons -->
-				<StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,15,0" VerticalAlignment="Center" Spacing="8">
-					<Button Content="🏠" ToolTip.Tip="Tableau de bord" Command="{Binding NavigateToDashboardCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
-					<Button Content="📅" ToolTip.Tip="Calendrier" Command="{Binding NavigateToCalendarCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
-					<Button Content="🏢" ToolTip.Tip="Entreprise" Command="{Binding NavigateToCompanyCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
-					<Button Content="🎓" ToolTip.Tip="Youth Hub" Command="{Binding NavigateToYouthHubCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
-					<Button Content="📚" ToolTip.Tip="Bibliothèque" Command="{Binding NavigateToLibraryCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
-					<Button Content="📊" ToolTip.Tip="Rapports" Command="{Binding NavigateToReportsCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
-					<Button Content="⚙️" ToolTip.Tip="Paramètres" Command="{Binding NavigateToSettingsCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
+				<!-- Right: Action & Shortcuts (FM Style) -->
+				<StackPanel Grid.Column="2" Margin="0,0,15,0" VerticalAlignment="Center" Spacing="4" MinWidth="200">
+                    <!-- Global Progression Button -->
+					<Button Content="CONTINUER  ⏭️" 
+                            Command="{Binding ContinueCommand}" 
+                            HorizontalAlignment="Stretch" 
+                            Height="32"
+                            Background="{StaticResource BrandSecondaryBrush}" 
+                            Foreground="White" 
+                            FontWeight="ExtraBold" 
+                            FontSize="13"
+                            CornerRadius="4"
+                            Padding="15,0"/>
+                    
+                    <!-- Navigation Shortcuts -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+    					<Button Content="🏠" ToolTip.Tip="Tableau de bord" Command="{Binding NavigateToDashboardCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Padding="4"/>
+    					<Button Content="📅" ToolTip.Tip="Calendrier" Command="{Binding NavigateToCalendarCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Padding="4"/>
+    					<Button Content="🏢" ToolTip.Tip="Entreprise" Command="{Binding NavigateToCompanyCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Padding="4"/>
+    					<Button Content="🎓" ToolTip.Tip="Youth Hub" Command="{Binding NavigateToYouthHubCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Padding="4"/>
+    					<Button Content="📚" ToolTip.Tip="Bibliothèque" Command="{Binding NavigateToLibraryCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Padding="4"/>
+    					<Button Content="📊" ToolTip.Tip="Rapports" Command="{Binding NavigateToReportsCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Padding="4"/>
+    					<Button Content="⚙️" ToolTip.Tip="Paramètres" Command="{Binding NavigateToSettingsCommand}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Padding="4"/>
+                    </StackPanel>
 				</StackPanel>
 			</Grid>
 		</Border>

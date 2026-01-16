@@ -1,5 +1,11 @@
 using ReactiveUI;
 using RingGeneral.Core.Models;
+using RingGeneral.Core.Interfaces;
+using RingGeneral.UI.Services.Navigation;
+using RingGeneral.UI.ViewModels.Contracts;
+using System;
+using System.Linq;
+using System.Reactive;
 
 namespace RingGeneral.UI.ViewModels.Common.Profile
 {
@@ -43,10 +49,11 @@ namespace RingGeneral.UI.ViewModels.Common.Profile
 
         private void ExecuteFire()
         {
-            // Simple termination logic for now: clear current contract if it exists
-            if (_worker.CurrentContract != null)
+            // Simple termination logic for now: mark for contract termination
+            if (_worker.HasActiveContract)
             {
-                _worker.CurrentContract = null;
+                // TODO: Implement proper contract termination via repository
+                // Note: CurrentContract is read-only; actual termination should be handled by IContractRepository
                 this.RaisePropertyChanged(nameof(Status));
                 this.RaisePropertyChanged(nameof(ContractDuration));
 

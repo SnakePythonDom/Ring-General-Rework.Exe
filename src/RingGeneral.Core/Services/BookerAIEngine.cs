@@ -139,8 +139,6 @@ public class BookerAIEngine : IBookerAIEngine
         }
 
         return result;
-<<<<<<< HEAD
-=======
     }
 
     public (string Worker1Id, string Worker2Id)? ProposeMainEvent(string bookerId, List<string> availableWorkers, int showImportance)
@@ -193,6 +191,5 @@ public class BookerAIEngine : IBookerAIEngine
                 _bookerRepository.SaveBookerMemoryAsync(decayed).GetAwaiter().GetResult();
             }
         }
->>>>>>> temp-work
     }
 }

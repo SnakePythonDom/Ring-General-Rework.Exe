@@ -20,7 +20,7 @@ public sealed class DashboardViewModel : ViewModelBase
     private readonly IShowSchedulerStore? _showSchedulerStore;
     private readonly IMoraleEngine? _moraleEngine;
     private readonly ICrisisEngine? _crisisEngine;
-    private string _companyName = "Ma Compagnie";
+    private string _companyName = "My Company";
     private string _companyId = string.Empty;
     private int _currentDay = 1;
     private DateTime _currentDate = new DateTime(2024, 1, 1);
@@ -28,7 +28,7 @@ public sealed class DashboardViewModel : ViewModelBase
     private int _activeStorylines;
     private int _upcomingShows;
     private decimal _currentBudget;
-    private string _latestNews = "Bienvenue dans Ring General !";
+    private string _latestNews = "Welcome to Ring General!";
     private bool _hasUpcomingShow;
     private string _upcomingShowName = string.Empty;
     private int _moraleScore = 70;
@@ -62,9 +62,9 @@ public sealed class DashboardViewModel : ViewModelBase
 
         RecentActivity = new ObservableCollection<string>
         {
-            "🎯 Application démarrée avec succès",
-            "📊 Données en cours de chargement...",
-            "⚠️ Veuillez importer une base de données ou créer une nouvelle partie"
+            "🎯 Application started successfully",
+            "📊 Loading data...",
+            "⚠️ Please import a database or create a new game"
         };
 
         // Commandes
@@ -117,9 +117,9 @@ public sealed class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Date formatée pour l'affichage (ex: "Lundi 12 Janvier 2026")
+    /// Date formatée pour l'affichage (ex: "Monday 12 January 2026")
     /// </summary>
-    public string CurrentDateFormatted => CurrentDate.ToString("dddd d MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"));
+    public string CurrentDateFormatted => CurrentDate.ToString("dddd d MMMM yyyy", new System.Globalization.CultureInfo("en-US"));
 
     /// <summary>
     /// Nombre total de workers
@@ -274,13 +274,13 @@ public sealed class DashboardViewModel : ViewModelBase
     /// Message d'alerte pour les crises critiques
     /// </summary>
     public string CrisisAlertMessage => CriticalCrisesCount > 1
-        ? $"{CriticalCrisesCount} crises critiques nécessitent votre attention immédiate !"
-        : "Une crise critique nécessite votre attention immédiate !";
+        ? $"{CriticalCrisesCount} critical crises require your immediate attention!"
+        : "A critical crisis requires your immediate attention!";
 
     /// <summary>
     /// Label du bouton principal (dynamique)
     /// </summary>
-    public string MainButtonLabel => HasUpcomingShow ? "📺 Préparer le Show" : "⏭️ Jour Suivant";
+    public string MainButtonLabel => HasUpcomingShow ? "📺 Prepare Show" : "⏭️ Next Day";
 
     /// <summary>
     /// Charge les données du dashboard depuis le repository
@@ -442,19 +442,19 @@ public sealed class DashboardViewModel : ViewModelBase
     {
         var activityUpdates = new List<string>
         {
-            "✅ Données chargées avec succès",
-            $"🤼 {TotalWorkers} workers dans le roster",
-            "🏆 Titres et storylines actives"
+            "✅ Data loaded successfully",
+            $"🤼 {TotalWorkers} workers in roster",
+            "🏆 Active titles and storylines"
         };
 
         if (HasCriticalCrises)
         {
-            activityUpdates.Add($"⚠️ {CriticalCrisesCount} crise(s) critique(s) !");
+            activityUpdates.Add($"⚠️ {CriticalCrisesCount} critical crisis(es)!");
         }
 
         if (HasUpcomingShow)
         {
-            activityUpdates.Add($"📺 Show à préparer: {UpcomingShowName}");
+            activityUpdates.Add($"📺 Show to prepare: {UpcomingShowName}");
         }
 
         RecentActivity.Clear();
@@ -463,7 +463,7 @@ public sealed class DashboardViewModel : ViewModelBase
             RecentActivity.Add(activity);
         }
 
-        Logger.Info($"Dashboard chargé: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
+        Logger.Info($"Dashboard loaded: {TotalWorkers} workers, Budget: ${CurrentBudget:N0}");
     }
 
     /// <summary>
@@ -603,7 +603,7 @@ public sealed class DashboardViewModel : ViewModelBase
                 CurrentDate = result.CurrentDate;
 
                 // Afficher les événements dans le Daily Log
-                var activityUpdates = new List<string> { $"⏭️ Jour {CurrentDay} terminé - {CurrentDateFormatted}" };
+                var activityUpdates = new List<string> { $"⏭️ Day {CurrentDay} ended - {CurrentDateFormatted}" };
                 foreach (var evt in result.Events)
                 {
                     activityUpdates.Add($"📅 {evt}");
@@ -614,7 +614,7 @@ public sealed class DashboardViewModel : ViewModelBase
                     RecentActivity.Insert(0, update);
                 }
 
-                Logger.Info($"Jour {CurrentDay} terminé ({CurrentDateFormatted})");
+                Logger.Info($"Day {CurrentDay} ended ({CurrentDateFormatted})");
             }
 
             // Recharger les données
@@ -643,25 +643,25 @@ public sealed class DashboardViewModel : ViewModelBase
             var detection = _showDayOrchestrator.DetecterShowAVenir(_companyId, CurrentDay);
             if (!detection.ShowDetecte || detection.Show is null)
             {
-                RecentActivity.Insert(0, "⚠️ Aucun show détecté à simuler");
+                RecentActivity.Insert(0, "⚠️ No show detected to simulate");
                 return;
             }
 
             var showId = detection.Show.ShowId;
-            var activityUpdates = new List<string> { $"🎬 Simulation du show: {detection.Show.Nom}" };
-            Logger.Info($"Début simulation show: {detection.Show.Nom} ({showId})");
+            var activityUpdates = new List<string> { $"🎬 Simulating show: {detection.Show.Nom}" };
+            Logger.Info($"Starting show simulation: {detection.Show.Nom} ({showId})");
 
             // Exécuter le flux complet Show Day
             var resultat = _showDayOrchestrator.ExecuterFluxComplet(showId, _companyId);
 
             if (resultat.Succes)
             {
-                activityUpdates.Add("✅ Show simulé avec succès !");
+                activityUpdates.Add("✅ Show simulated successfully!");
                 if (resultat.Rapport is not null)
                 {
-                    activityUpdates.Add($"📊 Note: {resultat.Rapport.NoteGlobale}/100");
+                    activityUpdates.Add($"📊 Rating: {resultat.Rapport.NoteGlobale}/100");
                     activityUpdates.Add($"👥 Audience: {resultat.Rapport.Audience}");
-                    activityUpdates.Add($"💰 Revenus: ${resultat.Rapport.Billetterie + resultat.Rapport.Merch + resultat.Rapport.Tv:N2}");
+                    activityUpdates.Add($"💰 Revenue: ${resultat.Rapport.Billetterie + resultat.Rapport.Merch + resultat.Rapport.Tv:N2}");
                 }
 
                 foreach (var changement in resultat.Changements.Take(5))
@@ -669,11 +669,11 @@ public sealed class DashboardViewModel : ViewModelBase
                     activityUpdates.Add(changement);
                 }
 
-                Logger.Info($"Show simulé avec succès: {detection.Show.Nom}");
+                Logger.Info($"Show simulated successfully: {detection.Show.Nom}");
             }
             else
             {
-                activityUpdates.Add("⚠️ Erreurs lors de la simulation:");
+                activityUpdates.Add("⚠️ Errors during simulation:");
                 foreach (var erreur in resultat.Erreurs)
                 {
                     activityUpdates.Add($"  - {erreur}");

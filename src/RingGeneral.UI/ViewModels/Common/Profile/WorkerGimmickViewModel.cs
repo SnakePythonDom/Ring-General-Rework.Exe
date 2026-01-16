@@ -1,4 +1,5 @@
 using ReactiveUI;
+using RingGeneral.Core.Interfaces;
 using RingGeneral.Core.Models;
 using System.Collections.ObjectModel;
 using System.Reactive;

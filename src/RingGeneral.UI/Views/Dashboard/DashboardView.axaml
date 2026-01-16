@@ -15,12 +15,12 @@
         <StackPanel Margin="30" Spacing="25">
             <!-- En-tête -->
             <StackPanel Spacing="8">
-                <TextBlock Text="🏠 TABLEAU DE BORD" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="🏠 DASHBOARD" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                 <TextBlock Text="{Binding CompanyName}" FontSize="18" Foreground="{StaticResource TextSecondaryBrush}"/>
                 <TextBlock Text="{Binding CurrentDateFormatted}" FontSize="16" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold"/>
                 <TextBlock FontSize="12" Foreground="{StaticResource TextDisabledBrush}">
                     <TextBlock.Text>
-                        <MultiBinding StringFormat="Jour {0}">
+                        <MultiBinding StringFormat="Day {0}">
                             <Binding Path="CurrentDay"/>
                         </MultiBinding>
                     </TextBlock.Text>
@@ -34,7 +34,7 @@
                     <StackPanel Spacing="8">
                         <TextBlock Text="🤼 WORKERS" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding TotalWorkers}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
-                        <TextBlock Text="Roster total" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="Total Roster" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
@@ -43,7 +43,7 @@
                     <StackPanel Spacing="8">
                         <TextBlock Text="📖 STORYLINES" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding ActiveStorylines}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
-                        <TextBlock Text="Actives" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="Active" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
@@ -52,14 +52,14 @@
                     <StackPanel Spacing="8">
                         <TextBlock Text="📺 SHOWS" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding UpcomingShows}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource BrandSecondaryBrush}"/>
-                        <TextBlock Text="À venir" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="Upcoming" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Morale -->
                 <Border Grid.Column="3" Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8" Margin="6,0,6,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="❤️ MORAL" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="❤️ MORALE" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="{Binding MoraleScore}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource BrandAccentBrush}"/>
                             <TextBlock Text="{Binding TrendIcon}" FontSize="24" VerticalAlignment="Center"/>
@@ -73,7 +73,7 @@
                     <StackPanel Spacing="8">
                         <TextBlock Text="💰 BUDGET" FontSize="12" Foreground="{StaticResource SuccessLightBrush}" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding CurrentBudgetFormatted}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
-                        <TextBlock Text="Disponible" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
+                        <TextBlock Text="Available" FontSize="11" Foreground="{StaticResource SuccessLightBrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -83,7 +83,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock Text="⚠️" FontSize="24" VerticalAlignment="Center"/>
                     <StackPanel Spacing="4" VerticalAlignment="Center">
-                        <TextBlock Text="ALERTE CRITIQUE" FontSize="13" Foreground="{StaticResource ErrorLightBrush}" FontWeight="Bold"/>
+                        <TextBlock Text="CRITICAL ALERT" FontSize="13" Foreground="{StaticResource ErrorLightBrush}" FontWeight="Bold"/>
                         <TextBlock Text="{Binding CrisisAlertMessage}" FontSize="12" Foreground="{StaticResource ErrorLightBrush}"/>
                     </StackPanel>
                 </StackPanel>
@@ -92,7 +92,7 @@
             <!-- Dernière actualité -->
             <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="📰 DERNIÈRE ACTUALITÉ" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="📰 LATEST NEWS" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                     <TextBlock Text="{Binding LatestNews}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
@@ -100,7 +100,7 @@
             <!-- Activité récente -->
             <Border Background="{StaticResource BackgroundSecondaryBrush}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="📋 ACTIVITÉ RÉCENTE" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
+                    <TextBlock Text="📋 RECENT ACTIVITY" FontSize="14" Foreground="{StaticResource TextSubtleBrush}" FontWeight="SemiBold"/>
                     <ItemsControl ItemsSource="{Binding RecentActivity}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -113,16 +113,8 @@
                 </StackPanel>
             </Border>
 
-            <!-- Bouton Jour Suivant -->
-            <Button Content="{Binding MainButtonLabel}"
-                    Command="{Binding ContinueCommand}"
-                    HorizontalAlignment="Stretch"
-                    Padding="20,12"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    CornerRadius="8"
-                    Classes="primary"
-                    Margin="0,10,0,0"/>
+            <!-- ESPACE BAS -->
+            <Border Height="20" IsHitTestVisible="False"/>
             
         </StackPanel>
     </ScrollViewer>

@@ -205,11 +205,11 @@ public sealed class BookingViewModel : ViewModelBase
     /// </summary>
     public string ControlLevelDescription => ControlLevel switch
     {
-        BookingControlLevel.Spectator => "👁️ IA contrôle 100% des décisions",
-        BookingControlLevel.Producer => "🎬 IA propose, vous validez",
-        BookingControlLevel.CoBooker => "🤝 Vous gérez titres majeurs, IA développe midcard",
-        BookingControlLevel.Dictator => "👑 Contrôle total, pas d'intervention IA",
-        _ => "Niveau non défini"
+        BookingControlLevel.Spectator => "👁️ AI controls 100% of decisions",
+        BookingControlLevel.Producer => "🎬 AI proposes, you validate",
+        BookingControlLevel.CoBooker => "🤝 You manage major titles, AI develops midcard",
+        BookingControlLevel.Dictator => "👑 Total control, no AI intervention",
+        _ => "Undefined level"
     };
 
     /// <summary>
@@ -293,6 +293,7 @@ public sealed class BookingViewModel : ViewModelBase
             50,
             null,
             null,
+            true,
             new Dictionary<string, string>()
         );
 
@@ -350,6 +351,7 @@ public sealed class BookingViewModel : ViewModelBase
             segment.Intensite,
             segment.VainqueurId,
             segment.PerdantId,
+            true,
             segment.ConstruireSettings()
         );
 
@@ -460,18 +462,18 @@ public sealed class BookingViewModel : ViewModelBase
             WorkersAvailable.Add(new ParticipantViewModel("W002", "Randy Orton"));
             WorkersAvailable.Add(new ParticipantViewModel("W003", "The Rock"));
 
-            StorylinesAvailable.Add(new StorylineOptionViewModel(string.Empty, "Aucune storyline"));
-            StorylinesAvailable.Add(new StorylineOptionViewModel("ST001", "Rivalité Title"));
+            StorylinesAvailable.Add(new StorylineOptionViewModel(string.Empty, "No storyline"));
+            StorylinesAvailable.Add(new StorylineOptionViewModel("ST001", "Title Rivalry"));
             StorylinesAvailable.Add(new StorylineOptionViewModel("ST002", "Legacy Rising"));
 
-            TitlesAvailable.Add(new TitleOptionViewModel(string.Empty, "Aucun titre"));
+            TitlesAvailable.Add(new TitleOptionViewModel(string.Empty, "No title"));
             TitlesAvailable.Add(new TitleOptionViewModel("T001", "World Title"));
         }
 
         if (_currentBooking.Count == 0)
         {
             var mainEvent = new SegmentDefinition(
-               "SEG001", "match", new List<string> { "W001", "W002" }, 15, true, "ST001", "T001", 85, null, null, new Dictionary<string, string>());
+               "SEG001", "match", new List<string> { "W001", "W002" }, 15, true, "ST001", "T001", 85, null, null, true, new Dictionary<string, string>());
             _currentBooking.Add(mainEvent);
             RefreshSegmentsFromDefinitions();
             ValidateBooking();

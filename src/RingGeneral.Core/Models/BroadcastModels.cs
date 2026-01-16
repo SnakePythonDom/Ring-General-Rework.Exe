@@ -32,6 +32,8 @@ public sealed record TvDeal
     public DistributionType Distribution { get; init; }
     public int ProductionRequirement { get; init; }
     public IReadOnlyList<string> TargetRegionIds { get; init; } = new List<string>();
+    public IReadOnlyList<string> BannedContent { get; init; } = new List<string>();
+    public IReadOnlyList<string> PreferredContent { get; init; } = new List<string>();
 }
 
 public sealed record AudienceInputs
@@ -89,6 +91,8 @@ public sealed record AvailableNetwork
     public required string Description { get; init; }
     public DistributionType Distribution { get; init; }
     public IReadOnlyList<string> SupportedRegionIds { get; init; } = new List<string>();
+    public IReadOnlyList<string> BannedContent { get; init; } = new List<string>();
+    public IReadOnlyList<string> PreferredContent { get; init; } = new List<string>();
 }
 
 /// <summary>

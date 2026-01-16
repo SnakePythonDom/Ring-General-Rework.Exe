@@ -8,7 +8,7 @@ public sealed class ShowSimulationEngine
     private readonly IRandomProvider _random;
     private readonly AudienceModel _audienceModel;
     private readonly DealRevenueModel _dealRevenueModel;
-    
+
     // Services pour l'analyse structurelle et les tendances
     private readonly RingGeneral.Core.Interfaces.ITrendRepository? _trendRepository;
     private readonly RingGeneral.Core.Interfaces.IRosterAnalysisRepository? _rosterAnalysisRepository;
@@ -72,6 +72,9 @@ public sealed class ShowSimulationEngine
             }
 
             var chimieBonus = CalculerChimie(context, participants.Select(worker => worker.WorkerId).ToList());
+            var synergieBonus = CalculerSynergie(context, participants.Select(worker => worker.WorkerId).ToList());
+            var managerBonus = CalculerManagerImpact(context, segment.ManagerId);
+
             var pacingPenalty = 0;
 
             if (segment.TypeSegment is "promo" or "angle_backstage")
@@ -105,7 +108,8 @@ public sealed class ShowSimulationEngine
             var moraleBonus = participants.Count == 0
                 ? 0
                 : (int)Math.Round((participants.Average(worker => worker.Morale) - 50) / 10.0);
-            var note = Math.Clamp(baseScore + crowdBonus + pacingPenalty + chimieBonus, 0, 100);
+
+            var note = Math.Clamp(baseScore + crowdBonus + pacingPenalty + chimieBonus + synergieBonus + managerBonus, 0, 100);
             note = Math.Clamp(note + moraleBonus, 0, 100);
 
             // Bonus de compatibilité avec les tendances (Phase 6)
@@ -144,6 +148,8 @@ public sealed class ShowSimulationEngine
                 new("Chaleur du public", crowdBonus),
                 new("Pacing", pacingPenalty),
                 new("Chimie", chimieBonus),
+                new("Synergie (Equipes)", synergieBonus),
+                new("Manager", managerBonus),
                 new("Morale", moraleBonus),
                 new("Storyline", segment.StorylineId is null ? 0 : 4)
             };
@@ -186,7 +192,23 @@ public sealed class ShowSimulationEngine
             }
         }
 
-        var noteShow = segmentsReports.Count == 0 ? 0 : (int)Math.Round(segmentsReports.Average(segment => segment.Note));
+        // Calcul de la note globale : moyenne pondérée (Main Event x2)
+        double totalWeightedNotes = 0;
+        double totalWeights = 0;
+
+        for (int i = 0; i < context.Segments.Count; i++)
+        {
+            var report = segmentsReports[i];
+
+            // Seul le dernier segment du show compte double (Main Event)
+            var isMainEvent = i == context.Segments.Count - 1;
+            var weight = isMainEvent ? 2.0 : 1.0;
+
+            totalWeightedNotes += report.Note * weight;
+            totalWeights += weight;
+        }
+
+        var noteShow = totalWeights == 0 ? 0 : (int)Math.Round(totalWeightedNotes / totalWeights);
         var populariteDeltaCompagnie = (noteShow - 50) / 5;
         populariteCompagnie[context.Compagnie.CompagnieId] = populariteDeltaCompagnie;
 
@@ -310,6 +332,74 @@ public sealed class ShowSimulationEngine
         }
 
         return Math.Clamp(bonus, -8, 8);
+    }
+
+    private static int CalculerSynergie(ShowContext context, IReadOnlyList<string> participants)
+    {
+        if (participants.Count < 2) return 0;
+
+        var totalBonus = 0;
+
+        // Find if participants share a common faction/tag team
+        foreach (var faction in context.Factions)
+        {
+            var membersInSegment = faction.Members
+                .Where(m => m.IsActiveMember && participants.Contains(m.WorkerId))
+                .Select(m => m.WorkerId)
+                .ToList();
+
+            if (membersInSegment.Count >= 2)
+            {
+                // Basic synergy bonus based on number of partners
+                var synergy = membersInSegment.Count * 2;
+
+                // Add chemistry influence within the synergy
+                var chemistryInFaction = 0;
+                for (int i = 0; i < membersInSegment.Count; i++)
+                {
+                    for (int j = i + 1; j < membersInSegment.Count; j++)
+                    {
+                        var key = $"{membersInSegment[i]}|{membersInSegment[j]}";
+                        if (!context.Chimies.TryGetValue(key, out var chemistry))
+                        {
+                            key = $"{membersInSegment[j]}|{membersInSegment[i]}";
+                        }
+
+                        if (context.Chimies.TryGetValue(key, out chemistry))
+                        {
+                            chemistryInFaction += chemistry;
+                        }
+                    }
+                }
+
+                // Average chemistry impact
+                var avgChemistry = chemistryInFaction / (membersInSegment.Count * (membersInSegment.Count - 1) / 2.0);
+
+                // Bonus if compatible, Penalty if incompatible
+                if (avgChemistry > 20) synergy += 3;
+                else if (avgChemistry < -20) synergy -= 5; // Underperformance penalty
+
+                totalBonus += (int)synergy;
+            }
+        }
+
+        return Math.Clamp(totalBonus / 2, -10, 12);
+    }
+
+    private static int CalculerManagerImpact(ShowContext context, string? managerId)
+    {
+        if (string.IsNullOrEmpty(managerId)) return 0;
+
+        var manager = context.Workers.FirstOrDefault(w => w.WorkerId == managerId);
+        if (manager == null) return 0;
+
+        // Managers boost entertainment and story perception
+        var impact = (manager.Entertainment / 20) + (manager.Story / 25);
+
+        // Bonus if manager is highly skilled
+        if (manager.Entertainment > 80) impact += 3;
+
+        return Math.Clamp(impact, 0, 10);
     }
 
     private static Dictionary<string, int> AppliquerFatigue(
@@ -522,7 +612,7 @@ public sealed class ShowSimulationEngine
             // Appliquer les multiplicateurs de niche
             // La stabilité de billetterie réduit la variance mais maintient le niveau moyen
             var ticketMultiplier = 1.0 + (nicheProfile.TicketSalesStability / 200.0); // Légère augmentation de stabilité
-            
+
             return (
                 TicketStabilityMultiplier: ticketMultiplier,
                 MerchandiseMultiplier: nicheProfile.MerchandiseMultiplier,

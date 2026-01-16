@@ -7,10 +7,6 @@
              x:Class="RingGeneral.UI.Views.Storylines.StorylinesView"
              x:DataType="vm:StorylinesViewModel">
 
-    <Design.DataContext>
-        <vm:StorylinesViewModel />
-    </Design.DataContext>
-
     <Border Padding="20" Background="{StaticResource BackgroundPrimaryBrush}">
         <Grid RowDefinitions="Auto,20,*">
             
@@ -100,7 +96,7 @@
                                                 <StackPanel Grid.Column="2" Spacing="10">
                                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                                         <TextBlock Text="👔 BOOKER:" FontWeight="SemiBold" Opacity="0.7" FontSize="13"/>
-                                                        <TextBlock Text="John Smith" FontSize="13"/>
+                                                        <TextBlock Text="{Binding SelectedStoryline.BookerName}" FontSize="13"/>
                                                     </StackPanel>
                                                     <StackPanel Orientation="Horizontal" Spacing="10">
                                                         <TextBlock Text="👨‍🎨 LEAD CRÉATIF:" FontWeight="SemiBold" Opacity="0.7" FontSize="13"/>
@@ -135,7 +131,7 @@
                                                         <TextBlock Text="🧠" FontSize="18"/>
                                                         <TextBlock Text="{Binding SelectedStoryline.LeadCreativeName, StringFormat='IDÉE DU LEAD CRÉATIF ({0}) :'}" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <TextBlock Text="{Binding SelectedStoryline.CreativeIdea, FallbackValue='Pas d\'idée créative actuellement.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
+                                                    <TextBlock Text="{Binding SelectedStoryline.CreativeIdea, FallbackValue='Pas d idee creative actuellement.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
                                                 </StackPanel>
                                             </Border>
 
@@ -144,7 +140,7 @@
                                                 <StackPanel Spacing="10">
                                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                                         <TextBlock Text="🧠" FontSize="18"/>
-                                                        <TextBlock Text="IDÉE DU BOOKER (Smith) :" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding SelectedStoryline.BookerName, StringFormat='IDÉE DU BOOKER ({0}) :'}" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding SelectedStoryline.BookerIdea, FallbackValue='Vos propres notes sur cette rivalité.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
                                                 </StackPanel>
@@ -208,10 +204,10 @@
                                                 <TextBlock Text="📅 DURÉE DE PAUSE :" FontSize="12" Opacity="0.6" FontWeight="SemiBold"/>
                                                 <TextBlock Text="{Binding SelectedStoryline.PauseWeeks, StringFormat='{}{0} Semaines'}" FontSize="16" FontWeight="Bold"/>
                                             </StackPanel>
-                                            <StackPanel>
+                                             <StackPanel>
                                                 <TextBlock Text="📉 RISQUE DE REFROIDISSEMENT :" FontSize="12" Opacity="0.6" FontWeight="SemiBold"/>
-                                                <TextBlock Text="Faible" FontSize="16" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
-                                            </StackPanel>
+                                                <TextBlock Text="{Binding SelectedStoryline.CoolingRisk}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                                             </StackPanel>
                                         </StackPanel>
 
                                         <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource BrandPrimaryBrush}" BorderThickness="0,0,0,2">
@@ -220,8 +216,8 @@
                                                     <TextBlock Text="🧠" FontSize="18"/>
                                                     <TextBlock Text="{Binding SelectedStoryline.LeadCreativeName, StringFormat='NOTE DU STAFF ({0}) :'}" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
                                                 </StackPanel>
-                                                <TextBlock Text="{Binding SelectedStoryline.ReasonForPause, FallbackValue='L\'élan est préservé. Une intervention au prochain show relancerait le Heat à 100%.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
-                                            </Border>
+                                                <TextBlock Text="{Binding SelectedStoryline.ReasonForPause, FallbackValue='L&#39;élan est préservé. Une intervention au prochain show relancerait le Heat à 100%.'}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
+                                            </StackPanel>
                                         </Border>
 
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
@@ -269,26 +265,34 @@
 
                                     <StackPanel Grid.Row="2" Spacing="20">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <TextBlock Text="⭐ SCORE FINAL :" FontSize="12" Opacity="0.6" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding SelectedStoryline.Heat, StringFormat='{}{0} (LÉGENDAIRE)'}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                                             <TextBlock Text="⭐ SCORE FINAL :" FontSize="12" Opacity="0.6" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                             <StackPanel Orientation="Horizontal" Spacing="5">
+                                                 <TextBlock Text="{Binding SelectedStoryline.Heat}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                                                 <TextBlock Text="{Binding SelectedStoryline.HeatCategory}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource SuccessLightBrush}"/>
+                                             </StackPanel>
                                         </StackPanel>
 
                                         <StackPanel Spacing="10">
                                             <TextBlock Text="📈 IMPACT ROSTER :" FontSize="12" Opacity="0.6" FontWeight="SemiBold"/>
-                                            <StackPanel Margin="10,0,0,0" Spacing="5">
-                                                <TextBlock Text="• Worker A : +15 Pop / +20 Momentum" FontSize="13"/>
-                                                <TextBlock Text="• Worker B : +12 Pop / -10 Momentum" FontSize="13"/>
-                                            </StackPanel>
+                                            <ItemsControl ItemsSource="{Binding SelectedStoryline.RosterImpact}" Margin="10,0,0,0">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Display}" FontSize="13"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Text="Aucun impact enregistré." Margin="10,0,0,0" FontSize="13" FontStyle="Italic" Opacity="0.5" 
+                                                       IsVisible="{Binding !SelectedStoryline.RosterImpact.Count}"/>
                                         </StackPanel>
 
                                         <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="15" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="0,0,0,2">
                                             <StackPanel Spacing="10">
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <TextBlock Text="🧠" FontSize="18"/>
-                                                    <TextBlock Text="MÉMOIRE DU BOOKER GÉNÉRÉE :" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                                <TextBlock Text="La finale de la semaine 32 restera une référence de storytelling technique." FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
-                                            </Border>
+                                                     <TextBlock Text="MÉMOIRE DU BOOKER GÉNÉRÉE :" FontWeight="Bold" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                                                 </StackPanel>
+                                                 <TextBlock Text="{Binding SelectedStoryline.BookerMemory}" FontSize="14" FontStyle="Italic" TextWrapping="Wrap" Opacity="0.9"/>
+                                             </StackPanel>
                                         </Border>
 
                                         <Button Content="📜 Historique Complet des Matchs" HorizontalAlignment="Right" Background="{StaticResource BackgroundTertiaryBrush}" Padding="15,10" FontSize="12" FontWeight="SemiBold"/>

@@ -16,6 +16,7 @@ using RingGeneral.UI.ViewModels.Crisis;
 using RingGeneral.UI.ViewModels.OwnerBooker;
 using RingGeneral.UI.ViewModels.Start;
 using RingGeneral.UI.ViewModels.Medical;
+using RingGeneral.UI.ViewModels.Recruitment;
 using RingGeneral.UI.Views.Shell;
 using RingGeneral.Data.Database;
 using RingGeneral.Data.Repositories;
@@ -265,7 +266,9 @@ public sealed class App : Avalonia.Application
         services.AddSingleton<IRelationsRepository>(sp => repositories.RelationsRepository);
         services.AddSingleton<INotesRepository>(sp => repositories.NotesRepository);
         services.AddSingleton<IContractRepository>(sp => repositories.ContractRepository);
-        services.AddSingleton<IFreeAgentRepository>(sp => new FreeAgentRepository(factory, sp.GetRequiredService<WorkerRepository>(), sp.GetRequiredService<IStaffRepository>()));
+        services.AddSingleton<IFactionRepository>(sp => new FactionRepository(factory.GetConnectionString()));
+        services.AddSingleton<IFreeAgentRepository>(sp => new FreeAgentRepository(factory));
+        services.AddSingleton<IRelationshipEvolutionService, RelationshipEvolutionService>();
         services.AddSingleton<IRecruitmentService>(sp => new RecruitmentService(sp.GetRequiredService<WorkerRepository>(), sp.GetRequiredService<IStaffRepository>(), sp.GetRequiredService<IContractRepository>(), sp.GetRequiredService<IRandomProvider>()));
 
         // Company Governance & Identity
@@ -353,7 +356,8 @@ public sealed class App : Avalonia.Application
         services.AddSingleton<IMoraleEngine>(sp =>
             new MoraleEngine(
                 sp.GetRequiredService<IMoraleRepository>(),
-                sp.GetRequiredService<IWorkerRepository>()));
+                sp.GetRequiredService<IWorkerRepository>(),
+                sp.GetRequiredService<IStaffRepository>()));
         services.AddSingleton<IRumorRepository>(sp => new RumorRepository(factory));
         services.AddSingleton<IRumorEngine>(sp =>
             new RumorEngine(sp.GetRequiredService<IRumorRepository>()));
@@ -398,6 +402,7 @@ public sealed class App : Avalonia.Application
         services.AddSingleton<ITvDealNegotiationService>(sp =>
             new TvDealNegotiationService(
                 sp.GetRequiredService<CoreInterfaces.ICompanyRepository>(),
+                sp.GetRequiredService<IGameRepository>(),
                 sp.GetRequiredService<ITvDealRepository>()));
 
         // Phase 2.2 - Revenue Projection & Budget Allocation Services
@@ -457,7 +462,9 @@ public sealed class App : Avalonia.Application
                 dailyServices: sp.GetRequiredService<IDailyServices>(),
                 eventGenerator: null,     // TODO: Implémenter IEventGeneratorService
                 showDayOrchestrator: sp.GetRequiredService<IShowDayOrchestrator>(),
-                dailyShowScheduler: sp.GetRequiredService<RingGeneral.Core.Services.DailyShowSchedulerService>()));
+                dailyShowScheduler: sp.GetRequiredService<RingGeneral.Core.Services.DailyShowSchedulerService>(),
+                ownerDecisionEngine: sp.GetRequiredService<IOwnerDecisionEngine>(),
+                relationshipEvolution: sp.GetRequiredService<IRelationshipEvolutionService>()));
 
         // Additional Core Services
         services.AddSingleton<RingGeneral.Core.Services.TitleService>(sp =>
@@ -527,6 +534,7 @@ public sealed class App : Avalonia.Application
                 navigationService: sp.GetRequiredService<INavigationService>(),
                 eventAggregator: sp.GetRequiredService<RingGeneral.UI.Services.Messaging.IEventAggregator>(),
                 recruitmentService: sp.GetRequiredService<IRecruitmentService>(),
+                timeOrchestrator: sp.GetRequiredService<ITimeOrchestratorService>(),
                 repository: sp.GetService<GameRepository>()));
 
         // ViewModels - Start
@@ -570,10 +578,21 @@ public sealed class App : Avalonia.Application
                 sp.GetRequiredService<SettingsRepository>()));
 
         // Roster ViewModels
+        services.AddTransient<FactionsViewModel>(sp =>
+            new FactionsViewModel(
+                sp.GetRequiredService<IFactionRepository>(),
+                sp.GetRequiredService<GameRepository>(),
+                sp.GetRequiredService<WorkerRepository>()));
         services.AddTransient<RosterViewModel>(sp =>
             new RosterViewModel(
                 repository: sp.GetRequiredService<GameRepository>(),
                 navigationService: sp.GetRequiredService<INavigationService>()));
+        services.AddTransient<RosterHubViewModel>(sp =>
+            new RosterHubViewModel(
+                sp.GetRequiredService<INavigationService>(),
+                sp.GetRequiredService<RosterViewModel>(),
+                sp.GetRequiredService<FactionsViewModel>(),
+                sp.GetRequiredService<ViewModels.Roster.TitlesViewModel>()));
         services.AddTransient<ViewModels.Roster.WorkerDetailViewModel>(sp =>
             new ViewModels.Roster.WorkerDetailViewModel(
                 repository: sp.GetRequiredService<GameRepository>()));
@@ -617,7 +636,13 @@ public sealed class App : Avalonia.Application
                 sp.GetRequiredService<IStaffRepository>(),
                 sp.GetRequiredService<IChildCompanyExtendedRepository>(),
                 sp.GetRequiredService<WorkerRepository>(),
-                sp.GetRequiredService<INavigationService>()));
+                sp.GetRequiredService<INavigationService>(),
+                sp.GetRequiredService<OwnerRepository>(),
+                sp.GetRequiredService<BookerRepository>(),
+                sp.GetService<IDebtManagementService>(),
+                sp.GetService<IRevenueProjectionService>(),
+                sp.GetService<IBudgetAllocationService>(),
+                sp.GetService<ITvDealNegotiationService>()));
         services.AddTransient<ViewModels.Company.ChildCompanyBookingViewModel>(sp =>
             new ViewModels.Company.ChildCompanyBookingViewModel(
                 sp.GetRequiredService<RingGeneral.Core.Services.ChildCompanyBookingService>(),
@@ -628,7 +653,9 @@ public sealed class App : Avalonia.Application
         services.AddTransient<StorylinesViewModel>(sp =>
             new StorylinesViewModel(
                 sp.GetRequiredService<GameRepository>(),
-                sp.GetRequiredService<RingGeneral.Core.Services.StorylineService>()));
+                sp.GetRequiredService<RingGeneral.Core.Services.StorylineService>(),
+                sp.GetRequiredService<StaffStorylineIntegration>(),
+                sp.GetRequiredService<IStaffRepository>()));
         services.AddTransient<YouthViewModel>(sp =>
             new YouthViewModel(
                 sp.GetRequiredService<GameRepository>(),
@@ -662,7 +689,8 @@ public sealed class App : Avalonia.Application
 
         services.AddTransient<RecruitmentDialogViewModel>(sp =>
             new RecruitmentDialogViewModel(
-                null, // Agent will be set later
+                null!, // Agent will be set later
+                "PLAYER_COMPANY_ID", // TODO: Get from session
                 sp.GetRequiredService<IRecruitmentService>(),
                 sp.GetRequiredService<IEventAggregator>()));
 
@@ -698,6 +726,8 @@ public sealed class App : Avalonia.Application
                 sp.GetRequiredService<IWorkerAttributesRepository>(),
                 sp.GetRequiredService<IRelationsRepository>(),
                 sp.GetRequiredService<INotesRepository>(),
+                sp.GetRequiredService<IGimmickRepository>(),
+                sp.GetRequiredService<IGimmickService>(),
                 sp.GetRequiredService<PersonalityDetectorService>(),
                 sp.GetRequiredService<AgentReportGeneratorService>()));
 

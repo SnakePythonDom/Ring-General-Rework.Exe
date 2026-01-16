@@ -191,6 +191,21 @@
                        FontStyle="Italic"/>
           </StackPanel>
 
+          <!-- Zero to Hero Toggle -->
+          <StackPanel Spacing="8">
+            <ToggleSwitch IsChecked="{Binding IsZeroToHero}"
+                          OnContent="Mode Zero to Hero (Tabula Rasa)"
+                          OffContent="Mode Zero to Hero (Tabula Rasa)"
+                          FontSize="16"
+                          FontWeight="SemiBold"
+                          Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="Commencez avec 0 de prestige et un budget limité pour un défi ultime."
+                       FontSize="13"
+                       Foreground="{StaticResource AccentOrangeBrush}"
+                       FontStyle="Italic"
+                       IsVisible="{Binding IsZeroToHero}"/>
+          </StackPanel>
+
           <!-- Starting Prestige -->
           <StackPanel Spacing="8">
             <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}">
@@ -199,6 +214,7 @@
               <Run Text=" / 100"/>
             </TextBlock>
             <Slider Value="{Binding StartingPrestige}"
+                    IsEnabled="{Binding IsStandardMode}"
                     Minimum="0"
                     Maximum="100"
                     TickFrequency="5"
@@ -217,6 +233,7 @@
               <Run Text="{Binding StartingTreasury, StringFormat='${0:N0}'}" FontWeight="Bold" Foreground="{StaticResource AccentGreenBrush}"/>
             </TextBlock>
             <Slider Value="{Binding StartingTreasury}"
+                    IsEnabled="{Binding IsStandardMode}"
                     Minimum="50000"
                     Maximum="1000000"
                     TickFrequency="50000"

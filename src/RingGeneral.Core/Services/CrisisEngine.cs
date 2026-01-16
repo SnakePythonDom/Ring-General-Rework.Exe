@@ -63,8 +63,6 @@ public class CrisisEngine : ICrisisEngine
         // For simplicity in this phase, we just return what we find.
 
         return crises;
-<<<<<<< HEAD
-=======
     }
 
     public void ResolveCrisis(string companyId, CrisisEvent crisisEvent)
@@ -92,22 +90,10 @@ public class CrisisEngine : ICrisisEngine
         if (moraleScore < 40) return true;
         if (activeRumorsCount >= 5) return true;
         return false;
->>>>>>> temp-work
     }
 
-    public void ResolveCrisis(string companyId, CrisisEvent crisisEvent)
+    public async Task<Crisis> CreateCrisisAsync(string companyId, string triggerReason, int severity)
     {
-<<<<<<< HEAD
-        // Logic to mark crisis as resolving or apply fix
-        // This likely involves interacting with the repository to update status
-
-        // As the interface defines CrisisEvent (value object) but Repo uses Crisis (entity), 
-        // implementation details would map between them.
-
-        // Example placeholder for repository interaction:
-        // var activeCrises = _repository.GetActiveCrisesAsync(companyId).Result;
-        // logic to find matching crisis and update it.
-=======
         var crisis = new Crisis
         {
             CrisisId = 0, // Auto-increment in DB usually, but for new object 0 is fine
@@ -120,9 +106,7 @@ public class CrisisEngine : ICrisisEngine
             ResolutionAttempts = 0
         };
 
-        // If repository supports async, use it. For now, assuming sync repo for simplicity or wrapping
-        // _crisisRepository.SaveCrisisAsync(crisis); 
-        await _crisisRepository.SaveCrisisAsync(crisis); // Assuming this method exists or will be added
+        await _crisisRepository.SaveCrisisAsync(crisis);
         return crisis;
     }
 
@@ -141,10 +125,24 @@ public class CrisisEngine : ICrisisEngine
         }
     }
 
+    public async Task<List<Crisis>> GetActiveCrisesAsync(string companyId)
+    {
+        return await _crisisRepository.GetActiveCrisesAsync(companyId);
+    }
+
     public async Task<List<Crisis>> GetCriticalCrisesAsync(string companyId)
     {
         var activeCrises = await _crisisRepository.GetActiveCrisesAsync(companyId);
         return activeCrises.Where(c => c.IsCritical()).ToList();
->>>>>>> temp-work
+    }
+
+    public async Task<Crisis?> EscalateCrisisAsync(int crisisId)
+    {
+        var crisis = await _crisisRepository.GetCrisisByIdAsync(crisisId);
+        if (crisis == null) return null;
+
+        var escalated = crisis.Escalate();
+        await _crisisRepository.UpdateCrisisAsync(escalated);
+        return escalated;
     }
 }

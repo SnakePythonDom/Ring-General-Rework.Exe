@@ -374,10 +374,31 @@ public sealed class SqliteConnectionFactory
                     IsActive INTEGER NOT NULL DEFAULT 0,
                     CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     LastPlayedAt TEXT,
+                    GameMode TEXT NOT NULL DEFAULT 'Standard',
                     FOREIGN KEY (PlayerCompanyId) REFERENCES Companies(CompanyId)
                 );
             ";
             cmd.ExecuteNonQuery();
+        }
+        else
+        {
+            // Vérifier si GameMode existe, sinon l'ajouter
+            try
+            {
+                using var checkCmd = connection.CreateCommand();
+                checkCmd.CommandText = "SELECT GameMode FROM SaveGames LIMIT 1;";
+                checkCmd.ExecuteScalar();
+            }
+            catch
+            {
+                try
+                {
+                    using var alterCmd = connection.CreateCommand();
+                    alterCmd.CommandText = "ALTER TABLE SaveGames ADD COLUMN GameMode TEXT NOT NULL DEFAULT 'Standard';";
+                    alterCmd.ExecuteNonQuery();
+                }
+                catch { }
+            }
         }
 
         if (!TableExists(connection, "GameState"))

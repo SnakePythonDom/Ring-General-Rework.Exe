@@ -56,6 +56,11 @@ public interface IRelationsRepository
     /// </summary>
     List<WorkerRelation> GetStrongRelations(string workerId);
 
+    /// <summary>
+    /// Get all relationships in the database (for evolution system)
+    /// </summary>
+    List<WorkerRelation> GetAllRelations();
+
     // ====================================================================
     // CLIQUES (Groups of friends/allies)
     // ====================================================================

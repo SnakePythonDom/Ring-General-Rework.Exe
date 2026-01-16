@@ -104,11 +104,11 @@ public sealed class RelationsTabViewModel : ViewModelBase
         WorkerId = workerId;
 
         // Load relations
-        var relations = _repository.GetRelationsForWorker(workerId);
+        var relations = _repository.GetRelationsForWorker(workerId.ToString());
         Relations = new ObservableCollection<WorkerRelation>(relations);
 
         // Load faction memberships
-        var factions = _repository.GetWorkerFactionHistory(workerId);
+        var factions = _repository.GetWorkerFactionHistory(workerId.ToString());
         FactionMemberships = new ObservableCollection<FactionMember>(factions);
 
         this.RaisePropertyChanged(nameof(CurrentFactions));

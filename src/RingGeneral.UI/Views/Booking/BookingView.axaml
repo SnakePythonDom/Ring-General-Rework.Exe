@@ -166,7 +166,15 @@
                                         <Setter Property="BorderBrush" Value="{StaticResource AccentOrangeBrush}"/>
                                         <Setter Property="BorderThickness" Value="1"/>
                                     </Style>
+                                    
+                                    <!-- Style AI Generated -->
+                                    <Style Selector="Border.AiGenerated">
+                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBlueBrush}"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="Background" Value="#152196F3"/>
+                                    </Style>
                                 </Border.Styles>
+                                <Classes.AiGenerated>{Binding IsAiGenerated}</Classes.AiGenerated>
 
                                 <Grid Height="60">
                                     <Grid.ColumnDefinitions>
@@ -224,7 +232,10 @@
                                     </Border>
 
                                     <!-- Storyline -->
-                                    <TextBlock Grid.Column="5" Text="{Binding StorylineNom}" FontSize="12" Foreground="{StaticResource AccentBlueBrush}" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                        <TextBlock Text="🔥" FontSize="12" IsVisible="{Binding IsStorylineActive}" ToolTip.Tip="Avance une storyline active"/>
+                                        <TextBlock Text="{Binding StorylineNom}" FontSize="12" Foreground="{StaticResource AccentBlueBrush}"/>
+                                    </StackPanel>
 
                                     <!-- Note estimée -->
                                     <Border Grid.Column="6" Background="{StaticResource BackgroundSecondaryBrush}" Width="50" Height="50" CornerRadius="25" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -257,8 +268,30 @@
                 <StackPanel Orientation="Horizontal" Spacing="25">
                     <StackPanel>
                         <TextBlock Text="DURÉE TOTALE" FontSize="10" Foreground="{StaticResource TextDisabledBrush}"/>
-                        <TextBlock Text="{Binding DurationSummary}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" Margin="0,4,0,0"/>
-                        <ProgressBar Value="{Binding TotalDuration}" Maximum="{Binding ShowDuration}" Height="4" Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource AccentBlueBrush}" Margin="0,6,0,0" Width="120"/>
+                        <TextBlock Text="{Binding DurationSummary}" FontSize="14" FontWeight="Bold" Margin="0,4,0,0">
+                            <TextBlock.Styles>
+                                <Style Selector="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                                </Style>
+                                <Style Selector="TextBlock.Overrun">
+                                    <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                                </Style>
+                            </TextBlock.Styles>
+                            <Classes.Overrun>{Binding IsOverrun}</Classes.Overrun>
+                        </TextBlock>
+                        <ProgressBar Value="{Binding TotalDuration}" Maximum="{Binding ShowDuration}" Height="4" Margin="0,6,0,0" Width="120">
+                            <ProgressBar.Styles>
+                                <Style Selector="ProgressBar">
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBlueBrush}"/>
+                                </Style>
+                                <Style Selector="ProgressBar.Overrun">
+                                    <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                                    <Setter Property="Background" Value="#30FF0000"/>
+                                </Style>
+                            </ProgressBar.Styles>
+                            <Classes.Overrun>{Binding IsOverrun}</Classes.Overrun>
+                        </ProgressBar>
+                        <TextBlock Text="⚠️ OVERRUN" FontSize="10" Foreground="{StaticResource ErrorBrush}" FontWeight="Bold" Margin="0,2,0,0" IsVisible="{Binding IsOverrun}"/>
                     </StackPanel>
                     <Border Width="1" Background="{StaticResource BorderLightBrush}"/>
                     <StackPanel>

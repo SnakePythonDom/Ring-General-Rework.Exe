@@ -49,7 +49,9 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumCompanyPrestige = 0,
                 MinimumShowQuality = 50,
                 MinimumRosterSize = 10,
-                Description = "Réseau local pour débutants"
+                Description = "Réseau local pour débutants",
+                BannedContent = new List<string> { "Hardcore", "Blood" },
+                PreferredContent = new List<string> { "Realism" }
             });
         }
 
@@ -64,7 +66,9 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumCompanyPrestige = 20,
                 MinimumShowQuality = 60,
                 MinimumRosterSize = 20,
-                Description = "Réseau régional avec bonne couverture"
+                Description = "Réseau régional avec bonne couverture",
+                BannedContent = new List<string> { "Hardcore" },
+                PreferredContent = new List<string> { "Entertainment" }
             });
         }
 
@@ -80,7 +84,9 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumCompanyPrestige = 30,
                 MinimumShowQuality = 65,
                 MinimumRosterSize = 30,
-                Description = "Chaîne sportive nationale"
+                Description = "Chaîne sportive nationale",
+                BannedContent = new List<string> { "Comedy", "Gimmick" },
+                PreferredContent = new List<string> { "Technical", "Competition" }
             });
         }
 
@@ -95,7 +101,9 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumCompanyPrestige = 40,
                 MinimumShowQuality = 70,
                 MinimumRosterSize = 35,
-                Description = "Réseau câble premium"
+                Description = "Réseau câble premium sans censure",
+                BannedContent = new List<string> { "Comedy" },
+                PreferredContent = new List<string> { "Edgy", "Hardcore", "Blood" }
             });
         }
 
@@ -111,7 +119,9 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumCompanyPrestige = 60,
                 MinimumShowQuality = 75,
                 MinimumRosterSize = 40,
-                Description = "Réseau sportif majeur"
+                Description = "Réseau sportif majeur",
+                BannedContent = new List<string> { "Hardcore", "Blood" },
+                PreferredContent = new List<string> { "Mainstream", "StarPower" }
             });
         }
 
@@ -126,7 +136,9 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumCompanyPrestige = 70,
                 MinimumShowQuality = 80,
                 MinimumRosterSize = 45,
-                Description = "Réseau prime time"
+                Description = "Réseau prime time",
+                BannedContent = new List<string> { "Blood", "Hardcore", "Edgy" },
+                PreferredContent = new List<string> { "Drama", "Storyline", "Entertainment" }
             });
         }
 
@@ -142,7 +154,8 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumCompanyPrestige = 80,
                 MinimumShowQuality = 85,
                 MinimumRosterSize = 50,
-                Description = "Réseau sportif d'élite"
+                Description = "Réseau sportif d'élite",
+                PreferredContent = new List<string> { "Technical", "PureWrestling" }
             });
         }
 
@@ -159,7 +172,8 @@ public sealed class TvDealNegotiationService : ITvDealNegotiationService
                 MinimumRosterSize = 55,
                 Description = "Réseau sportif mondial",
                 Distribution = DistributionType.International,
-                SupportedRegionIds = new List<string> { "USA_EAST", "USA_WEST", "UK", "JAPAN", "MEXICO" }
+                SupportedRegionIds = new List<string> { "USA_EAST", "USA_WEST", "UK", "JAPAN", "MEXICO" },
+                PreferredContent = new List<string> { "Spectacle", "MainEvent", "StarPower" }
             });
         }
 

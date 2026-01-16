@@ -67,18 +67,20 @@ public sealed class BookingPredictorService
         var list = notesSegments.ToList();
         if (!list.Any()) return 0;
 
-        // Moyenne pondérée : le Main Event (dernier segment) compte double
         double total = 0;
-        double weight = 0;
+        double weightTotal = 0;
 
         for (int i = 0; i < list.Count; i++)
         {
-            var segmentWeight = (i == list.Count - 1) ? 2.0 : 1.0;
-            total += list[i] * segmentWeight;
-            weight += segmentWeight;
+            // Seul le dernier segment du show compte double (Main Event)
+            var isMainEvent = i == list.Count - 1;
+            var weight = isMainEvent ? 2.0 : 1.0;
+
+            total += list[i] * weight;
+            weightTotal += weight;
         }
 
-        return Math.Clamp((int)(total / weight), 0, 100);
+        return Math.Clamp((int)(total / weightTotal), 0, 100);
     }
 
     /// <summary>

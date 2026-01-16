@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Roster;assembly=RingGeneral.UI"
+             xmlns:views="clr-namespace:RingGeneral.UI.Views.Roster;assembly=RingGeneral.UI"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RingGeneral.UI.Views.Roster.RosterHubView"
+             x:DataType="vm:RosterHubViewModel">
+
+    <Grid>
+        <TabControl Padding="0">
+            <!-- Workers Tab -->
+            <TabItem Header="🤼 WORKERS">
+                <views:RosterView DataContext="{Binding WorkersVM}"/>
+            </TabItem>
+
+            <!-- Teams & Factions Tab -->
+            <TabItem Header="👥 TEAMS &amp; FACTIONS">
+                <views:FactionsView DataContext="{Binding FactionsVM}"/>
+            </TabItem>
+
+            <!-- Titles Tab -->
+            <TabItem Header="🏆 TITLES">
+                <views:TitlesView DataContext="{Binding TitlesVM}"/>
+            </TabItem>
+            
+            <!-- Analysis Tab -->
+            <TabItem Header="📊 ANALYSIS">
+                <views:StructuralDashboardView DataContext="{Binding WorkersVM}"/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

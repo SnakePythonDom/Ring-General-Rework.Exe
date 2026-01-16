@@ -111,8 +111,16 @@ public sealed class GameRepository : RepositoryBase, IGameRepository
         }
 
         var segments = ChargerSegments(connexion, showId);
-        var participantsIds = segments.SelectMany(segment => segment.Participants).Distinct().ToList();
-        var workers = ChargerWorkers(connexion, participantsIds);
+        var participantsIds = segments.SelectMany(segment => segment.Participants).ToList();
+
+        // Include Staff and Managers
+        participantsIds.AddRange(segments.Select(s => s.RefereeId).Where(id => !string.IsNullOrEmpty(id))!);
+        participantsIds.AddRange(segments.Select(s => s.RoadAgentId).Where(id => !string.IsNullOrEmpty(id))!);
+        participantsIds.AddRange(segments.Select(s => s.CommentatorId).Where(id => !string.IsNullOrEmpty(id))!);
+        participantsIds.AddRange(segments.Select(s => s.ManagerId).Where(id => !string.IsNullOrEmpty(id))!);
+
+        var distinctIds = participantsIds.Distinct().ToList();
+        var workers = ChargerWorkers(connexion, distinctIds);
         var titres = ChargerTitres(connexion);
         var storylines = ChargerStorylines(connexion);
         var chimies = ChargerChimies(connexion);
@@ -858,6 +866,56 @@ public sealed class GameRepository : RepositoryBase, IGameRepository
         }
 
         return workers;
+    }
+
+    private static List<RingGeneral.Core.Models.Staff.StaffMember> ChargerStaff(SqliteConnection connexion, IReadOnlyList<string> staffIds)
+    {
+        if (staffIds.Count == 0)
+        {
+            return new List<RingGeneral.Core.Models.Staff.StaffMember>();
+        }
+
+        using var command = connexion.CreateCommand();
+        var placeholders = staffIds.Select((id, index) => $"$sid{index}").ToList();
+        command.CommandText = $@"
+            SELECT StaffId, CompanyId, BrandId, Name, Role, Department, ExpertiseLevel,
+                   YearsOfExperience, SkillScore, PersonalityScore, AnnualSalary, HireDate,
+                   ContractEndDate, EmploymentStatus, IsActive, Notes, CreatedAt
+            FROM StaffMembers
+            WHERE StaffId IN ({string.Join(", ", placeholders)});";
+
+        for (var i = 0; i < staffIds.Count; i++)
+        {
+            command.Parameters.AddWithValue(placeholders[i], staffIds[i]);
+        }
+
+        using var reader = command.ExecuteReader();
+        var staffList = new List<RingGeneral.Core.Models.Staff.StaffMember>();
+        while (reader.Read())
+        {
+            staffList.Add(new RingGeneral.Core.Models.Staff.StaffMember
+            {
+                StaffId = reader.GetString(0),
+                CompanyId = reader.GetString(1),
+                BrandId = reader.IsDBNull(2) ? null : reader.GetString(2),
+                Name = reader.GetString(3),
+                Role = Enum.Parse<RingGeneral.Core.Enums.StaffRole>(reader.GetString(4)),
+                Department = Enum.Parse<RingGeneral.Core.Enums.StaffDepartment>(reader.GetString(5)),
+                ExpertiseLevel = Enum.Parse<RingGeneral.Core.Enums.StaffExpertiseLevel>(reader.GetString(6)),
+                YearsOfExperience = reader.GetInt32(7),
+                SkillScore = reader.GetInt32(8),
+                PersonalityScore = reader.GetInt32(9),
+                AnnualSalary = reader.GetDouble(10),
+                HireDate = DateTime.Parse(reader.GetString(11)),
+                ContractEndDate = reader.IsDBNull(12) ? null : DateTime.Parse(reader.GetString(12)),
+                EmploymentStatus = reader.GetString(13),
+                IsActive = reader.GetInt32(14) == 1,
+                Notes = reader.IsDBNull(15) ? null : reader.GetString(15),
+                CreatedAt = DateTime.Parse(reader.GetString(16))
+            });
+        }
+
+        return staffList;
     }
 
     private static List<TitleInfo> ChargerTitres(SqliteConnection connexion)

@@ -14,12 +14,15 @@ namespace RingGeneral.Core.Models
         /// <summary>
         /// Worker ID (Foreign Key)
         /// </summary>
-        public int WorkerId { get; set; }
+        /// <summary>
+        /// Worker ID (Foreign Key)
+        /// </summary>
+        public string WorkerId { get; set; } = string.Empty;
 
         /// <summary>
         /// Title ID (Foreign Key)
         /// </summary>
-        public int TitleId { get; set; }
+        public string TitleId { get; set; } = string.Empty;
 
         /// <summary>
         /// Date when the title was won
@@ -29,7 +32,7 @@ namespace RingGeneral.Core.Models
         /// <summary>
         /// Show ID where title was won (Foreign Key, nullable)
         /// </summary>
-        public int? WonShowId { get; set; }
+        public string? WonShowId { get; set; }
 
         /// <summary>
         /// Date when the title was lost (null if currently held)
@@ -39,7 +42,12 @@ namespace RingGeneral.Core.Models
         /// <summary>
         /// Show ID where title was lost (Foreign Key, nullable)
         /// </summary>
-        public int? LostShowId { get; set; }
+        public string? LostShowId { get; set; }
+
+        /// <summary>
+        /// Historical Era (e.g., "Golden Era", "Attitude Era")
+        /// </summary>
+        public string? Era { get; set; }
 
         /// <summary>
         /// Number of days the title was held
@@ -175,7 +183,10 @@ namespace RingGeneral.Core.Models
         /// <summary>
         /// End the title reign (mark as lost)
         /// </summary>
-        public void EndReign(DateTime lostDate, int? lostShowId = null)
+        /// <summary>
+        /// End the title reign (mark as lost)
+        /// </summary>
+        public void EndReign(DateTime lostDate, string? lostShowId = null)
         {
             LostDate = lostDate;
             LostShowId = lostShowId;
@@ -198,7 +209,7 @@ namespace RingGeneral.Core.Models
         /// </summary>
         public bool Validate()
         {
-            if (WorkerId <= 0 || TitleId <= 0) return false;
+            if (string.IsNullOrEmpty(WorkerId) || string.IsNullOrEmpty(TitleId)) return false;
             if (ReignNumber < 1) return false;
 
             // Lost date must be after won date

@@ -55,7 +55,7 @@ public sealed class SaveGameManager
     /// ✅ Crée une nouvelle sauvegarde dans GENERAL DB et la marque comme active.
     /// Désactive toutes les autres sauvegardes.
     /// </summary>
-    public SaveGameInfo CreerNouvellePartie(string companyId, string companyName, string? playerId = null, string difficulty = "Normal")
+    public SaveGameInfo CreerNouvellePartie(string companyId, string companyName, string? playerId = null, string difficulty = "Normal", string gameMode = "Standard")
     {
         if (string.IsNullOrWhiteSpace(companyId))
             throw new ArgumentException("companyId est requis", nameof(companyId));
@@ -85,10 +85,10 @@ public sealed class SaveGameManager
                 insertCmd.CommandText = """
                     INSERT INTO SaveGames (
                         SaveName, PlayerCompanyId, CurrentDay, CurrentDate,
-                        IsActive, CreatedAt, LastPlayedAt
+                        IsActive, CreatedAt, LastPlayedAt, GameMode
                     ) VALUES (
                         @saveName, @companyId, @day, @date,
-                        1, @createdAt, @lastPlayedAt
+                        1, @createdAt, @lastPlayedAt, @gameMode
                     );
                     """;
 
@@ -98,6 +98,7 @@ public sealed class SaveGameManager
                 insertCmd.Parameters.AddWithValue("@date", dateFormatted);
                 insertCmd.Parameters.AddWithValue("@createdAt", now.ToString("O"));
                 insertCmd.Parameters.AddWithValue("@lastPlayedAt", now.ToString("O"));
+                insertCmd.Parameters.AddWithValue("@gameMode", gameMode);
 
                 insertCmd.ExecuteNonQuery();
             }
@@ -111,7 +112,8 @@ public sealed class SaveGameManager
                 LastWriteTime: now,
                 CompanyId: companyId,
                 WorldVersion: 1,
-                IsFromSaveDb: true);
+                IsFromSaveDb: true,
+                GameMode: gameMode);
         }
         catch (Exception ex)
         {
@@ -128,7 +130,7 @@ public sealed class SaveGameManager
         using var conn = _connectionFactory.CreateGeneralConnection();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
-            SELECT SaveGameId, PlayerCompanyId, SaveName, CreatedAt
+            SELECT SaveGameId, PlayerCompanyId, SaveName, CreatedAt, GameMode
             FROM SaveGames
             WHERE IsActive = 1
             LIMIT 1;
@@ -150,7 +152,8 @@ public sealed class SaveGameManager
             LastWriteTime: createdAt,
             CompanyId: companyId,
             WorldVersion: 1,
-            IsFromSaveDb: true);
+            IsFromSaveDb: true,
+            GameMode: reader.IsDBNull(4) ? "Standard" : reader.GetString(4));
     }
 
     /// <summary>
@@ -186,7 +189,7 @@ public sealed class SaveGameManager
         using var conn = _connectionFactory.CreateGeneralConnection();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
-            SELECT SaveGameId, PlayerCompanyId, SaveName, CreatedAt
+            SELECT SaveGameId, PlayerCompanyId, SaveName, CreatedAt, GameMode
             FROM SaveGames
             ORDER BY CreatedAt DESC;
             """;
@@ -201,7 +204,8 @@ public sealed class SaveGameManager
                 LastWriteTime: DateTime.Parse(reader.GetString(3)),
                 CompanyId: reader.GetString(1),
                 WorldVersion: 1,
-                IsFromSaveDb: true));
+                IsFromSaveDb: true,
+                GameMode: reader.IsDBNull(4) ? "Standard" : reader.GetString(4)));
         }
 
         return saves;
@@ -451,6 +455,7 @@ public sealed class SaveGameManager
 /// <summary>
 /// Information sur une sauvegarde de jeu.
 /// </summary>
+
 public sealed record SaveGameInfo(
     string SaveId,
     string Name,
@@ -458,12 +463,18 @@ public sealed record SaveGameInfo(
     DateTime LastWriteTime,
     string? CompanyId,
     int WorldVersion,
-    bool IsFromSaveDb)
+    bool IsFromSaveDb,
+    string GameMode = "Standard")
 {
     /// <summary>
     /// Affichage formaté pour l'UI.
     /// </summary>
-    public string DisplayName => $"{Name} ({(IsFromSaveDb ? "SAVE DB" : "Fichier")})";
+    public string DisplayName => $"{Name} ({(IsFromSaveDb ? "SAVE DB" : "Fichier")}) - {GameMode}";
+
+    /// <summary>
+    /// Affichage formaté de l'id du mode.
+    /// </summary>
+    public bool IsZeroToHero => GameMode != null && GameMode.Equals("ZeroToHero", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Affichage formaté de la date.

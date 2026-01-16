@@ -1,0 +1,90 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:RingGeneral.UI.ViewModels.Roster"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:DataType="vm:BackstageViewModel"
+             x:Class="RingGeneral.UI.Views.Roster.BackstageView">
+
+    <Grid RowDefinitions="Auto, *" Margin="20">
+        
+        <!-- HEADER -->
+        <Border Grid.Row="0" Margin="0,0,0,20" Classes="CardBorder" Padding="20">
+            <Grid ColumnDefinitions="*, Auto, Auto">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="BACKSTAGE OVERVIEW" Classes="TitleStyle"/>
+                    <TextBlock Text="Manage morale, relationships, and locker room politics." Classes="SubtitleStyle"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" Margin="0,0,30,0">
+                    <StackPanel>
+                        <TextBlock Text="ATMOSPHERE" Classes="LabelStyle"/>
+                        <TextBlock Text="{Binding LockerRoomAtmosphere}" FontSize="24" FontWeight="Bold" Foreground="{Binding LockerRoomAtmosphere, Converter={StaticResource FatigueColorConverter}}"/> 
+                        <!-- Note: FatigueColorConverter might not be perfect match but reusing for Good/Bad color logic -->
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="OVERALL MORALE" Classes="LabelStyle"/>
+                        <ProgressBar Value="{Binding OverallMorale}" Minimum="0" Maximum="100" Width="150" Height="10" Foreground="{Binding OverallMorale, Converter={StaticResource FatigueColorConverter}}" ShowProgressText="True"/>
+                        <TextBlock Text="{Binding OverallMorale, StringFormat='{}{0:0.0}%'}" HorizontalAlignment="Right" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- CONTENT -->
+        <Grid Grid.Row="1" ColumnDefinitions="2*, 20, 1*">
+            
+            <!-- LEFT: RELATIONSHIPS MATRIX -->
+            <Border Grid.Column="0" Classes="CardBorder">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0" Text="KEY RELATIONSHIPS" Classes="HeadingStyle" Margin="0,0,0,15"/>
+                    
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Relationships}" AutoGenerateColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Binding="{Binding Icon}" Width="50"/>
+                            <DataGridTextColumn Header="Worker A" Binding="{Binding Worker1Name}" Width="*"/>
+                            <DataGridTextColumn Header="Worker B" Binding="{Binding Worker2Name}" Width="*"/>
+                            <DataGridTextColumn Header="Relation" Binding="{Binding Type}" Width="100"/>
+                             <DataGridTemplateColumn Header="Strength" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthColor}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="1.5*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- RIGHT: INCIDENT LOG -->
+            <Border Grid.Column="2" Classes="CardBorder">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0" Text="RECENT INCIDENTS" Classes="HeadingStyle" Margin="0,0,0,15"/>
+                    
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding IncidentLog}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="0,0,0,1" Padding="0,10">
+                                        <Grid ColumnDefinitions="Auto, *">
+                                            <Border Grid.Column="0" Width="4" Background="{Binding ImpactColor}" CornerRadius="2" Margin="0,0,10,0"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding Date}" FontSize="10" Foreground="{StaticResource TextSubtleBrush}" Margin="0,2"/>
+                                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+</UserControl>

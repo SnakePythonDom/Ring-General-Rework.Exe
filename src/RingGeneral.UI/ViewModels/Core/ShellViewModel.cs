@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using RingGeneral.Core.Interfaces;
 using System.Reactive;
 using ReactiveUI;
 using RingGeneral.UI.Services.Navigation;
@@ -16,10 +17,11 @@ using RingGeneral.UI.ViewModels.Calendar;
 using RingGeneral.UI.ViewModels.OwnerBooker;
 using RingGeneral.UI.ViewModels.Crisis;
 using RingGeneral.UI.ViewModels.Inbox;
-using RingGeneral.UI.ViewModels.Settings;
+using RingGeneral.UI.ViewModels.Start;
 using RingGeneral.UI.ViewModels.Medical;
 using RingGeneral.UI.ViewModels.CompanyHub;
 using RingGeneral.UI.ViewModels.Recruitment;
+using RingGeneral.UI.ViewModels.Settings;
 using RingGeneral.UI.ViewModels; // provide access to GameSessionViewModel
 using RingGeneral.Data.Repositories;
 
@@ -38,15 +40,29 @@ public sealed class ShellViewModel : ViewModelBase
     private ViewModelBase? _currentContentViewModel;
     private ViewModelBase? _currentContextViewModel;
     private bool _isInGameMode = false;
+    private GameSessionViewModel? _gameSession;
+    private readonly ITimeOrchestratorService? _timeOrchestrator;
+
+    public GameSessionViewModel? GameSession
+    {
+        get => _gameSession;
+        private set => this.RaiseAndSetIfChanged(ref _gameSession, value);
+    }
 
     private readonly IRecruitmentService _recruitmentService;
     private readonly IEventAggregator _eventAggregator;
 
-    public ShellViewModel(INavigationService navigationService, IEventAggregator eventAggregator, IRecruitmentService recruitmentService, GameRepository? repository = null)
+    public ShellViewModel(
+        INavigationService navigationService,
+        IEventAggregator eventAggregator,
+        IRecruitmentService recruitmentService,
+        ITimeOrchestratorService? timeOrchestrator = null,
+        GameRepository? repository = null)
     {
         _navigationService = navigationService;
         _eventAggregator = eventAggregator;
         _recruitmentService = recruitmentService;
+        _timeOrchestrator = timeOrchestrator;
         _repository = repository;
 
         // Ensure game session exists as early as possible so bindings (commands) are available
@@ -66,10 +82,11 @@ public sealed class ShellViewModel : ViewModelBase
                 CurrentContentViewModel = vm;
 
                 // Initialization contextuelle des ViewModels
-                if (vm is ChildCompaniesViewModel childCompaniesVm && !string.IsNullOrEmpty(GameSession.CurrentCompanyId))
+                if (vm is ChildCompaniesViewModel childCompaniesVm)
                 {
                     // Charger les filiales pour la compagnie courante
-                    _ = childCompaniesVm.LoadChildCompaniesAsync(GameSession.CurrentCompanyId);
+                    // TODO: Get actual company ID from session/repository
+                    _ = childCompaniesVm.LoadChildCompaniesAsync("PLAYER_COMPANY_ID");
                 }
 
                 // Mettre à jour le context panel selon le contenu
@@ -97,7 +114,7 @@ public sealed class ShellViewModel : ViewModelBase
                 if (evt?.Agent != null)
                 {
                     // Open recruitment dialog in context panel
-                    var dialogVm = new RecruitmentDialogViewModel(evt.Agent, _recruitmentService, _eventAggregator);
+                    var dialogVm = new RecruitmentDialogViewModel(evt.Agent, "PLAYER_COMPANY_ID", _recruitmentService, _eventAggregator);
                     CurrentContextViewModel = dialogVm;
                 }
             });
@@ -108,6 +125,7 @@ public sealed class ShellViewModel : ViewModelBase
         InboxCommand = ReactiveCommand.Create(OpenInbox);
         HelpCommand = ReactiveCommand.Create(OpenHelp);
         SettingsCommand = ReactiveCommand.Create(OpenSettings);
+        ContinueCommand = ReactiveCommand.Create(OnContinue);
 
         // Commandes de navigation rapide pour la top bar
         NavigateToDashboardCommand = ReactiveCommand.Create(() => _navigationService.NavigateTo<DashboardViewModel>());
@@ -207,33 +225,34 @@ public sealed class ShellViewModel : ViewModelBase
         {
             return CurrentContentViewModel switch
             {
-                DashboardViewModel => "TABLEAU DE BORD",
+                DashboardViewModel => "DASHBOARD",
                 BookingViewModel => "BOOKING",
-                LibraryViewModel => "BIBLIOTHÈQUE",
-                ShowHistoryPageViewModel => "HISTORIQUE SHOWS",
-                BookingSettingsViewModel => "PARAMÈTRES BOOKING",
+                LibraryViewModel => "LIBRARY",
+                ShowHistoryPageViewModel => "SHOW HISTORY",
+                BookingSettingsViewModel => "BOOKING SETTINGS",
+                RosterHubViewModel => "ROSTER HUB",
                 RosterViewModel => "ROSTER",
-                ViewModels.Roster.WorkerDetailViewModel => "DÉTAILS WORKER",
-                TitlesViewModel => "TITRES",
-                ViewModels.Roster.StructuralDashboardViewModel => "ANALYSE STRUCTURELLE",
-                MedicalViewModel => "MÉDICAL",
+                ViewModels.Roster.WorkerDetailViewModel => "WORKER DETAILS",
+                TitlesViewModel => "TITLES",
+                ViewModels.Roster.StructuralDashboardViewModel => "STRUCTURAL ANALYSIS",
+                MedicalViewModel => "MEDICAL",
                 ViewModels.CompanyHub.CompanyHubViewModel => "COMPANY HUB",
-                ViewModels.Trends.TrendsViewModel => "TENDANCES",
-                ViewModels.Company.NicheManagementViewModel => "GESTION NICHE",
-                ViewModels.Company.ChildCompaniesViewModel => "FILIALES",
-                ViewModels.Company.ChildCompanyBookingViewModel => "BOOKING FILIALES",
+                ViewModels.Trends.TrendsViewModel => "TRENDS",
+                ViewModels.Company.NicheManagementViewModel => "NICHE MANAGEMENT",
+                ViewModels.Company.ChildCompaniesViewModel => "CHILD COMPANIES",
+                ViewModels.Company.ChildCompanyBookingViewModel => "CHILD BOOKING",
                 StorylinesViewModel => "STORYLINES",
                 YouthViewModel or YouthHubViewModel => "YOUTH",
                 FinanceViewModel => "FINANCE",
                 OwnerBookerViewModel => "OWNER & BOOKER",
                 CrisisViewModel => "CRISES",
-                CalendarViewModel => "CALENDRIER",
+                CalendarViewModel => "CALENDAR",
                 InboxViewModel => "INBOX",
-                SettingsViewModel => "PARAMÈTRES",
-                FreeAgentsViewModel => "MARCHÉ DES AGENTS LIBRES",
-                Start.StartViewModel => "MENU PRINCIPAL",
-                Start.CompanySelectorViewModel => "SÉLECTION COMPAGNIE",
-                Start.CreateCompanyViewModel => "CRÉER COMPAGNIE",
+                SettingsViewModel => "SETTINGS",
+                FreeAgentsViewModel => "FREE AGENTS MARKET",
+                Start.StartViewModel => "MAIN MENU",
+                Start.CompanySelectorViewModel => "COMPANY SELECTION",
+                Start.CreateCompanyViewModel => "CREATE COMPANY",
                 null => "",
                 _ => CurrentContentViewModel?.GetType().Name.Replace("ViewModel", "") ?? ""
             };
@@ -264,6 +283,7 @@ public sealed class ShellViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> InboxCommand { get; }
     public ReactiveCommand<Unit, Unit> HelpCommand { get; }
     public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ContinueCommand { get; }
 
     // Commandes de navigation rapide pour la top bar
     public ReactiveCommand<Unit, Unit> NavigateToDashboardCommand { get; }
@@ -279,197 +299,181 @@ public sealed class ShellViewModel : ViewModelBase
     {
         var root = new ObservableCollection<NavigationItemViewModel>();
 
-        // 🏠 Accueil / Dashboard
-        var home = new NavigationItemViewModel(
-            "home",
-            "ACCUEIL",
-            "🏠",
-            typeof(DashboardViewModel)
-        );
-        root.Add(home);
+        // 1. DASHBOARD (Overview)
+        var dashboardGroup = new NavigationItemViewModel("dashboard_root", "DASHBOARD", "🏠");
+        dashboardGroup.IsExpanded = true;
 
-        // 📋 BOOKING
-        var booking = new NavigationItemViewModel(
-            "booking",
-            "BOOKING",
-            "📋"
-        );
-        booking.IsExpanded = true; // Expanded par défaut
-        booking.Children.Add(new NavigationItemViewModel(
-            "booking.shows",
-            "Shows actifs",
+        dashboardGroup.Children.Add(new NavigationItemViewModel(
+            "dashboard.home",
+            "Overview",
+            "  🏠",
+            typeof(DashboardViewModel),
+            dashboardGroup
+        ));
+        dashboardGroup.Children.Add(new NavigationItemViewModel(
+            "dashboard.calendar",
+            "Calendar & Emails",
+            "  📆",
+            typeof(CalendarViewModel),
+            dashboardGroup
+        ));
+        root.Add(dashboardGroup);
+
+        // 2. CREATIVE CONTROL (The Core Game)
+        var creativeGroup = new NavigationItemViewModel("creative_root", "CREATIVE CONTROL", "🎬");
+        creativeGroup.IsExpanded = true;
+
+        creativeGroup.Children.Add(new NavigationItemViewModel(
+            "creative.booking",
+            "Active Booking",
             "  📺",
             typeof(BookingViewModel),
-            booking
+            creativeGroup
         ));
-        booking.Children.Add(new NavigationItemViewModel(
-            "booking.library",
-            "Bibliothèque",
-            "  📚",
-            typeof(LibraryViewModel),
-            booking
+        creativeGroup.Children.Add(new NavigationItemViewModel(
+            "creative.storylines",
+            "Storylines",
+            "  📖",
+            typeof(StorylinesViewModel),
+            creativeGroup
         ));
-        booking.Children.Add(new NavigationItemViewModel(
-            "booking.history",
-            "Historique",
-            "  📊",
-            typeof(ShowHistoryPageViewModel),
-            booking
-        ));
-        booking.Children.Add(new NavigationItemViewModel(
-            "booking.settings",
-            "Paramètres",
-            "  ⚙️",
-            typeof(BookingSettingsViewModel),
-            booking
-        ));
-        root.Add(booking);
-
-        // 👤 ROSTER
-        var roster = new NavigationItemViewModel(
-            "roster",
-            "ROSTER",
-            "👤"
-        );
-        _workersNavigationItem = new NavigationItemViewModel(
-            "roster.workers",
-            "Workers",
-            "  🤼",
-            typeof(RosterViewModel),
-            roster
-        );
-        roster.Children.Add(_workersNavigationItem);
-        roster.Children.Add(new NavigationItemViewModel(
-            "roster.titles",
-            "Titres",
+        creativeGroup.Children.Add(new NavigationItemViewModel(
+            "creative.titles",
+            "Titles & Prestige",
             "  🏆",
             typeof(TitlesViewModel),
-            roster
-        )
-        { Badge = "(5)" });
-        roster.Children.Add(new NavigationItemViewModel(
-            "roster.analysis",
-            "Analyse Structurelle",
-            "  📊",
-            typeof(ViewModels.Roster.StructuralDashboardViewModel),
-            roster
+            creativeGroup
         ));
-        roster.Children.Add(new NavigationItemViewModel(
-            "roster.freeagents",
-            "Agents Libres",
-            "  💸",
-            typeof(FreeAgentsViewModel),
-            roster
+        creativeGroup.Children.Add(new NavigationItemViewModel(
+            "creative.history",
+            "Show History",
+            "  📚",
+            typeof(ShowHistoryPageViewModel),
+            creativeGroup
         ));
-        root.Add(roster);
+        creativeGroup.Children.Add(new NavigationItemViewModel(
+           "creative.events",
+           "Event Schedule",
+           "  📅",
+           typeof(BookingSettingsViewModel), // Using BookingSettings as proxy for Event Creation
+           creativeGroup
+       ));
+        creativeGroup.Children.Add(new NavigationItemViewModel(
+            "creative.staff",
+            "Creative Team",
+            "  🧠",
+            typeof(ViewModels.CompanyHub.CompanyHubViewModel), // Using CompanyHub as proxy
+            creativeGroup
+        ));
+        root.Add(creativeGroup);
 
-        // 🏥 MEDICAL (inclut maintenant Injuries)
-        var medical = new NavigationItemViewModel(
-            "medical",
-            "MÉDICAL",
-            "🏥",
-            typeof(MedicalViewModel)
-        );
-        root.Add(medical);
+        // 3. TALENT RELATIONS (Human Management)
+        var talentGroup = new NavigationItemViewModel("talent_root", "TALENT RELATIONS", "👥");
+        talentGroup.IsExpanded = true;
 
-        // 🏢 COMPANY HUB
-        var companyHub = new NavigationItemViewModel(
-            "companyhub",
-            "COMPANY HUB",
-            "🏢",
-            typeof(CompanyHubViewModel)
-        );
-        root.Add(companyHub);
+        talentGroup.Children.Add(new NavigationItemViewModel(
+            "talent.roster",
+            "Roster Hub",
+            "  🤼",
+            typeof(RosterHubViewModel),
+            talentGroup
+        ));
+        talentGroup.Children.Add(new NavigationItemViewModel(
+            "talent.factions",
+            "Stables & Teams",
+            "  🏴",
+            typeof(ViewModels.Roster.FactionsViewModel),
+            talentGroup
+        ));
+        talentGroup.Children.Add(new NavigationItemViewModel(
+            "talent.backstage",
+            "Backstage",
+            "  💞",
+            typeof(ViewModels.Roster.BackstageViewModel),
+            talentGroup
+        ));
+        talentGroup.Children.Add(new NavigationItemViewModel(
+            "talent.medical",
+            "Medical & Fatigue",
+            "  🚑",
+            typeof(MedicalViewModel),
+            talentGroup
+        ));
+        talentGroup.Children.Add(new NavigationItemViewModel(
+           "talent.freeagents",
+           "Contracts & Free Agents",
+           "  📝",
+           typeof(FreeAgentsViewModel),
+           talentGroup
+       ));
+        talentGroup.Children.Add(new NavigationItemViewModel(
+            "talent.youth",
+            "Youth Structure",
+            "  🎓",
+            typeof(YouthHubViewModel),
+            talentGroup
+        ));
+        talentGroup.Children.Add(new NavigationItemViewModel(
+           "talent.childcompanies",
+           "Child Companies",
+           "  🐣",
+           typeof(ViewModels.Company.ChildCompaniesViewModel),
+           talentGroup
+       ));
+        root.Add(talentGroup);
 
-        // 📈 ANALYSIS (Analyse Structurelle & Stratégies de Niche)
-        var analysis = new NavigationItemViewModel(
-            "analysis",
-            "ANALYSE",
-            "📈"
-        );
-        analysis.Children.Add(new NavigationItemViewModel(
-            "analysis.trends",
-            "Tendances",
+        // 4. OFFICE (Business Management)
+        var officeGroup = new NavigationItemViewModel("office_root", "OFFICE", "🏢");
+
+        officeGroup.Children.Add(new NavigationItemViewModel(
+            "office.finance",
+            "Finance",
+            "  💰",
+            typeof(FinanceViewModel),
+            officeGroup
+        ));
+        officeGroup.Children.Add(new NavigationItemViewModel(
+            "office.staff",
+            "Staff & Politics",
+            "  👔",
+            typeof(OwnerBookerViewModel),
+            officeGroup
+        ));
+        officeGroup.Children.Add(new NavigationItemViewModel(
+            "office.analysis",
+            "Market Analysis",
             "  📈",
             typeof(ViewModels.Trends.TrendsViewModel),
-            analysis
+            officeGroup
         ));
-        analysis.Children.Add(new NavigationItemViewModel(
-            "analysis.niche",
-            "Gestion Niche",
-            "  🎯",
-            typeof(ViewModels.Company.NicheManagementViewModel),
-            analysis
+        officeGroup.Children.Add(new NavigationItemViewModel(
+            "office.crises",
+            "Incidents & Crises",
+            "  🔥",
+            typeof(CrisisViewModel),
+            officeGroup
         ));
-        analysis.Children.Add(new NavigationItemViewModel(
-            "analysis.childcompanies",
-            "Filiales",
-            "  🏢",
-            typeof(ViewModels.Company.ChildCompaniesViewModel),
-            analysis
+        officeGroup.Children.Add(new NavigationItemViewModel(
+           "office.rivals",
+           "Rival Companies",
+           "  ⚔️",
+           typeof(ViewModels.Company.NicheManagementViewModel), // Using Niche/Rivals view
+           officeGroup
+       ));
+        root.Add(officeGroup);
+
+        // 5. SYSTEM
+        var systemGroup = new NavigationItemViewModel("system_root", "SYSTEM", "⚙️");
+
+        systemGroup.Children.Add(new NavigationItemViewModel(
+            "system.options",
+            "Options & Database",
+            "  🔧",
+            typeof(SettingsViewModel),
+            systemGroup
         ));
-        analysis.Children.Add(new NavigationItemViewModel(
-            "analysis.childbooking",
-            "Contrôle Booking Filiales",
-            "  🎛️",
-            typeof(ViewModels.Company.ChildCompanyBookingViewModel),
-            analysis
-        ));
-        root.Add(analysis);
 
-        // 📖 STORYLINES
-        var storylines = new NavigationItemViewModel(
-            "storylines",
-            "STORYLINES",
-            "📖",
-            typeof(StorylinesViewModel)
-        );
-        root.Add(storylines);
-
-        // 🎓 YOUTH
-        var youth = new NavigationItemViewModel(
-            "youth",
-            "YOUTH",
-            "🎓",
-            typeof(YouthHubViewModel)
-        );
-        root.Add(youth);
-
-        // 💼 FINANCE
-        var finance = new NavigationItemViewModel(
-            "finance",
-            "FINANCE",
-            "💼",
-            typeof(FinanceViewModel)
-        );
-        root.Add(finance);
-
-        // 👔 OWNER & BOOKER
-        var ownerBooker = new NavigationItemViewModel(
-            "ownerbooker",
-            "OWNER & BOOKER",
-            "👔",
-            typeof(OwnerBookerViewModel)
-        );
-        root.Add(ownerBooker);
-
-        // 🔥 CRISES
-        var crises = new NavigationItemViewModel(
-            "crises",
-            "CRISES",
-            "🔥",
-            typeof(CrisisViewModel)
-        );
-        root.Add(crises);
-
-        // 📆 CALENDRIER
-        var calendar = new NavigationItemViewModel(
-            "calendar",
-            "CALENDRIER",
-            "📆",
-            typeof(CalendarViewModel)
-        );
-        root.Add(calendar);
+        root.Add(systemGroup);
 
         return root;
     }
@@ -561,7 +565,7 @@ public sealed class ShellViewModel : ViewModelBase
             CurrentContextViewModel = null; // TODO: Créer ValidationPanelViewModel
             Logger.Debug("ShellViewModel: Context panel set to null for BookingViewModel (TODO: ValidationPanelViewModel)");
         }
-        else if (contentViewModel is RosterViewModel or WorkerDetailViewModel)
+        else if (contentViewModel is RosterHubViewModel or RosterViewModel or WorkerDetailViewModel)
         {
             // Afficher les stats du worker sélectionné
             CurrentContextViewModel = null; // TODO: Créer WorkerStatsPanelViewModel
@@ -623,6 +627,40 @@ public sealed class ShellViewModel : ViewModelBase
         // TODO: Créer ReportsViewModel si nécessaire
         _navigationService.NavigateTo<FinanceViewModel>();
         Logger.Info("ShellViewModel: Navigation vers FinanceViewModel (rapports)");
+    }
+
+    private void OnContinue()
+    {
+        if (_timeOrchestrator == null)
+        {
+            Logger.Warning("ShellViewModel: ITimeOrchestratorService non disponible");
+            return;
+        }
+
+        try
+        {
+            // Récupérer le PlayerCompanyId depuis le repository ou le session context
+            // Pour l'instant on utilise PLAYER_COMPANY_ID comme dans le reste du shell
+            var playerCompanyId = "PLAYER_COMPANY_ID"; // TODO: Obtenir l'ID réel depuis la sauvegarde active
+
+            Logger.Info("ShellViewModel: Avancement du temps (Jour Suivant)...");
+            var result = _timeOrchestrator.PasserJourSuivant(playerCompanyId);
+
+            // Lever un événement ou rafraichir le ViewModel actuel si c'est le Dashboard
+            if (CurrentContentViewModel is DashboardViewModel dashboardVm)
+            {
+                dashboardVm.LoadDashboardData();
+            }
+
+            // On pourrait aussi déclencher un événement global via IEventAggregator pour que tous les VMs se rafraichissent
+            // _eventAggregator.GetEvent<TimeAdvancedEvent>().Publish(result);
+
+            Logger.Info($"ShellViewModel: Jour suivant effectué. Nouveau jour: {result.Day}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"ShellViewModel: Erreur lors du passage au jour suivant: {ex.Message}", ex);
+        }
     }
 
     /// <summary>

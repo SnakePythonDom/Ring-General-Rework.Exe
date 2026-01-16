@@ -319,14 +319,11 @@ namespace RingGeneral.Core.Models
         public int Morale { get; set; } = 50;
 
         /// <summary>
-<<<<<<< HEAD
-=======
         /// Global Popularity (0-100)
         /// </summary>
         public int Popularity { get; set; } = 0;
 
         /// <summary>
->>>>>>> temp-work
         /// Is this worker currently injured?
         /// </summary>
         public bool IsInjured { get; set; }

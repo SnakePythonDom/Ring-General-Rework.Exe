@@ -774,6 +774,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             intensite,
             null,
             null,
+            true,
             settings);
 
         _repository.AjouterSegment(_context.Show.ShowId, newSegment, Segments.Count + 1);
@@ -808,6 +809,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             intensite,
             segment.VainqueurId,
             segment.PerdantId,
+            true,
             settings);
 
         _repository.MettreAJourSegment(updated);
@@ -832,6 +834,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             segment.Intensite,
             segment.VainqueurId,
             segment.PerdantId,
+            true,
             segment.ConstruireSettings());
 
         var copie = _bookingBuilder.DupliquerSegment(copieSegment);
@@ -858,6 +861,7 @@ public sealed class GameSessionViewModel : ViewModelBase
             segment.Intensite,
             segment.VainqueurId,
             segment.PerdantId,
+            true,
             segment.ConstruireSettings());
 
         var copie = _bookingBuilder.DupliquerMatch(copieSegment);

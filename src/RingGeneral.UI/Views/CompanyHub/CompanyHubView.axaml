@@ -24,7 +24,7 @@
                      Foreground="{StaticResource BrandPrimaryBrush}"/>
           <StackPanel Orientation="Horizontal" Spacing="20">
             <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
-              <Run Text="Trésorerie: "/>
+              <Run Text="Treasury: "/>
               <Run Text="{Binding CurrentCompany.Tresorerie, StringFormat='${0:N0}'}"
                    FontWeight="Bold"
                    Foreground="{StaticResource SuccessLightBrush}"/>
@@ -35,13 +35,6 @@
             </TextBlock>
           </StackPanel>
         </StackPanel>
-        <Button Grid.Column="1"
-                Content="CONTINUER"
-                Background="{StaticResource BrandPrimaryBrush}"
-                Foreground="White"
-                Padding="20,8"
-                CornerRadius="8"
-                FontWeight="Bold"/>
       </Grid>
     </Border>
 
@@ -71,11 +64,11 @@
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <RadioButton Classes="toggle-pill"
                                GroupName="CompanyMode"
-                               Content="MA COMPAGNIE"
+                               Content="MY COMPANY"
                                IsChecked="{Binding IsViewingMyCompany}"/>
                   <RadioButton Classes="toggle-pill"
                                GroupName="CompanyMode"
-                               Content="RIVAUX"
+                               Content="RIVALS"
                                IsChecked="{Binding IsViewingRival}"/>
                 </StackPanel>
               </Border>
@@ -87,7 +80,7 @@
                 <Run Text="{Binding CurrentCompany.Prestige, StringFormat='National ({0}/100)'}" FontWeight="Bold" Foreground="White"/>
               </TextBlock>
               <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
-                <Run Text="Région: "/>
+                <Run Text="Region: "/>
                 <Run Text="{Binding CurrentCompany.Region}" FontWeight="Bold" Foreground="White"/>
               </TextBlock>
             </StackPanel>
@@ -107,12 +100,12 @@
         </Style>
       </TabControl.Styles>
 
-      <TabItem Header="VUE D'ENSEMBLE">
+      <TabItem Header="OVERVIEW">
         <Grid ColumnDefinitions="2*,*" RowDefinitions="Auto">
           <StackPanel Grid.Column="0" Spacing="20">
             <Border Classes="card" BorderThickness="4,0,0,0" BorderBrush="{StaticResource BrandPrimaryBrush}">
               <StackPanel Spacing="16">
-                <TextBlock Text="PROCHAIN ÉVÉNEMENT"
+                <TextBlock Text="NEXT EVENT"
                            FontSize="11"
                            FontWeight="Black"
                            Foreground="{StaticResource TextMutedBrush}"/>
@@ -125,11 +118,11 @@
                   </Border>
                   <StackPanel Grid.Column="1" Spacing="4">
                     <TextBlock Text="GFW MONDAY NIGHT" FontSize="20" FontWeight="Black" Foreground="White"/>
-                    <TextBlock Text="Lundi Prochain | 20h00" FontSize="12" Foreground="{StaticResource BrandPrimaryBrush}"/>
+                    <TextBlock Text="Next Monday | 8:00 PM" FontSize="12" Foreground="{StaticResource BrandPrimaryBrush}"/>
                   </StackPanel>
                   <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="4">
                     <TextBlock Text="Barclays Center" FontSize="12" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock Text="Tickets: 85% Vendus" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock Text="Tickets: 85% Sold" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                   </StackPanel>
                 </Grid>
               </StackPanel>
@@ -138,12 +131,12 @@
 
           <Border Grid.Column="1" Classes="card">
             <StackPanel Spacing="10">
-              <TextBlock Text="PERFORMANCE RÉCENTE"
+              <TextBlock Text="RECENT PERFORMANCE"
                          FontSize="11"
                          FontWeight="Black"
                          Foreground="{StaticResource TextMutedBrush}"/>
               <TextBlock Text="7.8" FontSize="34" FontWeight="Black" Foreground="{StaticResource SuccessLightBrush}"/>
-              <TextBlock Text="Moyenne Ratings (Derniers 4 shows)" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+              <TextBlock Text="Average Ratings (Last 4 shows)" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
             </StackPanel>
           </Border>
         </Grid>
@@ -164,11 +157,11 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="CRÉATIF">
+            <TabItem Header="CREATIVE">
               <ScrollViewer>
                 <StackPanel Spacing="10">
                   <Border Background="{StaticResource BackgroundCardDarkBrush}" Padding="16" CornerRadius="8" IsVisible="{Binding !CreativeStaff.Count}">
-                    <TextBlock Text="Aucun staff créatif assigné" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No creative staff assigned" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
                   </Border>
                   
                   <ItemsControl ItemsSource="{Binding CreativeStaffItems}">
@@ -188,13 +181,13 @@
                               <Button Command="{Binding DataContext.CheckCompatibilityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       CommandParameter="{Binding}"
                                       Content="🤝"
-                                      ToolTip.Tip="Vérifier Compatibilité"
+                                      ToolTip.Tip="Check Compatibility"
                                       Background="Transparent" BorderThickness="1" BorderBrush="{StaticResource BorderMediumBrush}"
                                       Padding="8,4"/>
                               <Button Command="{Binding DataContext.FireStaffCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       CommandParameter="{Binding}"
                                       Content="❌"
-                                      ToolTip.Tip="Licencier"
+                                      ToolTip.Tip="Fire"
                                       Background="Transparent" BorderThickness="1" BorderBrush="#33ef4444"
                                       Foreground="#ef4444"
                                       Padding="8,4"/>
@@ -211,11 +204,11 @@
               </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="STRUCTUREL">
+            <TabItem Header="STRUCTURAL">
               <ScrollViewer>
                 <StackPanel Spacing="10">
                   <Border Background="{StaticResource BackgroundCardDarkBrush}" Padding="16" CornerRadius="8" IsVisible="{Binding !StructuralStaff.Count}">
-                    <TextBlock Text="Aucun staff structurel assigné" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No structural staff assigned" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
                   </Border>
 
                   <ItemsControl ItemsSource="{Binding StructuralStaffItems}">
@@ -235,7 +228,7 @@
                               <Button Command="{Binding DataContext.FireStaffCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       CommandParameter="{Binding}"
                                       Content="❌"
-                                      ToolTip.Tip="Licencier"
+                                      ToolTip.Tip="Fire"
                                       Background="Transparent" BorderThickness="1" BorderBrush="#33ef4444"
                                       Foreground="#ef4444"
                                       Padding="8,4"/>
@@ -252,11 +245,11 @@
               </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="ENTRAÎNEURS">
+            <TabItem Header="TRAINERS">
               <ScrollViewer>
                 <StackPanel Spacing="10">
                   <Border Background="{StaticResource BackgroundCardDarkBrush}" Padding="16" CornerRadius="8" IsVisible="{Binding !Trainers.Count}">
-                    <TextBlock Text="Aucun entraîneur assigné" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No trainer assigned" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
                   </Border>
 
                   <ItemsControl ItemsSource="{Binding TrainerItems}">
@@ -276,7 +269,7 @@
                               <Button Command="{Binding DataContext.FireStaffCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       CommandParameter="{Binding}"
                                       Content="❌"
-                                      ToolTip.Tip="Licencier"
+                                      ToolTip.Tip="Fire"
                                       Background="Transparent" BorderThickness="1" BorderBrush="#33ef4444"
                                       Foreground="#ef4444"
                                       Padding="8,4"/>
@@ -298,30 +291,30 @@
 
       <TabItem Header="ROSTER">
         <Border Classes="card">
-          <TextBlock Text="ROSTER - CONTENU À VENIR"
+          <TextBlock Text="ROSTER - COMING SOON"
                      FontSize="12"
                      FontWeight="Bold"
                      Foreground="{StaticResource TextMutedBrush}"/>
         </Border>
       </TabItem>
 
-      <TabItem Header="TITRES">
+      <TabItem Header="TITLES">
         <Border Classes="card">
-          <TextBlock Text="TITRES &amp; CHAMPIONS - CONTENU À VENIR"
+          <TextBlock Text="TITLES &amp; CHAMPIONS - COMING SOON"
                      FontSize="12"
                      FontWeight="Bold"
                      Foreground="{StaticResource TextMutedBrush}"/>
         </Border>
       </TabItem>
 
-      <TabItem Header="STRUCTURE &amp; ÈRES">
+      <TabItem Header="STRUCTURE &amp; ERAS">
         <ScrollViewer>
           <Grid ColumnDefinitions="*,*" Margin="10">
             <!-- Brands -->
             <StackPanel Grid.Column="0" Spacing="16" Margin="0,0,10,0">
               <TextBlock Text="BRANDS &amp; DIVISIONS" FontSize="16" FontWeight="Bold" Foreground="White"/>
               <Border Background="{StaticResource BackgroundCardDarkBrush}" Padding="16" CornerRadius="8" IsVisible="{Binding !Brands.Count}">
-                <TextBlock Text="Aucun brand configuré" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="No brand configured" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
               </Border>
               <ItemsControl ItemsSource="{Binding Brands}">
                 <ItemsControl.ItemTemplate>
@@ -345,18 +338,18 @@
 
             <!-- Eras & Niche -->
             <StackPanel Grid.Column="1" Spacing="16" Margin="10,0,0,0">
-              <TextBlock Text="ÈRES ET PHILOSOPHIE" FontSize="16" FontWeight="Bold" Foreground="White"/>
+              <TextBlock Text="ERAS AND PHILOSOPHY" FontSize="16" FontWeight="Bold" Foreground="White"/>
               
               <!-- Niche Profile if exists -->
               <Border Background="{StaticResource BackgroundCardDarkBrush}" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BrandPrimaryBrush}" BorderThickness="0,0,0,4">
                 <StackPanel Spacing="8">
-                  <TextBlock Text="PROFIL DE NICHE" FontSize="11" FontWeight="Black" Foreground="{StaticResource TextMutedBrush}"/>
+                  <TextBlock Text="NICHE PROFILE" FontSize="11" FontWeight="Black" Foreground="{StaticResource TextMutedBrush}"/>
                   <TextBlock Text="{Binding NicheProfile.FederationType, FallbackValue='Standard'}" FontSize="18" FontWeight="Black" Foreground="White"/>
                   <TextBlock Text="{Binding NicheProfile.Description}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
               </Border>
 
-              <TextBlock Text="HISTORIQUE DES ÈRES" FontSize="14" FontWeight="Bold" Foreground="White" Margin="0,10,0,0"/>
+              <TextBlock Text="ERA HISTORY" FontSize="14" FontWeight="Bold" Foreground="White" Margin="0,10,0,0"/>
               <ItemsControl ItemsSource="{Binding Eras}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
@@ -366,7 +359,7 @@
                           <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White"/>
                           <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
                         </StackPanel>
-                        <TextBlock Grid.Column="1" Text="ACTUELLE" IsVisible="{Binding IsCurrent}" Foreground="{StaticResource SuccessLightBrush}" FontWeight="Bold" FontSize="10" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="CURRENT" IsVisible="{Binding IsCurrent}" Foreground="{StaticResource SuccessLightBrush}" FontWeight="Bold" FontSize="10" VerticalAlignment="Center"/>
                       </Grid>
                     </Border>
                   </DataTemplate>
@@ -379,17 +372,17 @@
 
       <TabItem Header="FINANCES">
         <Border Classes="card">
-          <TextBlock Text="FINANCES - CONTENU À VENIR"
+          <TextBlock Text="FINANCES - COMING SOON"
                      FontSize="12"
                      FontWeight="Bold"
                      Foreground="{StaticResource TextMutedBrush}"/>
         </Border>
       </TabItem>
 
-      <TabItem Header="FILIALES">
+      <TabItem Header="SUBSIDIARIES">
         <Border Classes="card" Padding="20">
           <StackPanel Spacing="16">
-            <TextBlock Text="MES FILIALES"
+            <TextBlock Text="MY SUBSIDIARIES"
                        FontSize="16"
                        FontWeight="Bold"
                        Foreground="White"/>
@@ -411,17 +404,17 @@
                                    Foreground="White"/>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                           <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
-                            <Run Text="Objectif: "/>
+                            <Run Text="Goal: "/>
                             <Run Text="{Binding Objective}" FontWeight="Bold" Foreground="White"/>
                           </TextBlock>
                           <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
-                            <Run Text="Autonomie: "/>
+                            <Run Text="Autonomy: "/>
                             <Run Text="{Binding HasFullAutonomy}" FontWeight="Bold" Foreground="White"/>
                           </TextBlock>
                         </StackPanel>
                       </StackPanel>
                       <Button Grid.Column="1"
-                              Content="RECRUTER MANAGER"
+                              Content="HIRE MANAGER"
                               Command="{Binding DataContext.HireStaffCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                               CommandParameter="{Binding ChildCompanyId}"
                               Background="{StaticResource BrandPrimaryBrush}"
@@ -435,7 +428,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <TextBlock Text="{Binding PlayerCompanies.Count, StringFormat='Total: {0} filiale(s)'}"
+            <TextBlock Text="{Binding PlayerCompanies.Count, StringFormat='Total: {0} subsidiary(ies)'}"
                        FontSize="12"
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Right"/>

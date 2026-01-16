@@ -121,6 +121,19 @@ namespace RingGeneral.Core.Models.Attributes
         /// 17-20: Chameleon, masters any character
         /// Affects: Gimmick change success, heel/face turns, style variety
         /// </summary>
+        /// <summary>
+        /// Consistency: Reliability of performance night in and night out.
+        /// </summary>
+        public int Consistency { get; set; } = 10;
+
+        /// <summary>
+        /// Adaptabilité: Flexibility to change roles, styles, and gimmicks.
+        /// 0-5: One-trick pony, can't adapt
+        /// 6-12: Limited adaptability
+        /// 13-16: Versatile, can play multiple roles
+        /// 17-20: Chameleon, masters any character
+        /// Affects: Gimmick change success, heel/face turns, style variety
+        /// </summary>
         public int Adaptabilité { get; set; } = 10;
 
         // ====================================================================
